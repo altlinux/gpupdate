@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PolFile num_entries="3" signature="PReg" version="1">
+	<Entry type="4" type_name="REG_DWORD">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>sshd-gssapi-auth</ValueName>
+		<Value>1</Value>
+	</Entry>
+	<Entry type="4" type_name="REG_DWORD">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>ssh-gssapi-auth</ValueName>
+		<Value>1</Value>
+	</Entry>
+	<Entry type="4" type_name="REG_DWORD">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>sudo</ValueName>
+		<Value>0</Value>
+	</Entry>
+</PolFile>

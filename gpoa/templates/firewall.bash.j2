@@ -1,0 +1,22 @@
+{% include 'header.bash.j2' %}
+MODULE_NAME="Firewall"
+
+on_exit() {
+    logI "on_exit in ${MODULE_NAME}"
+}
+
+{% for z,rs in zoneRules.items() %}
+logI "Processing rules in zone {{z}}"
+if ! firewall-cmd --permanent --list-all-zones | grep -ve '\(^[[:space:]]*$\|\ .*\)' | grep -q "{{z}}"; then
+firewall-cmd --permanent --new-zone="{{z}}"
+fi
+{% if "openPorts" in rs %}
+logI "Define opened ports"
+{% for p in rs['openPorts'] %}
+{% for s in p.sources %}
+firewall-cmd --permanent --zone="{{z}}" --add-source="{{s}}"
+{% endfor %}
+firewall-cmd --permanent --zone={{z}} --add-port={{p.port}}/{{p.proto | lower }}
+{% endfor %}
+{% endif %}
+{% endfor %}

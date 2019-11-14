@@ -1,0 +1,9 @@
+{% include "header.bash.j2" %}
+MODULE_NAME="Applications"
+
+{% for a in applications %}
+{%set app_name = a.name %}
+{%set pkg_name = a.package %}
+logI "Install {{ pkg_name }} via apt-get"
+apt-get install -y "${pkg_name}"
+{% endfor %}

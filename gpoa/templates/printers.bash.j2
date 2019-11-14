@@ -1,0 +1,16 @@
+{% include "header.bash.j2" %}
+MODULE_NAME="Printers"
+
+{% for p in printers %}
+{%set printer_name = p.name | replace(" ", "_")  %}
+{%set printer_address = p.addr %}
+logI "Search if {{ printer_name }} is already defined"
+URI=$(LC_ALL="C" lpstat -v | awk '$3 ~ /{{ printer_name }}:/ { print $4;}')
+if [[ -z "$URI" ]]; then
+    logI "Register {{ printer_name }} on {{ printer_address }}"
+    lpadmin -p "{{ printer_name }}" -E -v "ipp://{{ printer_address }}/ipp/print" -m everywhere
+    logI "Done"
+else
+    logI "{{ printer_name }} is already defined as ${URI}. Nothing to do."
+fi
+{% endfor %}

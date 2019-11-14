@@ -1,0 +1,306 @@
+#! /usr/bin/env python3
+
+import argparse
+
+import subprocess
+import threading
+
+import os
+import errno
+
+import tempfile
+import shutil
+
+import socket
+import sys
+import re
+
+class gpupdate:
+    _smb_cache = '/var/cache/samba/gpo_cache'
+    _tmp_root = '/tmp/gpupdate'
+
+    def __init__(self, user, domain, controller):
+        self._gpos = []
+        self._user = user
+        self._domain = domain
+        self._controller = controller
+        try:
+            os.makedirs(self._tmp_root)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+            pass
+        self._temp_dir = self._mktmp('/tmp/gpupdate')
+
+    def update(self):
+        '''
+        Update GPO cache.
+        '''
+        proc = subprocess.Popen(['net', 'ads', 'gpo', 'list', self._user], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        #output = subprocess.check_output(['net', 'ads', 'gpo', 'list', self.user])
+        #print(output)
+        thr = threading.Thread(target=self._parse_netads, args=(proc,))
+        thr.start()
+        thr.join()
+
+        return self._fetch_gpos()
+
+    def _parse_netads(self, proc):
+        '''
+        Parse output of `net ads gpo list Administrator` command.
+        '''
+        for line in iter(proc.stdout.readline, b''):
+            decoded_line = line.decode('utf-8')
+            if decoded_line.startswith('filesyspath') and line != b'filesyspath:\t\t(null)\n':
+                self._gpos.append(self._strip_paths(decoded_line))
+
+
+    def _fetch_gpos(self):
+        '''
+        Download GPO directories specified by their GUIDs using smbclient with Kerberos 5 authentication.
+        '''
+        retrieved_gpos = []
+        for pol in self._gpos:
+            policy_tmp_dir = os.path.join(self._temp_dir, pol)
+            os.makedirs(policy_tmp_dir)
+            smbclient_cmd = 'prompt OFF;recurse ON;cd {}/Policies/{};lcd {};mget *'.format(self._domain.lower(), pol, policy_tmp_dir)
+            print('Executing: {}'.format(smbclient_cmd))
+            retcode = subprocess.call('smbclient -k \'\\\\{}\\sysvol\' -N -c \'{}\''.format(self._controller, smbclient_cmd), shell=True)
+            if retcode == 0:
+                print('Successfully retrieved GPO: {}'.format(pol))
+                self._2gpo_cache(policy_tmp_dir, pol)
+                retrieved_gpos.append(pol)
+            else:
+                print('Unable to retrieve GPO: {}'.format(pol))
+        return retrieved_gpos
+
+    def _mktmp(self, tmp):
+        '''
+        Create temporary directory to download GPO
+        '''
+        try:
+            os.makedirs(tmp)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+            pass
+        return tempfile.mkdtemp(dir=tmp)
+
+    def _strip_paths(self, policy_path):
+        '''
+        Strip newlines and extra symbols from paths.
+        '''
+        return policy_path[len('filesyspath:\t\t\\\\{}\\SysVol\\{}\\Policies\\'.format(self._domain, self._domain)):].strip()
+
+    def _2gpo_cache(self, obj, pol):
+        '''
+        Move downloaded GPOs to /var/cache/samba/gpo_cache
+        '''
+        gpo_dest = os.path.join(self._smb_cache, self._domain.upper(), 'POLICIES', pol)
+        shutil.rmtree(gpo_dest) # Remove destination GPO if exists
+        shutil.move(obj, gpo_dest)
+
+class hreg:
+    _hreg_exe = '/usr/bin/hreg'
+    _hreg_cache = '/var/cache/gpupdate'
+
+    def __init__(self, cache_dir, domain, gpos, sid):
+        self._cache_dir = cache_dir
+        self._domain = domain
+        self._gpos = gpos
+        self._sid = sid
+        self._temp_dir = os.path.join(self._hreg_cache, 'tmp')
+        try:
+            os.makedirs(self._temp_dir)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+            pass
+
+    def to_fs(self):
+        '''
+        Transform policy files to file system representation for given domain
+        '''
+        dest = self._mktmp(self._temp_dir)
+        for gpo in self._gpos:
+            policy_file = os.path.join(self._cache_dir,
+                self._domain.upper(),
+                'POLICIES',
+                gpo,
+                'User',
+                'Registry.pol')
+            hreg_cmd = '{} apply {} {} -u {}'.format(self._hreg_exe, dest, policy_file, self._sid)
+            subprocess.call(hreg_cmd, shell=True)
+        # Move data to permanent cache
+        permanent_cache = os.path.join(self._hreg_cache, self._sid)
+        try:
+            shutil.rmtree(permanent_cache)
+        except OSError as exc:
+            if exc.errno != errno.ENOENT:
+                raise
+            pass
+        try:
+            os.makedirs(permanent_cache)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+            pass
+        for i in os.listdir(dest):
+            shutil.move(os.path.join(dest, i), permanent_cache)
+        shutil.rmtree(dest)
+
+    def _mktmp(self, tmp):
+        '''
+        Create temporary directory for GPO VFS
+        '''
+        try:
+            os.makedirs(tmp)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+            pass
+        return tempfile.mkdtemp(dir=tmp)
+
+class gpoa:
+    _gpoa_dir = '/usr/libexec/gpoa'
+    _gpoa_exe = 'main.py'
+
+    def __init__(self, sid):
+        self._sid = sid
+
+    def generate_scripts(self):
+        '''
+        Call gpoa utility to generate scripts
+        '''
+        gpoa_cmd = ['./{}'.format(self._gpoa_exe), self._sid]
+        cwd = os.getcwd()
+
+        os.chdir(self._gpoa_dir)
+        print('Running gpoa')
+        output = subprocess.call(gpoa_cmd)
+        print(output)
+        os.chdir(cwd)
+
+def wbinfo_getsid(domain, user):
+    '''
+    Get SID using wbinfo
+    '''
+    wbinfo_cmd = ['wbinfo', '-n', '{}\\{}'.format(domain.upper(), user)]
+    output = subprocess.check_output(wbinfo_cmd)
+    sid = output.split()[0].decode('utf-8')
+    return sid
+
+def machine_kinit():
+    '''
+    Perform kinit with machine credentials
+    '''
+    host = socket.gethostname().split('.', 1)[0].upper() + "$"
+    subprocess.call(['kinit', '-k', host])
+    print('kinit succeed')
+
+def check_krb_ticket():
+    '''
+    Check if Kerberos 5 ticket present
+    '''
+    try:
+        subprocess.check_call([ 'klist', '-s' ])
+        output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
+        print(output)
+    except:
+        sys.exit( 1 )
+    print('Ticket check succeed')
+
+def get_domain_name():
+    '''
+    Get current Active Directory domain name
+    '''
+    lookup_cmd = ['net', 'ads', 'lookup']
+    output = subprocess.check_output(lookup_cmd, stderr=subprocess.STDOUT).decode()
+    d = re.search( "Domain:\s*(\S+)\n", output, re.MULTILINE )
+    if d:
+        domain_name = d.group(1)
+        print(domain_name)
+        return domain_name
+    return
+
+def get_domain_controller():
+    '''
+    Get current Active Directory domain name
+    '''
+    lookup_cmd = ['net', 'ads', 'lookup']
+    output = subprocess.check_output(lookup_cmd, stderr=subprocess.STDOUT).decode()
+    d = re.search( "^Domain Controller:\s*(\S+)\n", output, re.MULTILINE )
+    if d:
+        domain_controller = d.group(1)
+        print(domain_controller)
+        return domain_controller
+    return
+
+def parse_cli_arguments():
+    '''
+    Command line argument parser
+    '''
+    argparser = argparse.ArgumentParser(description='Update group policies for the specified user')
+    argparser.add_argument('-u',
+        '--user',
+        default='Administrator',
+        help='Name of the user for GPO update')
+    argparser.add_argument('-d',
+        '--domain',
+        help='Name of the AD domain for replication')
+    argparser.add_argument('-c',
+        '--controller',
+        help='AD controller to connect to')
+    argparser.add_argument('-p',
+        '--password',
+        help='Kerberos 5 password for the specified user')
+    argparser.add_argument('-i',
+        '--sid',
+        help='Specify SID for User target')
+    argparser.add_argument('-t',
+        '--target',
+        default='User',
+        help='Computer or User')
+    argparser.add_argument('-f',
+        '--force',
+        help='Reapply all policy settings')
+    argparser.add_argument('-w',
+        '--wait',
+        default=600,
+        help='Wait for specified number of seconds')
+    argparser.add_argument('-l',
+        '--logoff',
+        help='Force logoff after settings are applied')
+    argparser.add_argument('-b',
+        '--boot',
+        help='Force reboot after settings are applied')
+    argparser.add_argument('-s',
+        '--sync',
+        help='Perform next GPO application synchronously')
+
+    return argparser.parse_args()
+
+def main():
+    args = parse_cli_arguments()
+
+    machine_kinit()
+    check_krb_ticket()
+
+    domain = get_domain_name()
+    print('Domain: {}'.format(domain))
+    controller = get_domain_controller()
+    print('Controller: {}'.format(controller))
+
+    updater = gpupdate(args.user, domain, controller)
+    retrieved_gpos = updater.update()
+
+    sid = wbinfo_getsid(domain, args.user)
+    hreg_util = hreg('/var/cache/samba/gpo_cache', domain, retrieved_gpos, sid)
+    hreg_util.to_fs()
+
+    gpo_applier = gpoa(sid)
+    gpo_applier.generate_scripts()
+
+if __name__ == '__main__':
+    main()
+

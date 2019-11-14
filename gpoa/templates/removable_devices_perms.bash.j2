@@ -1,0 +1,25 @@
+{% include "header.bash.j2" %}
+MODULE_NAME="Removable Devices Perms"
+
+mk_udisk2_rules() {
+    local allow="$1"
+    cat <<EOF >/etc/polkit-1/rules.d/60-udisks2.rules
+polkit.addRule(function(action, subject) {
+    var YES = polkit.Result.YES;
+    var NO  = polkit.Result.NO;
+    var perms = {
+        "org.freedesktop.udisks2.filesystem-mount": ${allow},
+        "org.freedesktop.udisks2.filesystem-mount-system": ${allow},
+        "org.freedesktop.udisks2.filesystem-mount-other-seat": ${allow},
+   
+    };
+//    if (!subject.isInGroup("wheel")) {
+        return permission[action.id];
+//    }
+});
+EOF
+}
+
+{% if Removable is defined and (Removable.deny_exec or Removable.deny_read or Removable.deny_write) %}
+mk_udisk2_rules "NO"
+{% endif %}

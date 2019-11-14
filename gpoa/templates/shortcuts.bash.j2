@@ -1,0 +1,11 @@
+{% include "header.bash.j2" %}
+MODULE_NAME="Shortcuts"
+DESKTOP_DIR=$(xdg-user-dir DESKTOP)
+
+{% for s in shortcuts %}
+cat <<EOF >"${DESKTOP_DIR}/{{s.name}}.desktop"
+[Desktop Entry]
+Name={{s.name}}
+Exec={{s.target}} {{s.args}}
+EOF
+{% endfor %}

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+{% if DEBUG %}
+set -x
+{% endif %}
+
+BASE_DIR="${TMP}/gpoA"
+LOG_DIR="${BASE_DIR}/log"
+#STDERR_TO="${LOG_DIR}/stderr.log"
+
+__log () {
+    local level="$1"
+    local msg="$2"
+    local mod_name="${MODULE_NAME}"
+    echo "${mod_name} [${level}] ${msg}"
+}
+
+logD () {
+    __log "DEBUG" "$1"
+}
+
+logI () {
+    __log "INFO" "$1"
+}
+
+logW () {
+    __log "WARNING" "$1"
+}
+
+logE () {
+    __log "ERROR" "$1"
+    exit 1
+}
+
+__if_func_exists() {
+    declare -f -F "$1" >/dev/null
+    return $?
+}
+__on_exit() {
+    __if_func_exists "on_exit" && on_exit
+    logI "Finalizyng..."
+}
+
+__on_error() {
+    __if_func_exists "on_error" && on_exit
+    logE "Error..."
+}
+
+__init() {
+    [[ -d "${BASE_DIR}" ]] || mkdir "${BASE_DIR}"
+    [[ -d "${LOG_DIR}"  ]] || mkdir "${LOG_DIR}"
+#    exec 2> ${STDERR_TO}
+}
+
+for sig in SIGINT SIGTERM SIGHUP SIGQUIT EXIT RETURN; do
+    trap __on_exit $sig
+done
+
+#for sig in ERR; do
+#    trap __on_error $sig
+#done
+
+__init
