@@ -114,7 +114,7 @@ class samba_backend(applier_backend):
             return policy_files
         return dict({ 'machine_regpols': [], 'user_regpols': [] })
 
-    def __init__(self, loadparm, creds, sid, dc):
+    def __init__(self, loadparm, creds, sid, dc, username):
         # Regular expressions to split PReg files into user and machine parts
         self._machine_pol_path_regex = re.compile(self._machine_pol_path_pattern)
         self._user_pol_path_regex = re.compile(self._user_pol_path_pattern)
