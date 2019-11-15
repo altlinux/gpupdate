@@ -242,7 +242,10 @@ class control_applier(applier_frontend):
         self.control_settings = self._get_controls(self.polparsers)
         self.controls = []
         for setting in self.control_settings:
-            self.controls.append(control.control(setting.valuename, setting.data))
+            try:
+                self.controls.append(control.control(setting.valuename, setting.data))
+            except:
+                print('Unable to work with control: {}'.format(setting.valuename))
         #for e in polfile.pol_file.entries:
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
 
