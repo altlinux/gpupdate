@@ -189,10 +189,10 @@ class samba_backend(applier_backend):
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
         print('Merging {}'.format(hive_key))
 
+        # FIXME: Here should be entry.type parser in order to correctly
+        # represent data
         hive.set_value(hive_key, entry.type, entry.data.to_bytes(4, byteorder='big'))
-
-        # Dump data to disk
-        hive.flush()
+        hive.flush() # Dump data to disk
 
     def get_values(self):
         '''
@@ -201,10 +201,13 @@ class samba_backend(applier_backend):
         # FIXME: Return registry and hives instead of samba.preg objects.
         preg_objs = []
         print('Parsing machine regpols')
+
         for regpol in self.policy_files['machine_regpols']:
             print('Processing {}'.format(regpol))
             pregfile = self._parse_pol_file(regpol)
             preg_objs.append(pregfile)
+            # Works only with full key names
+            #self.registry.diff_apply(regpol)
             for entry in pregfile.entries:
                 self._merge_entry(self.machine_hive, entry)
 
