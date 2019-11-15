@@ -139,13 +139,32 @@ class samba_backend(applier_backend):
 
         self.policy_files = dict({ 'machine_regpols': [], 'user_regpols': [] })
 
+        cache_file = os.path.join(self.cache_dir, 'cache.pkl')
+        cache = dict()
 
-        gpos = get_gpo_list(dc, self.creds, self.loadparm, 'administrator')
-        self.policy_files = dict({ 'machine_regpols': [], 'user_regpols': [] })
-        for gpo in gpos:
-            polfiles = self._gpo_get_gpt_polfiles(gpo)
-            self.policy_files['machine_regpols'] += polfiles['machine_regpols']
-            self.policy_files['user_regpols']    += polfiles['user_regpols']
+        # Load PReg paths from cache at first
+        with open(cache_file, 'rb') as f:
+            cache = pickle.load(f)
+
+        try:
+            gpos = get_gpo_list(dc, self.creds, self.loadparm, 'administrator')
+            for gpo in gpos:
+                polfiles = self._gpo_get_gpt_polfiles(gpo)
+                self.policy_files['machine_regpols'] += polfiles['machine_regpols']
+                self.policy_files['user_regpols']    += polfiles['user_regpols']
+            # Cache paths to PReg files
+            cache[sid] = self.policy_files
+        except:
+            print('Error fetching GPOs')
+            if sid in cache:
+                self.policy_files = cache[sid]
+                print('Got cached PReg files')
+
+        # Re-cache the retrieved values
+        with open(cache_file, 'wb') as f:
+            pickle.dump(cache, f, pickle.HIGHEST_PROTOCOL)
+            print('Cached PReg files')
+
         print('Policy files: {}'.format(self.policy_files))
 
     def _parse_pol_file(self, polfile):
