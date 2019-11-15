@@ -13,11 +13,10 @@ import samba.gpo
 # Taken from python/samba/tests/registry.py
 from samba import registry
 
-# PReg object generator
+# PReg object generator and parser
 from samba.dcerpc import preg
 from samba.dcerpc import misc
 import samba.ndr
-
 from samba.gp_parse.gp_pol import GPPolParser
 
 # Registry editing facilities are buggy. Use TDB module instead.
