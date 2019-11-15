@@ -34,6 +34,9 @@ import re
 # This is needed for merging lists of PReg files.
 import itertools
 
+# This is needed for Username and SID caching
+import pickle
+
 # Our native control facility
 import control
 
