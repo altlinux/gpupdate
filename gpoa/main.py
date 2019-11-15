@@ -19,6 +19,12 @@ from samba.dcerpc import misc
 import samba.ndr
 from samba.gp_parse.gp_pol import GPPolParser
 
+# This is needed to query AD DOMAIN name from LDAP
+# using cldap_netlogon (and to replace netads utility
+# invocation helper).
+from samba.dcerpc import netlogon
+from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
+
 # Registry editing facilities are buggy. Use TDB module instead.
 import tdb
 
