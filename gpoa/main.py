@@ -40,48 +40,42 @@ import pickle
 # Our native control facility
 import control
 
+# This is needed by helper functions and must be removed after
+# migration to native Python calls
+import socket
+import subprocess
+
+class tdb_regedit:
+    '''
+    regedit object for samba-regedit which has separate registry and
+    not really related to registry formed in smb.conf.
+    '''
+
+    def __init__(self, tdb_file='/var/lib/samba/registry.tdb'):
+        self.registry = tdb.open(tdb_file)
+
+    def _blob2keys(self, blob):
+        return blob.split('')
+
+    def get_keys(self, path):
+        # Keys are ending with trailing zeros and are binary blobs
+        keys_blob = self.registry.get('{}\x00'.format(path).encode())
+        return self._blob2keys
+
+    def write_preg_entry(self, entry):
+        hive_key = 'HKLM\\{}\\{}\\{}'.format(
+                entry.keyname.upper(),
+                entry.valuename,
+                entry.type.to_bytes(1, byteorder='big')).upper().encode()
+        print('Merging {}'.format(hive_key))
+
+        self.registry.transaction_start()
+        self.registry.store(hive_key, entry.data.to_bytes(4, byteorder='big'))
+        self.registry.transaction_commit()
+
 class applier_backend:
     def __init__(self):
         pass
-
-class hreg_filesystem_backend(applier_backend):
-    _gpupdate_cache = '/var/cache/gpupdate'
-    _base_path = '/tmp/gpoa_scripts'
-
-    def __init__(self, sid):
-        self._sid = sid
-        self._root_path = '{base}/root'.format(base=self._base_path)
-        self._user_path = '{base}/user'.format(base=self._base_path)
-
-    def _get_files(self, dir_path):
-        '''
-        List all files located in hreg cache
-        '''
-        files = list()
-        for entry in os.listdir(dir_path):
-            abspath = os.path.join(dir_path, entry)
-            try:
-                if os.path.isdir(abspath):
-                    files.append(self._get_files(abspath))
-                else:
-                    files.append(abspath)
-            except:
-                pass
-        return files
-
-    def _read_value(self, path):
-        '''
-        Read hreg-cached value from file and return object representing it.
-        '''
-        pass
-
-    def get_values(self):
-        cpath = os.path.join(self._gpupdate_cache, self._sid)
-
-        entry_list = self._get_files(cpath)
-        for entry in entry_list:
-            val = self._read_value(entry)
-
 
 class samba_backend(applier_backend):
     _samba_registry_file = '/var/cache/samba/registry.tdb'
