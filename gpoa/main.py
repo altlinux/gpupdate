@@ -127,6 +127,7 @@ class samba_backend(applier_backend):
         self._user_pol_path_regex = re.compile(self._user_pol_path_pattern)
 
         # User SID to work with HKCU hive
+        self.username = username
         self.sid = sid
 
         # Look at python-samba tests for code examples
