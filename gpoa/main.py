@@ -81,6 +81,18 @@ class applier_backend:
     def __init__(self):
         pass
 
+def get_cache(cache_file, default_cache_obj):
+    if not os.path.exists(cache_file):
+        print('Initializing missing cache file: {}'.format(cache_file))
+        with open(cache_file, 'wb') as f:
+            pickle.dump(default_cache_obj, f, pickle.HIGHEST_PROTOCOL)
+
+    data= None
+    with open(cache_file, 'rb') as f:
+        data = pickle.load(f)
+
+    return data
+
 class samba_backend(applier_backend):
     _samba_registry_file = '/var/cache/samba/registry.tdb'
     _mahine_hive = 'HKEY_LOCAL_MACHINE'
@@ -138,11 +150,8 @@ class samba_backend(applier_backend):
         self.policy_files = dict({ 'machine_regpols': [], 'user_regpols': [] })
 
         cache_file = os.path.join(self.cache_dir, 'cache.pkl')
-        cache = dict()
-
         # Load PReg paths from cache at first
-        with open(cache_file, 'rb') as f:
-            cache = pickle.load(f)
+        cache = get_cache(cache_file, dict())
 
         try:
             gpos = get_gpo_list(dc, self.creds, self.loadparm, 'administrator')
@@ -411,9 +420,7 @@ def main():
     creds = credopts.get_credentials(lp, fallback_machine=True)
 
     sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
-    cached_sids = dict()
-    with open(sid_cache, 'rb') as f:
-        cached_sids = pickle.load(f)
+    cached_sids = get_cache(sid_cache, dict())
 
     args = parse_arguments()
 
