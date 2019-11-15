@@ -317,7 +317,7 @@ class applier:
 
 def parse_arguments():
     arguments = argparse.ArgumentParser(description='Generate configuration out of parsed policies')
-    arguments.add_argument('sid',
+    arguments.add_argument('user',
         type=str,
         help='SID to parse policies from')
     arguments.add_argument('--dc',
@@ -351,9 +351,47 @@ def select_dc(lp, creds, dc):
     
     return samba_dc
 
-def main():
-    args = parse_arguments()
+def wbinfo_getsid(domain, user):
+    '''
+    Get SID using wbinfo
+    '''
+    wbinfo_cmd = ['wbinfo', '-n', '{}\\{}'.format(domain.upper(), user)]
+    output = subprocess.check_output(wbinfo_cmd)
+    sid = output.split()[0].decode('utf-8')
+    return sid
 
+def machine_kinit():
+    '''
+    Perform kinit with machine credentials
+    '''
+    host = socket.gethostname().split('.', 1)[0].upper() + "$"
+    subprocess.call(['kinit', '-k', host])
+    print('kinit succeed')
+
+def check_krb_ticket():
+    '''
+    Check if Kerberos 5 ticket present
+    '''
+    try:
+        subprocess.check_call([ 'klist', '-s' ])
+        output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
+        print(output)
+    except:
+        sys.exit( 1 )
+    print('Ticket check succeed')
+
+def get_domain_name(lp, creds, dc):
+    '''
+    Get current Active Directory domain name
+    '''
+    # Get CLDAP record about domain
+    # Look and python/samba/netcmd/domain.py for more examples
+    res = netcmd_get_domain_infos_via_cldap(lp, None, dc)
+    print('Found domain via CLDAP: {}'.format(res.dns_domain))
+
+    return res.dns_domain
+
+def main():
     #back = hreg_filesystem_backend(args.sid)
     parser = optparse.OptionParser('GPO Applier')
     sambaopts = options.SambaOptions(parser)
@@ -362,11 +400,42 @@ def main():
     lp = sambaopts.get_loadparm()
     creds = credopts.get_credentials(lp, fallback_machine=True)
 
+    sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
+    cached_sids = dict()
+    with open(sid_cache, 'rb') as f:
+        cached_sids = pickle.load(f)
+
+    args = parse_arguments()
+
+    machine_kinit()
+    check_krb_ticket()
+
     # Determine the default Samba DC for replication and try
     # to overwrite it with user setting.
     dc = select_dc(lp, creds, args.dc)
 
-    back = samba_backend(lp, creds, args.sid, dc)
+    username = args.user
+    domain = get_domain_name(lp, creds, dc)
+    sid = ''
+
+    domain_username = '{}\\{}'.format(domain, username)
+    if domain_username in cached_sids:
+        sid = cached_sids[domain_username]
+        print('Got cached SID {} for user {}'.format(sid, domain_username))
+
+    try:
+        sid = wbinfo_getsid(domain, username)
+    except:
+        print('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
+
+    print('Working with SID: {}'.format(sid))
+
+    cached_sids[domain_username] = sid
+    with open(sid_cache, 'wb') as f:
+        pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
+        print('Cached SID {} for user {}'.format(sid, domain_username))
+
+    back = samba_backend(lp, creds, sid, dc, username)
 
     appl = applier(back)
     appl.apply_parameters()
