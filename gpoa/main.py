@@ -20,6 +20,9 @@ import samba.ndr
 
 from samba.gp_parse.gp_pol import GPPolParser
 
+# Registry editing facilities are buggy. Use TDB module instead.
+import tdb
+
 # This is needed by Registry.pol file search
 import os
 import re
