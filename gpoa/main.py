@@ -45,6 +45,10 @@ import control
 import socket
 import subprocess
 
+# Facility to get SID from username
+import pysss_nss_idmap
+
+
 class tdb_regedit:
     '''
     regedit object for samba-regedit which has separate registry and
@@ -352,9 +356,18 @@ def wbinfo_getsid(domain, user):
     '''
     Get SID using wbinfo
     '''
-    wbinfo_cmd = ['wbinfo', '-n', '{}\\{}'.format(domain.upper(), user)]
+    # This part works only on client
+    username = '{}\\{}'.format(domain.upper(), user)
+    sid = pysss_nss_idmap.getsidbyname(username)
+
+    if username in sid:
+        return sid[username]['sid']
+
+    # This part works only on DC
+    wbinfo_cmd = ['wbinfo', '-n', username]
     output = subprocess.check_output(wbinfo_cmd)
     sid = output.split()[0].decode('utf-8')
+
     return sid
 
 def machine_kinit():
