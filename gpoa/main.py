@@ -115,6 +115,13 @@ class samba_backend(applier_backend):
         return dict({ 'machine_regpols': [], 'user_regpols': [] })
 
     def __init__(self, loadparm, creds, sid, dc, username):
+        # Samba objects - LoadParm() and CredentialsOptions()
+        self.loadparm = loadparm
+        self.creds = creds
+
+        self.cache_dir = self.loadparm.get('cache directory')
+        print('Cache directory is: {}'.format(self.cache_dir))
+
         # Regular expressions to split PReg files into user and machine parts
         self._machine_pol_path_regex = re.compile(self._machine_pol_path_pattern)
         self._user_pol_path_regex = re.compile(self._user_pol_path_pattern)
@@ -124,17 +131,13 @@ class samba_backend(applier_backend):
 
         # Look at python-samba tests for code examples
         self.registry = registry.Registry()
-        self.machine_hive = registry.open_ldb('/tmp/machine_hive.ldb')
-        self.user_hive = registry.open_ldb('/tmp/HKCU-{}.ldb'.format(self.sid))
+        self.machine_hive = registry.open_ldb(os.path.join(self.cache_dir, 'HKLM.ldb'))
+        self.user_hive = registry.open_ldb(os.path.join(self.cache_dir, 'HKCU-{}.ldb'.format(self.sid)))
         self.registry.mount_hive(self.machine_hive, samba.registry.HKEY_LOCAL_MACHINE)
         self.registry.mount_hive(self.user_hive, samba.registry.HKEY_CURRENT_USER)
 
-        # Samba objects - LoadParm() and CredentialsOptions()
-        self.loadparm = loadparm
-        self.creds = creds
+        self.policy_files = dict({ 'machine_regpols': [], 'user_regpols': [] })
 
-        self.cache_dir = self.loadparm.get('cache directory')
-        print('Cache directory is: {}'.format(self.cache_dir))
 
         gpos = get_gpo_list(dc, self.creds, self.loadparm, 'administrator')
         self.policy_files = dict({ 'machine_regpols': [], 'user_regpols': [] })
