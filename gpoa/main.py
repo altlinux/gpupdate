@@ -84,7 +84,7 @@ class hreg_filesystem_backend(applier_backend):
 
 
 class samba_backend(applier_backend):
-    _samba_registry_file = '/var/cache/samba/registry.ldb'
+    _samba_registry_file = '/var/cache/samba/registry.tdb'
     _mahine_hive = 'HKEY_LOCAL_MACHINE'
     _user_hive = 'HKEY_CURRENT_USER'
     _machine_pol_path_pattern = '[Mm][Aa][Cc][Hh][Ii][Nn][Ee]'
