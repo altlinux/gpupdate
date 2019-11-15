@@ -11,7 +11,8 @@ Url: http://git.altlinux.org/
 BuildArch: noarch
 
 Requires: control
-Requires: samba-dc
+
+BuildRequires: rpm-build-python3
 
 Source0: %name-%version.tar
 
@@ -24,21 +25,15 @@ GPT applier
 %install
 install -pD -m755 gpupdate \
 	%buildroot%_bindir/gpupdate
-mkdir -p %buildroot/var/cache/samba
-install -pD -m644 gpoa/cache.pkl \
-	%buildroot/var/cache/samba
-install -pD -m644 gpoa/sid_cache.pkl \
-	%buildroot/var/cache/samba
+
 mkdir -p \
-	%buildroot%prefix/libexec
+	%buildroot%python3_sitelibdir/
 cp -r gpoa \
-	%buildroot%prefix/libexec
+	%buildroot%python3_sitelibdir/
 
 %files
-%prefix/bin/gpupdate
-%prefix/libexec/gpoa
-/var/cache/samba/cache.pkl
-/var/cache/samba/sid_cache.pkl
+%_bindir/gpupdate
+%python3_sitelibdir/gpoa
 
 %changelog
 * Fri Nov 15 2019 Igor Chudov <nir@altlinux.org> 0.0.2-alt1
