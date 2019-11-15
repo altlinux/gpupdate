@@ -23,5 +23,5 @@ class control:
 
     def set_control_status(self):
         print('Setting control {} to {}'.format(self.control_name, self.control_value))
-        #proc = subprocess.Popen(['sudo', 'control', self.control_name, status], stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['sudo', 'control', self.control_name, status], stdout=subprocess.PIPE)
 
