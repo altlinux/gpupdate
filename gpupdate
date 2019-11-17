@@ -16,8 +16,7 @@ import sys
 import re
 
 class gpoa:
-    _gpoa_dir = '/usr/libexec/gpoa'
-    _gpoa_exe = 'main.py'
+    _gpoa_exe = '/usr/sbin/gpoa'
 
     def __init__(self, username):
         self._user = username
@@ -26,14 +25,11 @@ class gpoa:
         '''
         Call gpoa utility to generate scripts
         '''
-        gpoa_cmd = ['./{}'.format(self._gpoa_exe), self._user]
-        cwd = os.getcwd()
+        gpoa_cmd = [self._gpoa_exe, self._user]
 
-        os.chdir(self._gpoa_dir)
         print('Running gpoa')
         output = subprocess.call(gpoa_cmd)
-        print(output)
-        os.chdir(cwd)
+        sys.exit(output)
 
 
 def parse_cli_arguments():
