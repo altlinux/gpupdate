@@ -48,6 +48,9 @@ import subprocess
 # Facility to get SID from username
 import pysss_nss_idmap
 
+# Internal error
+import sys
+
 
 class tdb_regedit:
     '''
