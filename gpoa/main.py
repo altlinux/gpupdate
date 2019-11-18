@@ -332,7 +332,8 @@ def parse_arguments():
     arguments = argparse.ArgumentParser(description='Generate configuration out of parsed policies')
     arguments.add_argument('user',
         type=str,
-        help='SID to parse policies from')
+        default=get_machine_name(),
+        help='Domain username ({}) to parse policies for'.format(get_machine_name()))
     arguments.add_argument('--dc',
         type=str,
         help='FQDN of the domain to replicate SYSVOL from')
@@ -382,11 +383,17 @@ def wbinfo_getsid(domain, user):
 
     return sid
 
+def get_machine_name():
+    '''
+    Get localhost name looking like DC0$
+    '''
+    return socket.gethostname().split('.', 1)[0].upper() + "$"
+
 def machine_kinit():
     '''
     Perform kinit with machine credentials
     '''
-    host = socket.gethostname().split('.', 1)[0].upper() + "$"
+    host = get_machine_name()
     subprocess.call(['kinit', '-k', host])
     print('kinit succeed')
 
