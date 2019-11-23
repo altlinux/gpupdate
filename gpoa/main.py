@@ -332,6 +332,7 @@ def parse_arguments():
     arguments = argparse.ArgumentParser(description='Generate configuration out of parsed policies')
     arguments.add_argument('user',
         type=str,
+        nargs='?',
         default=get_machine_name(),
         help='Domain username ({}) to parse policies for'.format(get_machine_name()))
     arguments.add_argument('--dc',
