@@ -25,11 +25,25 @@ class gpoa:
         '''
         Call gpoa utility to generate scripts
         '''
-        gpoa_cmd = [self._gpoa_exe, self._user]
+        gpoa_cmd = [self._gpoa_exe]
+        if self._user:
+            gpoa_cmd += [self._user]
 
         print('Running gpoa')
         output = subprocess.call(gpoa_cmd)
         sys.exit(output)
+
+class dbus:
+    _bus_name = 'com.redhat.oddjob_gpupdate'
+    _object_path = '/'
+
+    def __init__(self):
+        from pydbus import SystemBus
+        bus = SystemBus()
+        self._object = bus.get(self._bus_name, self._object_path)
+
+    def run(self):
+        self._object.gpupdate()
 
 
 def parse_cli_arguments():
@@ -39,7 +53,7 @@ def parse_cli_arguments():
     argparser = argparse.ArgumentParser(description='Update group policies for the specified user')
     argparser.add_argument('-u',
         '--user',
-        default='Administrator',
+        default=None,
         help='Name of the user for GPO update')
     argparser.add_argument('-d',
         '--domain',
@@ -79,7 +93,11 @@ def parse_cli_arguments():
 def main():
     args = parse_cli_arguments()
 
-    gpo_applier = gpoa(args.user)
+    if os.geteuid() == 0:
+        gpo_applier = gpoa(args.user)
+    else:
+        gpo_applier = dbus();
+
     gpo_applier.run()
 
 if __name__ == '__main__':
