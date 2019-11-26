@@ -22,8 +22,7 @@ from samba.gp_parse.gp_pol import GPPolParser
 # This is needed to query AD DOMAIN name from LDAP
 # using cldap_netlogon (and to replace netads utility
 # invocation helper).
-from samba.dcerpc import netlogon
-from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
+#from samba.dcerpc import netlogon
 
 # Registry editing facilities are buggy. Use TDB module instead.
 import tdb
@@ -39,6 +38,7 @@ import pickle
 
 # Our native control facility
 #import appliers
+import util
 import frontend
 
 # This is needed by helper functions and must be removed after
@@ -54,6 +54,7 @@ import sys
 
 # Remove print() from code
 import logging
+logging.basicConfig(level=logging.DEBUG)
 
 class tdb_regedit:
     '''
@@ -87,17 +88,15 @@ class applier_backend:
     def __init__(self):
         pass
 
-def get_cache(cache_file, default_cache_obj):
-    if not os.path.exists(cache_file):
-        logging.info('Initializing missing cache file: {}'.format(cache_file))
-        with open(cache_file, 'wb') as f:
-            pickle.dump(default_cache_obj, f, pickle.HIGHEST_PROTOCOL)
+class local_policy_backend(applier_backend):
+    __default_policy_path = '/usr/lib/python3/site-packages/gpoa/local-policy/default.xml'
 
-    data= None
-    with open(cache_file, 'rb') as f:
-        data = pickle.load(f)
+    def __init__(self, username):
+        self.username = username
 
-    return data
+    def get_values(self):
+        policies = [frontend.load_xml_preg(self.__default_policy_path)]
+        return policies
 
 class samba_backend(applier_backend):
     _samba_registry_file = '/var/cache/samba/registry.tdb'
@@ -157,7 +156,7 @@ class samba_backend(applier_backend):
 
         cache_file = os.path.join(self.cache_dir, 'cache.pkl')
         # Load PReg paths from cache at first
-        cache = get_cache(cache_file, dict())
+        cache = util.get_cache(cache_file, dict())
 
         try:
             gpos = get_gpo_list(dc, self.creds, self.loadparm, 'administrator')
@@ -254,136 +253,69 @@ def parse_arguments():
     arguments.add_argument('--dc',
         type=str,
         help='FQDN of the domain to replicate SYSVOL from')
+    arguments.add_argument('--nodomain',
+        action='store_true',
+        help='Operate without domain (apply local policy)')
     return arguments.parse_args()
 
-def get_gpo_list(dc_hostname, creds, lp, user):
-    gpos = []
-    ads = samba.gpo.ADS_STRUCT(dc_hostname, lp, creds)
-    if ads.connect():
-        #gpos = ads.get_gpo_list(creds.get_username())
-        gpos = ads.get_gpo_list(user)
-    logging.info('Got GPO list:')
-    for gpo in gpos:
-        # These setters are taken from libgpo/pygpo.c
-        # print(gpo.ds_path) # LDAP entry
-        logging.info('{} ({})'.format(gpo.display_name, gpo.name))
-    logging.info('------')
-    return gpos
+def apply_samba_dc(arg_dc, arg_user):
+        sambaopts = options.SambaOptions(parser)
+        credopts = options.CredentialsOptions(parser)
+        # Initialize loadparm context
+        lp = sambaopts.get_loadparm()
+        creds = credopts.get_credentials(lp, fallback_machine=True)
 
-def get_machine_domain():
-    pass
+        sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
+        cached_sids = util.get_cache(sid_cache, dict())
 
-def select_dc(lp, creds, dc):
-    samba_dc = get_dc_hostname(creds, lp)
+        util.machine_kinit()
+        util.check_krb_ticket()
 
-    if samba_dc != dc and dc != None:
-        print('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
-        return dc
-    
-    return samba_dc
+        # Determine the default Samba DC for replication and try
+        # to overwrite it with user setting.
+        dc = util.select_dc(lp, creds, arg_dc)
 
-def wbinfo_getsid(domain, user):
-    '''
-    Get SID using wbinfo
-    '''
-    # This part works only on client
-    username = '{}\\{}'.format(domain.upper(), user)
-    sid = pysss_nss_idmap.getsidbyname(username)
+        username = arg_user
+        domain = util.get_domain_name(lp, creds, dc)
+        sid = ''
 
-    if username in sid:
-        return sid[username]['sid']
+        domain_username = '{}\\{}'.format(domain, username)
+        if domain_username in cached_sids:
+            sid = cached_sids[domain_username]
+            logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
 
-    # This part works only on DC
-    wbinfo_cmd = ['wbinfo', '-n', username]
-    output = subprocess.check_output(wbinfo_cmd)
-    sid = output.split()[0].decode('utf-8')
+        try:
+            sid = util.wbinfo_getsid(domain, username)
+        except:
+            logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
 
-    return sid
+        logging.info('Working with SID: {}'.format(sid))
 
-def get_machine_name():
-    '''
-    Get localhost name looking like DC0$
-    '''
-    return socket.gethostname().split('.', 1)[0].upper() + "$"
+        cached_sids[domain_username] = sid
+        with open(sid_cache, 'wb') as f:
+            pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
+            logging.info('Cached SID {} for user {}'.format(sid, domain_username))
 
-def machine_kinit():
-    '''
-    Perform kinit with machine credentials
-    '''
-    host = get_machine_name()
-    subprocess.call(['kinit', '-k', host])
-    print('kinit succeed')
+        back = samba_backend(lp, creds, sid, dc, username)
 
-def check_krb_ticket():
-    '''
-    Check if Kerberos 5 ticket present
-    '''
-    try:
-        subprocess.check_call([ 'klist', '-s' ])
-        output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
-        logging.info(output)
-    except:
-        logging.error('Kerberos ticket check unsuccessful')
-        sys.exit(1)
-    logging.info('Ticket check succeed')
+        appl = frontend.applier(sid, back)
+        appl.apply_parameters()
 
-def get_domain_name(lp, creds, dc):
-    '''
-    Get current Active Directory domain name
-    '''
-    # Get CLDAP record about domain
-    # Look and python/samba/netcmd/domain.py for more examples
-    res = netcmd_get_domain_infos_via_cldap(lp, None, dc)
-    logging.info('Found domain via CLDAP: {}'.format(res.dns_domain))
-
-    return res.dns_domain
+def apply_local_policy(user):
+    back = local_policy_backend(user)
+    appl = frontend.applier('local-{}'.format(user), back)
+    appl.apply_parameters()
 
 def main():
-    #back = hreg_filesystem_backend(args.sid)
     parser = optparse.OptionParser('GPO Applier')
-    sambaopts = options.SambaOptions(parser)
-    credopts = options.CredentialsOptions(parser)
-    # Initialize loadparm context
-    lp = sambaopts.get_loadparm()
-    creds = credopts.get_credentials(lp, fallback_machine=True)
-
-    sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
-    cached_sids = get_cache(sid_cache, dict())
-
     args = parse_arguments()
 
-    machine_kinit()
-    check_krb_ticket()
-
-    # Determine the default Samba DC for replication and try
-    # to overwrite it with user setting.
-    dc = select_dc(lp, creds, args.dc)
-
-    username = args.user
-    domain = get_domain_name(lp, creds, dc)
-    sid = ''
-
-    domain_username = '{}\\{}'.format(domain, username)
-    if domain_username in cached_sids:
-        sid = cached_sids[domain_username]
-        logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
-
-    try:
-        sid = wbinfo_getsid(domain, username)
-    except:
-        logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
-
-    logging.info('Working with SID: {}'.format(sid))
-
-    cached_sids[domain_username] = sid
-    with open(sid_cache, 'wb') as f:
-        pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
-        logging.info('Cached SID {} for user {}'.format(sid, domain_username))
-
-    back = samba_backend(lp, creds, sid, dc, username)
-
-    appl = frontend.applier(back)
-    appl.apply_parameters()
+    if args.nodomain:
+        logging.info('Working without domain - applying Local Policy')
+        apply_local_policy(args.user)
+    else:
+        logging.info('Working with Samba DC')
+        apply_samba_domain(args.dc, args.user)
 
 if __name__ == "__main__":
     main()
