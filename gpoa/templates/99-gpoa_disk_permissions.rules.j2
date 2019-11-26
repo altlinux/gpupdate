@@ -1,4 +1,4 @@
-{% if deny_all %}
+{% if Deny_All == 1 %}
 polkit.addAdminRule(function (action, subject) {
 	if (action.id == "org.freedesktop.udisks2.filesystem-mount-other-seat") {
         	return polkit.Result.NO;
