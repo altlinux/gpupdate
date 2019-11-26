@@ -1,0 +1,23 @@
+{% if deny_all %}
+polkit.addAdminRule(function (action, subject) {
+	if (action.id == "org.freedesktop.udisks2.filesystem-mount-other-seat") {
+        	return polkit.Result.NO;
+	}
+	return ["unix-group:wheel"];
+});
+{% else %}
+polkit.addAdminRule(function (action, subject) {
+        return ["unix-group:wheel"];
+});
+
+polkit.addRule(function (action, subject) {
+	if (action.id == "org.freedesktop.udisks2.filesystem-mount-other-seat" && subject.isInGroup("users")) {
+		polkit.log("Mount action from user: " + subject.user + ", pid: " + subject.id + ": allowed");
+		return polkit.Result.YES;
+	}
+
+	polkit.log("Mount action from user: " + subject.user + ", pid: " + subject.id + ": denied");
+	return polkit.Result.NO;
+});
+{% endif %}
+
