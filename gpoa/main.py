@@ -259,47 +259,47 @@ def parse_arguments():
     return arguments.parse_args()
 
 def apply_samba_dc(arg_dc, arg_user):
-        sambaopts = options.SambaOptions(parser)
-        credopts = options.CredentialsOptions(parser)
-        # Initialize loadparm context
-        lp = sambaopts.get_loadparm()
-        creds = credopts.get_credentials(lp, fallback_machine=True)
+    sambaopts = options.SambaOptions(parser)
+    credopts = options.CredentialsOptions(parser)
+    # Initialize loadparm context
+    lp = sambaopts.get_loadparm()
+    creds = credopts.get_credentials(lp, fallback_machine=True)
 
-        sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
-        cached_sids = util.get_cache(sid_cache, dict())
+    sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
+    cached_sids = util.get_cache(sid_cache, dict())
 
-        util.machine_kinit()
-        util.check_krb_ticket()
+    util.machine_kinit()
+    util.check_krb_ticket()
 
-        # Determine the default Samba DC for replication and try
-        # to overwrite it with user setting.
-        dc = util.select_dc(lp, creds, arg_dc)
+    # Determine the default Samba DC for replication and try
+    # to overwrite it with user setting.
+    dc = util.select_dc(lp, creds, arg_dc)
 
-        username = arg_user
-        domain = util.get_domain_name(lp, creds, dc)
-        sid = ''
+    username = arg_user
+    domain = util.get_domain_name(lp, creds, dc)
+    sid = ''
 
-        domain_username = '{}\\{}'.format(domain, username)
-        if domain_username in cached_sids:
-            sid = cached_sids[domain_username]
-            logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
+    domain_username = '{}\\{}'.format(domain, username)
+    if domain_username in cached_sids:
+        sid = cached_sids[domain_username]
+        logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
 
-        try:
-            sid = util.wbinfo_getsid(domain, username)
-        except:
-            logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
+    try:
+        sid = util.wbinfo_getsid(domain, username)
+    except:
+        logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
 
-        logging.info('Working with SID: {}'.format(sid))
+    logging.info('Working with SID: {}'.format(sid))
 
-        cached_sids[domain_username] = sid
-        with open(sid_cache, 'wb') as f:
-            pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
-            logging.info('Cached SID {} for user {}'.format(sid, domain_username))
+    cached_sids[domain_username] = sid
+    with open(sid_cache, 'wb') as f:
+        pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
+        logging.info('Cached SID {} for user {}'.format(sid, domain_username))
 
-        back = samba_backend(lp, creds, sid, dc, username)
+    back = samba_backend(lp, creds, sid, dc, username)
 
-        appl = frontend.applier(sid, back)
-        appl.apply_parameters()
+    appl = frontend.applier(sid, back)
+    appl.apply_parameters()
 
 def apply_local_policy(user):
     back = local_policy_backend(user)
