@@ -38,7 +38,8 @@ import itertools
 import pickle
 
 # Our native control facility
-import control
+#import appliers
+import frontend
 
 # This is needed by helper functions and must be removed after
 # migration to native Python calls
@@ -51,6 +52,8 @@ import pysss_nss_idmap
 # Internal error
 import sys
 
+# Remove print() from code
+import logging
 
 class tdb_regedit:
     '''
@@ -74,7 +77,7 @@ class tdb_regedit:
                 entry.keyname.upper(),
                 entry.valuename,
                 entry.type.to_bytes(1, byteorder='big')).upper().encode()
-        print('Merging {}'.format(hive_key))
+        logging.info('Merging {}'.format(hive_key))
 
         self.registry.transaction_start()
         self.registry.store(hive_key, entry.data.to_bytes(4, byteorder='big'))
@@ -86,7 +89,7 @@ class applier_backend:
 
 def get_cache(cache_file, default_cache_obj):
     if not os.path.exists(cache_file):
-        print('Initializing missing cache file: {}'.format(cache_file))
+        logging.info('Initializing missing cache file: {}'.format(cache_file))
         with open(cache_file, 'wb') as f:
             pickle.dump(default_cache_obj, f, pickle.HIGHEST_PROTOCOL)
 
@@ -108,7 +111,7 @@ class samba_backend(applier_backend):
         Check if there is SYSVOL path for GPO assigned
         '''
         if not gpo.file_sys_path:
-            print('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
+            logging.info('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
             return False
         return True
 
@@ -133,7 +136,7 @@ class samba_backend(applier_backend):
         self.creds = creds
 
         self.cache_dir = self.loadparm.get('cache directory')
-        print('Cache directory is: {}'.format(self.cache_dir))
+        logging.info('Cache directory is: {}'.format(self.cache_dir))
 
         # Regular expressions to split PReg files into user and machine parts
         self._machine_pol_path_regex = re.compile(self._machine_pol_path_pattern)
@@ -168,14 +171,14 @@ class samba_backend(applier_backend):
             print('Error fetching GPOs')
             if sid in cache:
                 self.policy_files = cache[sid]
-                print('Got cached PReg files')
+                logging.info('Got cached PReg files')
 
         # Re-cache the retrieved values
         with open(cache_file, 'wb') as f:
             pickle.dump(cache, f, pickle.HIGHEST_PROTOCOL)
-            print('Cached PReg files')
+            logging.info('Cached PReg files')
 
-        print('Policy files: {}'.format(self.policy_files))
+        logging.info('Policy files: {}'.format(self.policy_files))
 
     def _parse_pol_file(self, polfile):
         '''
@@ -197,7 +200,7 @@ class samba_backend(applier_backend):
         '''
         # Build hive key path from PReg's key name and value name.
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
-        print('Merging {}'.format(hive_key))
+        logging.info('Merging {}'.format(hive_key))
 
         # FIXME: Here should be entry.type parser in order to correctly
         # represent data
@@ -210,10 +213,10 @@ class samba_backend(applier_backend):
         '''
         # FIXME: Return registry and hives instead of samba.preg objects.
         preg_objs = []
-        print('Parsing machine regpols')
+        logging.info('Parsing machine regpols')
 
         for regpol in self.policy_files['machine_regpols']:
-            print('Processing {}'.format(regpol))
+            logging.info('Processing {}'.format(regpol))
             pregfile = self._parse_pol_file(regpol)
             preg_objs.append(pregfile)
             # Works only with full key names
@@ -228,7 +231,7 @@ class samba_backend(applier_backend):
         Seek through given GPT directory absolute path and return the dictionary
         of user's and machine's Registry.pol files.
         '''
-        print('Finding regpols in: {}'.format(gpt_path))
+        logging.info('Finding regpols in: {}'.format(gpt_path))
         polfiles = dict({ 'machine_regpols': [], 'user_regpols': [] })
         for root, dirs, files in os.walk(gpt_path):
             for gpt_file in files:
@@ -238,95 +241,8 @@ class samba_backend(applier_backend):
                         polfiles['machine_regpols'].append(regpol_abspath)
                     else:
                         polfiles['user_regpols'].append(regpol_abspath)
-        print('Polfiles: {}'.format(polfiles))
+        logging.info('Polfiles: {}'.format(polfiles))
         return polfiles
-
-
-
-class applier_frontend:
-    def __init__(self, regobj):
-        pass
-
-    def apply(self):
-        pass
-
-class control_applier(applier_frontend):
-    _registry_branch = 'Software\\BaseALT\\Policies\\Control'
-
-    def __init__(self, polfiles):
-        self.polparsers = polfiles
-        self.control_settings = self._get_controls(self.polparsers)
-        self.controls = []
-        for setting in self.control_settings:
-            try:
-                self.controls.append(control.control(setting.valuename, setting.data))
-            except:
-                print('Unable to work with control: {}'.format(setting.valuename))
-        #for e in polfile.pol_file.entries:
-        #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
-
-    def _get_controls(self, polfiles):
-        '''
-        Extract control entries from PReg file
-        '''
-        controls = []
-        for parser in polfiles:
-            for entry in parser.entries:
-                if entry.keyname == self._registry_branch:
-                    controls.append(entry)
-                    print('Found control setting: {}'.format(entry.valuename))
-                else:
-                    # Property names are taken from python/samba/gp_parse/gp_pol.py
-                    print('Dropped control setting: {}\\{}'.format(entry.keyname, entry.valuename))
-        return controls
-
-    def apply(self):
-        '''
-        Trigger control facility invocation.
-        '''
-        for control in self.controls:
-            control.set_control_status()
-
-    def dump_settings(self):
-        '''
-        Write actual controls as XML and PReg files
-        '''
-        print('Dumping...')
-        polfile = preg.file()
-        polfile.header.signature = 'PReg'
-        polfile.header.version = 1
-        polfile.num_entries = len(self.control_settings)
-        polfile.entries = self.control_settings
-        print(polfile.__ndr_print__())
-        
-        policy_writer = GPPolParser()
-        policy_writer.pol_file = polfile
-        policy_writer.write_xml('test_reg.xml')
-        policy_writer.write_binary('test_reg.pol')
-
-class applier:
-    def __init__(self, backend):
-        self.backend = backend
-        self.gpvalues = self.load_values()
-        print('Values: {}'.format(self.gpvalues))
-        capplier = control_applier(self.gpvalues)
-        self.appliers = dict({ 'control': capplier })
-
-    def load_values(self):
-        '''
-        This thing returns the list of samba.preg objects for
-        now but it must be transformed to return registry and
-        its hives to read values from.
-        '''
-        print('Get values from backend')
-        return self.backend.get_values()
-
-    def apply_parameters(self):
-        print('Applying')
-        self.appliers['control'].apply()
-        # This thing dumps Registry.pol files to disk from data structures
-        #print('Writing settings to file')
-        #self.appliers['control'].dump_settings()
 
 def parse_arguments():
     arguments = argparse.ArgumentParser(description='Generate configuration out of parsed policies')
@@ -346,12 +262,12 @@ def get_gpo_list(dc_hostname, creds, lp, user):
     if ads.connect():
         #gpos = ads.get_gpo_list(creds.get_username())
         gpos = ads.get_gpo_list(user)
-    print('Got GPO list:')
+    logging.info('Got GPO list:')
     for gpo in gpos:
         # These setters are taken from libgpo/pygpo.c
         # print(gpo.ds_path) # LDAP entry
-        print('{} ({})'.format(gpo.display_name, gpo.name))
-    print('------')
+        logging.info('{} ({})'.format(gpo.display_name, gpo.name))
+    logging.info('------')
     return gpos
 
 def get_machine_domain():
@@ -405,10 +321,11 @@ def check_krb_ticket():
     try:
         subprocess.check_call([ 'klist', '-s' ])
         output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
-        print(output)
+        logging.info(output)
     except:
-        sys.exit( 1 )
-    print('Ticket check succeed')
+        logging.error('Kerberos ticket check unsuccessful')
+        sys.exit(1)
+    logging.info('Ticket check succeed')
 
 def get_domain_name(lp, creds, dc):
     '''
@@ -417,7 +334,7 @@ def get_domain_name(lp, creds, dc):
     # Get CLDAP record about domain
     # Look and python/samba/netcmd/domain.py for more examples
     res = netcmd_get_domain_infos_via_cldap(lp, None, dc)
-    print('Found domain via CLDAP: {}'.format(res.dns_domain))
+    logging.info('Found domain via CLDAP: {}'.format(res.dns_domain))
 
     return res.dns_domain
 
@@ -449,23 +366,23 @@ def main():
     domain_username = '{}\\{}'.format(domain, username)
     if domain_username in cached_sids:
         sid = cached_sids[domain_username]
-        print('Got cached SID {} for user {}'.format(sid, domain_username))
+        logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
 
     try:
         sid = wbinfo_getsid(domain, username)
     except:
-        print('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
+        logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
 
-    print('Working with SID: {}'.format(sid))
+    logging.info('Working with SID: {}'.format(sid))
 
     cached_sids[domain_username] = sid
     with open(sid_cache, 'wb') as f:
         pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
-        print('Cached SID {} for user {}'.format(sid, domain_username))
+        logging.info('Cached SID {} for user {}'.format(sid, domain_username))
 
     back = samba_backend(lp, creds, sid, dc, username)
 
-    appl = applier(back)
+    appl = frontend.applier(back)
     appl.apply_parameters()
 
 if __name__ == "__main__":
