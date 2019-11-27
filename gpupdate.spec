@@ -36,11 +36,20 @@ mkdir -p \
 ln -s %python3_sitelibdir/gpoa/main.py \
 	%buildroot%_sbindir/gpoa
 
+install -Dm0644 %name.service %buildroot%_unitdir/%name.service
+
+%preun
+%preun_service gpupdate
+
+%post
+%post_service gpupdate
+
 %files
 %_sbindir/gpoa
 %_bindir/gpupdate
 %attr(755,root,root) %python3_sitelibdir/gpoa/main.py
 %python3_sitelibdir/gpoa
+%_unitdir/%name.service
 
 %changelog
 * Sun Nov 17 2019 Evgeny Sinelnikov <sin@altlinux.org> 0.0.3-alt1

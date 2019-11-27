@@ -1,0 +1,12 @@
+[Unit]
+Description=Group policy update for machine
+After=sssd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/bin/gpupdate
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
