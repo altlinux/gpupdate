@@ -9,6 +9,11 @@ from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 import samba.gpo
 import pysss_nss_idmap
 
+from xml.etree import ElementTree
+from samba.gp_parse.gp_pol import GPPolParser
+
+logging.basicConfig(level=logging.DEBUG)
+
 def get_gpo_list(dc_hostname, creds, lp, user):
     gpos = []
     ads = samba.gpo.ADS_STRUCT(dc_hostname, lp, creds)
@@ -30,9 +35,9 @@ def select_dc(lp, creds, dc):
     samba_dc = get_dc_hostname(creds, lp)
 
     if samba_dc != dc and dc != None:
-        print('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
+        logging.debug('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
         return dc
-    
+
     return samba_dc
 
 def wbinfo_getsid(domain, user):
@@ -59,7 +64,7 @@ def machine_kinit():
     '''
     host = socket.gethostname().split('.', 1)[0].upper() + "$"
     subprocess.call(['kinit', '-k', host])
-    print('kinit succeed')
+    logging.debug('kinit succeed')
 
 def check_krb_ticket():
     '''
@@ -96,3 +101,15 @@ def get_cache(cache_file, default_cache_obj):
         data = pickle.load(f)
 
     return data
+
+def load_xml_preg(xml_path):
+    '''
+    Parse PReg file and return its preg object
+    '''
+    logging.debug('Loading PReg from XML: {}'.format(xml_path))
+    gpparser = GPPolParser()
+    xml_root = ElementTree.parse(xml_path).getroot()
+    gpparser.load_xml(xml_root)
+    gpparser.pol_file.__ndr_print__()
+    return gpparser.pol_file
+
