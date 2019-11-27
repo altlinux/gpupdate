@@ -2,6 +2,7 @@ import logging
 import subprocess
 import socket
 import sys
+import os
 import pickle
 
 from samba.gpclass import get_dc_hostname
@@ -58,11 +59,17 @@ def wbinfo_getsid(domain, user):
 
     return sid
 
+def get_machine_name():
+    '''
+    Get localhost name looking like DC0$
+    '''
+    return socket.gethostname().split('.', 1)[0].upper() + "$"
+
 def machine_kinit():
     '''
     Perform kinit with machine credentials
     '''
-    host = socket.gethostname().split('.', 1)[0].upper() + "$"
+    host = get_machine_name()
     subprocess.call(['kinit', '-k', host])
     logging.debug('kinit succeed')
 

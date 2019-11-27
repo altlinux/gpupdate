@@ -58,8 +58,8 @@ def parse_arguments():
     arguments.add_argument('user',
         type=str,
         nargs='?',
-        default=get_machine_name(),
-        help='Domain username ({}) to parse policies for'.format(get_machine_name()))
+        default=util.get_machine_name(),
+        help='Domain username ({}) to parse policies for'.format(util.get_machine_name()))
     arguments.add_argument('--dc',
         type=str,
         help='FQDN of the domain to replicate SYSVOL from')
@@ -68,7 +68,7 @@ def parse_arguments():
         help='Operate without domain (apply local policy)')
     return arguments.parse_args()
 
-def apply_samba_dc(arg_dc, arg_user):
+def apply_samba_domain(arg_dc, arg_user):
     sambaopts = options.SambaOptions(parser)
     credopts = options.CredentialsOptions(parser)
     # Initialize loadparm context
@@ -117,6 +117,7 @@ def apply_local_policy(user):
     appl.apply_parameters()
 
 def main():
+    global parser
     parser = optparse.OptionParser('GPO Applier')
     args = parse_arguments()
 
