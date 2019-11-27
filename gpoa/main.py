@@ -5,8 +5,7 @@ import argparse
 # Facility to determine GPTs for user
 import optparse
 from samba import getopt as options
-from samba.gpclass import get_dc_hostname, gpo_version, check_safe_path
-import samba.gpo
+from samba.gpclass import check_safe_path
 
 # Primitives to work with libregistry
 # samba.registry.str_regtype(2) -> 'REG_EXPAND_SZ'
@@ -23,9 +22,6 @@ from samba.gp_parse.gp_pol import GPPolParser
 # using cldap_netlogon (and to replace netads utility
 # invocation helper).
 #from samba.dcerpc import netlogon
-
-# Registry editing facilities are buggy. Use TDB module instead.
-import tdb
 
 # This is needed by Registry.pol file search
 import os
@@ -56,34 +52,6 @@ import sys
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-class tdb_regedit:
-    '''
-    regedit object for samba-regedit which has separate registry and
-    not really related to registry formed in smb.conf.
-    '''
-
-    def __init__(self, tdb_file='/var/lib/samba/registry.tdb'):
-        self.registry = tdb.open(tdb_file)
-
-    def _blob2keys(self, blob):
-        return blob.split('')
-
-    def get_keys(self, path):
-        # Keys are ending with trailing zeros and are binary blobs
-        keys_blob = self.registry.get('{}\x00'.format(path).encode())
-        return self._blob2keys
-
-    def write_preg_entry(self, entry):
-        hive_key = 'HKLM\\{}\\{}\\{}'.format(
-                entry.keyname.upper(),
-                entry.valuename,
-                entry.type.to_bytes(1, byteorder='big')).upper().encode()
-        logging.info('Merging {}'.format(hive_key))
-
-        self.registry.transaction_start()
-        self.registry.store(hive_key, entry.data.to_bytes(4, byteorder='big'))
-        self.registry.transaction_commit()
-
 class applier_backend:
     def __init__(self):
         pass
@@ -95,7 +63,7 @@ class local_policy_backend(applier_backend):
         self.username = username
 
     def get_values(self):
-        policies = [frontend.load_xml_preg(self.__default_policy_path)]
+        policies = [util.load_xml_preg(self.__default_policy_path)]
         return policies
 
 class samba_backend(applier_backend):
@@ -120,10 +88,10 @@ class samba_backend(applier_backend):
         dict of lists with PReg file paths.
         '''
         if self._check_sysvol_present(gpo_obj):
-            print('Found SYSVOL entry {} for GPO {}'.format(gpo_obj.file_sys_path, gpo_obj.name))
+            logging.debug('Found SYSVOL entry {} for GPO {}'.format(gpo_obj.file_sys_path, gpo_obj.name))
             path = check_safe_path(gpo_obj.file_sys_path).upper()
             gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
-            print('Path: {}'.format(path))
+            logging.debug('Path: {}'.format(path))
             policy_files = self._find_regpol_files(gpt_abspath)
 
             return policy_files
@@ -135,7 +103,7 @@ class samba_backend(applier_backend):
         self.creds = creds
 
         self.cache_dir = self.loadparm.get('cache directory')
-        logging.info('Cache directory is: {}'.format(self.cache_dir))
+        logging.debug('Cache directory is: {}'.format(self.cache_dir))
 
         # Regular expressions to split PReg files into user and machine parts
         self._machine_pol_path_regex = re.compile(self._machine_pol_path_pattern)
@@ -175,9 +143,9 @@ class samba_backend(applier_backend):
         # Re-cache the retrieved values
         with open(cache_file, 'wb') as f:
             pickle.dump(cache, f, pickle.HIGHEST_PROTOCOL)
-            logging.info('Cached PReg files')
+            logging.debug('Cached PReg files')
 
-        logging.info('Policy files: {}'.format(self.policy_files))
+        logging.debug('Policy files: {}'.format(self.policy_files))
 
     def _parse_pol_file(self, polfile):
         '''
@@ -199,7 +167,7 @@ class samba_backend(applier_backend):
         '''
         # Build hive key path from PReg's key name and value name.
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
-        logging.info('Merging {}'.format(hive_key))
+        logging.debug('Merging {}'.format(hive_key))
 
         # FIXME: Here should be entry.type parser in order to correctly
         # represent data
@@ -215,7 +183,7 @@ class samba_backend(applier_backend):
         logging.info('Parsing machine regpols')
 
         for regpol in self.policy_files['machine_regpols']:
-            logging.info('Processing {}'.format(regpol))
+            logging.debug('Processing {}'.format(regpol))
             pregfile = self._parse_pol_file(regpol)
             preg_objs.append(pregfile)
             # Works only with full key names
@@ -230,7 +198,7 @@ class samba_backend(applier_backend):
         Seek through given GPT directory absolute path and return the dictionary
         of user's and machine's Registry.pol files.
         '''
-        logging.info('Finding regpols in: {}'.format(gpt_path))
+        logging.debug('Finding regpols in: {}'.format(gpt_path))
         polfiles = dict({ 'machine_regpols': [], 'user_regpols': [] })
         for root, dirs, files in os.walk(gpt_path):
             for gpt_file in files:
@@ -240,7 +208,7 @@ class samba_backend(applier_backend):
                         polfiles['machine_regpols'].append(regpol_abspath)
                     else:
                         polfiles['user_regpols'].append(regpol_abspath)
-        logging.info('Polfiles: {}'.format(polfiles))
+        logging.debug('Polfiles: {}'.format(polfiles))
         return polfiles
 
 def parse_arguments():
