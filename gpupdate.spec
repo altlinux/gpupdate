@@ -11,6 +11,7 @@ Url: http://git.altlinux.org/
 BuildArch: noarch
 
 Requires: control
+Requires: local-policy
 
 BuildRequires: rpm-build-python3
 
