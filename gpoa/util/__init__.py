@@ -107,6 +107,11 @@ def get_cache(cache_file, default_cache_obj):
 
     return data
 
+def load_preg(file_path):
+    if file_path.endswith('.xml'):
+        return load_xml_preg(file_path)
+    return load_pol_preg(file_path)
+
 def load_xml_preg(xml_path):
     '''
     Parse PReg file and return its preg object
@@ -116,5 +121,21 @@ def load_xml_preg(xml_path):
     xml_root = ElementTree.parse(xml_path).getroot()
     gpparser.load_xml(xml_root)
     gpparser.pol_file.__ndr_print__()
+
+    return gpparser.pol_file
+
+def load_pol_preg(polfile):
+    '''
+    Parse PReg file and return its preg object
+    '''
+    logging.debug('Loading PReg from .pol file: {}'.format(polfile))
+    gpparser = GPPolParser()
+    data = None
+
+    with open(polfile, 'rb') as f:
+        data = f.read()
+        gpparser.parse(data)
+
+    #print(gpparser.pol_file.__ndr_print__())
     return gpparser.pol_file
 
