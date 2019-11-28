@@ -132,20 +132,6 @@ class samba_backend(applier_backend):
 
         logging.debug('Policy files: {}'.format(self.policy_files))
 
-    def _parse_pol_file(self, polfile):
-        '''
-        Parse PReg file and return its preg object
-        '''
-        gpparser = GPPolParser()
-        data = None
-
-        with open(polfile, 'rb') as f:
-            data = f.read()
-            gpparser.parse(data)
-
-        #print(gpparser.pol_file.__ndr_print__())
-        return gpparser.pol_file
-
     def _merge_entry(self, hive, entry):
         '''
         Write preg.entry to hive
