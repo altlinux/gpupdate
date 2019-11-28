@@ -55,38 +55,6 @@ def parse_cli_arguments():
         '--user',
         default=None,
         help='Name of the user for GPO update')
-    argparser.add_argument('-d',
-        '--domain',
-        help='Name of the AD domain for replication')
-    argparser.add_argument('-c',
-        '--controller',
-        help='AD controller to connect to')
-    argparser.add_argument('-p',
-        '--password',
-        help='Kerberos 5 password for the specified user')
-    argparser.add_argument('-i',
-        '--sid',
-        help='Specify SID for User target')
-    argparser.add_argument('-t',
-        '--target',
-        default='User',
-        help='Computer or User')
-    argparser.add_argument('-f',
-        '--force',
-        help='Reapply all policy settings')
-    argparser.add_argument('-w',
-        '--wait',
-        default=600,
-        help='Wait for specified number of seconds')
-    argparser.add_argument('-l',
-        '--logoff',
-        help='Force logoff after settings are applied')
-    argparser.add_argument('-b',
-        '--boot',
-        help='Force reboot after settings are applied')
-    argparser.add_argument('-s',
-        '--sync',
-        help='Perform next GPO application synchronously')
 
     return argparser.parse_args()
 
