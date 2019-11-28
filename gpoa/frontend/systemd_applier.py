@@ -38,33 +38,7 @@ class systemd_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         for unit in self.units:
-            unit.apply()
-
-class applier:
-    def __init__(self, sid, backend):
-        self.backend = backend
-        self.gpvalues = self.load_values()
-        logging.info('Values: {}'.format(self.gpvalues))
-        capplier = control_applier(self.gpvalues)
-        pkapplier = polkit_applier(self.gpvalues)
-        sdapplier = systemd_applier(self.gpvalues)
-        self.appliers = dict({ 'control': capplier, 'polkit': pkapplier, 'systemd': sdapplier })
-
-    def load_values(self):
-        '''
-        This thing returns the list of samba.preg objects for
-        now but it must be transformed to return registry and
-        its hives to read values from.
-        '''
-        logging.info('Get values from backend')
-        return self.backend.get_values()
-
-    def apply_parameters(self):
-        logging.info('Applying')
-        self.appliers['control'].apply()
-        self.appliers['polkit'].apply()
-        self.appliers['systemd'].apply()
-        # This thing dumps Registry.pol files to disk from data structures
-        #print('Writing settings to file')
-        #self.appliers['control'].dump_settings()
-
+            try:
+                unit.apply()
+            except:
+                logging.error('Failed applying unit {}'.format(unit.unit_name))
