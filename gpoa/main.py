@@ -33,18 +33,9 @@ import itertools
 import pickle
 
 # Our native control facility
-#import appliers
 import util
-from backend import samba_backend, local_policy_backend
+from backend import samba_backend
 import frontend
-
-# This is needed by helper functions and must be removed after
-# migration to native Python calls
-import socket
-import subprocess
-
-# Facility to get SID from username
-import pysss_nss_idmap
 
 # Internal error
 import sys
@@ -68,65 +59,64 @@ def parse_arguments():
         help='Operate without domain (apply local policy)')
     return arguments.parse_args()
 
-def apply_samba_domain(arg_dc, arg_user):
-    sambaopts = options.SambaOptions(parser)
-    credopts = options.CredentialsOptions(parser)
+class gpoa_controller:
+    __kinit_successful = False
+    __parser = optparse.OptionParser('GPO Applier')
+    __args = None
+    __sambaopts = options.SambaOptions(__parser)
+    __credopts = options.CredentialsOptions(__parser)
     # Initialize loadparm context
-    lp = sambaopts.get_loadparm()
-    creds = credopts.get_credentials(lp, fallback_machine=True)
+    __lp = __sambaopts.get_loadparm()
+    __creds = __credopts.get_credentials(__lp, fallback_machine=True)
 
-    sid_cache = os.path.join(lp.get('cache directory'), 'sid_cache.pkl')
-    cached_sids = util.get_cache(sid_cache, dict())
+    def __init__(self):
+        self.__kinit_successful = util.machine_kinit()
+        self.__args = parse_arguments()
+        sid_cache = os.path.join(self.__lp.get('cache directory'), 'sid_cache.pkl')
+        cached_sids = util.get_cache(sid_cache, dict())
 
-    util.machine_kinit()
-    util.check_krb_ticket()
+        # Determine the default Samba DC for replication and try
+        # to overwrite it with user setting.
+        dc = None
+        try:
+            dc = util.select_dc(self.__lp, self.__creds, self.__args.dc)
+        except:
+            pass
 
-    # Determine the default Samba DC for replication and try
-    # to overwrite it with user setting.
-    dc = util.select_dc(lp, creds, arg_dc)
+        username = self.__args.user
+        domain = None
+        try:
+            domain = util.get_domain_name(self.__lp, self.__creds, dc)
+        except:
+            pass
+        sid = 'local-{}'.format(self.__args.user)
 
-    username = arg_user
-    domain = util.get_domain_name(lp, creds, dc)
-    sid = ''
+        domain_username = '{}\\{}'.format(domain, username)
+        if domain_username in cached_sids:
+            sid = cached_sids[domain_username]
+            logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
 
-    domain_username = '{}\\{}'.format(domain, username)
-    if domain_username in cached_sids:
-        sid = cached_sids[domain_username]
-        logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
+        try:
+            sid = util.wbinfo_getsid(domain, username)
+        except:
+            sid = 'local-{}'.format(self.__args.user)
+            logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
 
-    try:
-        sid = util.wbinfo_getsid(domain, username)
-    except:
-        logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
+        logging.info('Working with SID: {}'.format(sid))
 
-    logging.info('Working with SID: {}'.format(sid))
+        cached_sids[domain_username] = sid
+        with open(sid_cache, 'wb') as f:
+            pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
+            logging.info('Cached SID {} for user {}'.format(sid, domain_username))
 
-    cached_sids[domain_username] = sid
-    with open(sid_cache, 'wb') as f:
-        pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
-        logging.info('Cached SID {} for user {}'.format(sid, domain_username))
+        back = samba_backend(self.__lp, self.__creds, sid, dc, username)
 
-    back = samba_backend(lp, creds, sid, dc, username)
-
-    appl = frontend.applier(sid, back)
-    appl.apply_parameters()
-
-def apply_local_policy(user):
-    back = local_policy_backend(user)
-    appl = frontend.applier('local-{}'.format(user), back)
-    appl.apply_parameters()
+        appl = frontend.applier(sid, back)
+        appl.apply_parameters()
 
 def main():
-    global parser
-    parser = optparse.OptionParser('GPO Applier')
-    args = parse_arguments()
-
-    if args.nodomain:
-        logging.info('Working without domain - applying Local Policy')
-        apply_local_policy(args.user)
-    else:
-        logging.info('Working with Samba DC')
-        apply_samba_domain(args.dc, args.user)
+    logging.info('Working with Samba DC')
+    controller = gpoa_controller()
 
 if __name__ == "__main__":
     main()
