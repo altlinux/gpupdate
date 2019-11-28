@@ -5,7 +5,7 @@ import argparse
 # Facility to determine GPTs for user
 import optparse
 from samba import getopt as options
-from samba.gpclass import check_safe_path
+from samba.gpclass import check_safe_path, check_refresh_gpo_list
 
 # Primitives to work with libregistry
 # samba.registry.str_regtype(2) -> 'REG_EXPAND_SZ'
@@ -112,7 +112,14 @@ class samba_backend(applier_backend):
         cache = util.get_cache(cache_file, dict())
 
         try:
-            gpos = get_gpo_list(dc, self.creds, self.loadparm, 'administrator')
+            gpos = util.get_gpo_list(dc, self.creds, self.loadparm, self.username)
+
+            # GPT replication function
+            try:
+                check_refresh_gpo_list(dc, self.loadparm, self.creds, gpos)
+            except:
+                logging.error('Unable to replicate GPTs from {}'.format(dc))
+
             for gpo in gpos:
                 polfiles = self._gpo_get_gpt_polfiles(gpo)
                 self.policy_files['machine_regpols'] += polfiles['machine_regpols']
