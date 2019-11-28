@@ -29,9 +29,6 @@ def get_gpo_list(dc_hostname, creds, lp, user):
     logging.info('------')
     return gpos
 
-def get_machine_domain():
-    pass
-
 def select_dc(lp, creds, dc):
     samba_dc = get_dc_hostname(creds, lp)
 
