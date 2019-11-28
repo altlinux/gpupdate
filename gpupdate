@@ -3,17 +3,8 @@
 import argparse
 
 import subprocess
-import threading
-
 import os
-import errno
-
-import tempfile
-import shutil
-
-import socket
 import sys
-import re
 
 class gpoa:
     _gpoa_exe = '/usr/sbin/gpoa'
