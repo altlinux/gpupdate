@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 class polkit:
-    __template_path = '/usr/lib/python3/site-packages/gpoa/templates'
+    __template_path = '/usr/share/gpupdate/templates'
     __policy_dir    = '/etc/polkit-1/rules.d'
     __template_loader = jinja2.FileSystemLoader(searchpath=__template_path)
     __template_environment = jinja2.Environment(loader=__template_loader)

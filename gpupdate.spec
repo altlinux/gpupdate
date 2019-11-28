@@ -37,6 +37,10 @@ mkdir -p \
 ln -s %python3_sitelibdir/gpoa/main.py \
 	%buildroot%_sbindir/gpoa
 
+mkdir -p %buildroot%_datadir/%name
+mv %buildroot%python3_sitelibdir/gpoa/templates \
+	%buildroot%_datadir/%name/
+
 install -Dm0644 %name.service %buildroot%_unitdir/%name.service
 
 %preun
@@ -50,6 +54,7 @@ install -Dm0644 %name.service %buildroot%_unitdir/%name.service
 %_bindir/gpupdate
 %attr(755,root,root) %python3_sitelibdir/gpoa/main.py
 %python3_sitelibdir/gpoa
+%_datadir/%name
 %_unitdir/%name.service
 
 %changelog
