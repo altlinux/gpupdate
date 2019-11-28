@@ -33,9 +33,7 @@ import itertools
 import pickle
 
 # Our native control facility
-#import appliers
-#import ..util
-#import frontend
+import util
 
 # This is needed by helper functions and must be removed after
 # migration to native Python calls
@@ -53,6 +51,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 class samba_backend(applier_backend):
+    __default_policy_path = '/usr/lib/python3/site-packages/gpoa/local-policy/default.xml'
     _samba_registry_file = '/var/cache/samba/registry.tdb'
     _mahine_hive = 'HKEY_LOCAL_MACHINE'
     _user_hive = 'HKEY_CURRENT_USER'
@@ -106,7 +105,7 @@ class samba_backend(applier_backend):
         self.registry.mount_hive(self.machine_hive, samba.registry.HKEY_LOCAL_MACHINE)
         self.registry.mount_hive(self.user_hive, samba.registry.HKEY_CURRENT_USER)
 
-        self.policy_files = dict({ 'machine_regpols': [], 'user_regpols': [] })
+        self.policy_files = dict({ 'machine_regpols': [self.__default_policy_path], 'user_regpols': [] })
 
         cache_file = os.path.join(self.cache_dir, 'cache.pkl')
         # Load PReg paths from cache at first
@@ -170,7 +169,7 @@ class samba_backend(applier_backend):
 
         for regpol in self.policy_files['machine_regpols']:
             logging.debug('Processing {}'.format(regpol))
-            pregfile = self._parse_pol_file(regpol)
+            pregfile = util.load_preg(regpol)
             preg_objs.append(pregfile)
             # Works only with full key names
             #self.registry.diff_apply(regpol)
