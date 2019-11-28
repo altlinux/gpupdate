@@ -68,7 +68,7 @@ def machine_kinit():
     '''
     host = get_machine_name()
     subprocess.call(['kinit', '-k', host])
-    logging.debug('kinit succeed')
+    return check_krb_ticket()
 
 def check_krb_ticket():
     '''
@@ -80,8 +80,9 @@ def check_krb_ticket():
         logging.info(output)
     except:
         logging.error('Kerberos ticket check unsuccessful')
-        sys.exit(1)
+        return False
     logging.info('Ticket check succeed')
+    return True
 
 def get_domain_name(lp, creds, dc):
     '''
