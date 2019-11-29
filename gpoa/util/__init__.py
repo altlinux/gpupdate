@@ -145,3 +145,10 @@ def load_pol_preg(polfile):
     #print(gpparser.pol_file.__ndr_print__())
     return gpparser.pol_file
 
+def traverse_dir(root_dir):
+    filelist = []
+    for root, dirs, files in os.walk(root_dir):
+        for filename in files:
+            filelist.append(os.path.join(root, filename))
+    return filelist
+
