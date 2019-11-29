@@ -65,7 +65,7 @@ class samba_backend(applier_backend):
         Check if there is SYSVOL path for GPO assigned
         '''
         if not gpo.file_sys_path:
-            logging.info('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
+            logging.warning('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
             return False
         return True
 
