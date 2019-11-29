@@ -117,9 +117,13 @@ class samba_backend(applier_backend):
         self.machine_entries = OrderedDict()
         self.user_entries = OrderedDict()
 
-        self._machine_username = False
+        self.user_machine_entries = OrderedDict()
+        self.user_user_entries = OrderedDict()
+
+        # Check if we're working for user or for machine
+        self._is_machine_username = False
         if util.get_machine_name() == username:
-            self._machine_username = True
+            self._is_machine_username = True
 
         # Samba objects - LoadParm() and CredentialsOptions()
         self.loadparm = loadparm
@@ -137,35 +141,25 @@ class samba_backend(applier_backend):
         self.username = username
         self.sid = sid
 
-        self.policy_files = dict({ 'machine_regpols': [os.path.join(self.__default_policy_path, 'local.xml')], 'user_regpols': [] })
-
         cache_file = os.path.join(self.cache_dir, 'cache.pkl')
         # Load PReg paths from cache at first
-        cache = util.get_cache(cache_file, dict())
+        self.cache = util.get_cache(cache_file, OrderedDict())
 
-        try:
-            gpos = util.get_gpo_list(dc, self.creds, self.loadparm, self.username)
+        # Get policies for machine at first.
+        self.policy_files = self._get_pol(self.username)
+        self.policy_files['machine_regpols'].insert(0, os.path.join(self.__default_policy_path, 'local.xml'))
+        self.machine_entries = self._get_values(self.policy_files['machine_regpols'], self.machine_entries)
+        self.user_entries = self._get_values(self.policy_files['user_regpols'], self.user_entries)
 
-            # GPT replication function
-            try:
-                check_refresh_gpo_list(dc, self.loadparm, self.creds, gpos)
-            except:
-                logging.error('Unable to replicate GPTs from {}'.format(dc))
-
-            for gpo in gpos:
-                polfiles = self._gpo_get_gpt_polfiles(gpo)
-                self.policy_files['machine_regpols'] += polfiles['machine_regpols']
-                self.policy_files['user_regpols']    += polfiles['user_regpols']
-            # Cache paths to PReg files
-            cache[sid] = self.policy_files
-        except:
-            print('Error fetching GPOs')
-            if sid in cache:
-                self.policy_files = cache[sid]
-                logging.info('Got cached PReg files')
+        self.user_policy_files = None
+        # Load user GPT values in case user's name specified
+        if self._is_machine_username:
+            self.user_policy_files = self._get_pol(self.username)
+            self.user_machine_entries = self._get_values(self.user_policy_files['machine_regpols'], self.user_machine_entries)
+            self.user_user_entries = self._get_values(self.user_policy_files['user_regpols'], self.user_user_entries)
 
         # Re-cache the retrieved values
-        util.dump_cache(cache_file, cache)
+        util.dump_cache(cache_file, self.cache)
 
         logging.debug('Policy files: {}'.format(self.policy_files))
 
@@ -184,12 +178,10 @@ class samba_backend(applier_backend):
         '''
         # FIXME: Return registry and hives instead of samba.preg objects.
         logging.info('Parsing machine regpols')
-        machine_values = self._get_values(self.policy_files['machine_regpols'], self.machine_entries)
-        return machine_values
+        return self.machine_entries
 
     def get_user_values(self):
-        user_values = self._get_values(self.policy_files['user_regpols'], self.user_entries)
-        return user_values
+        return self.user_entries
 
     def _get_values(self, policy_files, hive_obj):
         for regpol in policy_files:
