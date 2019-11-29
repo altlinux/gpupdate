@@ -154,6 +154,7 @@ class samba_backend(applier_backend):
         self.user_policy_files = None
         # Load user GPT values in case user's name specified
         if not self._is_machine_username:
+            logging.info('Fetching and merging settings for user {}'.format(self.username))
             self.user_policy_files = self._get_pol(self.username)
             self.user_machine_entries = self._get_values(self.user_policy_files['machine_regpols'], self.user_machine_entries)
             self.user_user_entries = self._get_values(self.user_policy_files['user_regpols'], self.user_user_entries)
