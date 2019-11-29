@@ -104,8 +104,14 @@ def get_cache(cache_file, default_cache_obj):
     data = None
     with open(cache_file, 'rb') as f:
         data = pickle.load(f)
+    logging.info('Read cache {}'.format(cache_file))
 
     return data
+
+def dump_cache(cache_file, cache_obj):
+    with open(cache_file, 'wb') as f:
+        pickle.dump(cache_obj, f, pickle.HIGHEST_PROTOCOL)
+    logging.info('Wrote cache {}'.format(cache_file))
 
 def load_preg(file_path):
     if file_path.endswith('.xml'):
