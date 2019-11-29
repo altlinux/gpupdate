@@ -145,6 +145,28 @@ def load_pol_preg(polfile):
     #print(gpparser.pol_file.__ndr_print__())
     return gpparser.pol_file
 
+def preg2entrydict(preg):
+    '''
+    Create a map of HIVE_KEY to preg.entry
+    '''
+    pregfile = load_preg(preg)
+    logging.info('Loaded PReg {}'.format(preg))
+    key_map = dict()
+
+    for entry in pregfile.entries:
+        hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
+        key_map[hive_key] = entry
+
+    return key_map
+
+def merge_polfiles(polfile_list):
+    entrydict = dict()
+
+    for preg_file_path in polfile_list:
+        entrydict.update(preg2entrydict(preg_file_path))
+
+    return entrydict
+
 def traverse_dir(root_dir):
     filelist = []
     for root, dirs, files in os.walk(root_dir):
