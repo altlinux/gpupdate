@@ -8,9 +8,9 @@ from samba.gp_parse.gp_pol import GPPolParser
 class systemd_applier(applier_frontend):
     __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'
 
-    def __init__(self, polfiles):
-        self.polparsers = polfiles
-        self.systemd_unit_settings = self._get_unit_settings(self.polparsers)
+    def __init__(self, entries):
+        self.entries = entries
+        self.systemd_unit_settings = self._filter_entries()
         self.units = []
         for setting in self.systemd_unit_settings:
             try:
@@ -18,19 +18,18 @@ class systemd_applier(applier_frontend):
             except:
                 logging.info('Unable to work with systemd unit: {}'.format(setting.valuename))
 
-    def _get_unit_settings(self, polfiles):
+    def _filter_entries(self):
         '''
         Extract control entries from PReg file
         '''
         units = []
-        for parser in polfiles:
-            for entry in parser.entries:
-                if entry.keyname == self.__registry_branch:
-                    units.append(entry)
-                    logging.info('Found systemd unit setting: {}'.format(entry.valuename))
-                else:
-                    # Property names are taken from python/samba/gp_parse/gp_pol.py
-                    logging.info('Dropped systemd unit setting: {}\\{}'.format(entry.keyname, entry.valuename))
+        for entry in self.entries:
+            if entry.keyname == self.__registry_branch:
+                units.append(entry)
+                logging.info('Found systemd unit setting: {}'.format(entry.valuename))
+            else:
+                # Property names are taken from python/samba/gp_parse/gp_pol.py
+                logging.info('Dropped systemd unit setting: {}\\{}'.format(entry.keyname, entry.valuename))
         return units
 
     def apply(self):

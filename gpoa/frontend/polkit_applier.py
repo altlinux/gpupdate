@@ -12,9 +12,9 @@ class polkit_applier(applier_frontend):
             'Deny_All': ['99-gpoa_disk_permissions', { 'Deny_All': 0 }]
     }
 
-    def __init__(self, polfiles):
-        self.polparsers = polfiles
-        self.polkit_settings = self._get_policies()
+    def __init__(self, entries):
+        self.entries = entries
+        self.polkit_settings = self._filter_entries()
         self.policies = []
         for setting in self.polkit_settings:
             if setting.valuename in self.__policy_map.keys() and setting.keyname == self.__registry_branch:
@@ -28,19 +28,19 @@ class polkit_applier(applier_frontend):
         #for e in polfile.pol_file.entries:
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
 
-    def _get_policies(self):
+    def _filter_entries(self):
         '''
         Extract control entries from PReg file
         '''
         policies = []
-        for parser in self.polparsers:
-            for entry in parser.entries:
-                if entry.keyname == self.__registry_branch:
-                    policies.append(entry)
-                    logging.info('Found PolicyKit setting: {}\\{}'.format(entry.keyname, entry.valuename))
-                else:
-                    # Property names are taken from python/samba/gp_parse/gp_pol.py
-                    logging.info('Dropped PolicyKit setting: {}\\{}'.format(entry.keyname, entry.valuename))
+        for entry in self.entries:
+            if entry.keyname == self.__registry_branch:
+                policies.append(entry)
+                logging.info('Found PolicyKit setting: {}\\{}'.format(entry.keyname, entry.valuename))
+            else:
+                # Property names are taken from python/samba/gp_parse/gp_pol.py
+                logging.info('Dropped PolicyKit setting: {}\\{}'.format(entry.keyname, entry.valuename))
+
         return policies
 
     def apply(self):

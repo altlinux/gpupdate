@@ -46,6 +46,8 @@ import pysss_nss_idmap
 # Internal error
 import sys
 
+from collections import OrderedDict
+
 # Remove print() from code
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -83,6 +85,13 @@ class samba_backend(applier_backend):
         return dict({ 'machine_regpols': [], 'user_regpols': [] })
 
     def __init__(self, loadparm, creds, sid, dc, username):
+        self.machine_entries = OrderedDict()
+        self.user_entries = OrderedDict()
+
+        self._machine_username = False
+        if util.get_machine_name() == username:
+            self._machine_username = True
+
         # Samba objects - LoadParm() and CredentialsOptions()
         self.loadparm = loadparm
         self.creds = creds
@@ -97,13 +106,6 @@ class samba_backend(applier_backend):
         # User SID to work with HKCU hive
         self.username = username
         self.sid = sid
-
-        # Look at python-samba tests for code examples
-        self.registry = registry.Registry()
-        self.machine_hive = registry.open_ldb(os.path.join(self.cache_dir, 'HKLM.ldb'))
-        self.user_hive = registry.open_ldb(os.path.join(self.cache_dir, 'HKCU-{}.ldb'.format(self.sid)))
-        self.registry.mount_hive(self.machine_hive, samba.registry.HKEY_LOCAL_MACHINE)
-        self.registry.mount_hive(self.user_hive, samba.registry.HKEY_CURRENT_USER)
 
         self.policy_files = dict({ 'machine_regpols': [os.path.join(self.__default_policy_path, 'local.xml')], 'user_regpols': [] })
 
@@ -144,32 +146,33 @@ class samba_backend(applier_backend):
         # Build hive key path from PReg's key name and value name.
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
         logging.debug('Merging {}'.format(hive_key))
-
-        # FIXME: Here should be entry.type parser in order to correctly
-        # represent data
-        hive.set_value(hive_key, entry.type, entry.data.to_bytes(4, byteorder='big'))
-        hive.flush() # Dump data to disk
+        hive[hive_key] = entry
 
     def get_values(self):
         '''
         Read data from PReg file and return list of NDR objects (samba.preg)
         '''
         # FIXME: Return registry and hives instead of samba.preg objects.
-        preg_objs = []
         logging.info('Parsing machine regpols')
+        machine_values = self._get_values(self.policy_files['machine_regpols'], self.machine_entries)
+        return machine_values
 
-        for regpol in self.policy_files['machine_regpols']:
+    def get_user_values(self):
+        user_values = self._get_values(self.policy_files['user_regpols'], self.user_entries)
+        return user_values
+
+    def _get_values(self, policy_files, hive_obj):
+        for regpol in policy_files:
             try:
                 logging.debug('Processing {}'.format(regpol))
                 pregfile = util.load_preg(regpol)
-                preg_objs.append(pregfile)
                 # Works only with full key names
                 for entry in pregfile.entries:
-                    self._merge_entry(self.machine_hive, entry)
+                    self._merge_entry(hive_obj, entry)
             except:
                 logging.error('Error processing {}'.format(regpol))
 
-        return preg_objs
+        return list(hive_obj.values())
 
     def _find_regpol_files(self, gpt_path):
         '''

@@ -28,21 +28,13 @@ def preg2entries(preg_obj):
 class applier:
     def __init__(self, sid, backend):
         self.backend = backend
-        self.gpvalues = self.load_values()
+        self.gpvalues = self.backend.get_values()
+        self.gpvalues_user = self.backend.get_user_values()
         logging.info('Values: {}'.format(self.gpvalues))
         capplier = control_applier(self.gpvalues)
         pkapplier = polkit_applier(self.gpvalues)
         sdapplier = systemd_applier(self.gpvalues)
         self.appliers = dict({ 'control': capplier, 'polkit': pkapplier, 'systemd': sdapplier })
-
-    def load_values(self):
-        '''
-        This thing returns the list of samba.preg objects for
-        now but it must be transformed to return registry and
-        its hives to read values from.
-        '''
-        logging.info('Get values from backend')
-        return self.backend.get_values()
 
     def apply_parameters(self):
         logging.info('Applying')
