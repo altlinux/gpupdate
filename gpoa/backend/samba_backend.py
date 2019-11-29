@@ -206,15 +206,17 @@ class samba_backend(applier_backend):
         of user's and machine's Registry.pol files.
         '''
         logging.debug('Finding regpols in: {}'.format(gpt_path))
+
         polfiles = dict({ 'machine_regpols': [], 'user_regpols': [] })
-        for root, dirs, files in os.walk(gpt_path):
-            for gpt_file in files:
-                if gpt_file.endswith('.pol'):
-                    regpol_abspath = os.path.join(root, gpt_file)
-                    if self._machine_pol_path_regex.search(regpol_abspath):
-                        polfiles['machine_regpols'].append(regpol_abspath)
-                    else:
-                        polfiles['user_regpols'].append(regpol_abspath)
+        pol_filelist = [fname for fname in util.traverse_dir(gpt_path) if fname.endswith('.pol')]
+
+        for pol_file in pol_filelist:
+            if self._machine_pol_path_regex.search(pol_file):
+                polfiles['machine_regpols'].append(pol_file)
+            else:
+                polfiles['user_regpols'].append(pol_file)
+
         logging.debug('Polfiles: {}'.format(polfiles))
+
         return polfiles
 
