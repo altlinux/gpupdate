@@ -105,9 +105,7 @@ class gpoa_controller:
         logging.info('Working with SID: {}'.format(sid))
 
         cached_sids[domain_username] = sid
-        with open(sid_cache, 'wb') as f:
-            pickle.dump(cached_sids, f, pickle.HIGHEST_PROTOCOL)
-            logging.info('Cached SID {} for user {}'.format(sid, domain_username))
+        util.dump_cache(sid_cache, cached_sids)
 
         back = samba_backend(self.__lp, self.__creds, sid, dc, username)
 
