@@ -133,9 +133,7 @@ class samba_backend(applier_backend):
                 logging.info('Got cached PReg files')
 
         # Re-cache the retrieved values
-        with open(cache_file, 'wb') as f:
-            pickle.dump(cache, f, pickle.HIGHEST_PROTOCOL)
-            logging.debug('Cached PReg files')
+        util.dump_cache(cache_file, cache)
 
         logging.debug('Policy files: {}'.format(self.policy_files))
 
