@@ -7,16 +7,10 @@ import optparse
 from samba import getopt as options
 from samba.gpclass import check_safe_path, check_refresh_gpo_list
 
-# Primitives to work with libregistry
-# samba.registry.str_regtype(2) -> 'REG_EXPAND_SZ'
-# Taken from python/samba/tests/registry.py
-from samba import registry
-
 # PReg object generator and parser
 from samba.dcerpc import preg
 from samba.dcerpc import misc
 import samba.ndr
-from samba.gp_parse.gp_pol import GPPolParser
 
 # This is needed to query AD DOMAIN name from LDAP
 # using cldap_netlogon (and to replace netads utility
@@ -26,22 +20,12 @@ from samba.gp_parse.gp_pol import GPPolParser
 # This is needed by Registry.pol file search
 import os
 import re
-# This is needed for merging lists of PReg files.
-import itertools
 
 # This is needed for Username and SID caching
 import pickle
 
 # Our native control facility
 import util
-
-# This is needed by helper functions and must be removed after
-# migration to native Python calls
-import socket
-import subprocess
-
-# Facility to get SID from username
-import pysss_nss_idmap
 
 # Internal error
 import sys
