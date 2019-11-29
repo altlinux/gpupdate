@@ -114,12 +114,6 @@ class samba_backend(applier_backend):
         return policy_files
 
     def __init__(self, loadparm, creds, sid, dc, username):
-        self.machine_entries = OrderedDict()
-        self.user_entries = OrderedDict()
-
-        self.user_machine_entries = OrderedDict()
-        self.user_user_entries = OrderedDict()
-
         # Check if we're working for user or for machine
         self._is_machine_username = False
         if util.get_machine_name() == username:
@@ -148,58 +142,35 @@ class samba_backend(applier_backend):
         # Get policies for machine at first.
         self.policy_files = self._get_pol(self.username)
         self.policy_files['machine_regpols'].insert(0, os.path.join(self.__default_policy_path, 'local.xml'))
-        self.machine_entries = self._get_values(self.policy_files['machine_regpols'], self.machine_entries)
-        self.user_entries = self._get_values(self.policy_files['user_regpols'], self.user_entries)
+
+        self.machine_entries = util.merge_polfiles(self.policy_files['machine_regpols'])
+        self.user_entries = util.merge_polfiles(self.policy_files['user_regpols'])
 
         self.user_policy_files = None
         # Load user GPT values in case user's name specified
         if not self._is_machine_username:
             logging.info('Fetching and merging settings for user {}'.format(self.username))
             self.user_policy_files = self._get_pol(self.username)
-            self.user_machine_entries = self._get_values(self.user_policy_files['machine_regpols'], self.user_machine_entries)
-            self.user_user_entries = self._get_values(self.user_policy_files['user_regpols'], self.user_user_entries)
-            for entry in self.user_machine_entries:
-                self._merge_entry(self.machine_entries, entry)
-            for entry in self.user_user_entries:
-                self._merge_entry(self.user_entries, entry)
 
+            self.user_machine_entries = util.merge_polfiles(self.user_policy_files['machine_regpols'])
+            self.user_user_entries = util.merge_polfiles(self.user_policy_files['user_regpols'])
+
+            self.machine_entries.update(self.user_machine_entries)
+            self.user_entries.update(self.user_user_entries)
 
         # Re-cache the retrieved values
         util.dump_cache(cache_file, self.cache)
 
         logging.debug('Policy files: {}'.format(self.policy_files))
 
-    def _merge_entry(self, hive, entry):
-        '''
-        Write preg.entry to hive
-        '''
-        # Build hive key path from PReg's key name and value name.
-        hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
-        logging.debug('Merging {}'.format(hive_key))
-        hive[hive_key] = entry
-
     def get_values(self):
         '''
         Read data from PReg file and return list of NDR objects (samba.preg)
         '''
-        # FIXME: Return registry and hives instead of samba.preg objects.
-        return self.machine_entries
+        return list(self.machine_entries.values())
 
     def get_user_values(self):
-        return self.user_entries
-
-    def _get_values(self, policy_files, hive_obj):
-        for regpol in policy_files:
-            try:
-                logging.debug('Processing {}'.format(regpol))
-                pregfile = util.load_preg(regpol)
-                # Works only with full key names
-                for entry in pregfile.entries:
-                    self._merge_entry(hive_obj, entry)
-            except:
-                logging.error('Error processing {}'.format(regpol))
-
-        return list(hive_obj.values())
+        return list(self.user_entries.values())
 
     def _find_regpol_files(self, gpt_path):
         '''
