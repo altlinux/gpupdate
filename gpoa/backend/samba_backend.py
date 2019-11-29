@@ -71,7 +71,7 @@ class samba_backend(applier_backend):
 
     def _gpo_get_gpt_polfiles(self, gpo_obj):
         '''
-        Find absolute path to cached GPT directory and return
+        Find absolute path to SINGLE cached GPT directory and return
         dict of lists with PReg file paths.
         '''
         if self._check_sysvol_present(gpo_obj):
@@ -202,8 +202,8 @@ class samba_backend(applier_backend):
 
     def _find_regpol_files(self, gpt_path):
         '''
-        Seek through given GPT directory absolute path and return the dictionary
-        of user's and machine's Registry.pol files.
+        Seek through SINGLE given GPT directory absolute path and return
+        the dictionary of user's and machine's Registry.pol files.
         '''
         logging.debug('Finding regpols in: {}'.format(gpt_path))
 
