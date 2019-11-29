@@ -41,8 +41,8 @@ class samba_backend(applier_backend):
     _samba_registry_file = '/var/cache/samba/registry.tdb'
     _mahine_hive = 'HKEY_LOCAL_MACHINE'
     _user_hive = 'HKEY_CURRENT_USER'
-    _machine_pol_path_pattern = '[Mm][Aa][Cc][Hh][Ii][Nn][Ee](\.pol)$'
-    _user_pol_path_pattern = '[Uu][Ss][Ee][Rr](\.pol)$'
+    _machine_pol_path_pattern = '[Mm][Aa][Cc][Hh][Ii][Nn][Ee].*\.pol$'
+    _user_pol_path_pattern = '[Uu][Ss][Ee][Rr].*\.pol$'
 
     def __init__(self, loadparm, creds, sid, dc, username):
         # Check if we're working for user or for machine
