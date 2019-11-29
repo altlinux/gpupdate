@@ -153,10 +153,15 @@ class samba_backend(applier_backend):
 
         self.user_policy_files = None
         # Load user GPT values in case user's name specified
-        if self._is_machine_username:
+        if not self._is_machine_username:
             self.user_policy_files = self._get_pol(self.username)
             self.user_machine_entries = self._get_values(self.user_policy_files['machine_regpols'], self.user_machine_entries)
             self.user_user_entries = self._get_values(self.user_policy_files['user_regpols'], self.user_user_entries)
+            for entry in self.user_machine_entries:
+                merge_entry(self.machine_entries, entry)
+            for entry in self.user_user_entries:
+                merge_entry(self.user_entries, entry)
+
 
         # Re-cache the retrieved values
         util.dump_cache(cache_file, self.cache)
@@ -177,7 +182,6 @@ class samba_backend(applier_backend):
         Read data from PReg file and return list of NDR objects (samba.preg)
         '''
         # FIXME: Return registry and hives instead of samba.preg objects.
-        logging.info('Parsing machine regpols')
         return self.machine_entries
 
     def get_user_values(self):
