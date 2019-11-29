@@ -41,61 +41,8 @@ class samba_backend(applier_backend):
     _samba_registry_file = '/var/cache/samba/registry.tdb'
     _mahine_hive = 'HKEY_LOCAL_MACHINE'
     _user_hive = 'HKEY_CURRENT_USER'
-    _machine_pol_path_pattern = '[Mm][Aa][Cc][Hh][Ii][Nn][Ee]'
-    _user_pol_path_pattern = '[Uu][Ss][Ee][Rr]'
-
-    def _check_sysvol_present(self, gpo):
-        '''
-        Check if there is SYSVOL path for GPO assigned
-        '''
-        if not gpo.file_sys_path:
-            logging.warning('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
-            return False
-        return True
-
-    def _gpo_get_gpt_polfiles(self, gpo_obj):
-        '''
-        Find absolute path to SINGLE cached GPT directory and return
-        dict of lists with PReg file paths.
-        '''
-        if self._check_sysvol_present(gpo_obj):
-            logging.debug('Found SYSVOL entry {} for GPO {}'.format(gpo_obj.file_sys_path, gpo_obj.name))
-            path = check_safe_path(gpo_obj.file_sys_path).upper()
-            gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
-            logging.debug('Path: {}'.format(path))
-            policy_files = self._find_regpol_files(gpt_abspath)
-
-            return policy_files
-        return dict({ 'machine_regpols': [], 'user_regpols': [] })
-
-    def _get_pol(self, username):
-        '''
-        Get PReg file paths from GPTs for specified username.
-        '''
-        policy_files = OrderedDict({ 'machine_regpols': [], 'user_regpols': [] })
-
-        try:
-            gpos = util.get_gpo_list(self.dc, self.creds, self.loadparm, username)
-
-            # GPT replication function
-            try:
-                check_refresh_gpo_list(self.dc, self.loadparm, self.creds, gpos)
-            except:
-                logging.error('Unable to replicate GPTs from {} for {}'.format(self.dc, username))
-
-            for gpo in gpos:
-                polfiles = self._gpo_get_gpt_polfiles(gpo)
-                policy_files['machine_regpols'] += polfiles['machine_regpols']
-                policy_files['user_regpols']    += polfiles['user_regpols']
-            # Cache paths to PReg files
-            self.cache[self.sid] = policy_files
-        except:
-            logging.error('Error fetching GPO list from {} for'.format(self.dc, username))
-            if self.sid in self.cache:
-                policy_files = self.cache[sid]
-                logging.info('Got cached PReg files')
-
-        return policy_files
+    _machine_pol_path_pattern = '[Mm][Aa][Cc][Hh][Ii][Nn][Ee](\.pol)$'
+    _user_pol_path_pattern = '[Uu][Ss][Ee][Rr](\.pol)$'
 
     def __init__(self, loadparm, creds, sid, dc, username):
         # Check if we're working for user or for machine
@@ -164,15 +111,64 @@ class samba_backend(applier_backend):
         logging.debug('Finding regpols in: {}'.format(gpt_path))
 
         polfiles = dict({ 'machine_regpols': [], 'user_regpols': [] })
-        pol_filelist = [fname for fname in util.traverse_dir(gpt_path) if fname.endswith('.pol')]
-
-        for pol_file in pol_filelist:
-            if self._machine_pol_path_regex.search(pol_file):
-                polfiles['machine_regpols'].append(pol_file)
-            else:
-                polfiles['user_regpols'].append(pol_file)
+        full_traverse = util.traverse_dir(gpt_path)
+        polfiles['machine_regpols'] = [fname for fname in full_traverse if self._machine_pol_path_regex.search(fname)]
+        polfiles['user_regpols'] = [fname for fname in full_traverse if self._user_pol_path_regex.search(fname)]
 
         logging.debug('Polfiles: {}'.format(polfiles))
 
         return polfiles
+
+    def _check_sysvol_present(self, gpo):
+        '''
+        Check if there is SYSVOL path for GPO assigned
+        '''
+        if not gpo.file_sys_path:
+            logging.warning('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
+            return False
+        return True
+
+    def _gpo_get_gpt_polfiles(self, gpo_obj):
+        '''
+        Find absolute path to SINGLE cached GPT directory and return
+        dict of lists with PReg file paths.
+        '''
+        if self._check_sysvol_present(gpo_obj):
+            logging.debug('Found SYSVOL entry {} for GPO {}'.format(gpo_obj.file_sys_path, gpo_obj.name))
+            path = check_safe_path(gpo_obj.file_sys_path).upper()
+            gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
+            logging.debug('Path: {}'.format(path))
+            policy_files = self._find_regpol_files(gpt_abspath)
+
+            return policy_files
+        return dict({ 'machine_regpols': [], 'user_regpols': [] })
+
+    def _get_pol(self, username):
+        '''
+        Get PReg file paths from GPTs for specified username.
+        '''
+        policy_files = OrderedDict({ 'machine_regpols': [], 'user_regpols': [] })
+
+        try:
+            gpos = util.get_gpo_list(self.dc, self.creds, self.loadparm, username)
+
+            # GPT replication function
+            try:
+                check_refresh_gpo_list(self.dc, self.loadparm, self.creds, gpos)
+            except:
+                logging.error('Unable to replicate GPTs from {} for {}'.format(self.dc, username))
+
+            for gpo in gpos:
+                polfiles = self._gpo_get_gpt_polfiles(gpo)
+                policy_files['machine_regpols'] += polfiles['machine_regpols']
+                policy_files['user_regpols']    += polfiles['user_regpols']
+            # Cache paths to PReg files
+            self.cache[self.sid] = policy_files
+        except:
+            logging.error('Error fetching GPO list from {} for'.format(self.dc, username))
+            if self.sid in self.cache:
+                policy_files = self.cache[sid]
+                logging.info('Got cached PReg files')
+
+        return policy_files
 
