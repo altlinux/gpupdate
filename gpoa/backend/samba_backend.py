@@ -84,6 +84,35 @@ class samba_backend(applier_backend):
             return policy_files
         return dict({ 'machine_regpols': [], 'user_regpols': [] })
 
+    def _get_pol(self, username):
+        '''
+        Get PReg file paths from GPTs for specified username.
+        '''
+        policy_files = OrderedDict({ 'machine_regpols': [], 'user_regpols': [] })
+
+        try:
+            gpos = util.get_gpo_list(self.dc, self.creds, self.loadparm, username)
+
+            # GPT replication function
+            try:
+                check_refresh_gpo_list(self.dc, self.loadparm, self.creds, gpos)
+            except:
+                logging.error('Unable to replicate GPTs from {} for {}'.format(self.dc, username))
+
+            for gpo in gpos:
+                polfiles = self._gpo_get_gpt_polfiles(gpo)
+                policy_files['machine_regpols'] += polfiles['machine_regpols']
+                policy_files['user_regpols']    += polfiles['user_regpols']
+            # Cache paths to PReg files
+            self.cache[self.sid] = policy_files
+        except:
+            logging.error('Error fetching GPO list from {} for'.format(self.dc, username))
+            if self.sid in self.cache:
+                policy_files = self.cache[sid]
+                logging.info('Got cached PReg files')
+
+        return policy_files
+
     def __init__(self, loadparm, creds, sid, dc, username):
         self.machine_entries = OrderedDict()
         self.user_entries = OrderedDict()
@@ -95,6 +124,7 @@ class samba_backend(applier_backend):
         # Samba objects - LoadParm() and CredentialsOptions()
         self.loadparm = loadparm
         self.creds = creds
+        self.dc = dc
 
         self.cache_dir = self.loadparm.get('cache directory')
         logging.debug('Cache directory is: {}'.format(self.cache_dir))
