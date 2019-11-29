@@ -158,9 +158,9 @@ class samba_backend(applier_backend):
             self.user_machine_entries = self._get_values(self.user_policy_files['machine_regpols'], self.user_machine_entries)
             self.user_user_entries = self._get_values(self.user_policy_files['user_regpols'], self.user_user_entries)
             for entry in self.user_machine_entries:
-                merge_entry(self.machine_entries, entry)
+                self._merge_entry(self.machine_entries, entry)
             for entry in self.user_user_entries:
-                merge_entry(self.user_entries, entry)
+                self._merge_entry(self.user_entries, entry)
 
 
         # Re-cache the retrieved values
