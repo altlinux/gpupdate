@@ -26,6 +26,7 @@ import pickle
 
 # Our native control facility
 import util
+import util.preg
 
 # Internal error
 import sys
@@ -88,8 +89,8 @@ class samba_backend(applier_backend):
         if include_local_policy:
             policy_files['machine_regpols'].insert(0, os.path.join(self.__default_policy_path, 'local.xml'))
 
-        machine_entries = util.merge_polfiles(policy_files['machine_regpols'])
-        user_entries = util.merge_polfiles(policy_files['user_regpols'])
+        machine_entries = util.preg.merge_polfiles(policy_files['machine_regpols'])
+        user_entries = util.preg.merge_polfiles(policy_files['user_regpols'])
 
         policy_set = dict({ 'machine': machine_entries, 'user': user_entries })
         return policy_set
