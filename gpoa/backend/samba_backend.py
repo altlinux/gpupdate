@@ -71,37 +71,37 @@ class samba_backend(applier_backend):
         self.cache = util.get_cache(cache_file, OrderedDict())
 
         # Get policies for machine at first.
-        self.policy_files = self._get_pol(self.username)
-        self.policy_files['machine_regpols'].insert(0, os.path.join(self.__default_policy_path, 'local.xml'))
+        self.machine_policy_set = self.get_policy_set(util.get_machine_name(), True)
 
-        self.machine_entries = util.merge_polfiles(self.policy_files['machine_regpols'])
-        self.user_entries = util.merge_polfiles(self.policy_files['user_regpols'])
-
-        self.user_policy_files = None
+        self.user_policy_set = None
         # Load user GPT values in case user's name specified
         if not self._is_machine_username:
-            logging.info('Fetching and merging settings for user {}'.format(self.username))
-            self.user_policy_files = self._get_pol(self.username)
-
-            self.user_machine_entries = util.merge_polfiles(self.user_policy_files['machine_regpols'])
-            self.user_user_entries = util.merge_polfiles(self.user_policy_files['user_regpols'])
-
-            self.machine_entries.update(self.user_machine_entries)
-            self.user_entries.update(self.user_user_entries)
+            self.user_policy_set = self.get_policy_set(self.username)
 
         # Re-cache the retrieved values
         util.dump_cache(cache_file, self.cache)
 
-        logging.debug('Policy files: {}'.format(self.policy_files))
+    def get_policy_set(self, username, include_local_policy=False):
+        logging.info('Fetching and merging settings for user {}'.format(username))
+        policy_files = self._get_pol(username)
+
+        if include_local_policy:
+            policy_files['machine_regpols'].insert(0, os.path.join(self.__default_policy_path, 'local.xml'))
+
+        machine_entries = util.merge_polfiles(policy_files['machine_regpols'])
+        user_entries = util.merge_polfiles(policy_files['user_regpols'])
+
+        policy_set = dict({ 'machine': machine_entries, 'user': user_entries })
+        return policy_set
 
     def get_values(self):
         '''
         Read data from PReg file and return list of NDR objects (samba.preg)
         '''
-        return list(self.machine_entries.values())
+        return list(self.machine_policy_set['machine'].values())
 
     def get_user_values(self):
-        return list(self.user_entries.values())
+        return list(self.machine_policy_set['user'].values())
 
     def _find_regpol_files(self, gpt_path):
         '''
@@ -114,8 +114,6 @@ class samba_backend(applier_backend):
         full_traverse = util.traverse_dir(gpt_path)
         polfiles['machine_regpols'] = [fname for fname in full_traverse if self._machine_pol_path_regex.search(fname)]
         polfiles['user_regpols'] = [fname for fname in full_traverse if self._user_pol_path_regex.search(fname)]
-
-        logging.debug('Polfiles: {}'.format(polfiles))
 
         return polfiles
 
@@ -169,6 +167,9 @@ class samba_backend(applier_backend):
             if self.sid in self.cache:
                 policy_files = self.cache[sid]
                 logging.info('Got cached PReg files')
+
+        logging.info('Machine .pol file set: {}'.format(policy_files['machine_regpols']))
+        logging.info('User .pol file set: {}'.format(policy_files['user_regpols']))
 
         return policy_files
 
