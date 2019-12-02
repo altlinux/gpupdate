@@ -10,7 +10,7 @@ class control_applier(applier_frontend):
 
     def __init__(self, storage):
         self.storage = storage
-        self.control_settings = self.storage.filter_entries('Software\\BaseALT\\Policies\\Control%')
+        self.control_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Control%')
         self.controls = list()
         for setting in self.control_settings:
             valuename = setting.hive_key.rpartition('\\')[2]

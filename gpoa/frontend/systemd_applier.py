@@ -10,7 +10,7 @@ class systemd_applier(applier_frontend):
 
     def __init__(self, storage):
         self.storage = storage
-        self.systemd_unit_settings = self.storage.filter_entries('Software\\BaseALT\\Policies\\SystemdUnits%')
+        self.systemd_unit_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\SystemdUnits%')
         self.units = []
         for setting in self.systemd_unit_settings:
             valuename = setting.hive_key.rpartition('\\')[2]

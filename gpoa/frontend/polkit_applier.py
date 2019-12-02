@@ -7,42 +7,24 @@ from xml.etree import ElementTree
 from samba.gp_parse.gp_pol import GPPolParser
 
 class polkit_applier(applier_frontend):
-    __registry_branch = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices'
-    __policy_map = {
-            'Deny_All': ['99-gpoa_disk_permissions', { 'Deny_All': 0 }]
+    __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
+    __polkit_map = {
+        __deny_all: ['99-gpoa_disk_permissions', { 'Deny_All': 0 }]
     }
 
-    def __init__(self, storage, entries):
-        self.entries = entries
+    def __init__(self, storage):
         self.storage = storage
-        self.polkit_settings = self._filter_entries()
+        deny_all = storage.filter_hklm_entries(self.__deny_all).first()
+        # Deny_All hook: initialize defaults
+        template_file = self.__polkit_map[self.__deny_all][0]
+        template_vars = self.__polkit_map[self.__deny_all][1]
+        if deny_all:
+            logging.debug('Deny_All setting found: {}'.format(deny_all.data))
+            self.__polkit_map[self.__deny_all][1]['Deny_All'] = deny_all.data
+        else:
+            logging.debug('Deny_All setting not found')
         self.policies = []
-        for setting in self.polkit_settings:
-            if setting.valuename in self.__policy_map.keys() and setting.keyname == self.__registry_branch:
-                logging.info('Found key: {}, file: {} and value: {}'.format(setting.keyname, self.__policy_map[setting.valuename][0], self.__policy_map[setting.valuename][1]))
-                try:
-                   self.__policy_map[setting.valuename][1][setting.valuename] = setting.data
-                   self.policies.append(polkit(self.__policy_map[setting.valuename][0], self.__policy_map[setting.valuename][1]))
-                except Exception as exc:
-                    print(exc)
-                    logging.info('Unable to work with PolicyKit setting: {}'.format(setting.valuename))
-        #for e in polfile.pol_file.entries:
-        #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
-
-    def _filter_entries(self):
-        '''
-        Extract control entries from PReg file
-        '''
-        policies = []
-        for entry in self.entries:
-            if entry.keyname == self.__registry_branch:
-                policies.append(entry)
-                logging.info('Found PolicyKit setting: {}\\{}'.format(entry.keyname, entry.valuename))
-            else:
-                # Property names are taken from python/samba/gp_parse/gp_pol.py
-                logging.info('Dropped PolicyKit setting: {}\\{}'.format(entry.keyname, entry.valuename))
-
-        return policies
+        self.policies.append(polkit(template_file, template_vars))
 
     def apply(self):
         '''

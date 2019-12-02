@@ -11,8 +11,6 @@ from .systemd_applier import systemd_applier
 import logging
 #from xml.etree import ElementTree
 
-#from samba.gp_parse.gp_pol import GPPolParser
-
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
         self.keyname = e_keyname
@@ -30,12 +28,8 @@ def preg2entries(preg_obj):
 class applier:
     def __init__(self, sid, backend):
         self.storage = sqlite_registry('hklm.sqlite')
-        self.backend = backend
-        self.gpvalues = self.backend.get_values()
-        self.gpvalues_user = self.backend.get_user_values()
-        logging.info('Values: {}'.format(self.gpvalues))
         capplier = control_applier(self.storage)
-        pkapplier = polkit_applier(self.storage, self.gpvalues)
+        pkapplier = polkit_applier(self.storage)
         sdapplier = systemd_applier(self.storage)
         self.appliers = dict({ 'control': capplier, 'polkit': pkapplier, 'systemd': sdapplier })
 

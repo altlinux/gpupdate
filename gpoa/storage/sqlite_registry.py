@@ -22,6 +22,7 @@ class samba_preg(object):
 
 class sqlite_registry(registry):
     __registry_path = 'sqlite:////var/cache/samba/registry.sqlite'
+
     def __init__(self, db_name):
         self.db_name = db_name
         self.db_cnt = create_engine(self.__registry_path, echo=False)
@@ -64,7 +65,7 @@ class sqlite_registry(registry):
         res = self.db_session.query(samba_preg).filter(samba_preg.hive_key == hive_key).first()
         return res
 
-    def filter_entries(self, startswith):
+    def filter_hklm_entries(self, startswith):
         res = self.db_session.query(samba_preg).filter(samba_preg.hive_key.like(startswith))
         return res
 
