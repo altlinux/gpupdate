@@ -30,7 +30,7 @@ class sqlite_registry(registry):
             'HKLM',
             self.__metadata,
             Column('id', Integer, primary_key=True),
-            Column('hive_key', String(65536)),
+            Column('hive_key', String(65536), unique=True),
             Column('type', Integer),
             Column('data', String)
         )
@@ -44,8 +44,14 @@ class sqlite_registry(registry):
             logging.error('Error creating mapper')
 
     def _upsert(self, row):
-        self.db_session.add(row)
-        self.db_session.commit()
+        try:
+            self.db_session.add(row)
+            self.db_session.commit()
+        except:
+            logging.error('Row update failed, updating row')
+            self.db_session.rollback()
+            self.db_session.query(samba_preg).filter(samba_preg.hive_key == row.hive_key).update({'type': row.type, 'data': row.data })
+            self.db_session.commit()
 
     def add_hklm_entry(self, preg_entry):
         pentry = samba_preg(preg_entry)
@@ -55,8 +61,8 @@ class sqlite_registry(registry):
         pass
 
     def get_entry(self, hive_key):
-        res = self.db_session.query(samba_preg).filter(samba_preg.hive_key == hive_key)
-        return res[0]
+        res = self.db_session.query(samba_preg).filter(samba_preg.hive_key == hive_key).first()
+        return res
 
     def filter_entries(self, startswith):
         res = self.db_session.query(samba_preg).filter(samba_preg.hive_key.like(startswith))
