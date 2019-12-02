@@ -1,3 +1,5 @@
+from storage import sqlite_registry
+
 from .applier_backend import applier_backend
 
 import argparse

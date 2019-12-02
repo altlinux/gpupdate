@@ -12,8 +12,9 @@ class polkit_applier(applier_frontend):
             'Deny_All': ['99-gpoa_disk_permissions', { 'Deny_All': 0 }]
     }
 
-    def __init__(self, entries):
+    def __init__(self, storage, entries):
         self.entries = entries
+        self.storage = storage
         self.polkit_settings = self._filter_entries()
         self.policies = []
         for setting in self.polkit_settings:

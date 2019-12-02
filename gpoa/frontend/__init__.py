@@ -1,3 +1,5 @@
+from storage import sqlite_registry
+
 from .appliers.control import control
 from .appliers.polkit import polkit
 from .appliers.systemd import systemd_unit
@@ -27,13 +29,14 @@ def preg2entries(preg_obj):
 
 class applier:
     def __init__(self, sid, backend):
+        self.storage = sqlite_registry('hklm.sqlite')
         self.backend = backend
         self.gpvalues = self.backend.get_values()
         self.gpvalues_user = self.backend.get_user_values()
         logging.info('Values: {}'.format(self.gpvalues))
-        capplier = control_applier(self.gpvalues)
-        pkapplier = polkit_applier(self.gpvalues)
-        sdapplier = systemd_applier(self.gpvalues)
+        capplier = control_applier(self.storage)
+        pkapplier = polkit_applier(self.storage, self.gpvalues)
+        sdapplier = systemd_applier(self.storage)
         self.appliers = dict({ 'control': capplier, 'polkit': pkapplier, 'systemd': sdapplier })
 
     def apply_parameters(self):

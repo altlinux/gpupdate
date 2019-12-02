@@ -8,31 +8,19 @@ from samba.gp_parse.gp_pol import GPPolParser
 class control_applier(applier_frontend):
     _registry_branch = 'Software\\BaseALT\\Policies\\Control'
 
-    def __init__(self, entries):
-        self.entries = entries
-        self.control_settings = self._filter_entries()
-        self.controls = []
+    def __init__(self, storage):
+        self.storage = storage
+        self.control_settings = self.storage.filter_entries('Software\\BaseALT\\Policies\\Control%')
+        self.controls = list()
         for setting in self.control_settings:
+            valuename = setting.hive_key.rpartition('\\')[2]
             try:
-                self.controls.append(control(setting.valuename, setting.data))
+                self.controls.append(control(valuename, int(setting.data)))
+                logging.info('Working with control {}'.format(valuename))
             except:
-                logging.info('Unable to work with control: {}'.format(setting.valuename))
+                logging.info('Unable to work with control: {}'.format(valuename))
         #for e in polfile.pol_file.entries:
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
-
-    def _filter_entries(self):
-        '''
-        Extract control entries from PReg file
-        '''
-        controls = []
-        for entry in self.entries:
-            if entry.keyname == self._registry_branch:
-                controls.append(entry)
-                logging.info('Found control setting: {}'.format(entry.valuename))
-            else:
-                # Property names are taken from python/samba/gp_parse/gp_pol.py
-                logging.info('Dropped control setting: {}\\{}'.format(entry.keyname, entry.valuename))
-        return controls
 
     def apply(self):
         '''
