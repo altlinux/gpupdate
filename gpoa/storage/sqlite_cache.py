@@ -16,16 +16,24 @@ from sqlalchemy.orm import (
     sessionmaker
 )
 
-class mapped_id(object):
+
+def mapping_factory(mapper_suffix):
+    exec(
+        '''
+class mapped_id_{}(object):
     def __init__(self, str_id, value):
         self.str_id = str_id
-        self.value = value
+        self.value = str(value)
+        '''.format(mapper_suffix)
+    )
+    return eval('mapped_id_{}'.format(mapper_suffix))
 
 class sqlite_cache(cache):
     __cache_dir = 'sqlite:////var/cache/samba'
 
     def __init__(self, cache_name):
         self.cache_name = cache_name
+        self.mapper_obj = mapping_factory(self.cache_name)
         self.storage_uri = os.path.join(self.__cache_dir, '{}.sqlite'.format(self.cache_name))
         logging.debug('Initializing cache {}'.format(self.storage_uri))
         self.db_cnt = create_engine(self.storage_uri, echo=False)
@@ -41,26 +49,23 @@ class sqlite_cache(cache):
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
-        try:
-            mapper(mapped_id, self.cache_table)
-        except:
-            logging.error('Error creating mapper')
+        mapper(self.mapper_obj, self.cache_table)
 
     def store(self, str_id, value):
-        obj = mapped_id(str_id, value)
+        obj = self.mapper_obj(str_id, value)
         self._upsert(obj)
 
     def get(self, obj_id):
-        result = self.db_session.query(mapped_id).filter(mapped_id.str_id == obj_id).first()
+        result = self.db_session.query(self.mapper_obj).filter(self.mapper_obj.str_id == obj_id).first()
         return result
 
     def get_default(self, obj_id, default_value):
         result = self.get(obj_id)
-        if not result:
+        if result == None:
             logging.debug('No value cached for {}'.format(obj_id))
             self.store(obj_id, default_value)
-            return None
-        return result
+            return str(default_value)
+        return result.value
 
     def _upsert(self, obj):
         try:
@@ -69,6 +74,6 @@ class sqlite_cache(cache):
         except:
             self.db_session.rollback()
             logging.error('Error inserting value into cache, will update the value')
-            self.db_session.query(mapped_id).filter(mapped_id.str_id == obj.str_id).update({ 'value': obj.value })
+            self.db_session.query(self.mapper_obj).filter(self.mapper_obj.str_id == obj.str_id).update({ 'value': obj.value })
             self.db_session.commit()
 
