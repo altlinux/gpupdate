@@ -26,7 +26,7 @@ def preg2entries(preg_obj):
     return entries
 
 class applier:
-    def __init__(self, sid, backend):
+    def __init__(self, sid):
         self.storage = sqlite_registry('hklm.sqlite')
         capplier = control_applier(self.storage)
         pkapplier = polkit_applier(self.storage)
