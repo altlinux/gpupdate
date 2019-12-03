@@ -48,7 +48,7 @@ def load_pol_preg(polfile):
     #print(gpparser.pol_file.__ndr_print__())
     return gpparser.pol_file
 
-def preg2entrydict(preg):
+def preg2entrydict(preg, sid=None):
     '''
     Create a map (dict) of HIVE_KEY to preg.entry
     '''
@@ -58,17 +58,20 @@ def preg2entrydict(preg):
     storage = sqlite_registry('registry.sqlite')
 
     for entry in pregfile.entries:
-        storage.add_hklm_entry(entry)
+        if not sid:
+            storage.add_hklm_entry(entry)
+        else:
+            storage.add_hkcu_entry(sid, entry)
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
         key_map[hive_key] = entry
 
     return key_map
 
-def merge_polfiles(polfile_list):
+def merge_polfiles(polfile_list, sid=None):
     entrydict = dict()
 
     for preg_file_path in polfile_list:
-        entrydict.update(preg2entrydict(preg_file_path))
+        entrydict.update(preg2entrydict(preg_file_path, sid))
 
     return entrydict
 

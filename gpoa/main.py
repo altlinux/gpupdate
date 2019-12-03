@@ -5,40 +5,17 @@ import argparse
 # Facility to determine GPTs for user
 import optparse
 from samba import getopt as options
-from samba.gpclass import check_safe_path
-
-# Primitives to work with libregistry
-# samba.registry.str_regtype(2) -> 'REG_EXPAND_SZ'
-# Taken from python/samba/tests/registry.py
-from samba import registry
-
-# PReg object generator and parser
-from samba.dcerpc import preg
-from samba.dcerpc import misc
-import samba.ndr
-from samba.gp_parse.gp_pol import GPPolParser
-
-# This is needed to query AD DOMAIN name from LDAP
-# using cldap_netlogon (and to replace netads utility
-# invocation helper).
-#from samba.dcerpc import netlogon
 
 # This is needed by Registry.pol file search
 import os
-import re
 # This is needed for merging lists of PReg files.
 import itertools
-
-# This is needed for Username and SID caching
-import pickle
 
 # Our native control facility
 import util
 from backend import samba_backend
 import frontend
-
-# Internal error
-import sys
+from storage import sqlite_cache
 
 # Remove print() from code
 import logging
@@ -72,8 +49,7 @@ class gpoa_controller:
     def __init__(self):
         self.__kinit_successful = util.machine_kinit()
         self.__args = parse_arguments()
-        sid_cache = os.path.join(self.__lp.get('cache directory'), 'sid_cache.pkl')
-        cached_sids = util.get_cache(sid_cache, dict())
+        cached_sids = sqlite_cache('sid_cache')
 
         # Determine the default Samba DC for replication and try
         # to overwrite it with user setting.
@@ -92,9 +68,7 @@ class gpoa_controller:
         sid = 'local-{}'.format(self.__args.user)
 
         domain_username = '{}\\{}'.format(domain, username)
-        if domain_username in cached_sids:
-            sid = cached_sids[domain_username]
-            logging.info('Got cached SID {} for user {}'.format(sid, domain_username))
+        sid = cached_sids.get_default(domain_username, sid)
 
         try:
             sid = util.wbinfo_getsid(domain, username)
@@ -104,8 +78,7 @@ class gpoa_controller:
 
         logging.info('Working with SID: {}'.format(sid))
 
-        cached_sids[domain_username] = sid
-        util.dump_cache(sid_cache, cached_sids)
+        cached_sids.store(domain_username, sid)
 
         back = samba_backend(self.__lp, self.__creds, sid, dc, username)
 

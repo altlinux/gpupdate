@@ -35,19 +35,21 @@ import sys
 
 from collections import OrderedDict
 
+from storage import sqlite_cache
+
 # Remove print() from code
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 class samba_backend(applier_backend):
     __default_policy_path = '/usr/share/local-policy/default'
-    _samba_registry_file = '/var/cache/samba/registry.tdb'
     _mahine_hive = 'HKEY_LOCAL_MACHINE'
     _user_hive = 'HKEY_CURRENT_USER'
     _machine_pol_path_pattern = '[Mm][Aa][Cc][Hh][Ii][Nn][Ee].*\.pol$'
     _user_pol_path_pattern = '[Uu][Ss][Ee][Rr].*\.pol$'
 
     def __init__(self, loadparm, creds, sid, dc, username):
+        self.cache = sqlite_cache('regpol_cache')
         # Check if we're working for user or for machine
         self._is_machine_username = False
         if util.get_machine_name() == username:
@@ -69,22 +71,15 @@ class samba_backend(applier_backend):
         self.username = username
         self.sid = sid
 
-        cache_file = os.path.join(self.cache_dir, 'cache.pkl')
-        # Load PReg paths from cache at first
-        self.cache = util.get_cache(cache_file, OrderedDict())
-
         # Get policies for machine at first.
         self.machine_policy_set = self.get_policy_set(util.get_machine_name(), True)
 
         self.user_policy_set = None
         # Load user GPT values in case user's name specified
         if not self._is_machine_username:
-            self.user_policy_set = self.get_policy_set(self.username)
+            self.user_policy_set = self.get_policy_set(self.username, self.sid)
 
-        # Re-cache the retrieved values
-        util.dump_cache(cache_file, self.cache)
-
-    def get_policy_set(self, username, include_local_policy=False):
+    def get_policy_set(self, username, sid=None, include_local_policy=False):
         logging.info('Fetching and merging settings for user {}'.format(username))
         policy_files = self._get_pol(username)
 
@@ -92,19 +87,10 @@ class samba_backend(applier_backend):
             policy_files['machine_regpols'].insert(0, os.path.join(self.__default_policy_path, 'local.xml'))
 
         machine_entries = util.preg.merge_polfiles(policy_files['machine_regpols'])
-        user_entries = util.preg.merge_polfiles(policy_files['user_regpols'])
+        user_entries = util.preg.merge_polfiles(policy_files['user_regpols'], sid)
 
         policy_set = dict({ 'machine': machine_entries, 'user': user_entries })
         return policy_set
-
-    def get_values(self):
-        '''
-        Read data from PReg file and return list of NDR objects (samba.preg)
-        '''
-        return list(self.machine_policy_set['machine'].values())
-
-    def get_user_values(self):
-        return list(self.machine_policy_set['user'].values())
 
     def _find_regpol_files(self, gpt_path):
         '''
@@ -164,12 +150,11 @@ class samba_backend(applier_backend):
                 policy_files['machine_regpols'] += polfiles['machine_regpols']
                 policy_files['user_regpols']    += polfiles['user_regpols']
             # Cache paths to PReg files
-            self.cache[self.sid] = policy_files
+            self.cache.store(self.sid, str(policy_files))
         except:
             logging.error('Error fetching GPO list from {} for'.format(self.dc, username))
-            if self.sid in self.cache:
-                policy_files = self.cache[sid]
-                logging.info('Got cached PReg files')
+            policy_files = eval(self.cache.get_default(self.sid, OrderedDict({'machine_regpols': [], 'user_regpols': []})))
+            logging.warning('Got cached PReg files {}'.format(policy_files))
 
         logging.info('Machine .pol file set: {}'.format(policy_files['machine_regpols']))
         logging.info('User .pol file set: {}'.format(policy_files['user_regpols']))
