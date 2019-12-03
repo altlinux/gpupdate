@@ -61,7 +61,7 @@ def preg2entrydict(preg, sid=None):
         if not sid:
             storage.add_hklm_entry(entry)
         else:
-            storage.add_hkcu_entry(sid, entry)
+            storage.add_hkcu_entry(entry, sid)
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
         key_map[hive_key] = entry
 
