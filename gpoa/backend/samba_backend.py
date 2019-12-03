@@ -72,12 +72,12 @@ class samba_backend(applier_backend):
         self.sid = sid
 
         # Get policies for machine at first.
-        self.machine_policy_set = self.get_policy_set(util.get_machine_name(), True)
+        self.machine_policy_set = self.get_policy_set(util.get_machine_name(), None, True)
 
         self.user_policy_set = None
         # Load user GPT values in case user's name specified
         if not self._is_machine_username:
-            self.user_policy_set = self.get_policy_set(self.username, self.sid)
+            self.user_policy_set = self.get_policy_set(self.username, self.sid, False)
 
     def get_policy_set(self, username, sid=None, include_local_policy=False):
         logging.info('Fetching and merging settings for user {}'.format(username))
