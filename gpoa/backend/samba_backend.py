@@ -71,6 +71,14 @@ class samba_backend(applier_backend):
         self.username = username
         self.sid = sid
 
+    def retrieve_and_store(self):
+        '''
+        Retrieve settings and strore it in a database
+        '''
+        # FIXME: Please note that get_policy_set return value has no
+        # meaning since we're using setting storage, so code must
+        # be simplified
+
         # Get policies for machine at first.
         self.machine_policy_set = self.get_policy_set(util.get_machine_name(), None, True)
 

@@ -80,7 +80,8 @@ class gpoa_controller:
 
         cached_sids.store(domain_username, sid)
 
-        samba_backend(self.__lp, self.__creds, sid, dc, username)
+        back = samba_backend(self.__lp, self.__creds, sid, dc, username)
+        back.retrieve_and_store()
 
         appl = frontend.applier(sid)
         appl.apply_parameters()
