@@ -35,7 +35,7 @@ import sys
 
 from collections import OrderedDict
 
-from storage import sqlite_cache
+from storage import sqlite_cache, sqlite_registry
 
 # Remove print() from code
 import logging
@@ -49,6 +49,7 @@ class samba_backend(applier_backend):
     _user_pol_path_pattern = '[Uu][Ss][Ee][Rr].*\.pol$'
 
     def __init__(self, loadparm, creds, sid, dc, username):
+        self.storage = sqlite_registry('registry')
         self.cache = sqlite_cache('regpol_cache')
         # Check if we're working for user or for machine
         self._is_machine_username = False
@@ -80,12 +81,15 @@ class samba_backend(applier_backend):
         # be simplified
 
         # Get policies for machine at first.
-        self.machine_policy_set = self.get_policy_set(util.get_machine_name(), None, True)
+        self.get_policy_set(util.get_machine_name(), None, True)
 
-        self.user_policy_set = None
         # Load user GPT values in case user's name specified
+        # This is a buggy implementation and should be tested more
         if not self._is_machine_username:
-            self.user_policy_set = self.get_policy_set(self.username, self.sid, False)
+            policy_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
+            merge_mode = self.storage.get_hklm_entry(policy_key)
+            if merge_mode == None or merge_mode == '0' or merge_mode == '1':
+                self.get_policy_set(self.username, self.sid, False)
 
     def get_policy_set(self, username, sid=None, include_local_policy=False):
         logging.info('Fetching and merging settings for user {}'.format(username))
