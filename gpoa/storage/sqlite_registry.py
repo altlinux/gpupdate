@@ -1,6 +1,9 @@
 import logging
 
 from .registry import registry
+
+import os
+
 from sqlalchemy import (
     create_engine,
     Table,
@@ -28,11 +31,12 @@ class samba_hkcu_preg(object):
         self.data = preg_obj.data
 
 class sqlite_registry(registry):
-    __registry_path = 'sqlite:////var/cache/samba/registry.sqlite'
+    __registry_path = 'sqlite:////var/cache/samba'
 
     def __init__(self, db_name):
         self.db_name = db_name
-        self.db_cnt = create_engine(self.__registry_path, echo=False)
+        self.db_path = os.path.join(self.__registry_path, '{}.sqlite'.format(self.db_name))
+        self.db_cnt = create_engine(self.db_path, echo=False)
         self.__metadata = MetaData(self.db_cnt)
         self.__hklm = Table(
             'HKLM',
