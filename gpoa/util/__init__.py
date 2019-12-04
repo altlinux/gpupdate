@@ -4,6 +4,7 @@ import socket
 import sys
 import os
 import pickle
+import pwd
 
 from samba.gpclass import get_dc_hostname
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
@@ -145,4 +146,10 @@ def get_sid(domain, username):
     cached_sids.store(domain_username, sid)
 
     return sid
+
+def get_homedir(username):
+    '''
+    Query password database for user's home directory.
+    '''
+    return pwd.getpwnam(username).pw_dir
 
