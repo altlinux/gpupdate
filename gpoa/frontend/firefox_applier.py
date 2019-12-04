@@ -9,12 +9,12 @@
 
 import logging
 
-from storage import sqlite_registry
+from .applier_frontend import applier_frontend
 
 import json
 import os
 
-class firefox_applier:
+class firefox_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
     __firefox_installdir = '/usr/lib64/firefox/distribution'
 
@@ -29,8 +29,7 @@ class firefox_applier:
         'Software\Policies\Mozilla\Firefox'.
         '''
         query_str = '{}\\{}'.format(self.__registry_branch, hive_subkey)
-        response = self.storage.get_hklm_entry(query_str)
-        return response
+        return self.storage.get_hklm_entry(query_str)
 
     def get_hklm_string_entry_default(self, hive_subkey, default):
         '''
@@ -60,6 +59,7 @@ class firefox_applier:
         })
         response = self.get_hklm_string_entry_default('Homepage\\URL', 'about:config')
         homepage['URL'] = response
+
         return homepage
 
     def get_block_about_config(self):
@@ -67,7 +67,7 @@ class firefox_applier:
         Query BlockAboutConfig boolean property from the storage.
         '''
         response = self.get_hklm_string_entry_default('BlockAboutConfig', False)
-        if response.lower() in ['0', 'false', False]:
+        if response.lower() in ['0', 'false', False, None, 'None']:
             return False
         return True
 
@@ -77,7 +77,10 @@ class firefox_applier:
         '''
         self.set_policy('Homepage', self.get_home_page())
         self.set_policy('BlockAboutConfig', self.get_block_about_config())
+
         destfile = os.path.join(self.__firefox_installdir, 'policies.json')
+
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
+            logging.info('Wrote Firefox preferences to {}'.format(destfile))
 
