@@ -32,13 +32,16 @@ def get_gpo_list(dc_hostname, creds, lp, user):
     return gpos
 
 def select_dc(lp, creds, dc):
-    samba_dc = get_dc_hostname(creds, lp)
+    try:
+        samba_dc = get_dc_hostname(creds, lp)
 
-    if samba_dc != dc and dc != None:
-        logging.debug('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
-        return dc
-
-    return samba_dc
+        if samba_dc != dc and dc != None:
+            logging.debug('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
+            return dc
+        return samba_dc
+    except:
+        logging.error('Unable to determine DC hostname')
+    return None
 
 def wbinfo_getsid(domain, user):
     '''

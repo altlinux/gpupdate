@@ -46,11 +46,7 @@ class gpoa_controller:
 
         # Determine the default Samba DC for replication and try
         # to overwrite it with user setting.
-        dc = None
-        try:
-            dc = util.select_dc(self.__lp, self.__creds, self.__args.dc)
-        except:
-            pass
+        dc = util.select_dc(self.__lp, self.__creds, self.__args.dc)
 
         username = self.__args.user
         domain = util.get_domain_name(self.__lp, self.__creds, dc)
