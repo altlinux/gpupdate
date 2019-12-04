@@ -13,6 +13,8 @@ import pysss_nss_idmap
 from xml.etree import ElementTree
 from samba.gp_parse.gp_pol import GPPolParser
 
+from storage import sqlite_cache
+
 logging.basicConfig(level=logging.DEBUG)
 
 def get_gpo_list(dc_hostname, creds, lp, user):
@@ -119,4 +121,25 @@ def traverse_dir(root_dir):
         for filename in files:
             filelist.append(os.path.join(root, filename))
     return filelist
+
+def get_sid(domain, username):
+    '''
+    Lookup SID not only using wbinfo or sssd but also using own cache
+    '''
+    cached_sids = sqlite_cache('sid_cache')
+    domain_username = '{}\\{}'.format(domain, username)
+    sid = 'local-{}'.format(username)
+    sid = cached_sids.get_default(domain_username, sid)
+
+    try:
+        sid = wbinfo_getsid(domain, username)
+    except:
+        sid = 'local-{}'.format(username)
+        logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
+
+    logging.info('Working with SID: {}'.format(sid))
+
+    cached_sids.store(domain_username, sid)
+
+    return sid
 
