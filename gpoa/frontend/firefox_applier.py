@@ -11,12 +11,14 @@ import logging
 import json
 import os
 import util
+import configparser
 
 from .applier_frontend import applier_frontend
 
 class firefox_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
     __firefox_installdir = '/usr/lib64/firefox/distribution'
+    __user_settings_dir = '.mozilla/firefox'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -25,6 +27,21 @@ class firefox_applier(applier_frontend):
         self._is_machine_name = util.is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
+
+    def get_profiles(self):
+        '''
+        Get directory names of Firefox profiles for specified username.
+        '''
+        profiles_ini = os.path.join(util.get_homedir(self.username), self.__user_settings_dir, 'profiles.ini')
+        config = configparser.ConfigParser()
+        config.read(profiles_ini)
+
+        profile_paths = list()
+        for section in config.keys():
+            if section.startswith('Profile'):
+                profile_paths.append(config[section]['Path'])
+
+        return profile_paths
 
     def get_hklm_string_entry(self, hive_subkey):
         '''
@@ -74,7 +91,7 @@ class firefox_applier(applier_frontend):
             return False
         return True
 
-    def apply(self):
+    def machine_apply(self):
         '''
         Write policies.json to Firefox installdir.
         '''
@@ -87,4 +104,17 @@ class firefox_applier(applier_frontend):
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
             logging.info('Wrote Firefox preferences to {}'.format(destfile))
+
+    def user_apply(self):
+        profiles = self.get_profiles()
+
+        profiledir = os.path.join(util.get_homedir(self.username), self.__user_settings_dir)
+        for profile in profiles:
+            logging.info('Found Firefox profile in {}/{}'.format(profiledir, profile))
+
+    def apply(self):
+        self.machine_apply()
+        if not self._is_machine_name:
+            logging.info('Running user applier for Firefox')
+            self.user_apply()
 
