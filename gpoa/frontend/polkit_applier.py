@@ -4,8 +4,6 @@ from .appliers.polkit import polkit
 import logging
 from xml.etree import ElementTree
 
-from samba.gp_parse.gp_pol import GPPolParser
-
 class polkit_applier(applier_frontend):
     __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
     __polkit_map = {
