@@ -54,12 +54,12 @@ class firefox_applier:
         Query the Homepage property from the storage.
         '''
         homepage = dict({
-            'Homepage': 'about:config',
+            'URL': 'about:config',
             'Locked': True,
             'StartPage': 'homepage'
         })
         response = self.get_hklm_string_entry_default('Homepage\\URL', 'about:config')
-        homepage['Homepage'] = response
+        homepage['URL'] = response
         return homepage
 
     def get_block_about_config(self):
