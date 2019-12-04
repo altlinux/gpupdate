@@ -9,15 +9,17 @@ from .chromium_applier import chromium_applier
 import logging
 
 class applier:
-    def __init__(self, sid):
+    def __init__(self, sid, username):
         self.storage = sqlite_registry('registry')
+        self.sid = sid
+        self.username = username
 
         self.appliers = dict({
             'control':  control_applier(self.storage),
             'polkit':   polkit_applier(self.storage),
             'systemd':  systemd_applier(self.storage),
-            'firefox':  firefox_applier(self.storage),
-            'chromium': chromium_applier(self.storage)
+            'firefox':  firefox_applier(self.storage, self.sid, self.username),
+            'chromium': chromium_applier(self.storage, self.sid, self.username)
         })
 
     def apply_parameters(self):

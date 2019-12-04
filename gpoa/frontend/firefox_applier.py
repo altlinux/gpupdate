@@ -8,18 +8,21 @@
 # Software\Policies\Mozilla\Firefox
 
 import logging
-
-from .applier_frontend import applier_frontend
-
 import json
 import os
+import util
+
+from .applier_frontend import applier_frontend
 
 class firefox_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
     __firefox_installdir = '/usr/lib64/firefox/distribution'
 
-    def __init__(self, storage):
+    def __init__(self, storage, sid, username):
         self.storage = storage
+        self.sid = sid
+        self.username = username
+        self._is_machine_name = util.is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
 

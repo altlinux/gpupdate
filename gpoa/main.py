@@ -64,7 +64,7 @@ class gpoa_controller:
         back = samba_backend(self.__lp, self.__creds, sid, dc, username)
         back.retrieve_and_store()
 
-        appl = frontend.applier(sid)
+        appl = frontend.applier(sid, username)
         appl.apply_parameters()
 
 def main():
