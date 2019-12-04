@@ -80,6 +80,7 @@ class firefox_applier(applier_frontend):
 
         destfile = os.path.join(self.__firefox_installdir, 'policies.json')
 
+        os.makedirs(self.__firefox_installdir, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
             logging.info('Wrote Firefox preferences to {}'.format(destfile))

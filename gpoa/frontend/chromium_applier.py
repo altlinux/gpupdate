@@ -36,6 +36,7 @@ class chromium_applier(applier_frontend):
 
         destfile = os.path.join(self.__managed_policies_path, 'policies.json')
 
+        os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies, f)
             logging.info('Wrote Chromium preferences to {}'.format(destfile))
