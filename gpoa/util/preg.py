@@ -75,3 +75,17 @@ def merge_polfiles(polfile_list, sid=None):
 
     return entrydict
 
+class entry:
+    def __init__(self, e_keyname, e_valuename, e_type, e_data):
+        self.keyname = e_keyname
+        self.valuename = e_valuename
+        self.type = e_type
+        self.data = e_data
+
+def preg2entries(preg_obj):
+    entries = []
+    for elem in prej_obj.entries:
+        entry_obj = entry(elem.keyname, elem.valuename, elem.type, elem.data)
+        entries.append(entry_obj)
+    return entries
+
