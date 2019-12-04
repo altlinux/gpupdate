@@ -7,6 +7,7 @@ from .appliers.systemd import systemd_unit
 from .control_applier import control_applier
 from .polkit_applier import polkit_applier
 from .systemd_applier import systemd_applier
+from .firefox_applier import firefox_applier
 
 import logging
 #from xml.etree import ElementTree
@@ -28,14 +29,23 @@ def preg2entries(preg_obj):
 class applier:
     def __init__(self, sid):
         self.storage = sqlite_registry('registry')
+
         capplier = control_applier(self.storage)
         pkapplier = polkit_applier(self.storage)
         sdapplier = systemd_applier(self.storage)
-        self.appliers = dict({ 'control': capplier, 'polkit': pkapplier, 'systemd': sdapplier })
+        ffapplier = firefox_applier(self.storage)
+
+        self.appliers = dict({
+            'control': capplier,
+            'polkit': pkapplier,
+            'systemd': sdapplier,
+            'firefox': ffapplier
+        })
 
     def apply_parameters(self):
         logging.info('Applying')
         self.appliers['control'].apply()
         self.appliers['polkit'].apply()
         self.appliers['systemd'].apply()
+        self.appliers['firefox'].apply()
 
