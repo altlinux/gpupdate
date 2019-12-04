@@ -54,8 +54,8 @@ class firefox_applier:
         Query the Homepage property from the storage.
         '''
         homepage = dict({
-            'URL': 'about:config',
-            'Locked': True,
+            'URL': 'about:blank',
+            'Locked': False,
             'StartPage': 'homepage'
         })
         response = self.get_hklm_string_entry_default('Homepage\\URL', 'about:config')
@@ -66,7 +66,7 @@ class firefox_applier:
         '''
         Query BlockAboutConfig boolean property from the storage.
         '''
-        response = self.get_hklm_string_entry_default('BlockAboutConfig', True)
+        response = self.get_hklm_string_entry_default('BlockAboutConfig', False)
         if response.lower() in ['0', 'false', False]:
             return False
         return True
