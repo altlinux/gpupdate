@@ -53,11 +53,7 @@ class gpoa_controller:
             pass
 
         username = self.__args.user
-        domain = None
-        try:
-            domain = util.get_domain_name(self.__lp, self.__creds, dc)
-        except:
-            pass
+        domain = util.get_domain_name(self.__lp, self.__creds, dc)
 
         sid = util.get_sid(domain, username)
 

@@ -93,12 +93,16 @@ def get_domain_name(lp, creds, dc):
     '''
     Get current Active Directory domain name
     '''
-    # Get CLDAP record about domain
-    # Look and python/samba/netcmd/domain.py for more examples
-    res = netcmd_get_domain_infos_via_cldap(lp, None, dc)
-    logging.info('Found domain via CLDAP: {}'.format(res.dns_domain))
+    try:
+        # Get CLDAP record about domain
+        # Look and python/samba/netcmd/domain.py for more examples
+        res = netcmd_get_domain_infos_via_cldap(lp, None, dc)
+        logging.info('Found domain via CLDAP: {}'.format(res.dns_domain))
 
-    return res.dns_domain
+        return res.dns_domain
+    except:
+        logging.error('Unable to retrieve domain name via CLDAP query')
+    return None
 
 def traverse_dir(root_dir):
     filelist = []
