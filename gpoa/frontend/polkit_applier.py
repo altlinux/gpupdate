@@ -2,7 +2,6 @@ from .applier_frontend import applier_frontend
 from .appliers.polkit import polkit
 
 import logging
-from xml.etree import ElementTree
 
 class polkit_applier(applier_frontend):
     __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
