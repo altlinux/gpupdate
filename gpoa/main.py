@@ -15,7 +15,6 @@ import itertools
 import util
 from backend import samba_backend
 import frontend
-from storage import sqlite_cache
 
 # Remove print() from code
 import logging
@@ -49,7 +48,6 @@ class gpoa_controller:
     def __init__(self):
         self.__kinit_successful = util.machine_kinit()
         self.__args = parse_arguments()
-        cached_sids = sqlite_cache('sid_cache')
 
         # Determine the default Samba DC for replication and try
         # to overwrite it with user setting.
@@ -65,20 +63,8 @@ class gpoa_controller:
             domain = util.get_domain_name(self.__lp, self.__creds, dc)
         except:
             pass
-        sid = 'local-{}'.format(self.__args.user)
 
-        domain_username = '{}\\{}'.format(domain, username)
-        sid = cached_sids.get_default(domain_username, sid)
-
-        try:
-            sid = util.wbinfo_getsid(domain, username)
-        except:
-            sid = 'local-{}'.format(self.__args.user)
-            logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
-
-        logging.info('Working with SID: {}'.format(sid))
-
-        cached_sids.store(domain_username, sid)
+        sid = util.get_sid(domain, username)
 
         back = samba_backend(self.__lp, self.__creds, sid, dc, username)
         back.retrieve_and_store()
