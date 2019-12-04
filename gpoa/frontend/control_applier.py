@@ -3,8 +3,6 @@ from .appliers.control import control
 
 import logging
 
-from samba.gp_parse.gp_pol import GPPolParser
-
 class control_applier(applier_frontend):
     _registry_branch = 'Software\\BaseALT\\Policies\\Control'
 
