@@ -9,29 +9,13 @@ import optparse
 from samba import getopt as options
 from samba.gpclass import check_safe_path, check_refresh_gpo_list
 
-# PReg object generator and parser
-from samba.dcerpc import preg
-from samba.dcerpc import misc
-import samba.ndr
-
-# This is needed to query AD DOMAIN name from LDAP
-# using cldap_netlogon (and to replace netads utility
-# invocation helper).
-#from samba.dcerpc import netlogon
-
 # This is needed by Registry.pol file search
 import os
 import re
 
-# This is needed for Username and SID caching
-import pickle
-
 # Our native control facility
 import util
 import util.preg
-
-# Internal error
-import sys
 
 from collections import OrderedDict
 
@@ -49,12 +33,14 @@ class samba_backend(applier_backend):
     _user_pol_path_pattern = '[Uu][Ss][Ee][Rr].*\.pol$'
 
     def __init__(self, loadparm, creds, sid, dc, username):
+        # User SID to work with HKCU hive
+        self.username = username
+        self.sid = sid
+
         self.storage = sqlite_registry('registry')
         self.cache = sqlite_cache('regpol_cache')
         # Check if we're working for user or for machine
-        self._is_machine_username = False
-        if util.get_machine_name() == username:
-            self._is_machine_username = True
+        self._is_machine_username = util.is_machine_name(self.username)
 
         # Samba objects - LoadParm() and CredentialsOptions()
         self.loadparm = loadparm
@@ -67,10 +53,6 @@ class samba_backend(applier_backend):
         # Regular expressions to split PReg files into user and machine parts
         self._machine_pol_path_regex = re.compile(self._machine_pol_path_pattern)
         self._user_pol_path_regex = re.compile(self._user_pol_path_pattern)
-
-        # User SID to work with HKCU hive
-        self.username = username
-        self.sid = sid
 
     def retrieve_and_store(self):
         '''
