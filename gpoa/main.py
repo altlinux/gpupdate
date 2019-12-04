@@ -6,11 +6,6 @@ import argparse
 import optparse
 from samba import getopt as options
 
-# This is needed by Registry.pol file search
-import os
-# This is needed for merging lists of PReg files.
-import itertools
-
 # Our native control facility
 import util
 from backend import samba_backend
