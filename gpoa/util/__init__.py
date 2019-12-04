@@ -3,7 +3,6 @@ import subprocess
 import socket
 import sys
 import os
-import pickle
 import pwd
 
 from samba.gpclass import get_dc_hostname
@@ -100,24 +99,6 @@ def get_domain_name(lp, creds, dc):
     logging.info('Found domain via CLDAP: {}'.format(res.dns_domain))
 
     return res.dns_domain
-
-def get_cache(cache_file, default_cache_obj):
-    if not os.path.exists(cache_file):
-        logging.info('Initializing missing cache file: {}'.format(cache_file))
-        with open(cache_file, 'wb') as f:
-            pickle.dump(default_cache_obj, f, pickle.HIGHEST_PROTOCOL)
-
-    data = None
-    with open(cache_file, 'rb') as f:
-        data = pickle.load(f)
-    logging.info('Read cache {}'.format(cache_file))
-
-    return data
-
-def dump_cache(cache_file, cache_obj):
-    with open(cache_file, 'wb') as f:
-        pickle.dump(cache_obj, f, pickle.HIGHEST_PROTOCOL)
-    logging.info('Wrote cache {}'.format(cache_file))
 
 def traverse_dir(root_dir):
     filelist = []
