@@ -3,8 +3,6 @@ from .appliers.systemd import systemd_unit
 
 import logging
 
-from samba.gp_parse.gp_pol import GPPolParser
-
 class systemd_applier(applier_frontend):
     __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'
 
