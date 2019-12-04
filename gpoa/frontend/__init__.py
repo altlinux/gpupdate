@@ -1,16 +1,12 @@
 from storage import sqlite_registry
 
-from .appliers.control import control
-from .appliers.polkit import polkit
-from .appliers.systemd import systemd_unit
-
 from .control_applier import control_applier
 from .polkit_applier import polkit_applier
 from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
+from .chromium_applier import chromium_applier
 
 import logging
-#from xml.etree import ElementTree
 
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
@@ -30,22 +26,19 @@ class applier:
     def __init__(self, sid):
         self.storage = sqlite_registry('registry')
 
-        capplier = control_applier(self.storage)
-        pkapplier = polkit_applier(self.storage)
-        sdapplier = systemd_applier(self.storage)
-        ffapplier = firefox_applier(self.storage)
-
         self.appliers = dict({
-            'control': capplier,
-            'polkit': pkapplier,
-            'systemd': sdapplier,
-            'firefox': ffapplier
+            'control':  control_applier(self.storage),
+            'polkit':   polkit_applier(self.storage),
+            'systemd':  systemd_applier(self.storage),
+            'firefox':  firefox_applier(self.storage),
+            'chromium': chromium_applier(self.storage)
         })
 
     def apply_parameters(self):
         logging.info('Applying')
+        self.appliers['systemd'].apply()
         self.appliers['control'].apply()
         self.appliers['polkit'].apply()
-        self.appliers['systemd'].apply()
         self.appliers['firefox'].apply()
+        self.appliers['chromium'].apply()
 
