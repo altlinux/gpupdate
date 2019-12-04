@@ -64,6 +64,9 @@ def get_machine_name():
     '''
     return socket.gethostname().split('.', 1)[0].upper() + "$"
 
+def is_machine_name(name):
+     return name == get_machine_name()
+
 def machine_kinit():
     '''
     Perform kinit with machine credentials
