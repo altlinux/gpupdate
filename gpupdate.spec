@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.1.0
+Version: 0.2.0
 Release: alt1
 
 Summary: GPT applier
@@ -58,6 +58,12 @@ install -Dm0644 %name.service %buildroot%_unitdir/%name.service
 %_unitdir/%name.service
 
 %changelog
+* Fri Dec 06 2019 Igor Chudov <nir@altlinux.org> 0.2.0-alt1
+- Code refactored to work with storage facility
+- Retrieval of HKCU preferences implemented
+- Numerous backend and frontend stability improvements
+- Chromium and Firefox appliers implemented
+
 * Thu Nov 28 2019 Evgeny Sinelnikov <sin@altlinux.org> 0.1.0-alt1
 - Change license to GPLv2+
 - Refactor and separate code to backend and frontend
