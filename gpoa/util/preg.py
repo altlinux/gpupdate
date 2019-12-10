@@ -1,4 +1,4 @@
-from storage import sqlite_registry
+from storage import registry_factory
 
 import logging
 import os
@@ -55,7 +55,7 @@ def preg2entrydict(preg, sid=None):
     pregfile = load_preg(preg)
     logging.info('Loaded PReg {}'.format(preg))
     key_map = dict()
-    storage = sqlite_registry('registry')
+    storage = registry_factory('registry')
 
     for entry in pregfile.entries:
         if not sid:

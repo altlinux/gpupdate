@@ -13,7 +13,7 @@ import pysss_nss_idmap
 from xml.etree import ElementTree
 from samba.gp_parse.gp_pol import GPPolParser
 
-from storage import sqlite_cache
+from storage import cache_factory
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -118,7 +118,7 @@ def get_sid(domain, username):
     '''
     Lookup SID not only using wbinfo or sssd but also using own cache
     '''
-    cached_sids = sqlite_cache('sid_cache')
+    cached_sids = cache_factory('sid_cache')
     domain_username = '{}\\{}'.format(domain, username)
     sid = 'local-{}'.format(username)
     sid = cached_sids.get_default(domain_username, sid)
