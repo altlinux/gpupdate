@@ -89,7 +89,7 @@ def check_krb_ticket():
     except:
         logging.error('Kerberos ticket check unsuccessful')
         return False
-    logging.info('Ticket check succeed')
+    logging.debug('Ticket check succeed')
     return True
 
 def get_domain_name(lp, creds, dc):
@@ -129,7 +129,7 @@ def get_sid(domain, username):
         sid = 'local-{}'.format(username)
         logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
 
-    logging.info('Working with SID: {}'.format(sid))
+    logging.debug('Working with SID: {}'.format(sid))
 
     cached_sids.store(domain_username, sid)
 
