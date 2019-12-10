@@ -8,7 +8,7 @@ from samba import getopt as options
 
 # Our native control facility
 import util
-from backend import samba_backend
+from backend import backend_factory
 import frontend
 
 # Remove print() from code
@@ -53,7 +53,7 @@ class gpoa_controller:
 
         sid = util.get_sid(domain, username)
 
-        back = samba_backend(self.__lp, self.__creds, sid, dc, username)
+        back = backend_factory(self.__lp, self.__creds, sid, dc, username)
         back.retrieve_and_store()
 
         appl = frontend.applier(sid, username)
