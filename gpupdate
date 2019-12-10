@@ -5,11 +5,16 @@ import argparse
 import subprocess
 import os
 import sys
+import dbus
+import logging
+import pwd
 
-class gpoa:
+logging.basicConfig(level=logging.DEBUG)
+
+class file_runner:
     _gpoa_exe = '/usr/sbin/gpoa'
 
-    def __init__(self, username):
+    def __init__(self, username=None):
         self._user = username
 
     def run(self):
@@ -20,21 +25,36 @@ class gpoa:
         if self._user:
             gpoa_cmd += [self._user]
 
-        print('Running gpoa')
         output = subprocess.call(gpoa_cmd)
         sys.exit(output)
 
-class dbus:
+def print_dbus_result(result):
+    exitcode = result[0]
+    message = result[1:]
+    logging.debug('Exit code is {}'.format(exitcode))
+    for line in message:
+        print(str(line))
+
+class dbus_runner:
     _bus_name = 'com.redhat.oddjob_gpupdate'
     _object_path = '/'
 
-    def __init__(self):
-        from pydbus import SystemBus
-        bus = SystemBus()
-        self._object = bus.get(self._bus_name, self._object_path)
+    def __init__(self, username=None):
+        self.username = username
+        system_bus = dbus.SystemBus()
+        obj = system_bus.get_object(self._bus_name, self._object_path)
+        self.interface = dbus.Interface(obj, self._bus_name)
 
     def run(self):
-        self._object.gpupdate()
+        #print(obj.Introspect()[0])
+        if self.username:
+            logging.info('Starting GPO applier for user {} via D-Bus'.format(self.username))
+            result = self.interface.gpupdatefor(dbus.String(self.username))
+            print_dbus_result(result)
+        else:
+            result = self.interface.gpupdate()
+            print_dbus_result(result)
+        #self.interface.Quit()
 
 
 def parse_cli_arguments():
@@ -49,15 +69,85 @@ def parse_cli_arguments():
 
     return argparser.parse_args()
 
+def is_oddjobd_gpupdate_accessible():
+    '''
+    Check is oddjobd is running via systemd so it will be possible
+    to run gpoa via D-Bus
+    '''
+    try:
+        system_bus = dbus.SystemBus()
+        systemd_bus = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+        systemd_interface = dbus.Interface(systemd_bus, 'org.freedesktop.systemd1.Manager')
+        oddjobd_unit = systemd_interface.GetUnit(dbus.String('oddjobd.service'))
+
+        oddjobd_proxy = system_bus.get_object('org.freedesktop.systemd1', str(oddjobd_unit))
+        oddjobd_properties = dbus.Interface(oddjobd_proxy, dbus_interface='org.freedesktop.DBus.Properties')
+
+        # Check if oddjobd service is running
+        oddjobd_state = oddjobd_properties.Get('org.freedesktop.systemd1.Unit', 'ActiveState')
+
+        # Check if oddjobd_gpupdate is accesssible
+        oddjobd_gpupdate = system_bus.get_object('com.redhat.oddjob_gpupdate', '/')
+        oddjobd_upupdate_interface = dbus.Interface(oddjobd_gpupdate, 'com.redhat.oddjob_gpupdate')
+        #oddjobd_upupdate_interface.gpupdate()
+
+        if oddjobd_state == 'active':
+            return True
+    except:
+        pass
+
+    return False
+
+def is_root():
+    '''
+    Check UID.
+    '''
+    if os.geteuid() == 0:
+        return True
+    return False
+
+def runner_factory(args):
+    '''
+    Return the necessary runner class according to some
+    factors taken into account.
+    '''
+    username = None
+    if is_root():
+        # Only root may specify any username to update.
+        try:
+            username = pwd.getpwnam(args.user).pw_name
+        except:
+            username = None
+            logging.error('Unable to perform gpupdate for non-existent user {}, will update machine settings'.format(args.user))
+    else:
+        # User may only perform gpupdate for machine (None) or
+        # itself (os.getusername()).
+        if args.user:
+            username = pwd.getpwuid(os.getuid()).pw_name
+            if args.user != username:
+                logging.error('Unable to perform gpupdate for {} with current permissions, will update current user settings'.format(args.user))
+
+    if is_oddjobd_gpupdate_accessible():
+        logging.debug('Starting gpupdate via D-Bus')
+        return dbus_runner(username)
+    else:
+        logging.warning('oddjobd is inaccessible')
+
+    if is_root():
+        logging.debug('Starting gpupdate by command invocation')
+        return file_runner(username)
+    else:
+        logging.error('Insufficient permissions to run gpupdate')
+
+    return None
+
 def main():
     args = parse_cli_arguments()
-
-    if os.geteuid() == 0:
-        gpo_applier = gpoa(args.user)
+    gpo_applier = runner_factory(args)
+    if gpo_applier:
+        gpo_applier.run()
     else:
-        gpo_applier = dbus();
-
-    gpo_applier.run()
+        logging.error('gpupdate will not be started')
 
 if __name__ == '__main__':
     main()
