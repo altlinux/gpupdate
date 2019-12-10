@@ -1,4 +1,4 @@
-from storage import sqlite_registry
+from storage import registry_factory
 
 from .control_applier import control_applier
 from .polkit_applier import polkit_applier
@@ -10,7 +10,7 @@ import logging
 
 class applier:
     def __init__(self, sid, username):
-        self.storage = sqlite_registry('registry')
+        self.storage = registry_factory('registry')
         self.sid = sid
         self.username = username
 
