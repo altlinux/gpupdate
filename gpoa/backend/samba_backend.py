@@ -1,5 +1,3 @@
-from storage import sqlite_registry
-
 from .applier_backend import applier_backend
 
 import argparse
@@ -19,7 +17,7 @@ import util.preg
 
 from collections import OrderedDict
 
-from storage import sqlite_cache, sqlite_registry
+from storage import cache_factory, registry_factory
 
 # Remove print() from code
 import logging
@@ -37,8 +35,8 @@ class samba_backend(applier_backend):
         self.username = username
         self.sid = sid
 
-        self.storage = sqlite_registry('registry')
-        self.cache = sqlite_cache('regpol_cache')
+        self.storage = registry_factory('registry')
+        self.cache = cache_factory('regpol_cache')
         # Check if we're working for user or for machine
         self._is_machine_username = util.is_machine_name(self.username)
 
