@@ -146,10 +146,10 @@ class samba_backend(applier_backend):
         except:
             logging.error('Error fetching GPO list from {} for'.format(self.dc, username))
             policy_files = eval(self.cache.get_default(self.sid, OrderedDict({'machine_regpols': [], 'user_regpols': []})))
-            logging.warning('Got cached PReg files {}'.format(policy_files))
+            logging.debug('Got cached PReg files {}'.format(policy_files))
 
-        logging.info('Machine .pol file set: {}'.format(policy_files['machine_regpols']))
-        logging.info('User .pol file set: {}'.format(policy_files['user_regpols']))
+        logging.debug('Machine .pol file set: {}'.format(policy_files['machine_regpols']))
+        logging.debug('User .pol file set: {}'.format(policy_files['user_regpols']))
 
         return policy_files
 
