@@ -141,3 +141,14 @@ def get_homedir(username):
     '''
     return pwd.getpwnam(username).pw_dir
 
+def mk_homedir_path(username, homedir_path):
+    homedir = get_homedir(username)
+    uid = pwd.getpwnam(username).pw_uid
+
+    elements = homedir_path.split('/')
+    longer_path = homedir
+    for elem in elements:
+        os.makedirs(longer_path, exist_ok=True)
+        os.chown(homedir, uid=uid, gid=-1)
+        longer_path = os.path.join(longer_path, elem)
+        logging.debug('Created directory {} for user {}'.format(longer_path, username))
