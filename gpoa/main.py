@@ -51,16 +51,13 @@ class gpoa_controller:
         username = self.__args.user
         domain = util.get_domain_name(self.__lp, self.__creds, dc)
 
-        sid = util.get_sid(domain, username)
-
-        back = backend_factory(self.__lp, self.__creds, sid, dc, username)
+        back = backend_factory(self.__lp, self.__creds, dc, username, domain)
         back.retrieve_and_store()
 
-        appl = frontend.applier(sid, username)
+        appl = frontend.applier(username, domain)
         appl.apply_parameters()
 
 def main():
-    logging.info('Working with Samba DC')
     controller = gpoa_controller()
 
 if __name__ == "__main__":

@@ -5,14 +5,15 @@ from .polkit_applier import polkit_applier
 from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
 from .chromium_applier import chromium_applier
+import util
 
 import logging
 
 class applier:
-    def __init__(self, sid, username):
+    def __init__(self, username, domain):
         self.storage = registry_factory('registry')
-        self.sid = sid
         self.username = username
+        self.sid = util.get_sid(domain, self.username)
 
         self.appliers = dict({
             'control':  control_applier(self.storage),
