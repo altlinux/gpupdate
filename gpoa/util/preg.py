@@ -10,8 +10,6 @@ import samba.gpo
 from xml.etree import ElementTree
 from samba.gp_parse.gp_pol import GPPolParser
 
-logging.basicConfig(level=logging.DEBUG)
-
 def load_preg(file_path):
     '''
     Check if file extension is .xml and load preg object from XML
@@ -48,32 +46,26 @@ def load_pol_preg(polfile):
     #print(gpparser.pol_file.__ndr_print__())
     return gpparser.pol_file
 
-def preg2entrydict(preg, sid=None):
-    '''
-    Create a map (dict) of HIVE_KEY to preg.entry
-    '''
+def preg_keymap(preg):
+    pregfile = load_preg(preg)
+    keymap = dict()
+
+    for entry in pregfile.entries:
+        hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
+        keymap[hive_key] = entry
+
+    return keymap
+
+def merge_polfile(preg, sid=None):
     pregfile = load_preg(preg)
     logging.info('Loaded PReg {}'.format(preg))
     key_map = dict()
     storage = registry_factory('registry')
-
     for entry in pregfile.entries:
         if not sid:
             storage.add_hklm_entry(entry)
         else:
             storage.add_hkcu_entry(entry, sid)
-        hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
-        key_map[hive_key] = entry
-
-    return key_map
-
-def merge_polfiles(polfile_list, sid=None):
-    entrydict = dict()
-
-    for preg_file_path in polfile_list:
-        entrydict.update(preg2entrydict(preg_file_path, sid))
-
-    return entrydict
 
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
