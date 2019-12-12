@@ -3,6 +3,7 @@ from .applier_frontend import applier_frontend
 import logging
 import json
 import os
+
 import util
 
 class chromium_applier(applier_frontend):
@@ -43,8 +44,9 @@ class chromium_applier(applier_frontend):
         return defval
 
     def set_policy(self, name, obj):
-        self.policies[name] = obj
-        logging.info('Chromium policy \'{}\' set to {}'.format(name, obj))
+        if obj:
+            self.policies[name] = obj
+            logging.info('Chromium policy \'{}\' set to {}'.format(name, obj))
 
     def set_user_policy(self, name, obj):
         '''
@@ -56,18 +58,25 @@ class chromium_applier(applier_frontend):
             os.makedirs(prefdir, exist_ok=True)
 
             prefpath = os.path.join(prefdir, 'Preferences')
+            util.mk_homedir_path(self.username, self.__user_settings)
             settings = dict()
-            with open(prefpath, 'r') as f:
-                settings = json.load(f)
+            try:
+                with open(prefpath, 'r') as f:
+                    settings = json.load(f)
+            except FileNotFoundError as exc:
+                logging.error('Chromium preferences file {} does not exist at the moment'.format(prefpath))
+            except:
+                logging.error('Error during attempt to read Chromium preferences for user {}'.format(self.username))
 
-            settings[name] = obj
+            if obj:
+                settings[name] = obj
 
-            with open(prefpath, 'w') as f:
-                json.dump(settings, f)
-            logging.info('Set user ({}) property \'{}\' to {}'.format(self.username, name, obj))
+                with open(prefpath, 'w') as f:
+                    json.dump(settings, f)
+                logging.info('Set user ({}) property \'{}\' to {}'.format(self.username, name, obj))
 
     def get_home_page(self, hkcu=False):
-        return self.get_hklm_string_entry_default('HomepageLocation', 'about:blank')
+        return self.get_hklm_string_entry('HomepageLocation')
 
     def machine_apply(self):
         '''
@@ -80,7 +89,7 @@ class chromium_applier(applier_frontend):
         os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies, f)
-            logging.info('Wrote Chromium preferences to {}'.format(destfile))
+            logging.debug('Wrote Chromium preferences to {}'.format(destfile))
 
     def user_apply(self):
         '''
@@ -94,6 +103,5 @@ class chromium_applier(applier_frontend):
         '''
         self.machine_apply()
         if not self._is_machine_name:
-            logging.info('Running user applier for Chromium')
+            logging.debug('Running user applier for Chromium')
             self.user_apply()
-

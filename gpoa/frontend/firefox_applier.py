@@ -65,8 +65,9 @@ class firefox_applier(applier_frontend):
         '''
         Add entry to policy set.
         '''
-        self.policies[name] = obj
-        logging.info('Firefox policy \'{}\' set to {}'.format(name, obj))
+        if obj:
+            self.policies[name] = obj
+            logging.info('Firefox policy \'{}\' set to {}'.format(name, obj))
 
     def get_home_page(self):
         '''
@@ -77,19 +78,23 @@ class firefox_applier(applier_frontend):
             'Locked': False,
             'StartPage': 'homepage'
         })
-        response = self.get_hklm_string_entry_default('Homepage\\URL', 'about:config')
-        homepage['URL'] = response
-
-        return homepage
+        response = self.get_hklm_string_entry('Homepage\\URL')
+        if response:
+            homepage['URL'] = response
+            return homepage
+        return None
 
     def get_block_about_config(self):
         '''
         Query BlockAboutConfig boolean property from the storage.
         '''
-        response = self.get_hklm_string_entry_default('BlockAboutConfig', False)
-        if response.lower() in ['0', 'false', False, None, 'None']:
-            return False
-        return True
+        response = self.get_hklm_string_entry('BlockAboutConfig')
+        if response:
+            if response.lower() in ['0', 'false', False, None, 'None']:
+                return False
+            return True
+
+        return None
 
     def machine_apply(self):
         '''
@@ -103,18 +108,18 @@ class firefox_applier(applier_frontend):
         os.makedirs(self.__firefox_installdir, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
-            logging.info('Wrote Firefox preferences to {}'.format(destfile))
+            logging.debug('Wrote Firefox preferences to {}'.format(destfile))
 
     def user_apply(self):
         profiles = self.get_profiles()
 
         profiledir = os.path.join(util.get_homedir(self.username), self.__user_settings_dir)
         for profile in profiles:
-            logging.info('Found Firefox profile in {}/{}'.format(profiledir, profile))
+            logging.debug('Found Firefox profile in {}/{}'.format(profiledir, profile))
 
     def apply(self):
         self.machine_apply()
         if not self._is_machine_name:
-            logging.info('Running user applier for Firefox')
+            logging.debug('Running user applier for Firefox')
             self.user_apply()
 
