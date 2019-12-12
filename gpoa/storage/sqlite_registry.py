@@ -30,6 +30,12 @@ class samba_hkcu_preg(object):
         self.type = preg_obj.type
         self.data = preg_obj.data
 
+class ad_shortcut(object):
+    def __init__(self, sid, sc):
+        self.sid = sid
+        self.path = sc.path
+        self.shortcut = sc.desktop()
+
 class sqlite_registry(registry):
     __registry_path = 'sqlite:////var/cache/samba'
 
@@ -55,6 +61,14 @@ class sqlite_registry(registry):
             Column('type', Integer),
             Column('data', String)
         )
+        self.__shortcuts = Table(
+            'Shortcuts',
+            self.__metadata,
+            Column('id', Integer, primary_key=True),
+            Column('sid', String),
+            Column('path', String),
+            Column('shortcut', String)
+        )
 
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
@@ -62,17 +76,20 @@ class sqlite_registry(registry):
         try:
             mapper(samba_preg, self.__hklm)
             mapper(samba_hkcu_preg, self.__hkcu)
+            mapper(ad_shortcut, self.__shortcuts)
         except:
-            logging.error('Error creating mapper')
+            pass
+            #logging.error('Error creating mapper')
 
     def _hklm_upsert(self, row):
         try:
             self.db_session.add(row)
             self.db_session.commit()
         except:
-            logging.error('Row update failed, updating row')
+            logging.error('updating row')
             self.db_session.rollback()
-            self.db_session.query(samba_preg).filter(samba_preg.hive_key == row.hive_key).update({'type': row.type, 'data': row.data })
+            update_obj = dict({'type': row.type, 'data': row.data })
+            self.db_session.query(samba_preg).filter(samba_preg.hive_key == row.hive_key).update(update_obj)
             self.db_session.commit()
 
     def _hkcu_upsert(self, row):
@@ -80,19 +97,45 @@ class sqlite_registry(registry):
             self.db_session.add(row)
             self.db_session.commit()
         except:
-            logging.error('Row update failed, updating row')
+            logging.error('updating row')
             self.db_session.rollback()
-            self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == row.sid).filter(samba_hkcu_preg.hive_key == row.hive_key).update({'type': row.type, 'data': row.data })
+            update_obj = dict({'type': row.type, 'data': row.data })
+            self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == row.sid).filter(samba_hkcu_preg.hive_key == row.hive_key).update(update_obj)
             self.db_session.commit()
 
+    def _shortcut_upsert(self, row):
+        try:
+            self.db_session.add(row)
+            self.db_session.commit()
+        except:
+            logging.error('updating row')
+            self.db_session.rollback()
+            update_obj = dict({ 'shortcut': row.shortcut })
+            self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == row.sid).filter(ad_shortcut.path == row.path).update(update_obj)
+            self.db_session_commit()
+
     def add_hklm_entry(self, preg_entry):
+        '''
+        Write PReg entry to HKEY_LOCAL_MACHINE
+        '''
         pentry = samba_preg(preg_entry)
         self._hklm_upsert(pentry)
 
     def add_hkcu_entry(self, preg_entry, sid):
+        '''
+        Write PReg entry to HKEY_CURRENT_USER
+        '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry)
         logging.debug('Adding HKCU entry for {}'.format(sid))
         self._hkcu_upsert(hkcu_pentry)
+
+    def add_shortcut(self, sid, sc_obj):
+        '''
+        Store shortcut information in the database
+        '''
+        sc_entry = ad_shortcut(sid, sc_obj)
+        logging.debug('Saving info about {} link for {}'.format(sc_entry.path, sid))
+        self._shortcut_upsert(sc_entry)
 
     def get_hkcu_entry(self, sid, hive_key):
         res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key == hive_key).first()
@@ -109,4 +152,3 @@ class sqlite_registry(registry):
     def filter_hklm_entries(self, startswith):
         res = self.db_session.query(samba_preg).filter(samba_preg.hive_key.like(startswith))
         return res
-
