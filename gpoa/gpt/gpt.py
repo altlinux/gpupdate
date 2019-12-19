@@ -53,7 +53,7 @@ class gpt:
         is possible to work with user's part of GPT. This value is
         checked only if working for user's SID.
         '''
-        upm = self.storage.get_hklm_entry('Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode')
+        upm = self.storage.get_hklm_entry(self.__user_policy_mode_key)
         if not upm:
             upm = 0
         upm = int(upm)
@@ -107,8 +107,16 @@ class gpt:
 
         return find_file(search_path, 'shortcuts.xml')
 
-    def _merge_shortcut(self, sid, sc):
-        self.storage.add_shortcut(sid, sc)
+    def _merge_shortcuts(self):
+        shortcuts = list()
+
+        if self.sid == self.storage.get_info('machine_sid'):
+            shortcuts = read_shortcuts(self._machine_shortcuts)
+        else:
+            shortcuts = read_shortcuts(self._user_shortcuts)
+
+        for sc in shortcuts:
+            self.storage.add_shortcut(self.sid, sc)
 
     def merge(self):
         '''
@@ -122,13 +130,20 @@ class gpt:
             if self._user_regpol:
                 logging.debug('Merging machine(user) settings from {}'.format(self._machine_regpol))
                 util.preg.merge_polfile(self._user_regpol, self.machine_sid)
+            if self._machine_shortcuts:
+                logging.debug('Merging machine shortcuts from {}'.format(self._machine_shortcuts))
+                self._merge_shortcuts()
         else:
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
-            if upm2str(self.get_policy_mode()) == 'Merge':
+            policy_mode = upm2str(self.get_policy_mode())
+            if 'Merge' == policy_mode or 'Not configured' == policy_mode:
                 if self._user_regpol:
-                    logging.debug('Merging user settings from {} for {}'.format(self._user_regpol, sid))
+                    logging.debug('Merging user settings from {} for {}'.format(self._user_regpol, self.sid))
                     util.preg.merge_polfile(self._user_regpol, self.sid)
+                if self._user_shortcuts:
+                    logging.debug('Merging user shortcuts from {} for {}'.format(self._user_shortcuts, self.sid))
+                    self._merge_shortcuts()
 
     def __str__(self):
         template = '''
