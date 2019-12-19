@@ -1,0 +1,5 @@
+#%PAM-1.0
+session		required	pam_mktemp.so
+session		required	pam_mkhomedir.so silent
+session		required	pam_limits.so
+-session	required	pam_oddjob_gpupdate.so

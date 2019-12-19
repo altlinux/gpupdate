@@ -2,7 +2,7 @@
 
 Name: gpupdate
 Version: 0.2.1
-Release: alt1
+Release: alt2
 
 Summary: GPT applier
 License: GPLv2+
@@ -43,6 +43,7 @@ mv %buildroot%python3_sitelibdir/gpoa/templates \
 	%buildroot%_datadir/%name/
 
 install -Dm0644 %name.service %buildroot%_unitdir/%name.service
+install -Dm0644 system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%name
 
 %preun
 %preun_service gpupdate
@@ -57,8 +58,12 @@ install -Dm0644 %name.service %buildroot%_unitdir/%name.service
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
+%_sysconfdir/pam.d/system-policy-%name
 
 %changelog
+* Fri Dec 20 2019 Evgeny Sinelnikov <sin@altlinux.org> 0.2.1-alt2
+- Add support system-policy for PAM settings
+
 * Thu Dec 19 2019 Evgeny Sinelnikov <sin@altlinux.org> 0.2.1-alt1
 - Next part of refactoring
 - Add simple support adp
