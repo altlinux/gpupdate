@@ -10,7 +10,8 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    MetaData
+    MetaData,
+    UniqueConstraint
 )
 from sqlalchemy.orm import (
     mapper,
@@ -33,8 +34,8 @@ class samba_hkcu_preg(object):
 class ad_shortcut(object):
     def __init__(self, sid, sc):
         self.sid = sid
-        self.path = sc.path
-        self.shortcut = sc.desktop()
+        self.path = sc.dest
+        self.shortcut = sc.to_json()
 
 class info_entry(object):
     def __init__(self, name, value):
@@ -71,7 +72,8 @@ class sqlite_registry(registry):
             Column('sid', String),
             Column('hive_key', String(65536)),
             Column('type', Integer),
-            Column('data', String)
+            Column('data', String),
+            UniqueConstraint('sid', 'hive_key')
         )
         self.__shortcuts = Table(
             'Shortcuts',
@@ -79,7 +81,8 @@ class sqlite_registry(registry):
             Column('id', Integer, primary_key=True),
             Column('sid', String),
             Column('path', String),
-            Column('shortcut', String)
+            Column('shortcut', String),
+            UniqueConstraint('sid', 'path')
         )
 
         self.__metadata.create_all(self.db_cnt)
@@ -132,7 +135,7 @@ class sqlite_registry(registry):
         except:
             update_obj = dict({ 'shortcut': row.shortcut })
             self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == row.sid).filter(ad_shortcut.path == row.path).update(update_obj)
-            self.db_session_commit()
+            self.db_session.commit()
 
     def set_info(self, name, value):
         ientry = info_entry(name, value)
@@ -162,13 +165,23 @@ class sqlite_registry(registry):
         logging.debug('Saving info about {} link for {}'.format(sc_entry.path, sid))
         self._shortcut_upsert(sc_entry)
 
+    def get_shortcuts(self, sid):
+        res = self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == sid).all()
+        return res
+
     def get_hkcu_entry(self, sid, hive_key):
         res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key == hive_key).first()
+        # Try to get the value from machine SID as a default if no option is set.
+        if not res:
+            machine_sid = self.get_info('machine_sid')
+            res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == machine_sid).filter(samba_hkcu_preg.hive_key == hive_key).first()
         return res
 
     def filter_hkcu_entries(self, sid, startswith):
-        res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key.like(startswith))
-        return res
+        res = self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key.like(startswith))
+        machine_sid = self.get_info('machine_sid')
+        machine_res = self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == machine_sid).filter(samba_hkcu_preg.hive_key.like(startswith))
+        return res + machine_res
 
     def get_info(self, name):
         res = self.db_session.query(info_entry).filter(info_entry.name == name).first()
@@ -181,3 +194,20 @@ class sqlite_registry(registry):
     def filter_hklm_entries(self, startswith):
         res = self.db_session.query(samba_preg).filter(samba_preg.hive_key.like(startswith))
         return res
+
+    def wipe_user(self, sid):
+        self.wipe_hkcu(sid)
+        self.wipe_shortcuts(sid)
+
+    def wipe_shortcuts(self, sid):
+        self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == sid).delete()
+        self.db_session.commit()
+
+    def wipe_hkcu(self, sid):
+        self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == sid).delete()
+        self.db_session.commit()
+
+    def wipe_hklm(self):
+        self.db_session.query(samba_preg).delete()
+        self.db_session.commit()
+
