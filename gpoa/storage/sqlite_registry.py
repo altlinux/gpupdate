@@ -179,9 +179,7 @@ class sqlite_registry(registry):
 
     def filter_hkcu_entries(self, sid, startswith):
         res = self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key.like(startswith))
-        machine_sid = self.get_info('machine_sid')
-        machine_res = self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == machine_sid).filter(samba_hkcu_preg.hive_key.like(startswith))
-        return res + machine_res
+        return res
 
     def get_info(self, name):
         res = self.db_session.query(info_entry).filter(info_entry.name == name).first()
