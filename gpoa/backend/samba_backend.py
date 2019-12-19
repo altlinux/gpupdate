@@ -39,15 +39,15 @@ class samba_backend(applier_backend):
         # Get policies for machine at first.
         machine_gpts = self._get_gpts(util.get_machine_name(), self.storage.get_info('machine_sid'))
         self.storage.wipe_hklm()
-        self.storage.wipe_user(self.sid)
+        self.storage.wipe_user(self.storage.get_info('machine_sid'))
         for gptobj in machine_gpts:
             gptobj.merge()
 
         # Load user GPT values in case user's name specified
         # This is a buggy implementation and should be tested more
-        self.storage.wipe_user(self.sid)
         if not self._is_machine_username:
             user_gpts = self._get_gpts(self.username, self.sid)
+            self.storage.wipe_user(self.sid)
             for gptobj in user_gpts:
                 gptobj.merge()
 
@@ -83,3 +83,4 @@ class samba_backend(applier_backend):
         print('---')
 
         return gpts
+
