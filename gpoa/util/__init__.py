@@ -10,10 +10,8 @@ from .kerberos import (
     machine_kinit
 )
 from .windows import (
-    get_gpo_list,
-    select_dc,
     wbinfo_getsid,
-    get_domain_name,
     get_sid,
     expand_windows_var
 )
+

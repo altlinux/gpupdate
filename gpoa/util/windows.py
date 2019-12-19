@@ -1,4 +1,5 @@
 import logging
+import os
 
 import optparse
 from samba import getopt as options
@@ -9,72 +10,94 @@ import samba.gpo
 import pysss_nss_idmap
 
 from storage import cache_factory
+from .xdg import get_user_dir
+from .util import get_homedir
 
 class smbcreds:
-    def __init__(self):
+    def __init__(self, dc_fqdn=None):
         self.parser = optparse.OptionParser('GPO Applier')
         self.sambaopts = options.SambaOptions(self.parser)
         self.credopts = options.CredentialsOptions(self.parser)
         self.lp = self.sambaopts.get_loadparm()
         self.creds = self.credopts.get_credentials(self.lp, fallback_machine=True)
+        self.selected_dc = self.set_dc(dc_fqdn)
 
-    def select_dc(self, dc_fqdn):
-        return select_dc(self.lp, self.creds, dc_fqdn)
+    def get_dc(self):
+        return self.selected_dc
 
-    def get_domain(self, dc_fqdn):
-        return get_domain_name(self.lp, self.creds, dc_fqdn)
+    def set_dc(self, dc_fqdn):
+        '''
+        Force selection of the specified DC
+        '''
+        self.selected_dc = None
+
+        try:
+            samba_dc = get_dc_hostname(self.creds, self.lp)
+
+            if samba_dc != dc_fqdn and dc_fqdn != None:
+                logging.debug('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
+                self.selected_dc = dc_fqdn
+            else:
+                self.selected_dc = samba_dc
+        except:
+            logging.error('Unable to determine DC hostname')
+
+        return self.selected_dc
+
+    def get_domain(self):
+        '''
+        Get current Active Directory domain name
+        '''
+        dns_domainname = None
+        try:
+            # Get CLDAP record about domain
+            # Look and python/samba/netcmd/domain.py for more examples
+            res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
+            dns_domainname = res.dns_domain
+            logging.info('Found domain via CLDAP: {}'.format(dns_domainname))
+        except:
+            logging.error('Unable to retrieve domain name via CLDAP query')
+
+        return dns_domainname
 
     def get_cache_dir(self):
         return self._get_prop('cache directory')
 
-    def get_gpos(self, dc_fqdn, username):
+    def get_gpos(self, username):
+        '''
+        Get GPO list for the specified username for the specified DC
+        hostname
+        '''
         gpos = list()
 
         try:
-            gpos = get_gpo_list(dc_fqdn, self.creds, self.lp, username)
+            ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
+            if ads.connect():
+                gpos = ads.get_gpo_list(username)
+                logging.info('Got GPO list for {}:'.format(username))
+                for gpo in gpos:
+                    # These setters are taken from libgpo/pygpo.c
+                    # print(gpo.ds_path) # LDAP entry
+                    logging.info('{} ({})'.format(gpo.display_name, gpo.name))
+                logging.info('------')
+
         except Exception as exc:
-            logging.error('Unable to get GPO list for {} from {}'.format(username, dc_fqdn))
+            logging.error('Unable to get GPO list for {} from {}'.format(username, self.selected_dc))
 
         return gpos
 
-    def update_gpos(self, dc_fqdn, username):
-        gpos = self.get_gpos(dc_fqdn, username)
+    def update_gpos(self, username):
+        gpos = self.get_gpos(username)
 
         try:
-            check_refresh_gpo_list(dc_fqdn, self.lp, self.creds, gpos)
+            check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
         except Exception as exc:
-            logging.error('Unable to refresh GPO list for {} from {}'.format(username, dc_fqdn))
+            logging.error('Unable to refresh GPO list for {} from {}'.format(username, self.selected_dc))
 
         return gpos
 
     def _get_prop(self, property_name):
         return self.lp.get(property_name)
-
-def get_gpo_list(dc_hostname, creds, lp, user):
-    gpos = []
-    ads = samba.gpo.ADS_STRUCT(dc_hostname, lp, creds)
-    if ads.connect():
-        #gpos = ads.get_gpo_list(creds.get_username())
-        gpos = ads.get_gpo_list(user)
-    logging.info('Got GPO list for {}:'.format(user))
-    for gpo in gpos:
-        # These setters are taken from libgpo/pygpo.c
-        # print(gpo.ds_path) # LDAP entry
-        logging.info('{} ({})'.format(gpo.display_name, gpo.name))
-    logging.info('------')
-    return gpos
-
-def select_dc(lp, creds, dc):
-    try:
-        samba_dc = get_dc_hostname(creds, lp)
-
-        if samba_dc != dc and dc != None:
-            logging.debug('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
-            return dc
-        return samba_dc
-    except:
-        logging.error('Unable to determine DC hostname')
-    return None
 
 def wbinfo_getsid(domain, user):
     '''
@@ -93,21 +116,6 @@ def wbinfo_getsid(domain, user):
     sid = output.split()[0].decode('utf-8')
 
     return sid
-
-def get_domain_name(lp, creds, dc):
-    '''
-    Get current Active Directory domain name
-    '''
-    try:
-        # Get CLDAP record about domain
-        # Look and python/samba/netcmd/domain.py for more examples
-        res = netcmd_get_domain_infos_via_cldap(lp, None, dc)
-        logging.info('Found domain via CLDAP: {}'.format(res.dns_domain))
-
-        return res.dns_domain
-    except:
-        logging.error('Unable to retrieve domain name via CLDAP query')
-    return None
 
 def get_sid(domain, username):
     '''
@@ -136,13 +144,26 @@ def expand_windows_var(text, username):
     '''
     variables = dict()
     variables['HOME'] = get_homedir(username)
-    variables['SystemRoot'] = ''
-    variables['DesktopDir'] = '{}/Desktop'.format(variables['HOME'])
-    variables['StartMenuDir'] = ''
+    variables['SystemRoot'] = '/'
+    variables['DesktopDir'] = get_user_dir('DESKTOP', os.path.join(variables['HOME'], 'Desktop'))
+    variables['StartMenuDir'] = None
+    if not variables['StartMenuDir']:
+        variables['StartMenuDir'] = '/usr/share/applications'
 
     result = text
     for var in variables.keys():
         result = result.replace('%{}%'.format(var), variables[var])
 
+    return result
+
+def transform_windows_path(text):
+    '''
+    Try to make Windows path look like UNIX.
+    '''
+    result = text
+
+    if text.lower().endswith('chrome.exe'):
+        result = 'chrome'
+    
     return result
 
