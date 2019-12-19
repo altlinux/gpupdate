@@ -10,10 +10,10 @@ import util
 import logging
 
 class applier:
-    def __init__(self, username, domain):
+    def __init__(self, username):
         self.storage = registry_factory('registry')
         self.username = username
-        self.sid = util.get_sid(domain, self.username)
+        self.sid = util.get_sid(self.storage.get_info('domain'), self.username)
 
         self.appliers = dict({
             'control':  control_applier(self.storage),
