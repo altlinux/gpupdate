@@ -119,7 +119,7 @@ class firefox_applier(applier_frontend):
 
     def apply(self):
         self.machine_apply()
-        if not self._is_machine_name:
-            logging.debug('Running user applier for Firefox')
-            self.user_apply()
+        #if not self._is_machine_name:
+        #    logging.debug('Running user applier for Firefox')
+        #    self.user_apply()
 

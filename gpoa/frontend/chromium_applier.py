@@ -102,6 +102,6 @@ class chromium_applier(applier_frontend):
         All actual job done here.
         '''
         self.machine_apply()
-        if not self._is_machine_name:
-            logging.debug('Running user applier for Chromium')
-            self.user_apply()
+        #if not self._is_machine_name:
+        #    logging.debug('Running user applier for Chromium')
+        #    self.user_apply()
