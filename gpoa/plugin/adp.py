@@ -12,8 +12,9 @@ class adp:
 
     def run(self):
         try:
-            loggging.info('Running ADP plugin')
-            subprocess.call(['/usr/sbin/adp-fetch'])
+            logging.info('Running ADP plugin')
+            subprocess.call(['/usr/bin/adp', 'fetch'])
+            subprocess.call(['/usr/bin/adp', 'apply'])
         except Exception as exc:
             logging.error('Error running ADP')
 
