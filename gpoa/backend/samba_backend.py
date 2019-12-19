@@ -12,7 +12,7 @@ import util.preg
 class samba_backend(applier_backend):
     __default_policy_path = '/usr/share/local-policy/default'
 
-    def __init__(self, sambacreds, dc, username, domain):
+    def __init__(self, sambacreds, username, domain):
         self.storage = registry_factory('registry')
         self.storage.set_info('domain', domain)
         self.storage.set_info('machine_name', util.get_machine_name())
@@ -28,9 +28,6 @@ class samba_backend(applier_backend):
 
         # Samba objects - LoadParm() and CredentialsOptions()
         self.sambacreds = sambacreds
-        self.loadparm = sambacreds.lp
-        self.creds = sambacreds.creds
-        self.dc = dc
 
         self.cache_dir = self.sambacreds.get_cache_dir()
         logging.debug('Cache directory is: {}'.format(self.cache_dir))
@@ -41,11 +38,14 @@ class samba_backend(applier_backend):
         '''
         # Get policies for machine at first.
         machine_gpts = self._get_gpts(util.get_machine_name(), self.storage.get_info('machine_sid'))
+        self.storage.wipe_hklm()
+        self.storage.wipe_user(self.sid)
         for gptobj in machine_gpts:
             gptobj.merge()
 
         # Load user GPT values in case user's name specified
         # This is a buggy implementation and should be tested more
+        self.storage.wipe_user(self.sid)
         if not self._is_machine_username:
             user_gpts = self._get_gpts(self.username, self.sid)
             for gptobj in user_gpts:
@@ -63,10 +63,10 @@ class samba_backend(applier_backend):
     def _get_gpts(self, username, sid):
         gpts = list()
 
-        gpos = self.sambacreds.update_gpos(self.dc, username)
+        gpos = self.sambacreds.update_gpos(username)
         for gpo in gpos:
             if self._check_sysvol_present(gpo):
-                logging.debug('Found SYSVOL entry {} for GPO {}'.format(gpo.file_sys_path, gpo.name))
+                logging.debug('Found SYSVOL entry "{}" for GPO "{}"'.format(gpo.file_sys_path, gpo.display_name))
                 path = check_safe_path(gpo.file_sys_path).upper()
                 logging.debug('Path: {}'.format(path))
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
