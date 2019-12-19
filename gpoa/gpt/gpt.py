@@ -16,7 +16,7 @@ class gpt:
     __default_policy_path = '/usr/share/local-policy/default'
     __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
 
-    def __init__(self, gpt_path, sid=None):
+    def __init__(self, gpt_path, sid):
         self.path = gpt_path
         self.sid = sid
         self.storage = registry_factory('registry')
@@ -41,8 +41,6 @@ class gpt:
         logging.debug('Looking for user part of GPT {}'.format(self.guid))
         self._find_user()
 
-        self._user_policy_mode = self.get_policy_mode()
-
     def set_name(self, name):
         '''
         Set human-readable GPT name.
@@ -52,12 +50,15 @@ class gpt:
     def get_policy_mode(self):
         '''
         Get UserPolicyMode parameter value in order to determine if it
-        is possible to work with user's part of GPT
+        is possible to work with user's part of GPT. This value is
+        checked only if working for user's SID.
         '''
-        upm = 0
-        if self._machine_regpol:
-            keymap = util.preg.preg_keymap(self._machine_regpol)
-            upm = keymap.get(self.__user_policy_mode_key, 0)
+        upm = self.storage.get_hklm_entry('Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode')
+        if not upm:
+            upm = 0
+        upm = int(upm)
+        if 0 > upm or 2 > upm:
+            upm = 0
 
         return upm
 
@@ -109,26 +110,25 @@ class gpt:
     def _merge_shortcut(self, sid, sc):
         self.storage.add_shortcut(sid, sc)
 
-    def merge(self, sid=None):
+    def merge(self):
         '''
         Merge machine and user (if sid provided) settings to storage.
         '''
-        # Merge machine settings to registry if possible
-        if self._machine_regpol:
-            logging.debug('Merging machine settings from {}'.format(self._machine_regpol))
-            util.preg.merge_polfile(self._machine_regpol)
-
-        # Merge user settings if UserPolicyMode set accordingly
-        # and user settings (for HKCU) are exist.
-        if sid:
-            if self._user_policy_mode in [None, '0', '1']:
+        if self.sid == self.storage.get_info('machine_sid'):
+            # Merge machine settings to registry if possible
+            if self._machine_regpol:
+                logging.debug('Merging machine settings from {}'.format(self._machine_regpol))
+                util.preg.merge_polfile(self._machine_regpol)
+            if self._user_regpol:
+                logging.debug('Merging machine(user) settings from {}'.format(self._machine_regpol))
+                util.preg.merge_polfile(self._user_regpol, self.machine_sid)
+        else:
+            # Merge user settings if UserPolicyMode set accordingly
+            # and user settings (for HKCU) are exist.
+            if upm2str(self.get_policy_mode()) == 'Merge':
                 if self._user_regpol:
                     logging.debug('Merging user settings from {} for {}'.format(self._user_regpol, sid))
-                    util.preg.merge_polfile(self._user_regpol, sid)
-            if self._machine_shortcuts:
-                logging.debug('Merging user settings for shortcuts')
-                for link in self._user_shortcuts:
-                    self._merge_shortcut(sid, link)
+                    util.preg.merge_polfile(self._user_regpol, self.sid)
 
     def __str__(self):
         template = '''
@@ -144,8 +144,6 @@ User part: {}
 User Registry.pol: {}
 User Shortcuts.xml: {}
 
-UserPolicyMode: {}
-
 '''
         result = template.format(
             self.guid,
@@ -159,8 +157,6 @@ UserPolicyMode: {}
             self._user_path,
             self._user_regpol,
             self._user_shortcuts,
-
-            self._user_policy_mode
         )
         return result
 
@@ -175,7 +171,8 @@ def find_file(search_path, name):
             if os.path.isfile(file_path) and name.lower() == entry.lower():
                 return file_path
     except Exception as exc:
-        logging.error(exc)
+        #logging.error(exc)
+        pass
 
     return None
 
@@ -204,3 +201,17 @@ def get_local_gpt(sid):
     local_policy.set_name('Local Policy')
 
     return local_policy
+
+def upm2str(upm_num):
+    '''
+    Translate UserPolicyMode to string.
+    '''
+    if upm_num in [0, '0']:
+        return 'Not configured'
+    if upm_num in [1, '1']:
+        return 'Replace'
+    if upm_num in [2, '2']:
+        return 'Merge'
+
+    return 'Not configured'
+
