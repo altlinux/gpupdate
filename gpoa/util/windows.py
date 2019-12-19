@@ -1,11 +1,54 @@
 import logging
 
-from samba.gpclass import get_dc_hostname
+import optparse
+from samba import getopt as options
+
+from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 import samba.gpo
 import pysss_nss_idmap
 
 from storage import cache_factory
+
+class smbcreds:
+    def __init__(self):
+        self.parser = optparse.OptionParser('GPO Applier')
+        self.sambaopts = options.SambaOptions(self.parser)
+        self.credopts = options.CredentialsOptions(self.parser)
+        self.lp = self.sambaopts.get_loadparm()
+        self.creds = self.credopts.get_credentials(self.lp, fallback_machine=True)
+
+    def select_dc(self, dc_fqdn):
+        return select_dc(self.lp, self.creds, dc_fqdn)
+
+    def get_domain(self, dc_fqdn):
+        return get_domain_name(self.lp, self.creds, dc_fqdn)
+
+    def get_cache_dir(self):
+        return self._get_prop('cache directory')
+
+    def get_gpos(self, dc_fqdn, username):
+        gpos = list()
+
+        try:
+            gpos = get_gpo_list(dc_fqdn, self.creds, self.lp, username)
+        except Exception as exc:
+            logging.error('Unable to get GPO list for {} from {}'.format(username, dc_fqdn))
+
+        return gpos
+
+    def update_gpos(self, dc_fqdn, username):
+        gpos = self.get_gpos(dc_fqdn, username)
+
+        try:
+            check_refresh_gpo_list(dc_fqdn, self.lp, self.creds, gpos)
+        except Exception as exc:
+            logging.error('Unable to refresh GPO list for {} from {}'.format(username, dc_fqdn))
+
+        return gpos
+
+    def _get_prop(self, property_name):
+        return self.lp.get(property_name)
 
 def get_gpo_list(dc_hostname, creds, lp, user):
     gpos = []
@@ -50,7 +93,6 @@ def wbinfo_getsid(domain, user):
     sid = output.split()[0].decode('utf-8')
 
     return sid
-
 
 def get_domain_name(lp, creds, dc):
     '''
