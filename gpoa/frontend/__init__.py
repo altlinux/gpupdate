@@ -5,6 +5,7 @@ from .polkit_applier import polkit_applier
 from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
 from .chromium_applier import chromium_applier
+from .shortcut_applier import shortcut_applier
 import util
 
 import logging
@@ -20,7 +21,8 @@ class applier:
             'polkit':   polkit_applier(self.storage),
             'systemd':  systemd_applier(self.storage),
             'firefox':  firefox_applier(self.storage, self.sid, self.username),
-            'chromium': chromium_applier(self.storage, self.sid, self.username)
+            'chromium': chromium_applier(self.storage, self.sid, self.username),
+            'shortcuts': shortcut_applier(self.storage, self.sid, self.username)
         })
 
     def apply_parameters(self):
@@ -30,4 +32,5 @@ class applier:
         self.appliers['polkit'].apply()
         self.appliers['firefox'].apply()
         self.appliers['chromium'].apply()
+        self.appliers['shortcuts'].apply()
 
