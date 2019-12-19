@@ -134,7 +134,10 @@ def get_sid(domain, username):
 
     logging.debug('Working with SID: {}'.format(sid))
 
-    cached_sids.store(domain_username, sid)
+    try:
+        cached_sids.store(domain_username, sid)
+    except Exception as exc:
+        pass
 
     return sid
 
@@ -162,8 +165,8 @@ def transform_windows_path(text):
     '''
     result = text
 
-    if text.lower().endswith('chrome.exe'):
-        result = 'chrome'
-    
+    if text.lower().endswith('.exe'):
+        result = text.lower().replace('\\', '/').replace('.exe', '').rpartition('/')[2]
+
     return result
 
