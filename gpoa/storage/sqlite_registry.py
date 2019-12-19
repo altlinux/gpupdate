@@ -36,6 +36,11 @@ class ad_shortcut(object):
         self.path = sc.path
         self.shortcut = sc.desktop()
 
+class info_entry(object):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
 class sqlite_registry(registry):
     __registry_path = 'sqlite:////var/cache/samba'
 
@@ -44,6 +49,13 @@ class sqlite_registry(registry):
         self.db_path = os.path.join(self.__registry_path, '{}.sqlite'.format(self.db_name))
         self.db_cnt = create_engine(self.db_path, echo=False)
         self.__metadata = MetaData(self.db_cnt)
+        self.__info = Table(
+            'info',
+            self.__metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(65536), unique=True),
+            Column('value', String(65536))
+        )
         self.__hklm = Table(
             'HKLM',
             self.__metadata,
@@ -74,6 +86,7 @@ class sqlite_registry(registry):
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
         try:
+            mapper(info_entry, self.__info)
             mapper(samba_preg, self.__hklm)
             mapper(samba_hkcu_preg, self.__hkcu)
             mapper(ad_shortcut, self.__shortcuts)
@@ -81,38 +94,50 @@ class sqlite_registry(registry):
             pass
             #logging.error('Error creating mapper')
 
-    def _hklm_upsert(self, row):
+    def _add(self, row):
         try:
             self.db_session.add(row)
             self.db_session.commit()
-        except:
-            logging.error('updating row')
+        except Exception as exc:
             self.db_session.rollback()
+            raise exc
+
+    def _info_upsert(self, row):
+        try:
+            self._add(row)
+        except:
+            update_obj = dict({ 'value': row.value })
+            self.db_session.query(info_entry).filter(info_entry.name == row.name).update(update_obj)
+            self.db_session.commit()
+
+    def _hklm_upsert(self, row):
+        try:
+            self._add(row)
+        except:
             update_obj = dict({'type': row.type, 'data': row.data })
             self.db_session.query(samba_preg).filter(samba_preg.hive_key == row.hive_key).update(update_obj)
             self.db_session.commit()
 
     def _hkcu_upsert(self, row):
         try:
-            self.db_session.add(row)
-            self.db_session.commit()
+            self._add(row)
         except:
-            logging.error('updating row')
-            self.db_session.rollback()
             update_obj = dict({'type': row.type, 'data': row.data })
             self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == row.sid).filter(samba_hkcu_preg.hive_key == row.hive_key).update(update_obj)
             self.db_session.commit()
 
     def _shortcut_upsert(self, row):
         try:
-            self.db_session.add(row)
-            self.db_session.commit()
+            self._add(row)
         except:
-            logging.error('updating row')
-            self.db_session.rollback()
             update_obj = dict({ 'shortcut': row.shortcut })
             self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == row.sid).filter(ad_shortcut.path == row.path).update(update_obj)
             self.db_session_commit()
+
+    def set_info(self, name, value):
+        ientry = info_entry(name, value)
+        logging.debug('Setting info {}:{}'.format(name, value))
+        self._info_upsert(ientry)
 
     def add_hklm_entry(self, preg_entry):
         '''
@@ -144,6 +169,10 @@ class sqlite_registry(registry):
     def filter_hkcu_entries(self, sid, startswith):
         res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key.like(startswith))
         return res
+
+    def get_info(self, name):
+        res = self.db_session.query(info_entry).filter(info_entry.name == name).first()
+        return res.value
 
     def get_hklm_entry(self, hive_key):
         res = self.db_session.query(samba_preg).filter(samba_preg.hive_key == hive_key).first()
