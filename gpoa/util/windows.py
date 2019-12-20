@@ -141,17 +141,19 @@ def get_sid(domain, username):
 
     return sid
 
-def expand_windows_var(text, username):
+def expand_windows_var(text, username=None):
     '''
     Scan the line for percent-encoded variables and expand them.
     '''
     variables = dict()
-    variables['HOME'] = get_homedir(username)
+    variables['HOME'] = '/'
     variables['SystemRoot'] = '/'
-    variables['DesktopDir'] = get_user_dir('DESKTOP', os.path.join(variables['HOME'], 'Desktop'))
-    variables['StartMenuDir'] = None
-    if not variables['StartMenuDir']:
-        variables['StartMenuDir'] = '/usr/share/applications'
+    variables['StartMenuDir'] = '/usr/share/applications'
+
+    if username:
+        variables['HOME'] = get_homedir(username)
+        variables['DesktopDir'] = get_user_dir('DESKTOP', os.path.join(variables['HOME'], 'Desktop'))
+        variables['StartMenuDir'] = os.path.join(variables['HOME'], '.local', 'share', 'applications')
 
     result = text
     for var in variables.keys():
