@@ -17,4 +17,5 @@ class adp:
             subprocess.call(['/usr/bin/adp', 'apply'])
         except Exception as exc:
             logging.error('Error running ADP')
+            raise exc
 
