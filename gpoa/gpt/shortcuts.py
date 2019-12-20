@@ -38,9 +38,7 @@ def json2sc(json_str):
     sc.set_changed(json_obj['changed'])
     sc.set_clsid(json_obj['clsid'])
     sc.set_guid(json_obj['guid'])
-
-    if 1 == json_obj['is_in_user_context']:
-        sc.set_usercontext(link.get('userContext', False))
+    sc.set_usercontext(json_obj['is_in_user_context'])
 
     return sc
 
@@ -69,11 +67,21 @@ class shortcut:
     def set_guid(self, uid):
         self.guid = uid
 
-    def set_usercontext(self, context=False):
+    def set_usercontext(self, usercontext=False):
         '''
         Perform action in user context or not
         '''
-        self.is_in_user_context = context
+        ctx = False
+
+        if usercontext in [1, '1', True]:
+            ctx = True
+        else:
+            ctx = False
+
+        self.is_in_user_context = ctx
+
+    def is_usercontext(self):
+        return self.is_in_user_context
 
     def to_json(self):
         '''
