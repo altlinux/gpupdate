@@ -11,7 +11,7 @@ class control:
             raise Exception('Unable to query possible values')
 
     def _query_control_values(self):
-        proc = subprocess.Popen(['control', self.control_name, 'list'], stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['/usr/sbin/control', self.control_name, 'list'], stdout=subprocess.PIPE)
         for line in proc.stdout:
             values = line.split()
             return values
@@ -24,7 +24,7 @@ class control:
         return self.control_name
 
     def get_control_status(self):
-        proc = subprocess.Popen(['control', self.control_name], stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['/usr/sbin/control', self.control_name], stdout=subprocess.PIPE)
         for line in proc.stdout:
             return line.rstrip('\n\r')
 
@@ -33,7 +33,7 @@ class control:
         logging.debug('Setting control {} to {}'.format(self.control_name, status))
 
         try:
-            proc = subprocess.Popen(['control', self.control_name, status], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(['/usr/sbin/control', self.control_name, status], stdout=subprocess.PIPE)
         except:
             logging.error('Unable to set {} to {}'.format(self.control_name, status))
 
