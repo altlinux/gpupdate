@@ -3,8 +3,6 @@ import os
 import jinja2
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
-
 class polkit:
     __template_path = '/usr/share/gpupdate/templates'
     __policy_dir    = '/etc/polkit-1/rules.d'
