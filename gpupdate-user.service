@@ -1,0 +1,15 @@
+[Unit]
+Description=gpupdate in userspace
+#Requires=basic.target
+
+# gpupdate on Windows runs once per hour
+[Service]
+Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
+Type=notify
+WatchdogSec=3600
+Restart=always
+ExecStart=/usr/lib/python3/site-packages/gpoa/main.py
+
+[Install]
+WantedBy=default.target
+
