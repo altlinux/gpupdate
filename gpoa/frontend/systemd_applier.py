@@ -10,18 +10,18 @@ class systemd_applier(applier_frontend):
         self.storage = storage
         self.systemd_unit_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\SystemdUnits%')
         self.units = []
-        for setting in self.systemd_unit_settings:
-            valuename = setting.hive_key.rpartition('\\')[2]
-            try:
-                self.units.append(systemd_unit(valuename, int(setting.data)))
-                logging.info('Working with systemd unit {}'.format(valuename))
-            except:
-                logging.info('Unable to work with systemd unit: {}'.format(valuename))
 
     def apply(self):
         '''
         Trigger control facility invocation.
         '''
+        for setting in self.systemd_unit_settings:
+            valuename = setting.hive_key.rpartition('\\')[2]
+            try:
+                self.units.append(systemd_unit(valuename, int(setting.data)))
+                logging.info('Working with systemd unit {}'.format(valuename))
+            except Exception as exc:
+                logging.info('Unable to work with systemd unit {}: {}'.format(valuename, exc))
         for unit in self.units:
             try:
                 unit.apply()
