@@ -10,20 +10,20 @@ class control_applier(applier_frontend):
         self.storage = storage
         self.control_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Control%')
         self.controls = list()
-        for setting in self.control_settings:
-            valuename = setting.hive_key.rpartition('\\')[2]
-            try:
-                self.controls.append(control(valuename, int(setting.data)))
-                logging.info('Working with control {}'.format(valuename))
-            except:
-                logging.info('Unable to work with control: {}'.format(valuename))
-        #for e in polfile.pol_file.entries:
-        #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
 
     def apply(self):
         '''
         Trigger control facility invocation.
         '''
+        for setting in self.control_settings:
+            valuename = setting.hive_key.rpartition('\\')[2]
+            try:
+                self.controls.append(control(valuename, int(setting.data)))
+                logging.info('Working with control {}'.format(valuename))
+            except Exception as exc:
+                logging.info('Unable to work with control {}: {}'.format(valuename, exc))
+        #for e in polfile.pol_file.entries:
+        #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
         for cont in self.controls:
             cont.set_control_status()
 
