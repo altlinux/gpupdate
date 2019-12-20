@@ -56,7 +56,10 @@ class samba_backend(applier_backend):
         Check if there is SYSVOL path for GPO assigned
         '''
         if not gpo.file_sys_path:
-            logging.warning('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
+            # GPO named "Local Policy" has no entry by its nature so
+            # no reason to print warning.
+            if 'Local Policy' != gpo.name:
+                logging.warning('No SYSVOL entry assigned to GPO {}'.format(gpo.name))
             return False
         return True
 
@@ -77,10 +80,10 @@ class samba_backend(applier_backend):
                 if 'Local Policy' == gpo.name:
                     gpts.append(get_local_gpt(sid))
 
-        print('GPTs found:')
+        logging.debug('GPTs found:')
         for gptobj in gpts:
-            print(gptobj)
-        print('---')
+            logging.debug(gptobj)
+        logging.debug('---')
 
         return gpts
 
