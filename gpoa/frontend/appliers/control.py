@@ -2,8 +2,6 @@ import subprocess
 import threading
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
-
 class control:
     def __init__(self, name, value):
         self.control_name = name
