@@ -10,9 +10,15 @@ def get_machine_name():
     return socket.gethostname().split('.', 1)[0].upper() + "$"
 
 def is_machine_name(name):
-     return name == get_machine_name()
+    '''
+    Check if supplied username is machine name in fact.
+    '''
+    return name == get_machine_name()
 
 def traverse_dir(root_dir):
+    '''
+    Recursively fetch all files from directory and its subdirectories.
+    '''
     filelist = []
     for root, dirs, files in os.walk(root_dir):
         for filename in files:
@@ -26,6 +32,9 @@ def get_homedir(username):
     return pwd.getpwnam(username).pw_dir
 
 def mk_homedir_path(username, homedir_path):
+    '''
+    Create subdirectory in user's $HOME.
+    '''
     homedir = get_homedir(username)
     uid = pwd.getpwnam(username).pw_uid
     gid = pwd.getpwnam(username).pw_gid
@@ -36,3 +45,4 @@ def mk_homedir_path(username, homedir_path):
         os.makedirs(longer_path, exist_ok=True)
         os.chown(homedir, uid=uid, gid=gid)
         longer_path = os.path.join(longer_path, elem)
+
