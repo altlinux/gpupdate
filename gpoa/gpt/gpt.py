@@ -221,12 +221,13 @@ def upm2str(upm_num):
     '''
     Translate UserPolicyMode to string.
     '''
-    if upm_num in [0, '0']:
-        return 'Not configured'
-    if upm_num in [1, '1']:
-        return 'Replace'
-    if upm_num in [2, '2']:
-        return 'Merge'
+    result = 'Not configured'
 
-    return 'Not configured'
+    if upm_num in [1, '1']:
+        result = 'Replace'
+
+    if upm_num in [2, '2']:
+        result = 'Merge'
+
+    return result
 
