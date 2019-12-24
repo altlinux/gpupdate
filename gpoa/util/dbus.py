@@ -31,6 +31,8 @@ def is_oddjobd_gpupdate_accessible():
     Check is oddjobd is running via systemd so it will be possible
     to run gpoa via D-Bus
     '''
+    oddjobd_accessible = False
+
     try:
         system_bus = dbus.SystemBus()
         systemd_bus = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
@@ -49,11 +51,11 @@ def is_oddjobd_gpupdate_accessible():
         #oddjobd_upupdate_interface.gpupdate()
 
         if oddjobd_state == 'active':
-            return True
+            oddjobd_accessible = True
     except:
         pass
 
-    return False
+    return oddjobd_accessible
 
 def print_dbus_result(result):
     '''
