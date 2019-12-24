@@ -1,10 +1,10 @@
 import dbus
 
 class dbus_runner:
-'''
-Runs GPOA via D-Bus supplying username (if specified). This is needed
-to trigger gpoa for user running in sysadmin context.
-'''
+    '''
+    Runs GPOA via D-Bus supplying username (if specified). This is needed
+    to trigger gpoa for user running in sysadmin context.
+    '''
 
     _bus_name = 'com.redhat.oddjob_gpupdate'
     _object_path = '/'
