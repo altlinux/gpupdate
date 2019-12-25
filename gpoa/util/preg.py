@@ -10,6 +10,8 @@ import samba.gpo
 from xml.etree import ElementTree
 from samba.gp_parse.gp_pol import GPPolParser
 
+from .logging import slogm
+
 def load_preg(file_path):
     '''
     Check if file extension is .xml and load preg object from XML
@@ -35,7 +37,7 @@ def load_pol_preg(polfile):
     '''
     Parse PReg file and return its preg object
     '''
-    logging.debug('Loading PReg from .pol file: {}'.format(polfile))
+    logging.debug(slogm('Loading PReg from .pol file: {}'.format(polfile)))
     gpparser = GPPolParser()
     data = None
 
@@ -58,7 +60,7 @@ def preg_keymap(preg):
 
 def merge_polfile(preg, sid=None):
     pregfile = load_preg(preg)
-    logging.info('Loaded PReg {}'.format(preg))
+    logging.info(slogm('Loaded PReg {}'.format(preg)))
     key_map = dict()
     storage = registry_factory('registry')
     for entry in pregfile.entries:
