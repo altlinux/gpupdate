@@ -8,7 +8,7 @@ Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
 Type=notify
 WatchdogSec=3600
 Restart=always
-ExecStart=/usr/lib/python3/site-packages/gpoa/main.py
+ExecStart=/usr/sbin/gpoa
 
 [Install]
 WantedBy=default.target
