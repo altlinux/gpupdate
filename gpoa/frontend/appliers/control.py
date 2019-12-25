@@ -1,6 +1,7 @@
 import subprocess
 import threading
 import logging
+from util.logging import slogm
 
 class control:
     def __init__(self, name, value):
@@ -30,10 +31,10 @@ class control:
 
     def set_control_status(self):
         status = self._map_control_status(self.control_value)
-        logging.debug('Setting control {} to {}'.format(self.control_name, status))
+        logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
 
         try:
             proc = subprocess.Popen(['/usr/sbin/control', self.control_name, status], stdout=subprocess.PIPE)
         except:
-            logging.error('Unable to set {} to {}'.format(self.control_name, status))
+            logging.error(slogm('Unable to set {} to {}'.format(self.control_name, status)))
 
