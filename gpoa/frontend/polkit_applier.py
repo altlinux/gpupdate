@@ -1,5 +1,6 @@
 from .applier_frontend import applier_frontend
 from .appliers.polkit import polkit
+from util.logging import slogm
 
 import logging
 
@@ -16,10 +17,10 @@ class polkit_applier(applier_frontend):
         template_file = self.__polkit_map[self.__deny_all][0]
         template_vars = self.__polkit_map[self.__deny_all][1]
         if deny_all:
-            logging.debug('Deny_All setting found: {}'.format(deny_all.data))
+            logging.debug(slogm('Deny_All setting found: {}'.format(deny_all.data)))
             self.__polkit_map[self.__deny_all][1]['Deny_All'] = deny_all.data
         else:
-            logging.debug('Deny_All setting not found')
+            logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars))
 
