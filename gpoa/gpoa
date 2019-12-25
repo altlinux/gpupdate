@@ -18,6 +18,7 @@ from util.arguments import (
     set_loglevel,
     process_target
 )
+from util.logging import slogm
 
 def parse_arguments():
     arguments = argparse.ArgumentParser(description='Generate configuration out of parsed policies')
@@ -52,13 +53,13 @@ class gpoa_controller:
     __args = None
 
     def __init__(self):
-        self.__kinit_successful = machine_kinit()
         self.__args = parse_arguments()
         set_loglevel(self.__args.loglevel)
+        self.__kinit_successful = machine_kinit()
 
         uname = get_process_user()
         uid = os.getuid()
-        logging.debug('The process was started for user {} with UID {}'.format(uname, uid))
+        logging.debug(slogm('The process was started for user {} with UID {}'.format(uname, uid), uid=uid))
 
         if not is_root():
             self.username = uname
@@ -92,7 +93,7 @@ class gpoa_controller:
             appl = frontend_manager(self.username, self.target)
             appl.apply_parameters()
         except Exception as exc:
-            logging.error('Error occured while running applier: {}'.format(exc))
+            logging.error(slogm('Error occured while running applier: {}'.format(exc)))
 
     def start_plugins(self):
         '''
@@ -101,7 +102,6 @@ class gpoa_controller:
         if not self.__args.noplugins:
             pm = plugin_manager()
             pm.run()
-
 
 def main():
     controller = gpoa_controller()
