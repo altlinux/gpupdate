@@ -13,8 +13,10 @@ from util.windows import get_sid
 from util.users import (
     is_root,
     get_process_user,
-    username_match_uid
+    username_match_uid,
+    with_privileges
 )
+from util.logging import slogm
 
 import logging
 
@@ -29,13 +31,13 @@ def determine_username(username=None):
     # of process owner.
     if not username:
         name = get_process_user()
-        logging.debug('Username is not specified - will use username of current process')
+        logging.debug(slogm('Username is not specified - will use username of current process'))
 
     if not username_match_uid(name):
         if not is_root():
             raise Exception('Current process UID does not match specified username')
 
-    logging.debug('Username for frontend is set to {}'.format(name))
+    logging.debug(slogm('Username for frontend is set to {}'.format(name)))
 
     return name
 
@@ -74,7 +76,7 @@ class frontend_manager:
         if not is_root():
             logging.error('Not sufficient privileges to run machine appliers')
             return
-        logging.debug('Applying computer part of settings')
+        logging.debug(slogm('Applying computer part of settings'))
         self.machine_appliers['systemd'].apply()
         self.machine_appliers['control'].apply()
         self.machine_appliers['polkit'].apply()
@@ -87,10 +89,12 @@ class frontend_manager:
         Run appliers for users.
         '''
         if is_root():
-            logging.debug('Running user appliers from administrator context')
+            logging.debug(slogm('Running user appliers from administrator context'))
             self.user_appliers['shortcuts'].admin_context_apply()
+            logging.debug(slogm('Running user appliers for user context'))
+            with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)
         else:
-            logging.debug('Running user appliers from user context')
+            logging.debug(slogm('Running user appliers from user context'))
             self.user_appliers['shortcuts'].user_context_apply()
 
     def apply_parameters(self):
