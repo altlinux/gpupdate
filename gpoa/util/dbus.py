@@ -1,4 +1,7 @@
+import logging
 import dbus
+
+from .logging import slogm
 
 class dbus_runner:
     '''
@@ -18,7 +21,7 @@ class dbus_runner:
     def run(self):
         #print(obj.Introspect()[0])
         if self.username:
-            logging.info('Starting GPO applier for user {} via D-Bus'.format(self.username))
+            logging.info(slogm('Starting GPO applier for user {} via D-Bus'.format(self.username)))
             result = self.interface.gpupdatefor(dbus.String(self.username))
             print_dbus_result(result)
         else:
@@ -26,9 +29,23 @@ class dbus_runner:
             print_dbus_result(result)
         #self.interface.Quit()
 
+def start_gpupdate_user():
+    '''
+    Make gpupdate-user.service "runtime-enabled" and start it. This
+    function is needed in order to perform user service start in case
+    pam_systemd.so is not present in PAM stack.
+    '''
+    unit_name = 'gpupdate-user.service'
+    session_bus = dbus.SessionBus()
+    systemd_user_bus = session_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+    systemd_user_interface = dbus.Interface(systemd_user_bus, dbus_interface='org.freedesktop.systemd1.Manager')
+    gpupdate_user_unit = systemd_user_interface.GetUnit(dbus.String(unit_name))
+    job = systemd_user_interface.StartUnit(unit_name, 'replace')
+    #job = manager.StartTransientUnit('noname', 'replace', properties, [])
+
 def is_oddjobd_gpupdate_accessible():
     '''
-    Check is oddjobd is running via systemd so it will be possible
+    Check if oddjobd is running via systemd so it will be possible
     to run gpoa via D-Bus
     '''
     oddjobd_accessible = False
@@ -63,7 +80,7 @@ def print_dbus_result(result):
     '''
     exitcode = result[0]
     message = result[1:]
-    logging.debug('Exit code is {}'.format(exitcode))
+    logging.debug(slogm('Exit code is {}'.format(exitcode)))
 
     for line in message:
         print(str(line))
