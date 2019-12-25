@@ -10,10 +10,11 @@
 import logging
 import json
 import os
-import util
 import configparser
 
 from .applier_frontend import applier_frontend
+from util.logging import slogm
+from util.util import is_machine_name
 
 class firefox_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
@@ -24,7 +25,7 @@ class firefox_applier(applier_frontend):
         self.storage = storage
         self.sid = sid
         self.username = username
-        self._is_machine_name = util.is_machine_name(self.username)
+        self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
 
@@ -67,7 +68,7 @@ class firefox_applier(applier_frontend):
         '''
         if obj:
             self.policies[name] = obj
-            logging.info('Firefox policy \'{}\' set to {}'.format(name, obj))
+            logging.info(slogm('Firefox policy \'{}\' set to {}'.format(name, obj)))
 
     def get_home_page(self):
         '''
@@ -108,14 +109,14 @@ class firefox_applier(applier_frontend):
         os.makedirs(self.__firefox_installdir, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
-            logging.debug('Wrote Firefox preferences to {}'.format(destfile))
+            logging.debug(slogm('Wrote Firefox preferences to {}'.format(destfile)))
 
     def user_apply(self):
         profiles = self.get_profiles()
 
         profiledir = os.path.join(util.get_homedir(self.username), self.__user_settings_dir)
         for profile in profiles:
-            logging.debug('Found Firefox profile in {}/{}'.format(profiledir, profile))
+            logging.debug(slogm('Found Firefox profile in {}/{}'.format(profiledir, profile)))
 
     def apply(self):
         self.machine_apply()
