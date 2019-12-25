@@ -1,0 +1,27 @@
+.TH GPUPDATE 1
+.
+.SH NAME
+gpupdate \- Update Group Policy settings
+.
+.SH SYNOPSYS
+\fBgpupdate\fP [ -h ] [ --user \fIusername\fP ]
+.
+.SH DESCRIPTION
+.B gpupdate
+Fetches GPT files for designated user from AD instance and transforms
+them into UNIX system settings.
+.
+.SS Options
+.TP 
+\fB-h\fP
+Show help
+.TP
+\fB--user \fIusername\fR
+Run \fBgpupdate\fP for \fIusername\fP.
+.
+.SH "SEE ALSO"
+gpoa(3), gpresult(3), gpupdate.service(3), gpupdate-user.service(3)
+.SH BUGS
+There is tons of bugs since it tries to mimic behavior of Windows
+machines.
+
