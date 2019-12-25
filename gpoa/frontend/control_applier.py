@@ -1,5 +1,6 @@
 from .applier_frontend import applier_frontend
 from .appliers.control import control
+from util.logging import slogm
 
 import logging
 
@@ -19,9 +20,9 @@ class control_applier(applier_frontend):
             valuename = setting.hive_key.rpartition('\\')[2]
             try:
                 self.controls.append(control(valuename, int(setting.data)))
-                logging.info('Working with control {}'.format(valuename))
+                logging.info(slogm('Working with control {}'.format(valuename)))
             except Exception as exc:
-                logging.info('Unable to work with control {}: {}'.format(valuename, exc))
+                logging.info(slogm('Unable to work with control {}: {}'.format(valuename, exc)))
         #for e in polfile.pol_file.entries:
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
         for cont in self.controls:
