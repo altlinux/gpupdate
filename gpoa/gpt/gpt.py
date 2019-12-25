@@ -7,6 +7,7 @@ from storage import registry_factory
 from .shortcuts import read_shortcuts
 import util
 import util.preg
+from util.logging import slogm
 
 global __default_policy_path
 
@@ -36,9 +37,9 @@ class gpt:
         self._user_path = None
         self._get_machine_user_dirs()
 
-        logging.debug('Looking for machine part of GPT {}'.format(self.guid))
+        logging.debug(slogm('Looking for machine part of GPT {}'.format(self.guid)))
         self._find_machine()
-        logging.debug('Looking for user part of GPT {}'.format(self.guid))
+        logging.debug(slogm('Looking for user part of GPT {}'.format(self.guid)))
         self._find_user()
 
     def set_name(self, name):
@@ -125,13 +126,13 @@ class gpt:
         if self.sid == self.storage.get_info('machine_sid'):
             # Merge machine settings to registry if possible
             if self._machine_regpol:
-                logging.debug('Merging machine settings from {}'.format(self._machine_regpol))
+                logging.debug(slogm('Merging machine settings from {}'.format(self._machine_regpol)))
                 util.preg.merge_polfile(self._machine_regpol)
             if self._user_regpol:
-                logging.debug('Merging machine(user) settings from {}'.format(self._machine_regpol))
+                logging.debug(slogm('Merging machine(user) settings from {}'.format(self._machine_regpol)))
                 util.preg.merge_polfile(self._user_regpol, self.machine_sid)
             if self._machine_shortcuts:
-                logging.debug('Merging machine shortcuts from {}'.format(self._machine_shortcuts))
+                logging.debug(slogm('Merging machine shortcuts from {}'.format(self._machine_shortcuts)))
                 self._merge_shortcuts()
         else:
             # Merge user settings if UserPolicyMode set accordingly
@@ -139,10 +140,10 @@ class gpt:
             policy_mode = upm2str(self.get_policy_mode())
             if 'Merge' == policy_mode or 'Not configured' == policy_mode:
                 if self._user_regpol:
-                    logging.debug('Merging user settings from {} for {}'.format(self._user_regpol, self.sid))
+                    logging.debug(slogm('Merging user settings from {} for {}'.format(self._user_regpol, self.sid)))
                     util.preg.merge_polfile(self._user_regpol, self.sid)
                 if self._user_shortcuts:
-                    logging.debug('Merging user shortcuts from {} for {}'.format(self._user_shortcuts, self.sid))
+                    logging.debug(slogm('Merging user shortcuts from {} for {}'.format(self._user_shortcuts, self.sid)))
                     self._merge_shortcuts()
 
     def __str__(self):
