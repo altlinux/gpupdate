@@ -19,15 +19,13 @@ Requires: python3-module-rpm
 Source0: %name-%version.tar
 
 %description
-GPT applier
+gpupdate is the facility to apply various GPO/GPT settings retrieved
+from Active Directory domain in UNIX environment.
 
 %prep
 %setup -q
 
 %install
-install -pD -m755 gpupdate \
-	%buildroot%_bindir/gpupdate
-
 mkdir -p \
 	%buildroot%python3_sitelibdir/
 cp -r gpoa \
@@ -35,8 +33,13 @@ cp -r gpoa \
 
 mkdir -p \
 	%buildroot%_sbindir/
-ln -s %python3_sitelibdir/gpoa/main.py \
+
+ln -s %python3_sitelibdir/gpoa/gpoa \
+	%buildroot%python3_sitelibdir/gpoa/main.py
+ln -s %python3_sitelibdir/gpoa/gpoa \
 	%buildroot%_sbindir/gpoa
+ln -s %python3_sitelibdir/gpoa/gpupdate \
+	%buildroot%_bindir/gpupdate
 
 mkdir -p %buildroot%_datadir/%name
 mv %buildroot%python3_sitelibdir/gpoa/templates \
@@ -55,7 +58,8 @@ install -Dm0644 system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%
 %files
 %_sbindir/gpoa
 %_bindir/gpupdate
-%attr(755,root,root) %python3_sitelibdir/gpoa/main.py
+%attr(755,root,root) %python3_sitelibdir/gpoa/gpoa
+%attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
