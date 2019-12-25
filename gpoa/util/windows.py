@@ -12,6 +12,7 @@ import pysss_nss_idmap
 from storage import cache_factory
 from .xdg import get_user_dir
 from .util import get_homedir
+from .logging import slogm
 
 class smbcreds:
     def __init__(self, dc_fqdn=None):
@@ -35,12 +36,12 @@ class smbcreds:
             samba_dc = get_dc_hostname(self.creds, self.lp)
 
             if samba_dc != dc_fqdn and dc_fqdn != None:
-                logging.debug('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc))
+                logging.debug(slogm('Samba DC setting is {} and is overwritten by user setting {}'.format(samba_dc, dc)))
                 self.selected_dc = dc_fqdn
             else:
                 self.selected_dc = samba_dc
         except:
-            logging.error('Unable to determine DC hostname')
+            logging.error(slogm('Unable to determine DC hostname'))
 
         return self.selected_dc
 
@@ -54,9 +55,9 @@ class smbcreds:
             # Look and python/samba/netcmd/domain.py for more examples
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
-            logging.info('Found domain via CLDAP: {}'.format(dns_domainname))
+            logging.info(slogm('Found domain via CLDAP: {}'.format(dns_domainname)))
         except:
-            logging.error('Unable to retrieve domain name via CLDAP query')
+            logging.error(slogm('Unable to retrieve domain name via CLDAP query'))
 
         return dns_domainname
 
@@ -74,15 +75,14 @@ class smbcreds:
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
             if ads.connect():
                 gpos = ads.get_gpo_list(username)
-                logging.info('Got GPO list for {}:'.format(username))
+                logging.info(slogm('Got GPO list for {}:'.format(username)))
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
-                    logging.info('{} ({})'.format(gpo.display_name, gpo.name))
-                logging.info('------')
+                    logging.info(slogm('GPO: {} ({})'.format(gpo.display_name, gpo.name)))
 
         except Exception as exc:
-            logging.error('Unable to get GPO list for {} from {}'.format(username, self.selected_dc))
+            logging.error(slogm('Unable to get GPO list for {} from {}'.format(username, self.selected_dc)))
 
         return gpos
 
@@ -92,7 +92,7 @@ class smbcreds:
         try:
             check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
         except Exception as exc:
-            logging.error('Unable to refresh GPO list for {} from {}'.format(username, self.selected_dc))
+            logging.error(slogm('Unable to refresh GPO list for {} from {}'.format(username, self.selected_dc)))
 
         return gpos
 
@@ -130,9 +130,9 @@ def get_sid(domain, username):
         sid = wbinfo_getsid(domain, username)
     except:
         sid = 'local-{}'.format(username)
-        logging.warning('Error getting SID using wbinfo, will use cached SID: {}'.format(sid))
+        logging.warning(slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
 
-    logging.debug('Working with SID: {}'.format(sid))
+    logging.debug(slogm('Working with SID: {}'.format(sid)))
 
     try:
         cached_sids.store(domain_username, sid)
