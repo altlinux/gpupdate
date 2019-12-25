@@ -4,6 +4,7 @@ import subprocess
 from .applier_frontend import applier_frontend
 from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
+from util.logging import slogm
 
 def storage_get_shortcuts(storage, sid):
     '''
@@ -25,7 +26,7 @@ def write_shortcut(shortcut, username=None):
     :username: None means working with machine variables and paths
     '''
     dest_abspath = expand_windows_var(shortcut.dest, username).replace('\\', '/') + '.desktop'
-    logging.debug('Writing shortcut file to {}'.format(dest_abspath))
+    logging.debug(slogm('Writing shortcut file to {}'.format(dest_abspath)))
     shortcut.write_desktop(dest_abspath)
 
 class shortcut_applier(applier_frontend):
@@ -38,7 +39,7 @@ class shortcut_applier(applier_frontend):
             for sc in shortcuts:
                 write_shortcut(sc)
         else:
-            logging.debug('No shortcuts to process for {}'.format(self.storage.get_info('machine_sid')))
+            logging.debug(slogm('No shortcuts to process for {}'.format(self.storage.get_info('machine_sid'))))
         # According to ArchWiki - this thing is needed to rebuild MIME
         # type cache in order file bindings to work. This rebuilds
         # databases located in /usr/share/applications and
@@ -59,7 +60,7 @@ class shortcut_applier_user(applier_frontend):
                 if sc.is_usercontext():
                     write_shortcut(sc, self.username)
         else:
-            logging.debug('No shortcuts to process for {}'.format(self.sid))
+            logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
 
     def admin_context_apply(self):
         shortcuts = storage_get_shortcuts(self.storage, self.sid)
@@ -69,5 +70,5 @@ class shortcut_applier_user(applier_frontend):
                 if not sc.is_usercontext():
                     write_shortcut(sc, self.username)
         else:
-            logging.debug('No shortcuts to process for {}'.format(self.sid))
+            logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
 
