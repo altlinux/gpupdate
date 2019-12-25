@@ -1,6 +1,8 @@
 import dbus
 import logging
 
+from util.logging import slogm
+
 class systemd_unit:
     def __init__(self, unit_name, state):
         self.system_bus = dbus.SystemBus()
@@ -19,16 +21,16 @@ class systemd_unit:
             self.manager.UnmaskUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.EnableUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
             self.manager.StartUnit(self.unit_name, 'replace')
-            logging.info('Starting systemd unit: {}'.format(self.unit_name))
+            logging.info(slogm('Starting systemd unit: {}'.format(self.unit_name)))
             if self._get_state() != 'active':
-                logging.error('Unable to start systemd unit {}'.format(self.unit_name))
+                logging.error(slogm('Unable to start systemd unit {}'.format(self.unit_name)))
         else:
             self.manager.StopUnit(self.unit_name, 'replace')
             self.manager.DisableUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.MaskUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
-            logging.info('Stopping systemd unit: {}'.format(self.unit_name))
+            logging.info(slogm('Stopping systemd unit: {}'.format(self.unit_name)))
             if self._get_state() != 'stopped':
-                logging.error('Unable to stop systemd unit {}'.format(self.unit_name))
+                logging.error(slogm('Unable to stop systemd unit {}'.format(self.unit_name)))
 
     def _get_state(self):
         '''
