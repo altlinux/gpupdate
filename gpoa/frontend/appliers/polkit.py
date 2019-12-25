@@ -1,7 +1,8 @@
-#! /usr/bin/env python3
 import os
 import jinja2
 import logging
+
+from util.logging import slogm
 
 class polkit:
     __template_path = '/usr/share/gpupdate/templates'
@@ -20,5 +21,5 @@ class polkit:
         text = template.render(**self.args)
         with open(self.outfile, 'w') as f:
             f.write(text)
-        logging.debug('Generated file {} with arguments {}'.format(self.outfile, self.args))
+        logging.debug(slogm('Generated file {} with arguments {}'.format(self.outfile, self.args)))
 
