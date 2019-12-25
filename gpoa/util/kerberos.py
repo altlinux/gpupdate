@@ -1,7 +1,8 @@
-from .util import get_machine_name
-
 import logging
 import subprocess
+
+from .util import get_machine_name
+from .logging import slogm
 
 def machine_kinit():
     '''
@@ -15,12 +16,15 @@ def check_krb_ticket():
     '''
     Check if Kerberos 5 ticket present
     '''
+    result = False
     try:
         subprocess.check_call([ 'klist', '-s' ])
         output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
         logging.info(output)
+        result = True
     except:
-        logging.error('Kerberos ticket check unsuccessful')
-        return False
-    logging.debug('Ticket check succeed')
-    return True
+        logging.error(slogm('Kerberos ticket check unsuccessful'))
+
+    logging.debug(slogm('Ticket check succeed'))
+
+    return result
