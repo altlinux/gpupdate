@@ -5,16 +5,15 @@ from xdg.DesktopEntry import DesktopEntry
 import json
 
 from util.windows import transform_windows_path
+from util.xml import get_xml_root
 
 def read_shortcuts(shortcuts_file):
     '''
     Read shortcut objects from GPTs XML file
     '''
     shortcuts = list()
-    xml_contents = ElementTree.parse(shortcuts_file)
-    xml_root = xml_contents.getroot()
 
-    for link in xml_root:
+    for link in get_xml_root(shortcuts_file):
         props = link.find('Properties')
         dest = props.get('shortcutPath')
         path = transform_windows_path(props.get('targetPath'))
@@ -75,8 +74,6 @@ class shortcut:
 
         if usercontext in [1, '1', True]:
             ctx = True
-        else:
-            ctx = False
 
         self.is_in_user_context = ctx
 
@@ -117,5 +114,8 @@ class shortcut:
         return self.desktop_file
 
     def write_desktop(self, dest):
+        '''
+        Write .desktop file to disk using path 'dest'
+        '''
         self.desktop().write(dest)
 
