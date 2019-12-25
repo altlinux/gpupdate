@@ -4,7 +4,8 @@ import logging
 import json
 import os
 
-import util
+from util.logging import slogm
+from util.util import is_machine_name
 
 class chromium_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Chromium'
@@ -18,7 +19,7 @@ class chromium_applier(applier_frontend):
         self.storage = storage
         self.sid = sid
         self.username = username
-        self._is_machine_name = util.is_machine_name(self.username)
+        self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
 
     def get_hklm_string_entry(self, hive_subkey):
@@ -30,10 +31,17 @@ class chromium_applier(applier_frontend):
         return self.storage.get_hkcu_entry(sid, query_str)
 
     def get_hklm_string_entry_default(self, hive_subkey, default):
+        '''
+        Return row from HKLM table identified by hive_subkey as string
+        or return supplied default value if such hive_subkey is missing.
+        '''
+
         defval = str(default)
         response = self.get_hklm_string_entry(hive_subkey)
+
         if response:
             return response.data
+
         return defval
 
     def get_hkcu_string_entry_default(self, hive_subkey, default):
@@ -46,7 +54,7 @@ class chromium_applier(applier_frontend):
     def set_policy(self, name, obj):
         if obj:
             self.policies[name] = obj
-            logging.info('Chromium policy \'{}\' set to {}'.format(name, obj))
+            logging.info(slogm('Chromium policy \'{}\' set to {}'.format(name, obj)))
 
     def set_user_policy(self, name, obj):
         '''
@@ -64,16 +72,16 @@ class chromium_applier(applier_frontend):
                 with open(prefpath, 'r') as f:
                     settings = json.load(f)
             except FileNotFoundError as exc:
-                logging.error('Chromium preferences file {} does not exist at the moment'.format(prefpath))
+                logging.error(slogm('Chromium preferences file {} does not exist at the moment'.format(prefpath)))
             except:
-                logging.error('Error during attempt to read Chromium preferences for user {}'.format(self.username))
+                logging.error(slogm('Error during attempt to read Chromium preferences for user {}'.format(self.username)))
 
             if obj:
                 settings[name] = obj
 
                 with open(prefpath, 'w') as f:
                     json.dump(settings, f)
-                logging.info('Set user ({}) property \'{}\' to {}'.format(self.username, name, obj))
+                logging.info(slogm('Set user ({}) property \'{}\' to {}'.format(self.username, name, obj)))
 
     def get_home_page(self, hkcu=False):
         return self.get_hklm_string_entry('HomepageLocation')
@@ -89,7 +97,7 @@ class chromium_applier(applier_frontend):
         os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies, f)
-            logging.debug('Wrote Chromium preferences to {}'.format(destfile))
+            logging.debug(slogm('Wrote Chromium preferences to {}'.format(destfile)))
 
     def user_apply(self):
         '''
