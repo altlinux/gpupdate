@@ -1,5 +1,6 @@
 from .applier_frontend import applier_frontend
 from .appliers.systemd import systemd_unit
+from util.logging import slogm
 
 import logging
 
@@ -19,12 +20,12 @@ class systemd_applier(applier_frontend):
             valuename = setting.hive_key.rpartition('\\')[2]
             try:
                 self.units.append(systemd_unit(valuename, int(setting.data)))
-                logging.info('Working with systemd unit {}'.format(valuename))
+                logging.info(slogm('Working with systemd unit {}'.format(valuename)))
             except Exception as exc:
-                logging.info('Unable to work with systemd unit {}: {}'.format(valuename, exc))
+                logging.info(slogm('Unable to work with systemd unit {}: {}'.format(valuename, exc)))
         for unit in self.units:
             try:
                 unit.apply()
             except:
-                logging.error('Failed applying unit {}'.format(unit.unit_name))
+                logging.error(slogm('Failed applying unit {}'.format(unit.unit_name)))
 
