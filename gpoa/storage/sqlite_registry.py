@@ -18,6 +18,8 @@ from sqlalchemy.orm import (
     sessionmaker
 )
 
+from util.logging import slogm
+
 class samba_preg(object):
     def __init__(self, preg_obj):
         self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
@@ -139,7 +141,7 @@ class sqlite_registry(registry):
 
     def set_info(self, name, value):
         ientry = info_entry(name, value)
-        logging.debug('Setting info {}:{}'.format(name, value))
+        logging.debug(slogm('Setting info {}:{}'.format(name, value)))
         self._info_upsert(ientry)
 
     def add_hklm_entry(self, preg_entry):
@@ -154,7 +156,7 @@ class sqlite_registry(registry):
         Write PReg entry to HKEY_CURRENT_USER
         '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry)
-        logging.debug('Adding HKCU entry for {}'.format(sid))
+        logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
         self._hkcu_upsert(hkcu_pentry)
 
     def add_shortcut(self, sid, sc_obj):
@@ -162,7 +164,7 @@ class sqlite_registry(registry):
         Store shortcut information in the database
         '''
         sc_entry = ad_shortcut(sid, sc_obj)
-        logging.debug('Saving info about {} link for {}'.format(sc_entry.path, sid))
+        logging.debug(slogm('Saving info about {} link for {}'.format(sc_entry.path, sid)))
         self._shortcut_upsert(sc_entry)
 
     def get_shortcuts(self, sid):
