@@ -1,9 +1,14 @@
 import logging
+import logging.handlers
+
+from .logging import slogm
 
 def set_loglevel(loglevel_num=None):
     '''
     Set the log level global value.
     '''
+    format_message = '%(message)s'
+    formatter = logging.Formatter(format_message)
     loglevels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL']
     log_num = loglevel_num
     log_level = 10
@@ -19,7 +24,19 @@ def set_loglevel(loglevel_num=None):
     log_level = 10 * log_num
 
     print('Setting log level to {}'.format(loglevels[log_num]))
-    logging.getLogger().setLevel(log_level)
+    logging.basicConfig(format=format_message)
+    logger = logging.getLogger()
+    logger.setLevel(log_level)
+
+    log_stdout = logging.StreamHandler()
+    log_stdout.setLevel(log_level)
+    log_stdout.setFormatter(formatter)
+
+    log_syslog = logging.handlers.SysLogHandler()
+    log_syslog.setLevel(logging.DEBUG)
+    log_syslog.setFormatter(formatter)
+
+    logger.handlers = [log_stdout, log_syslog]
 
 def process_target(target_name=None):
     '''
@@ -34,7 +51,7 @@ def process_target(target_name=None):
     if 'User' == target_name:
         target = 'User'
 
-    logging.debug('Target is: {}'.format(target))
+    logging.debug(slogm('Target is: {}'.format(target)))
 
     return target
 
