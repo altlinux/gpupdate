@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NTServices clsid="{2CFB484A-4E96-4b5d-A0B6-093D2F91E6AE}"><NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="oddjobd" image="0" changed="2019-11-26 17:37:43" uid="{A1499AD3-60C9-41E4-A8BB-0C22F643D7D4}"><Properties startupType="NOCHANGE" serviceName="oddjobd" serviceAction="START" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="nscd" image="0" userContext="0" removePolicy="0" changed="2019-11-26 17:38:20" uid="{64C0A134-E3B5-419A-B475-A6C64E061FC3}"><Properties startupType="NOCHANGE" serviceName="nscd" serviceAction="STOP" timeout="30"/></NTService>
+</NTServices>
