@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Files clsid="{215B2E53-57CE-475c-80FE-9EEC14635851}"><File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="test_newfile.ini" status="test_newfile.ini" image="1" changed="2019-09-05 16:28:21" uid="{4DD400AD-AE14-466D-BCF8-1820760A078B}"><Properties action="R" fromPath="C:\test.ini" targetPath="C:\test_newfile.ini" readOnly="1" archive="1" hidden="1" suppress="1"/></File>
+</Files>

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Drives clsid="{8FDDCC1A-0C3C-43cd-A6B4-71A6DF20DA8C}"><Drive clsid="{935D1B74-9CB8-4e3c-9914-7DD559B7A417}" name="H:" status="H:" image="0" changed="2019-09-05 16:27:30" uid="{EB3A9A8F-2852-421C-963E-7F496EA5F15A}"><Properties action="C" thisDrive="SHOW" allDrives="NOCHANGE" userName="username" path="V:" label="testabel" persistent="0" useLetter="1" letter="H" cpassword="gMrKqL3HLUTDLNNANgg3Xd6r6tR/gKSY4CDl5CEosFM"/></Drive>
+</Drives>

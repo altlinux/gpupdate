@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EnvironmentVariables clsid="{BF141A63-327B-438a-B9BF-2C188F13B7AD}"><EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="test" status="test = 3333" image="2" desc="safdsfds" userContext="1" bypassErrors="1" changed="2019-09-05 14:18:40" uid="{380483EE-289A-458A-80EE-D2AD078D0888}"><Properties action="U" name="test" value="3333" user="1" partial="0"/></EnvironmentVariable>
+	<EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="test2" status="test2 = ddqwew" image="2" bypassErrors="1" changed="2019-09-05 14:19:06" uid="{1DD48680-00BC-43B2-A0AD-8A87611EE226}"><Properties action="U" name="test2" value="ddqwew" user="1" partial="0"/></EnvironmentVariable>
+	<EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="dsfsdfds" status="dsfsdfds = fdsfsdfdsfd" image="2" changed="2019-09-05 14:19:35" uid="{67D331E7-9DBF-4BCD-8330-2DC9F6B160C4}"><Properties action="U" name="dsfsdfds" value="fdsfsdfdsfd" user="0" partial="0"/></EnvironmentVariable>
+</EnvironmentVariables>
