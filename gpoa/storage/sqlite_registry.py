@@ -71,6 +71,15 @@ class info_entry(object):
         self.name = name
         self.value = value
 
+class printer_entry(object):
+    '''
+    Object mapping representing Windows printer of some type.
+    '''
+    def __init__(self, sid, pobj):
+        self.sid = sid
+        self.name = pobj.name
+        self.printer = pobj.to_json()
+
 class sqlite_registry(registry):
     __registry_path = 'sqlite:////var/cache/samba'
 
@@ -113,7 +122,15 @@ class sqlite_registry(registry):
             Column('shortcut', String),
             UniqueConstraint('sid', 'path')
         )
-
+        self.__shortcuts = Table(
+            'Printers',
+            self.__metadata,
+            Column('id', Integer, primary_key=True),
+            Column('sid', String),
+            Column('name', String),
+            Column('printer', String),
+            UniqueConstraint('sid', 'name')
+        )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
@@ -175,7 +192,25 @@ class sqlite_registry(registry):
             self._add(row)
         except:
             update_obj = dict({ 'shortcut': row.shortcut })
-            self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == row.sid).filter(ad_shortcut.path == row.path).update(update_obj)
+            (self
+                .db_session
+                .query(ad_shortcut)
+                .filter(ad_shortcut.sid == row.sid)
+                .filter(ad_shortcut.path == row.path)
+                .update(update_obj))
+            self.db_session.commit()
+
+    def _printer_upsert(self, row):
+        try:
+            self._add(row)
+        except:
+            update_obj = dict({ 'printer': row.printer })
+            (self
+                .db_session
+                .query(printer_entry)
+                .filter(printer_entry.sid == row.sid)
+                .filter(printer_entry.name == row.name)
+                .update(update_obj))
             self.db_session.commit()
 
     def set_info(self, name, value):
@@ -206,8 +241,28 @@ class sqlite_registry(registry):
         logging.debug(slogm('Saving info about {} link for {}'.format(sc_entry.path, sid)))
         self._shortcut_upsert(sc_entry)
 
+    def add_printer(self, sid, pobj):
+        '''
+        Store printer configuration in the database
+        '''
+        prn_entry = printer_entry(sid, pobj)
+        logging.debug(slogm('Saving info about printer {} for {}'.format(prn_entry.name, sid)))
+        self._printer_upsert(prn_entry)
+
     def get_shortcuts(self, sid):
-        res = self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == sid).all()
+        res = (self
+            .db_session
+            .query(ad_shortcut)
+            .filter(ad_shortcut.sid == sid)
+            .all())
+        return res
+
+    def get_printers(self, sid):
+        res = (self
+            .db_session
+            .query(printer_entry)
+            .filter(printer_entry.sid == sid)
+            .all())
         return res
 
     def get_hkcu_entry(self, sid, hive_key):
@@ -257,9 +312,22 @@ class sqlite_registry(registry):
     def wipe_user(self, sid):
         self.wipe_hkcu(sid)
         self.wipe_shortcuts(sid)
+        self.wipe_printers(sid)
 
     def wipe_shortcuts(self, sid):
-        self.db_session.query(ad_shortcut).filter(ad_shortcut.sid == sid).delete()
+        (self
+            .db_session
+            .query(ad_shortcut)
+            .filter(ad_shortcut.sid == sid)
+            .delete())
+        self.db_session.commit()
+
+    def wipe_printers(self, sid):
+        (self
+            .db_session
+            .query(printer_entry)
+            .filter(printer_entry.sid == sid)
+            .delete())
         self.db_session.commit()
 
     def wipe_hkcu(self, sid):
