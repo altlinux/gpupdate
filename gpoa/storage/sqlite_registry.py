@@ -139,7 +139,10 @@ class sqlite_registry(registry):
             self._add(row)
         except:
             update_obj = dict({ 'value': row.value })
-            self.db_session.query(info_entry).filter(info_entry.name == row.name).update(update_obj)
+            (self
+                .db_session.query(info_entry)
+                .filter(info_entry.name == row.name)
+                .update(update_obj))
             self.db_session.commit()
 
     def _hklm_upsert(self, row):
@@ -147,7 +150,11 @@ class sqlite_registry(registry):
             self._add(row)
         except:
             update_obj = dict({'type': row.type, 'data': row.data })
-            self.db_session.query(samba_preg).filter(samba_preg.hive_key == row.hive_key).update(update_obj)
+            (self
+                .db_session
+                .query(samba_preg)
+                .filter(samba_preg.hive_key == row.hive_key)
+                .update(update_obj))
             self.db_session.commit()
 
     def _hkcu_upsert(self, row):
@@ -155,7 +162,12 @@ class sqlite_registry(registry):
             self._add(row)
         except:
             update_obj = dict({'type': row.type, 'data': row.data })
-            self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == row.sid).filter(samba_hkcu_preg.hive_key == row.hive_key).update(update_obj)
+            (self
+                .db_session
+                .query(samba_preg)
+                .filter(samba_hkcu_preg.sid == row.sid)
+                .filter(samba_hkcu_preg.hive_key == row.hive_key)
+                .update(update_obj))
             self.db_session.commit()
 
     def _shortcut_upsert(self, row):
@@ -199,7 +211,12 @@ class sqlite_registry(registry):
         return res
 
     def get_hkcu_entry(self, sid, hive_key):
-        res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key == hive_key).first()
+        res = (self
+            .db_session
+            .query(samba_preg)
+            .filter(samba_hkcu_preg.sid == sid)
+            .filter(samba_hkcu_preg.hive_key == hive_key)
+            .first())
         # Try to get the value from machine SID as a default if no option is set.
         if not res:
             machine_sid = self.get_info('machine_sid')
@@ -207,19 +224,34 @@ class sqlite_registry(registry):
         return res
 
     def filter_hkcu_entries(self, sid, startswith):
-        res = self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == sid).filter(samba_hkcu_preg.hive_key.like(startswith))
+        res = (self
+            .db_session
+            .query(samba_hkcu_preg)
+            .filter(samba_hkcu_preg.sid == sid)
+            .filter(samba_hkcu_preg.hive_key.like(startswith)))
         return res
 
     def get_info(self, name):
-        res = self.db_session.query(info_entry).filter(info_entry.name == name).first()
+        res = (self
+            .db_session
+            .query(info_entry)
+            .filter(info_entry.name == name)
+            .first())
         return res.value
 
     def get_hklm_entry(self, hive_key):
-        res = self.db_session.query(samba_preg).filter(samba_preg.hive_key == hive_key).first()
+        res = (self
+            .db_session
+            .query(samba_preg)
+            .filter(samba_preg.hive_key == hive_key)
+            .first())
         return res
 
     def filter_hklm_entries(self, startswith):
-        res = self.db_session.query(samba_preg).filter(samba_preg.hive_key.like(startswith))
+        res = (self
+            .db_session
+            .query(samba_preg)
+            .filter(samba_preg.hive_key.like(startswith)))
         return res
 
     def wipe_user(self, sid):
@@ -231,7 +263,11 @@ class sqlite_registry(registry):
         self.db_session.commit()
 
     def wipe_hkcu(self, sid):
-        self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == sid).delete()
+        (self
+            .db_session
+            .query(samba_hkcu_preg)
+            .filter(samba_hkcu_preg.sid == sid)
+            .delete())
         self.db_session.commit()
 
     def wipe_hklm(self):
