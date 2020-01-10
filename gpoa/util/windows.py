@@ -167,6 +167,7 @@ def expand_windows_var(text, username=None):
     variables['HOME'] = '/'
     variables['SystemRoot'] = '/'
     variables['StartMenuDir'] = '/usr/share/applications'
+    variables['SystemDrive'] = '/'
 
     if username:
         variables['HOME'] = get_homedir(username)
