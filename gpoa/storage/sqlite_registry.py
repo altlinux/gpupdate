@@ -39,12 +39,18 @@ from sqlalchemy.orm import (
 from util.logging import slogm
 
 class samba_preg(object):
+    '''
+    Object mapping representing HKLM entry (registry key without SID)
+    '''
     def __init__(self, preg_obj):
         self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
         self.type = preg_obj.type
         self.data = preg_obj.data
 
 class samba_hkcu_preg(object):
+    '''
+    Object mapping representing HKCU entry (registry key with SID)
+    '''
     def __init__(self, sid, preg_obj):
         self.sid = sid
         self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
@@ -52,6 +58,9 @@ class samba_hkcu_preg(object):
         self.data = preg_obj.data
 
 class ad_shortcut(object):
+    '''
+    Object mapping representing Windows shortcut.
+    '''
     def __init__(self, sid, sc):
         self.sid = sid
         self.path = sc.dest
