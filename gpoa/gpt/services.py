@@ -31,8 +31,8 @@ def read_services(service_file):
 
         props = srv.find('Properties')
         startup_type = props.get('startupType')
-        service_name = props.get('serviceName')
-        service_action = props.get('serviceAction')
+        srv_obj.set_servicename(props.get('serviceName'))
+        srv_obj.set_serviceaction(props.get('serviceAction'))
         timeout = props.get('timeout')
 
         services.append(srv_obj)
@@ -42,6 +42,8 @@ def read_services(service_file):
 class service:
     def __init__(self, name):
         self.unit = name
+        self.servname = None
+        self.serviceaction = None
 
     def set_clsid(self, clsid):
         self.guid = uid
@@ -56,4 +58,10 @@ class service:
 
     def is_usercontext(self):
         return self.is_in_user_context
+
+    def set_servicename(self, sname):
+        self.servname = sname
+
+    def set_servact(self, sact):
+        self.serviceaction = sact
 
