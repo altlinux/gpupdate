@@ -23,3 +23,7 @@ class applier_backend(ABC):
     def __init__(self):
         pass
 
+    @classmethod
+    def retrieve_and_store(self):
+        pass
+
