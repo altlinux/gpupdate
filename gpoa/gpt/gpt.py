@@ -1,3 +1,21 @@
+#
+# Copyright (C) 2019-2020 Igor Chudov
+# Copyright (C) 2019-2020 Evgeny Sinelnikov
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 import logging
 import os
 
@@ -5,6 +23,13 @@ from samba.gp_parse.gp_pol import GPPolParser
 
 from storage import registry_factory
 from .shortcuts import read_shortcuts
+from .services import read_services
+from .printers import read_printers
+from .inifiles import read_inifiles
+from .folders import read_folders
+from .files import read_files
+from .envvars import read_envvars
+from .drives import read_drives
 import util
 import util.preg
 from util.logging import slogm
@@ -107,6 +132,42 @@ class gpt:
             return None
 
         return find_file(search_path, 'shortcuts.xml')
+
+    def _find_envvars(self, part):
+        '''
+        Find EnvironmentVariables.xml files.
+        '''
+        search_path = os.path.join(self._machine_path, 'Preferences', 'EnvironmentVariables')
+        if 'user' == part:
+            search_path = os.path.join(self._user_path, 'Preferences', 'EnvironmentVariables')
+        if not search_path:
+            return None
+
+        return find_file(search_path, 'environmentvariables.xml')
+
+    def _find_drives(self, part):
+        '''
+        Find Drives.xml files.
+        '''
+        search_path = os.path.join(self._machine_path, 'Preferences', 'Drives')
+        if 'user' == part:
+            search_path = os.path.join(self._user_path, 'Preferences', 'Drives')
+        if not search_path:
+            return None
+
+        return find_file(search_path, 'drives.xml')
+
+    def _find_printers(self, part):
+        '''
+        Find Printers.xml files.
+        '''
+        search_path = os.path.join(self._machine_path, 'Preferences', 'Printers')
+        if 'user' == part:
+            search_path = os.path.join(self._user_path, 'Preferences', 'Printers')
+        if not search_path:
+            return None
+
+        return find_file(search_path, 'printers.xml')
 
     def _merge_shortcuts(self):
         shortcuts = list()
