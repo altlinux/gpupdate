@@ -21,25 +21,30 @@ import os
 import logging
 from gi.repository import Gio, GLib
 
+from util.logging import slogm
+
 class system_gsetting:
-    def __init__(self, schema, path, value):
+    __global_schema = '/usr/share/glib-2.0/schemas'
+
+    def __init__(self, schema, path, value, override_priority='0'):
         self.schema = schema
         self.path = path
         self.value = value
+        self.override_priority = override_priority
+        self.filename = '{}_policy.gschema.override'.format(self.override_priority)
+        self.file_path = os.path.join(self.__global_schema, self.filename)
 
     def apply(self):
-        pass
-        #source = Gio.SettingsSchemaSource.get_default()
-        #schema = source.lookup(self.schema, True)
-        #key = schema.get_key(self.path)
-        #gvformat = key.get_value_type()
-        #val = GLib.Variant(gvformat.dup_string(), self.value)
-        #schema.set_value(self.path, val)
+        config = configparser.ConfigParser()
+        try:
+            config.read(self.file_path)
+        except Exception as exc:
+            logging.error(slogm(exc))
+        config.add_section(self.schema)
+        config.set(self.schema, self.path, self.value)
 
-        #variants = gso.get_property(self.path)
-        #if (variants.has_key(self.path)):
-        #    key = variants.get_key(self.path)
-        #    print(key.get_range())
+        with open(self.file_path, 'w') as f:
+            config.write(f)
 
 class user_gsetting:
     def __init__(self, schema, path, value):
