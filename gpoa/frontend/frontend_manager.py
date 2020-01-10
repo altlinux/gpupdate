@@ -86,7 +86,7 @@ class frontend_manager:
             'chromium': chromium_applier(self.storage, self.sid, self.username),
             'shortcuts': shortcut_applier(self.storage),
             'gsettings': gsettings_applier(self.storage),
-            'cups': cups_applier(self.storage)
+            'cups': cups_applier(self.storage),
             'package': package_applier(self.storage)
         })
 

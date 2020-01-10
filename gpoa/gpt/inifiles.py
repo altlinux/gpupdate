@@ -28,7 +28,7 @@ def read_inifiles(inifiles_file):
 
     return inifiles
 
-def inifile:
+def inifile():
     def __init__(self):
         pass
 

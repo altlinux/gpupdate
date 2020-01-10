@@ -32,10 +32,9 @@ cp -r gpoa \
 	%buildroot%python3_sitelibdir/
 
 mkdir -p \
+	%buildroot%_bindir/ \
 	%buildroot%_sbindir/
 
-ln -s %python3_sitelibdir/gpoa/gpoa \
-	%buildroot%python3_sitelibdir/gpoa/main.py
 ln -s %python3_sitelibdir/gpoa/gpoa \
 	%buildroot%_sbindir/gpoa
 ln -s %python3_sitelibdir/gpoa/gpupdate \

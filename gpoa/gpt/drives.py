@@ -20,7 +20,7 @@ import json
 from base64 import b64decode
 from Crypto.Cipher import AES
 
-from util_xml import get_xml_root
+from util.xml import get_xml_root
 
 def read_drives(drives_file):
     drives = list()
