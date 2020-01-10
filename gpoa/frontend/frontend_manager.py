@@ -23,9 +23,15 @@ from .polkit_applier import polkit_applier
 from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
 from .chromium_applier import chromium_applier
+from .cups_applier import cups_applier
+from .package_applier import package_applier
 from .shortcut_applier import (
     shortcut_applier,
     shortcut_applier_user
+)
+from .gsettings_applier import (
+    gsettings_applier,
+    gsettings_applier_user
 )
 from util.windows import get_sid
 from util.users import (
@@ -78,13 +84,17 @@ class frontend_manager:
             'systemd':  systemd_applier(self.storage),
             'firefox':  firefox_applier(self.storage, self.sid, self.username),
             'chromium': chromium_applier(self.storage, self.sid, self.username),
-            'shortcuts': shortcut_applier(self.storage)
+            'shortcuts': shortcut_applier(self.storage),
+            'gsettings': gsettings_applier(self.storage),
+            'cups': cups_applier(self.storage)
+            'package': package_applier(self.storage)
         })
 
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
         self.user_appliers = dict({
-            'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username)
+            'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username),
+            'gsettings': gsettings_applier_user(self.storage, self.sid, self.username)
         })
 
     def machine_apply(self):
@@ -101,6 +111,9 @@ class frontend_manager:
         self.machine_appliers['firefox'].apply()
         self.machine_appliers['chromium'].apply()
         self.machine_appliers['shortcuts'].apply()
+        self.machine_appliers['gsettings'].apply()
+        self.machine_appliers['cups'].apply()
+        self.machine_appliers['package'].apply()
 
     def user_apply(self):
         '''
@@ -109,11 +122,15 @@ class frontend_manager:
         if is_root():
             logging.debug(slogm('Running user appliers from administrator context'))
             self.user_appliers['shortcuts'].admin_context_apply()
+            self.user_appliers['gsettings'].admin_context_apply()
+
             logging.debug(slogm('Running user appliers for user context'))
             with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)
+            with_privileges(self.username, self.user_appliers['gsettings'].user_context_apply)
         else:
             logging.debug(slogm('Running user appliers from user context'))
             self.user_appliers['shortcuts'].user_context_apply()
+            self.user_appliers['gsettings'].user_context_apply()
 
     def apply_parameters(self):
         '''
