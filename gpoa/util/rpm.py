@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import rpm
+import subprocess
 
 def is_rpm_installed(rpm_name):
     '''
@@ -29,4 +30,23 @@ def is_rpm_installed(rpm_name):
         return True
 
     return False
+
+def update():
+    '''
+    Update APT-RPM database.
+    '''
+    subprocess.check_call(['/usr/bin/apt-get', 'update'])
+
+def install_rpm(rpm_name):
+    '''
+    Install RPM from APT-RPM sources.
+    '''
+    update()
+    subprocess.check_call(['/usr/bin/apt-get', '-y', 'install', rpm_name])
+
+def remove_rpm(rpm_name):
+    '''
+    Remove RPM from file system.
+    '''
+    subprocess.check_call(['/usr/bin/apt-get', '-y', 'remove', rpm_name])
 
