@@ -17,23 +17,34 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import logging
+import os
+import subprocess
 
 from .applier_frontend import applier_frontend
 from .appliers.gsettings import (
     system_gsetting,
     user_gsetting
 )
+from util.logging import slogm
 
 class gsettings_applier(applier_frontend):
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
+    __global_schema = '/usr/share/glib-2.0/schemas'
 
     def __init__(self, storage):
         self.storage = storage
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hklm_entries(gsettings_filter)
         self.gsettings = list()
+        self.override_file = os.path.join(self.__global_schema, '0_policy.gschema.override')
 
     def apply(self):
+        # Cleanup settings from previous run
+        if os.path.exists(self.override_file):
+            logging.debug(slogm('Removing GSettings policy file from previous run'))
+            os.remove(self.override_file)
+
+        # Calculate all configured gsettings
         for setting in self.gsettings_keys:
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
@@ -41,8 +52,15 @@ class gsettings_applier(applier_frontend):
             path = rp[2]
             self.gsettings.append(system_gsetting(schema, path, setting.data))
 
+        # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
             gsetting.apply()
+
+        # Recompile GSettings schemas with overrides
+        try:
+            proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True)
+        except Exception as exc:
+            logging.debug(slogm('Error recompiling global GSettings schemas'))
 
 class gsettings_applier_user(applier_frontend):
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
@@ -67,5 +85,8 @@ class gsettings_applier_user(applier_frontend):
             gsetting.apply()
 
     def admin_context_apply(self):
+        '''
+        Not implemented because there is no point of doing so.
+        '''
         pass
 
