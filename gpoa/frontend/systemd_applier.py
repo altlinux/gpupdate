@@ -47,3 +47,15 @@ class systemd_applier(applier_frontend):
             except:
                 logging.error(slogm('Failed applying unit {}'.format(unit.unit_name)))
 
+class systemd_applier_user(applier_frontend):
+    __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'
+
+    def __init__(self, storage, sid, username):
+        self.storage = storage
+
+    def user_context_apply(self):
+        pass
+
+    def admin_context_apply(self):
+        pass
+
