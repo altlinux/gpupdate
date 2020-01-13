@@ -78,7 +78,7 @@ def runner_factory(args):
             username = None
             logstring = (
                 'Unable to perform gpupdate for non-existent user {},'
-                'will update machine settings'
+                ' will update machine settings'
             )
             logging.error(logstring.format(args.user))
     else:
@@ -87,7 +87,11 @@ def runner_factory(args):
         if args.user:
             username = pwd.getpwuid(os.getuid()).pw_name
             if args.user != username:
-                logging.error('Unable to perform gpupdate for {} with current permissions, will update current user settings'.format(args.user))
+                logstring = (
+                    'Unable to perform gpupdate for {} with current'
+                    ' permissions, will update current user settings'
+                )
+                logging.error(logstring.format(args.user))
 
     if is_oddjobd_gpupdate_accessible():
         logging.debug('Starting gpupdate via D-Bus')
