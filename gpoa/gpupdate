@@ -59,7 +59,11 @@ def runner_factory(args):
             username = pwd.getpwnam(args.user).pw_name
         except:
             username = None
-            logging.error('Unable to perform gpupdate for non-existent user {}, will update machine settings'.format(args.user))
+            logstring = (
+                'Unable to perform gpupdate for non-existent user {},'
+                'will update machine settings'
+            )
+            logging.error(logstring.format(args.user))
     else:
         # User may only perform gpupdate for machine (None) or
         # itself (os.getusername()).
