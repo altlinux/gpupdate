@@ -34,9 +34,14 @@ class polkit:
         self.outfile = os.path.join(self.__policy_dir, '{}.rules'.format(self.template_name))
 
     def generate(self):
-        template = self.__template_environment.get_template(self.infilename)
-        text = template.render(**self.args)
-        with open(self.outfile, 'w') as f:
-            f.write(text)
-        logging.debug(slogm('Generated file {} with arguments {}'.format(self.outfile, self.args)))
+        try:
+            template = self.__template_environment.get_template(self.infilename)
+            text = template.render(**self.args)
+
+            with open(self.outfile, 'w') as f:
+                f.write(text)
+
+            logging.debug(slogm('Generated file {} with arguments {}'.format(self.outfile, self.args)))
+        except Exception as exc:
+            logging.error(slogm('Unable to generate file {} from {}'.format(self.outfile, self.infilename)))
 
