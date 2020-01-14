@@ -80,7 +80,7 @@ class printer_entry(object):
         self.printer = pobj.to_json()
 
 class sqlite_registry(registry):
-    __registry_path = 'sqlite:////var/cache/samba'
+    __registry_path = 'sqlite:////var/cache/gpupdate'
 
     def __init__(self, db_name):
         self.db_name = db_name
