@@ -121,7 +121,7 @@ class sqlite_registry(registry):
             Column('shortcut', String),
             UniqueConstraint('sid', 'path')
         )
-        self.__shortcuts = Table(
+        self.__printers = Table(
             'Printers',
             self.__metadata,
             Column('id', Integer, primary_key=True),
@@ -138,6 +138,7 @@ class sqlite_registry(registry):
             mapper(samba_preg, self.__hklm)
             mapper(samba_hkcu_preg, self.__hkcu)
             mapper(ad_shortcut, self.__shortcuts)
+            mapper(printer_entry, self.__printers)
         except:
             pass
             #logging.error('Error creating mapper')
