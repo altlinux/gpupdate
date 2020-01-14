@@ -16,9 +16,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import logging
-
-from .registry import registry
-
 import os
 
 from sqlalchemy import (
@@ -36,6 +33,7 @@ from sqlalchemy.orm import (
 )
 
 from util.logging import slogm
+from .registry import registry
 
 class samba_preg(object):
     '''
