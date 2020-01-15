@@ -59,8 +59,8 @@ class printer:
     def __init__(self, ptype, name, status):
         '''
         ptype may be one of:
-        * LocalPrinter
-        * SharedPrinter
+        * LocalPrinter - IPP printer
+        * SharedPrinter - Samba printer
         * PortPrinter
         '''
         self.printer_type = ptype

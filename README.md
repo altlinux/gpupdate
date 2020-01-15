@@ -3,6 +3,7 @@
 ## Contents
 
 * [Introduction](#introduction)
+* [Development](#development)
 * [License](#license)
 
 * * *
@@ -11,6 +12,21 @@
 
 GPOA is a facility to fetch, reinterpret and apply GPOs from Windows
 Active Directory domains in UNIX environments.
+
+## Development
+
+This project needs some additional dependencies for development
+purposes (static analisys):
+
+* python3-module-setuptools
+* python3-module-pip
+* python3-module-pylint
+
+And then you may install prospector like:
+
+```sh
+# pip install prospector[with_pyroma]
+```
 
 ## License
 

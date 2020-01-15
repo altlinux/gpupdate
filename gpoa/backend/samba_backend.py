@@ -32,7 +32,6 @@ import util.preg
 from util.logging import slogm
 
 class samba_backend(applier_backend):
-    __default_policy_path = '/usr/share/local-policy/default'
 
     def __init__(self, sambacreds, username, domain):
         self.storage = registry_factory('registry')

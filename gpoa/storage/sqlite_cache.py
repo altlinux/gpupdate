@@ -34,6 +34,7 @@ from sqlalchemy.orm import (
 )
 
 from util.logging import slogm
+from util.paths import cache_dir
 
 def mapping_factory(mapper_suffix):
     exec(
@@ -47,7 +48,7 @@ class mapped_id_{}(object):
     return eval('mapped_id_{}'.format(mapper_suffix))
 
 class sqlite_cache(cache):
-    __cache_dir = 'sqlite:////var/cache/gpupdate'
+    __cache_dir = 'sqlite:///{}'.format(cache_dir())
 
     def __init__(self, cache_name):
         self.cache_name = cache_name
