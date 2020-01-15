@@ -33,6 +33,7 @@ from sqlalchemy.orm import (
 )
 
 from util.logging import slogm
+from util.paths import cache_dir
 from .registry import registry
 
 class samba_preg(object):
@@ -78,7 +79,7 @@ class printer_entry(object):
         self.printer = pobj.to_json()
 
 class sqlite_registry(registry):
-    __registry_path = 'sqlite:////var/cache/samba'
+    __registry_path = 'sqlite:///{}'.format(cache_dir())
 
     def __init__(self, db_name):
         self.db_name = db_name

@@ -31,15 +31,14 @@ from .envvars import read_envvars
 from .drives import read_drives
 import util
 import util.preg
+from util.paths import (
+    default_policy_path,
+    cache_dir,
+    local_policy_cache
+)
 from util.logging import slogm
 
-global __default_policy_path
-
-__default_policy_path = '/usr/share/local-policy/default'
-__cache_dir = '/var/cache/gpupdate'
-
 class gpt:
-    __default_policy_path = '/usr/share/local-policy/default'
     __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
 
     def __init__(self, gpt_path, sid):
@@ -127,7 +126,10 @@ class gpt:
         '''
         search_path = os.path.join(self._machine_path, 'Preferences', 'Shortcuts')
         if 'user' == part:
-            search_path = os.path.join(self._user_path, 'Preferences', 'Shortcuts')
+            try:
+                search_path = os.path.join(self._user_path, 'Preferences', 'Shortcuts')
+            except Exception as exc:
+                return None
         if not search_path:
             return None
 
@@ -257,8 +259,7 @@ def lp2gpt():
     '''
     Convert local-policy to full-featured GPT.
     '''
-    lppath = os.path.join(__default_policy_path, 'local.xml')
-    machinesettings = os.path.join(__default_policy_path, 'Machine')
+    lppath = os.path.join(default_policy_path(), 'local.xml')
 
     # Load settings from XML PolFile
     polparser = GPPolParser()
@@ -266,7 +267,7 @@ def lp2gpt():
     polparser.pol_file = polfile
 
     # Create target default policy directory if missing
-    destdir = os.path.join(__cache_dir, 'local-policy', 'Machine')
+    destdir = os.path.join(local_policy_cache(), 'Machine')
     os.makedirs(destdir, exist_ok=True)
 
     # Write PReg
@@ -276,9 +277,9 @@ def get_local_gpt(sid):
     '''
     Convert default policy to GPT and create object out of it.
     '''
+    logging.debug(slogm('Re-caching Local Policy'))
     lp2gpt()
-    gpt_dir = os.path.join(__cache_dir, 'local-policy')
-    local_policy = gpt(gpt_dir, sid)
+    local_policy = gpt(str(local_policy_cache()), sid)
     local_policy.set_name('Local Policy')
 
     return local_policy
