@@ -36,6 +36,7 @@ from util.logging import slogm
 global __default_policy_path
 
 __default_policy_path = '/usr/share/local-policy/default'
+__cache_dir = '/var/cache/gpupdate'
 
 class gpt:
     __default_policy_path = '/usr/share/local-policy/default'
@@ -264,16 +265,20 @@ def lp2gpt():
     polfile = util.preg.load_preg(lppath)
     polparser.pol_file = polfile
 
+    # Create target default policy directory if missing
+    destdir = os.path.join(__cache_dir, 'local-policy', 'Machine')
+    os.makedirs(destdir, exist_ok=True)
+
     # Write PReg
-    os.makedirs(machinesettings, exist_ok=True)
-    polparser.write_binary(os.path.join(machinesettings, 'Registry.pol'))
+    polparser.write_binary(os.path.join(destdir, 'Registry.pol'))
 
 def get_local_gpt(sid):
     '''
     Convert default policy to GPT and create object out of it.
     '''
     lp2gpt()
-    local_policy = gpt(__default_policy_path, sid)
+    gpt_dir = os.path.join(__cache_dir, 'local-policy')
+    local_policy = gpt(gpt_dir, sid)
     local_policy.set_name('Local Policy')
 
     return local_policy
