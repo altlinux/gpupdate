@@ -112,7 +112,7 @@ class frontend_manager:
         self.machine_appliers['shortcuts'].apply()
         self.machine_appliers['gsettings'].apply()
         self.machine_appliers['cups'].apply()
-        self.machine_appliers['package'].apply()
+        #self.machine_appliers['package'].apply()
 
     def user_apply(self):
         '''
