@@ -7,6 +7,7 @@ Description=gpupdate in userspace
 Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
 Type=notify
 WatchdogSec=3600
+TimeoutSec=3000
 Restart=always
 ExecStart=/usr/sbin/gpoa
 
