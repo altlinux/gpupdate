@@ -3,8 +3,10 @@ Description=Group policy update for machine
 After=sssd.service
 
 [Service]
-Type=oneshot
-RemainAfterExit=true
+Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
+Type=notify
+WatchdogSec=3600
+Restart=always
 ExecStart=/usr/bin/gpupdate
 StandardOutput=journal
 
