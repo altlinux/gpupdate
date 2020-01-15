@@ -48,7 +48,7 @@ class mapped_id_{}(object):
     return eval('mapped_id_{}'.format(mapper_suffix))
 
 class sqlite_cache(cache):
-    __cache_dir = 'sqlite:///{}'.format(cache_dir()) 
+    __cache_dir = 'sqlite:///{}'.format(cache_dir())
 
     def __init__(self, cache_name):
         self.cache_name = cache_name

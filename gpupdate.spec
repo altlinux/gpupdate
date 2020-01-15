@@ -33,7 +33,8 @@ cp -r gpoa \
 
 mkdir -p \
 	%buildroot%_bindir/ \
-	%buildroot%_sbindir/
+	%buildroot%_sbindir/ \
+	%buildroot%_cachedir/%name/
 
 ln -s %python3_sitelibdir/gpoa/gpoa \
 	%buildroot%_sbindir/gpoa
@@ -64,6 +65,7 @@ install -Dm0644 system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%
 %_unitdir/%name.service
 /usr/lib/systemd/user/%{name}-user.service
 %_sysconfdir/pam.d/system-policy-%name
+%dir %_cachedir/%name
 
 %changelog
 * Fri Dec 20 2019 Evgeny Sinelnikov <sin@altlinux.org> 0.2.1-alt2
