@@ -1,8 +1,8 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.2.1
-Release: alt2
+Version: 0.3.0
+Release: alt1
 
 Summary: GPT applier
 License: GPLv2+
@@ -15,6 +15,7 @@ Requires: local-policy >= 0.1.0
 
 BuildRequires: rpm-build-python3
 Requires: python3-module-rpm
+Requires: oddjob-%name
 
 Source0: %name-%version.tar
 
@@ -68,6 +69,10 @@ install -Dm0644 system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%
 %dir %_cachedir/%name
 
 %changelog
+* Thu Jan 16 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.3.0-alt1
+- Add user appliers support and machine gsettings apllier
+- Add require to oddjob-gpupdate
+
 * Fri Dec 20 2019 Evgeny Sinelnikov <sin@altlinux.org> 0.2.1-alt2
 - Add support system-policy for PAM settings
 
