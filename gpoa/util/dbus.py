@@ -20,6 +20,7 @@ import dbus
 
 from .logging import slogm
 
+
 class dbus_runner:
     '''
     Runs GPOA via D-Bus supplying username (if specified). This is needed
@@ -46,6 +47,7 @@ class dbus_runner:
             print_dbus_result(result)
         #self.interface.Quit()
 
+
 def start_gpupdate_user():
     '''
     Make gpupdate-user.service "runtime-enabled" and start it. This
@@ -54,11 +56,17 @@ def start_gpupdate_user():
     '''
     unit_name = 'gpupdate-user.service'
     session_bus = dbus.SessionBus()
-    systemd_user_bus = session_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
-    systemd_user_interface = dbus.Interface(systemd_user_bus, dbus_interface='org.freedesktop.systemd1.Manager')
+
+    systemd_user_bus = session_bus.get_object(
+        'org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+
+    systemd_user_interface = dbus.Interface(
+        systemd_user_bus, dbus_interface='org.freedesktop.systemd1.Manager')
+
     gpupdate_user_unit = systemd_user_interface.GetUnit(dbus.String(unit_name))
     job = systemd_user_interface.StartUnit(unit_name, 'replace')
     #job = manager.StartTransientUnit('noname', 'replace', properties, [])
+
 
 def is_oddjobd_gpupdate_accessible():
     '''
@@ -69,12 +77,17 @@ def is_oddjobd_gpupdate_accessible():
 
     try:
         system_bus = dbus.SystemBus()
-        systemd_bus = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+
+        systemd_bus = system_bus.get_object(
+            'org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+
         systemd_interface = dbus.Interface(systemd_bus, 'org.freedesktop.systemd1.Manager')
         oddjobd_unit = systemd_interface.GetUnit(dbus.String('oddjobd.service'))
 
         oddjobd_proxy = system_bus.get_object('org.freedesktop.systemd1', str(oddjobd_unit))
-        oddjobd_properties = dbus.Interface(oddjobd_proxy, dbus_interface='org.freedesktop.DBus.Properties')
+
+        oddjobd_properties = dbus.Interface(oddjobd_proxy,
+            dbus_interface='org.freedesktop.DBus.Properties')
 
         # Check if oddjobd service is running
         oddjobd_state = oddjobd_properties.Get('org.freedesktop.systemd1.Unit', 'ActiveState')
@@ -90,6 +103,7 @@ def is_oddjobd_gpupdate_accessible():
         pass
 
     return oddjobd_accessible
+
 
 def print_dbus_result(result):
     '''
