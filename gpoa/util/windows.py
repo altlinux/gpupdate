@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 '''Dummy module docstring'''
+
 import logging
 import os
 
@@ -31,7 +33,9 @@ from .xdg import get_user_dir
 from .util import get_homedir
 from .logging import slogm
 
+
 class smbcreds:
+
     def __init__(self, dc_fqdn=None):
         self.parser = optparse.OptionParser('GPO Applier')
         self.sambaopts = options.SambaOptions(self.parser)
@@ -53,9 +57,11 @@ class smbcreds:
             samba_dc = get_dc_hostname(self.creds, self.lp)
 
             if samba_dc != dc_fqdn and dc_fqdn != None:
+
                 logging.debug(
-                 slogm('Samba DC setting is {} and is overwritten by user setting {}'.format(
-                                                                               samba_dc, dc)))
+                    slogm('Samba DC setting is {} and is overwritten by user setting {}'.format(
+                        samba_dc, dc)))
+
                 self.selected_dc = dc_fqdn
             else:
                 self.selected_dc = samba_dc
@@ -101,8 +107,9 @@ class smbcreds:
                     logging.info(slogm('GPO: {} ({})'.format(gpo.display_name, gpo.name)))
 
         except Exception as exc:
-            logging.error(slogm('Unable to get GPO list for {} from {}'.format(
-                                                     username, self.selected_dc)))
+            logging.error(
+                slogm('Unable to get GPO list for {} from {}'.format(
+                    username, self.selected_dc)))
 
         return gpos
 
@@ -112,9 +119,9 @@ class smbcreds:
         try:
             check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
         except Exception as exc:
-            logging.error(slogm('Unable to refresh GPO list for {} from {}'.format(
-                                                         username, self.selected_dc)))
-
+            logging.error(
+                slogm('Unable to refresh GPO list for {} from {}'.format(
+                    username, self.selected_dc)))
         return gpos
 
     def _get_prop(self, property_name):
@@ -154,7 +161,7 @@ def get_sid(domain, username):
     except:
         sid = 'local-{}'.format(username)
         logging.warning(
-               slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
+            slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
 
     logging.debug(slogm('Working with SID: {}'.format(sid)))
 
@@ -178,10 +185,12 @@ def expand_windows_var(text, username=None):
 
     if username:
         variables['HOME'] = get_homedir(username)
-        variables['DesktopDir'] = get_user_dir('DESKTOP', os.path.join(variables['HOME'],
-                                                                                  'Desktop'))
-        variables['StartMenuDir'] = os.path.join(variables['HOME'], '.local', 'share',
-                                                                              'applications')
+
+        variables['DesktopDir'] = get_user_dir(
+            'DESKTOP', os.path.join(variables['HOME'], 'Desktop'))
+
+        variables['StartMenuDir'] = os.path.join(
+            variables['HOME'], '.local', 'share', 'applications')
 
     result = text
     for var in variables.keys():

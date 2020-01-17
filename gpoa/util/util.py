@@ -15,10 +15,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import logging
+
 import socket
 import os
 import pwd
+
 
 def get_machine_name():
     '''
@@ -26,11 +27,13 @@ def get_machine_name():
     '''
     return socket.gethostname().split('.', 1)[0].upper() + "$"
 
+
 def is_machine_name(name):
     '''
     Check if supplied username is machine name in fact.
     '''
     return name == get_machine_name()
+
 
 def traverse_dir(root_dir):
     '''
@@ -42,11 +45,13 @@ def traverse_dir(root_dir):
             filelist.append(os.path.join(root, filename))
     return filelist
 
+
 def get_homedir(username):
     '''
     Query password database for user's home directory.
     '''
     return pwd.getpwnam(username).pw_dir
+
 
 def mk_homedir_path(username, homedir_path):
     '''
