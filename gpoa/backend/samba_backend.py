@@ -22,7 +22,7 @@ from samba.gpclass import check_safe_path, check_refresh_gpo_list
 
 from .applier_backend import applier_backend
 from storage import cache_factory, registry_factory
-from gpt import gpt, get_local_gpt
+from gpt.gpt import gpt, get_local_gpt
 from util.util import (
     get_machine_name,
     is_machine_name
