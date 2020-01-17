@@ -56,7 +56,7 @@ class smbcreds:
         try:
             samba_dc = get_dc_hostname(self.creds, self.lp)
 
-            if samba_dc != dc_fqdn and dc_fqdn != None:
+            if samba_dc != dc_fqdn and dc_fqdn is not None:
 
                 logging.debug(
                     slogm('Samba DC setting is {} and is overwritten by user setting {}'.format(

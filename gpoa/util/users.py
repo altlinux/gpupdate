@@ -86,7 +86,7 @@ def with_privileges(username, func):
     current_uid = os.getuid()
     current_groups = os.getgrouplist('root', 0)
 
-    if not 0 == current_uid:
+    if not current_uid == 0:
         raise Exception('Not enough permissions to drop privileges')
 
     user_uid = pwd.getpwnam(username).pw_uid
