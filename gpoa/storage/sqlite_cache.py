@@ -48,12 +48,10 @@ class mapped_id_{}(object):
     return eval('mapped_id_{}'.format(mapper_suffix))
 
 class sqlite_cache(cache):
-    __cache_dir = 'sqlite:///{}'.format(cache_dir())
-
     def __init__(self, cache_name):
         self.cache_name = cache_name
         self.mapper_obj = mapping_factory(self.cache_name)
-        self.storage_uri = os.path.join(self.__cache_dir, '{}.sqlite'.format(self.cache_name))
+        self.storage_uri = os.path.join('sqlite:///{}/{}.sqlite'.format(cache_dir(), self.cache_name))
         logging.debug(slogm('Initializing cache {}'.format(self.storage_uri)))
         self.db_cnt = create_engine(self.storage_uri, echo=False)
         self.__metadata = MetaData(self.db_cnt)
