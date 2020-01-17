@@ -15,19 +15,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from storage import registry_factory
-
 import logging
-import os
-
-from samba.gpclass import get_dc_hostname
-from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
-import samba.gpo
 
 from xml.etree import ElementTree
+from storage import registry_factory
+
 from samba.gp_parse.gp_pol import GPPolParser
 
 from .logging import slogm
+
 
 def load_preg(file_path):
     '''
@@ -37,6 +33,7 @@ def load_preg(file_path):
     if file_path.endswith('.xml'):
         return load_xml_preg(file_path)
     return load_pol_preg(file_path)
+
 
 def load_xml_preg(xml_path):
     '''
@@ -49,6 +46,7 @@ def load_xml_preg(xml_path):
     gpparser.pol_file.__ndr_print__()
 
     return gpparser.pol_file
+
 
 def load_pol_preg(polfile):
     '''
@@ -65,6 +63,7 @@ def load_pol_preg(polfile):
     #print(gpparser.pol_file.__ndr_print__())
     return gpparser.pol_file
 
+
 def preg_keymap(preg):
     pregfile = load_preg(preg)
     keymap = dict()
@@ -74,6 +73,7 @@ def preg_keymap(preg):
         keymap[hive_key] = entry
 
     return keymap
+
 
 def merge_polfile(preg, sid=None):
     pregfile = load_preg(preg)
@@ -86,12 +86,14 @@ def merge_polfile(preg, sid=None):
         else:
             storage.add_hkcu_entry(entry, sid)
 
+
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
         self.keyname = e_keyname
         self.valuename = e_valuename
         self.type = e_type
         self.data = e_data
+
 
 def preg2entries(preg_obj):
     entries = []
