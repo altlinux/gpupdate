@@ -20,6 +20,7 @@ import logging.handlers
 
 from .logging import slogm
 
+
 def set_loglevel(loglevel_num=None):
     '''
     Set the log level global value.
@@ -33,9 +34,9 @@ def set_loglevel(loglevel_num=None):
     # A little bit of defensive programming
     if not log_num:
         log_num = 1
-    if 0 > log_num:
+    if log_num < 0:
         log_num = 0
-    if 5 < log_num:
+    if log_num > 5:
         log_num = 5
 
     log_level = 10 * log_num
@@ -55,6 +56,7 @@ def set_loglevel(loglevel_num=None):
 
     logger.handlers = [log_stdout, log_syslog]
 
+
 def process_target(target_name=None):
     '''
     The target may be 'All', 'Computer' or 'User'. This function
@@ -62,10 +64,10 @@ def process_target(target_name=None):
     '''
     target = 'All'
 
-    if 'Computer' == target_name:
+    if target_name == 'Computer':
         target = 'Computer'
 
-    if 'User' == target_name:
+    if target_name == 'User':
         target = 'User'
 
     logging.debug(slogm('Target is: {}'.format(target)))
