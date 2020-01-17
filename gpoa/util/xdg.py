@@ -14,12 +14,15 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+'''
+Dummy module docstring
+'''
 
-import subprocess
 
 from configparser import RawConfigParser, DEFAULTSECT
 import os
 from xdg.BaseDirectory import xdg_config_home
+
 
 def get_user_dir(dir_name, default=None):
     '''
