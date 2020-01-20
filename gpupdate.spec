@@ -49,6 +49,7 @@ mv %buildroot%python3_sitelibdir/gpoa/templates \
 install -Dm0644 %name.service %buildroot%_unitdir/%name.service
 install -Dm0644 %name.service %{buildroot}/usr/lib/systemd/user/%{name}-user.service
 install -Dm0644 system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%name
+install -Dm0644 doc/gpoa.1 %buildroot/%{_man1dir}/gpoa.1
 
 %preun
 %preun_service gpupdate
@@ -64,6 +65,7 @@ install -Dm0644 system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
+%{_man1dir}/gpoa.1.xz
 /usr/lib/systemd/user/%{name}-user.service
 %_sysconfdir/pam.d/system-policy-%name
 %dir %_cachedir/%name
