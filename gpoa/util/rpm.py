@@ -15,8 +15,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import rpm
 import subprocess
+import rpm
+
 
 def is_rpm_installed(rpm_name):
     '''
@@ -30,11 +31,13 @@ def is_rpm_installed(rpm_name):
 
     return False
 
+
 def update():
     '''
     Update APT-RPM database.
     '''
     subprocess.check_call(['/usr/bin/apt-get', 'update'])
+
 
 def install_rpm(rpm_name):
     '''
@@ -42,6 +45,7 @@ def install_rpm(rpm_name):
     '''
     update()
     subprocess.check_call(['/usr/bin/apt-get', '-y', 'install', rpm_name])
+
 
 def remove_rpm(rpm_name):
     '''

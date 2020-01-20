@@ -21,13 +21,15 @@ import logging
 
 from .logging import slogm
 
+
 def is_root():
     '''
     Check if current process has root permissions.
     '''
-    if 0 == os.getuid():
+    if os.getuid() == 0:
         return True
     return False
+
 
 def get_process_user():
     '''
@@ -40,6 +42,7 @@ def get_process_user():
 
     return username
 
+
 def username_match_uid(username):
     '''
     Check the passed username matches current process UID.
@@ -51,6 +54,7 @@ def username_match_uid(username):
         return True
 
     return False
+
 
 def set_privileges(username, uid, gid, groups=list()):
     '''
@@ -70,7 +74,10 @@ def set_privileges(username, uid, gid, groups=list()):
     #except Exception as exc:
     #    print('setgroups')
 
-    logging.debug(slogm('Set process permissions to UID {} and GID {} for user {}'.format(uid, gid, username)))
+    logging.debug(
+        slogm('Set process permissions to UID {} and GID {} for user {}'.format(
+            uid, gid, username)))
+
 
 def with_privileges(username, func):
     '''
@@ -79,7 +86,7 @@ def with_privileges(username, func):
     current_uid = os.getuid()
     current_groups = os.getgrouplist('root', 0)
 
-    if not 0 == current_uid:
+    if not current_uid == 0:
         raise Exception('Not enough permissions to drop privileges')
 
     user_uid = pwd.getpwnam(username).pw_uid

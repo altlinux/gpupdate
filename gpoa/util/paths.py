@@ -1,10 +1,12 @@
 import pathlib
 
+
 def default_policy_path():
     '''
     Returns path pointing to Default Policy directory.
     '''
     return pathlib.Path('/usr/share/local-policy/default')
+
 
 def cache_dir():
     '''
@@ -16,6 +18,7 @@ def cache_dir():
         cachedir.mkdir(parents=True, exist_ok=True)
 
     return cachedir
+
 
 def local_policy_cache():
     '''

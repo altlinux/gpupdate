@@ -16,8 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import json
-import logging
 import datetime
+
 
 class encoder(json.JSONEncoder):
     def default(self, obj):
@@ -30,6 +30,7 @@ class encoder(json.JSONEncoder):
 
         return result
 
+
 class slogm(object):
     '''
     Structured log message class
@@ -41,7 +42,7 @@ class slogm(object):
     def __str__(self):
         now = str(datetime.datetime.now())
         args = dict()
-        args.update(dict({ 'timestamp': now, 'message': str(self.message) }))
+        args.update(dict({'timestamp': now, 'message': str(self.message)}))
         args.update(self.kwargs)
 
         kwa = encoder().encode(args)
