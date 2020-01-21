@@ -31,10 +31,16 @@ def backend_factory(dc, username):
     domain = sc.get_domain()
     back = None
 
-    try:
-        back = samba_backend(sc, username, domain)
-    except Exception as exc:
-        logging.error('Unable to initialize Samba backend: {}'.format(exc))
+    if dc:
+        try:
+            back = samba_backend(sc, username, domain)
+        except Exception as exc:
+            logging.error('Unable to initialize Samba backend: {}'.format(exc))
+    else:
+        try:
+            back = nodomain_backend()
+        except Exception as exc:
+            logging.error('Unable to initialize no-domain backend: {}'.format(exc))
 
     return back
 
