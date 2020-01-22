@@ -10,17 +10,26 @@ gpupdate \- Update Group Policy settings
 .B gpupdate
 Fetches GPT files for designated user from AD instance and transforms
 them into UNIX system settings.
+
+.B gpupdate
+operates on \fIcontrol framework\fR, \fIsystem-wide GSettings\fR,
+\fIXDG .desktop files\fR, \fIChromium web browser policy file\fR,
+\fIFirefox web browser policy file\fR, \fIsystemd services\fR,
+\fIPolicyKit framework\fR trying to mimic behavior of other operating
+systems connected to AD domain.
+
+The utility needs no adjustments from local user.
 .
 .SS Options
 .TP 
 \fB-h\fP
-Show help
+Show help.
 .TP
 \fB--user \fIusername\fR
 Run \fBgpupdate\fP for \fIusername\fP.
 .
 .SH "SEE ALSO"
-gpoa(3), gpresult(3), gpupdate.service(3), gpupdate-user.service(3)
+gpoa(1)
 .SH BUGS
 There is tons of bugs since it tries to mimic behavior of Windows
 machines.

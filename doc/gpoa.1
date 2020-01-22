@@ -1,4 +1,4 @@
-.TH GPUPDATE 1
+.TH GPOA 1
 .
 .SH NAME
 gpoa \- utility to update and apply group policy settings
@@ -13,21 +13,37 @@ them into UNIX system settings.
 .SS Options
 .TP
 \fB-h\fP
+Show help.
 .TP
 \fB--dc \fIDC\fP
-.TP
-\fB--nodomain\fP
+Specify domain controller hostname FQDN to replicate GPTs from. May be
+useful in case of default DC problems.
 .TP
 \fB--target \fITARGET\fP
 .TP
 \fB--noupdate\fP
+Don't update settings.
 .TP
 \fB--noplugins\fP
+Don't run plugins.
 .TP
 \fB--loglevel \fILOGLEVEL\fP
+Set logging verbosity from 0 to 5.
 .
+.SH FILES
+\fB/usr/sbin/gpoa\fR utility uses \fB/usr/share/local-policy/default\fR
+directory as a source for settings of "Local Policy" to set some
+behavioral defaults for machine in AD domain.
+.
+All data is located in \fB/var/cache/gpupdate\fR. Also domain GPTs are
+taken from Samba's \fB/var/cache/samba\fR.
+.
+The settings read from Samba are stored in
+\fB/var/cache/gpupdate/registry.sqlite\fR and "Local Policy" settings
+read from \fB/usr/local/share/local-policy/default\fR are converted
+into GPT and stored as \fB/var/cache/gpupdate/local-policy\fR.
 .SH "SEE ALSO"
-.
+gpupdate(1)
 .SH BUGS
 Tons of it.
 
