@@ -16,6 +16,7 @@ Requires: local-policy >= 0.1.0
 BuildRequires: rpm-build-python3
 Requires: python3-module-rpm
 Requires: oddjob-%name
+Requires: libnss-role
 
 Source0: %name-%version.tar
 
