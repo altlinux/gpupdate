@@ -79,11 +79,9 @@ class printer_entry(object):
         self.printer = pobj.to_json()
 
 class sqlite_registry(registry):
-    __registry_path = 'sqlite:///{}'.format(cache_dir())
-
     def __init__(self, db_name):
         self.db_name = db_name
-        self.db_path = os.path.join(self.__registry_path, '{}.sqlite'.format(self.db_name))
+        self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cache_dir(), self.db_name))
         self.db_cnt = create_engine(self.db_path, echo=False)
         self.__metadata = MetaData(self.db_cnt)
         self.__info = Table(

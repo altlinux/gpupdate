@@ -15,3 +15,24 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import unittest
+import unittest.mock
+
+import os
+
+import util.paths
+
+
+class GptShortcutsTestCase(unittest.TestCase):
+    @unittest.mock.patch('util.paths.cache_dir')
+    def test_shortcut_reader(self, cdir_mock):
+        '''
+        Test functionality to read objects from Shortcuts.xml
+        '''
+        cdir_mock.return_value = '/var/cache/gpupdate'
+
+        import gpt.shortcuts
+        testdata_path = '{}/test/gpt/data/Shortcuts.xml'.format(os.getcwd())
+        sc = gpt.shortcuts.read_shortcuts(testdata_path)
+        print(sc[0].to_json())
+

@@ -151,10 +151,8 @@ def get_sid(domain, username):
     '''
     Lookup SID not only using wbinfo or sssd but also using own cache
     '''
-    cached_sids = cache_factory('sid_cache')
     domain_username = '{}\\{}'.format(domain, username)
     sid = 'local-{}'.format(username)
-    sid = cached_sids.get_default(domain_username, sid)
 
     try:
         sid = wbinfo_getsid(domain, username)
@@ -164,11 +162,6 @@ def get_sid(domain, username):
             slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
 
     logging.debug(slogm('Working with SID: {}'.format(sid)))
-
-    try:
-        cached_sids.store(domain_username, sid)
-    except Exception as exc:
-        pass
 
     return sid
 
