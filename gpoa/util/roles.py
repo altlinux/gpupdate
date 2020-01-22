@@ -91,7 +91,7 @@ def fill_roles():
     create_role(users, user_groups)
 
     for rolename in roles:
-        role_path = pathlib.Path('/etc/role', '{}.d'.format(rolename))
+        role_path = pathlib.Path('/etc/role.d', '{}.d'.format(rolename))
 
         rolegroups = get_rolegroups(role_path)
 
