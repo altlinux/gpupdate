@@ -18,7 +18,9 @@
 import logging
 
 from .adp import adp
+from .roles import roles
 from .exceptions import PluginInitError
+from .plugin import plugin
 from util.logging import slogm
 
 class plugin_manager:
@@ -31,8 +33,9 @@ class plugin_manager:
         except PluginInitError as exc:
             self.plugins['adp'] = None
             logging.error(slogm(exc))
+        self.plugins['roles'] = roles()
 
     def run(self):
-        if self.plugins['adp']:
-            self.plugins['adp'].run()
+        self.plugins.get('adp', plugin('adp')).run()
+        self.plugins.get('roles', plugin('roles')).run()
 
