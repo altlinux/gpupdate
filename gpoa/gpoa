@@ -87,9 +87,9 @@ class gpoa_controller:
         '''
         GPOA controller entry point
         '''
+        self.start_plugins()
         self.start_backend()
         self.start_frontend()
-        self.start_plugins()
 
     def start_backend(self):
         '''
@@ -109,8 +109,13 @@ class gpoa_controller:
         '''
         Function to start appliers
         '''
+        target = self.target
+
+        if self.__args.nodomain:
+            target = 'Computer'
+
         try:
-            appl = frontend_manager(self.username, self.target)
+            appl = frontend_manager(self.username, target)
             appl.apply_parameters()
         except Exception as exc:
             logging.error(slogm('Error occured while running applier: {}'.format(exc)))
