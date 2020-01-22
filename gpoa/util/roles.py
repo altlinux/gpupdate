@@ -15,22 +15,26 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import logging
 import pathlib
-import os
 import subprocess
 
-def get_roles():
+from .logging import slogm
+
+
+def get_roles(role_dir):
     '''
     Return list of directories in /etc/role named after role plus '.d'
     '''
-    default_path = pathib.Path('/etc/role')
-
     directories = list()
-    for item in default_path.iterdir():
-        if item.is_dir():
-            role = str(item.name).rpartition('.')
-            if role[2] == 'd':
-                directories.append(role[0])
+    try:
+        for item in role_dir.iterdir():
+            if item.is_dir():
+                role = str(item.name).rpartition('.')
+                if role[2] == 'd':
+                    directories.append(role[0])
+    except FileNotFoundError as exc:
+        logging.warning(slogm('No role directory present (skipping): {}'.format(exc)))
 
     return directories
 
@@ -42,9 +46,10 @@ def read_groups(role_file_path):
     groups = list()
 
     with open(role_file_path, 'r') as role_file:
-        line = role_file.readline()
-        while line:
-            linegroups = line.split(' ')
+        lines = role_file.readlines()
+        for line in lines:
+            linegroups = line.strip().split(' ')
+            print(linegroups)
             groups.extend(linegroups)
 
     return set(groups)
@@ -71,27 +76,35 @@ def create_role(role_name, privilege_list):
     '''
     Create or update role
     '''
-    subprocess.check_call(['/usr/sbin/roleadd',
+    cmd = ['/usr/sbin/roleadd',
         '--set',
-        '--skip-missed',
-        role_name].extend(privilege_list))
+        role_name
+    ]
+    try:
+        print(privilege_list)
+        cmd.extend(privilege_list)
+        subprocess.check_call(cmd)
+    except Exception as exc:
+        logging.error(slogm('Error creating role \'{}\': {}'.format(role_name, exc)))
 
 def fill_roles():
     '''
     Create the necessary roles
     '''
     alterator_roles_dir = pathlib.Path('/etc/alterator/auth')
-    roles = get_roles()
+    nss_roles_dir = pathlib.Path('/etc/role.d')
+
+    roles = get_roles(nss_roles_dir)
 
     # Compatibility with 'alterator-auth' module
-    admin_groups = get_rolegroups(pathlib.Path(alterator_roles_dir, 'admin-groups'))
-    user_groups = get_rolegroups(pathlib.Path(alterator_roles_dir, 'user-groups'))
+    admin_groups = read_groups(pathlib.Path(alterator_roles_dir, 'admin-groups'))
+    user_groups = read_groups(pathlib.Path(alterator_roles_dir, 'user-groups'))
 
-    create_role(localadmins, admin_groups)
-    create_role(users, user_groups)
+    create_role('localadmins', admin_groups)
+    create_role('users', user_groups)
 
     for rolename in roles:
-        role_path = pathlib.Path('/etc/role.d', '{}.d'.format(rolename))
+        role_path = pathlib.Path(nss_roles_dir, '{}.d'.format(rolename))
 
         rolegroups = get_rolegroups(role_path)
 
