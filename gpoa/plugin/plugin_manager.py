@@ -33,7 +33,6 @@ class plugin_manager:
         except PluginInitError as exc:
             self.plugins['adp'] = None
             logging.error(slogm(exc))
-        self.plugins['roles'] = roles()
 
     def run(self):
         self.plugins.get('adp', plugin('adp')).run()
