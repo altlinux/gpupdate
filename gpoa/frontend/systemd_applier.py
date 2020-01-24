@@ -35,6 +35,11 @@ class systemd_applier(applier_frontend):
         '''
         for setting in self.systemd_unit_settings:
             valuename = setting.hive_key.rpartition('\\')[2]
+            valuename_extension_test = valuename.rpartition('_')
+
+            if valuename_extension_test[2] == 'service':
+                valuename = '{}.{}'.format(valuename_extension_test[0], valuename_extension_test[2])
+
             try:
                 self.units.append(systemd_unit(valuename, int(setting.data)))
                 logging.info(slogm('Working with systemd unit {}'.format(valuename)))
