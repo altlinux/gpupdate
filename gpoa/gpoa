@@ -87,17 +87,21 @@ class gpoa_controller:
         '''
         GPOA controller entry point
         '''
+        self.start_plugins()
         self.start_backend()
         self.start_frontend()
-        self.start_plugins()
 
     def start_backend(self):
         '''
         Function to start update of settings storage
         '''
+        dc = self.__args.dc
+        if self.__args.nodomain:
+            dc = None
+
         if not self.__args.noupdate:
             if is_root():
-                back = backend_factory(self.__args.dc, self.username)
+                back = backend_factory(dc, self.username)
                 if back:
                     back.retrieve_and_store()
 
@@ -105,8 +109,13 @@ class gpoa_controller:
         '''
         Function to start appliers
         '''
+        target = self.target
+
+        if self.__args.nodomain:
+            target = 'Computer'
+
         try:
-            appl = frontend_manager(self.username, self.target)
+            appl = frontend_manager(self.username, target)
             appl.apply_parameters()
         except Exception as exc:
             logging.error(slogm('Error occured while running applier: {}'.format(exc)))

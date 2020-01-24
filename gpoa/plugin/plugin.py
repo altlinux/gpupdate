@@ -15,26 +15,12 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import logging
+from abc import ABC
 
-from .adp import adp
-from .roles import roles
-from .exceptions import PluginInitError
-from .plugin import plugin
-from util.logging import slogm
-
-class plugin_manager:
-    def __init__(self):
-        self.plugins = dict()
-        logging.info(slogm('Starting plugin manager'))
-        try:
-            self.plugins['adp'] = adp()
-            logging.info(slogm('ADP plugin initialized'))
-        except PluginInitError as exc:
-            self.plugins['adp'] = None
-            logging.error(slogm(exc))
+class plugin():
+    def __init__(self, plugin_name):
+        self.plugin_name = plugin_name
 
     def run(self):
-        self.plugins.get('adp', plugin('adp')).run()
-        self.plugins.get('roles', plugin('roles')).run()
+        pass
 

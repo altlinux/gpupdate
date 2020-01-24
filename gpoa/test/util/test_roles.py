@@ -15,26 +15,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import logging
+import unittest
 
-from .adp import adp
-from .roles import roles
-from .exceptions import PluginInitError
-from .plugin import plugin
-from util.logging import slogm
+from util.roles import fill_roles
 
-class plugin_manager:
-    def __init__(self):
-        self.plugins = dict()
-        logging.info(slogm('Starting plugin manager'))
-        try:
-            self.plugins['adp'] = adp()
-            logging.info(slogm('ADP plugin initialized'))
-        except PluginInitError as exc:
-            self.plugins['adp'] = None
-            logging.error(slogm(exc))
-
-    def run(self):
-        self.plugins.get('adp', plugin('adp')).run()
-        self.plugins.get('roles', plugin('roles')).run()
+class RolesTestCase(unittest.TestCase):
+    def test_roles(self):
+        '''
+        Test utility functions to work with roles
+        '''
+        fill_roles()
 
