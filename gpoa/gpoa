@@ -60,7 +60,7 @@ def parse_arguments():
         help='Don\'t start plugins')
     arguments.add_argument('--loglevel',
         type=int,
-        default=0,
+        default=4,
         help='Set logging verbosity level')
     return arguments.parse_args()
 
