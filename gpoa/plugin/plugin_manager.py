@@ -29,9 +29,7 @@ class plugin_manager:
         logging.info(slogm('Starting plugin manager'))
         try:
             self.plugins['adp'] = adp()
-            logging.info(slogm('ADP plugin initialized'))
         except PluginInitError as exc:
-            self.plugins['adp'] = None
             logging.error(slogm(exc))
 
     def run(self):
