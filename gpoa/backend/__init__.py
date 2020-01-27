@@ -19,6 +19,7 @@ import logging
 
 from util.windows import smbcreds
 from .samba_backend import samba_backend
+from .nodomain_backend import nodomain_backend
 
 def backend_factory(dc, username):
     '''
