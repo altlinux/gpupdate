@@ -37,7 +37,7 @@ class nodomain_backend(applier_backend):
         self.storage.set_info('machine_sid', get_sid(domain, self.storage.get_info('machine_name')))
 
         # User SID to work with HKCU hive
-        self.username = username
+        self.username = get_machine_name()
         self.sid = get_sid(self.storage.get_info('domain'), self.username)
 
     def retrieve_and_store(self):

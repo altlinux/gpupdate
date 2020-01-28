@@ -43,6 +43,7 @@ class dbus_runner:
             result = self.interface.gpupdatefor(dbus.String(self.username))
             print_dbus_result(result)
         else:
+            logging.info(slogm('Starting GPO applier for computer via D-Bus'.format(self.username)))
             result = self.interface.gpupdate()
             print_dbus_result(result)
         #self.interface.Quit()

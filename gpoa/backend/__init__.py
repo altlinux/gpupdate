@@ -21,7 +21,7 @@ from util.windows import smbcreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
 
-def backend_factory(dc, username):
+def backend_factory(dc, username, is_machine):
     '''
     Return one of backend objects. Please note that backends must
     store their configuration in a storage with administrator
@@ -34,7 +34,7 @@ def backend_factory(dc, username):
 
     if dc:
         try:
-            back = samba_backend(sc, username, domain)
+            back = samba_backend(sc, username, domain, is_machine)
         except Exception as exc:
             logging.error('Unable to initialize Samba backend: {}'.format(exc))
     else:

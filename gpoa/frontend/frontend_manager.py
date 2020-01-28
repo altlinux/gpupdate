@@ -70,10 +70,10 @@ class frontend_manager:
     for machine and user parts of policies.
     '''
 
-    def __init__(self, username, target):
+    def __init__(self, username, is_machine):
         self.storage = registry_factory('registry')
         self.username = determine_username(username)
-        self.target = target
+        self.is_machine = is_machine
         self.process_uname = get_process_user()
         self.sid = get_sid(self.storage.get_info('domain'), self.username)
 
@@ -135,11 +135,8 @@ class frontend_manager:
         '''
         Decide which appliers to run.
         '''
-        if 'All' == self.target or 'Computer' == self.target:
+        if self.is_machine:
             self.machine_apply()
-
-        # Run user appliers when user's SID is specified
-        if self.storage.get_info('machine_sid') != self.sid:
-            if 'All' == self.target or 'User' == self.target:
-                self.user_apply()
+        else:
+            self.user_apply()
 

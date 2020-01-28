@@ -31,8 +31,7 @@ from util.users import (
     get_process_user
 )
 from util.arguments import (
-    set_loglevel,
-    process_target
+    set_loglevel
 )
 from util.logging import slogm
 
@@ -41,7 +40,6 @@ def parse_arguments():
     arguments.add_argument('user',
         type=str,
         nargs='?',
-        default=get_machine_name(),
         help='Domain username ({}) to parse policies for'.format(get_machine_name()))
     arguments.add_argument('--dc',
         type=str,
@@ -49,9 +47,6 @@ def parse_arguments():
     arguments.add_argument('--nodomain',
         action='store_true',
         help='Operate without domain (apply local policy)')
-    arguments.add_argument('--target',
-        type=str,
-        help='Specify if it is needed to update user\'s or computer\'s policies')
     arguments.add_argument('--noupdate',
         action='store_true',
         help='Don\'t try to update storage, only run appliers')
@@ -70,6 +65,10 @@ class gpoa_controller:
 
     def __init__(self):
         self.__args = parse_arguments()
+        self.is_machine = False
+        if not self.__args.user:
+            user = get_machine_name()
+            self.is_machine = True
         set_loglevel(self.__args.loglevel)
         self.__kinit_successful = machine_kinit()
 
@@ -81,7 +80,6 @@ class gpoa_controller:
             self.username = uname
         else:
             self.username = determine_username(self.__args.user)
-        self.target = process_target(self.__args.target)
 
     def run(self):
         '''
@@ -101,7 +99,7 @@ class gpoa_controller:
 
         if not self.__args.noupdate:
             if is_root():
-                back = backend_factory(dc, self.username)
+                back = backend_factory(dc, self.username, self.is_machine)
                 if back:
                     back.retrieve_and_store()
 
@@ -109,13 +107,8 @@ class gpoa_controller:
         '''
         Function to start appliers
         '''
-        target = self.target
-
-        if self.__args.nodomain:
-            target = 'Computer'
-
         try:
-            appl = frontend_manager(self.username, target)
+            appl = frontend_manager(self.username, self.is_machine)
             appl.apply_parameters()
         except Exception as exc:
             logging.error(slogm('Error occured while running applier: {}'.format(exc)))
