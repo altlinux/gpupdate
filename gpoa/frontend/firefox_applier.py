@@ -98,7 +98,7 @@ class firefox_applier(applier_frontend):
         })
         response = self.get_hklm_string_entry('Homepage\\URL')
         if response:
-            homepage['URL'] = response
+            homepage['URL'] = response.data
             return homepage
         return None
 
@@ -108,7 +108,7 @@ class firefox_applier(applier_frontend):
         '''
         response = self.get_hklm_string_entry('BlockAboutConfig')
         if response:
-            if response.lower() in ['0', 'false', False, None, 'None']:
+            if response.data.lower() in ['0', 'false', False, None, 'None']:
                 return False
             return True
 
