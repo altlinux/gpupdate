@@ -25,7 +25,7 @@ from util.logging import slogm
 from util.util import is_machine_name
 
 class chromium_applier(applier_frontend):
-    __registry_branch = 'Software\\Policies\\Chromium'
+    __registry_branch = 'Software\\Policies\\Google\\Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
     __recommended_policies_path = '/etc/chromium/policies/recommended'
     # JSON file where Chromium stores its settings (and which is
