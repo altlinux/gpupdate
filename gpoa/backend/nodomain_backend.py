@@ -31,14 +31,17 @@ from util.logging import slogm
 class nodomain_backend(applier_backend):
 
     def __init__(self):
+        domain = None
+        machine_name = get_machine_name()
+        machine_sid = get_sid(domain, machine_name, True)
         self.storage = registry_factory('registry')
         self.storage.set_info('domain', domain)
-        self.storage.set_info('machine_name', get_machine_name())
-        self.storage.set_info('machine_sid', get_sid(domain, self.storage.get_info('machine_name')))
+        self.storage.set_info('machine_name', machine_name)
+        self.storage.set_info('machine_sid', machine_sid)
 
         # User SID to work with HKCU hive
-        self.username = username
-        self.sid = get_sid(self.storage.get_info('domain'), self.username)
+        self.username = machine_name
+        self.sid = machine_sid
 
     def retrieve_and_store(self):
         '''

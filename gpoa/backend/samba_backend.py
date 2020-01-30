@@ -33,16 +33,21 @@ from util.logging import slogm
 
 class samba_backend(applier_backend):
 
-    def __init__(self, sambacreds, username, domain):
+    def __init__(self, sambacreds, username, domain, is_machine):
         self.storage = registry_factory('registry')
         self.storage.set_info('domain', domain)
-        self.storage.set_info('machine_name', get_machine_name())
-        self.storage.set_info('machine_sid', get_sid(domain, self.storage.get_info('machine_name')))
+        machine_name = get_machine_name()
+        machine_sid = get_sid(domain, machine_name, is_machine)
+        self.storage.set_info('machine_name', machine_name)
+        self.storage.set_info('machine_sid', machine_sid)
 
         # User SID to work with HKCU hive
         self.username = username
-        self._is_machine_username = is_machine_name(self.username)
-        self.sid = get_sid(self.storage.get_info('domain'), self.username)
+        self._is_machine_username = is_machine
+        if is_machine:
+            self.sid = machine_sid
+        else:
+            self.sid = get_sid(self.storage.get_info('domain'), self.username)
 
         self.cache = cache_factory('regpol_cache')
         self.gpo_names = cache_factory('gpo_names')

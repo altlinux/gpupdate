@@ -28,6 +28,9 @@ import pwd
 from util.users import (
     is_root
 )
+from util.arguments import (
+    process_target
+)
 from util.dbus import (
     is_oddjobd_gpupdate_accessible,
     dbus_runner
@@ -61,10 +64,14 @@ def parse_cli_arguments():
         '--user',
         default=None,
         help='Name of the user for GPO update')
+    argparser.add_argument('--target',
+        default=None,
+        type=str,
+        help='Specify if it is needed to update user\'s or computer\'s policies')
 
     return argparser.parse_args()
 
-def runner_factory(args):
+def runner_factory(args, target):
     '''
     Return the necessary runner class according to some
     factors taken into account.
@@ -84,24 +91,36 @@ def runner_factory(args):
     else:
         # User may only perform gpupdate for machine (None) or
         # itself (os.getusername()).
-        if args.user:
-            username = pwd.getpwuid(os.getuid()).pw_name
-            if args.user != username:
-                logstring = (
-                    'Unable to perform gpupdate for {} with current'
-                    ' permissions, will update current user settings'
-                )
-                logging.error(logstring.format(args.user))
+        username = pwd.getpwuid(os.getuid()).pw_name
+        if args.user != username:
+            logstring = (
+                'Unable to perform gpupdate for {} with current'
+                ' permissions, will update current user settings'
+            )
+            logging.error(logstring.format(args.user))
 
     if is_oddjobd_gpupdate_accessible():
         logging.debug('Starting gpupdate via D-Bus')
-        return dbus_runner(username)
+        computer_runner = None
+        user_runner = None
+        if target == 'All' or target == 'Computer':
+            computer_runner = dbus_runner()
+        if username:
+            if target == 'All' or target == 'User':
+                user_runner = dbus_runner(username)
+        return (computer_runner, user_runner)
     else:
         logging.warning('oddjobd is inaccessible')
 
     if is_root():
         logging.debug('Starting gpupdate by command invocation')
-        return file_runner(username)
+        computer_runner = None
+        user_runner = None
+        if target == 'All' or target == 'Computer':
+            computer_runner = file_runner()
+        if target == 'All' or target == 'User':
+            user_runner = file_runner(username)
+        return (computer_runner, user_runner)
     else:
         logging.error('Insufficient permissions to run gpupdate')
 
@@ -109,9 +128,12 @@ def runner_factory(args):
 
 def main():
     args = parse_cli_arguments()
-    gpo_applier = runner_factory(args)
-    if gpo_applier:
-        gpo_applier.run()
+    gpo_appliers = runner_factory(args, process_target(args.target))
+    if gpo_appliers:
+        if gpo_appliers[0]:
+            gpo_appliers[0].run()
+        if gpo_appliers[1]:
+            gpo_appliers[1].run()
     else:
         logging.error('gpupdate will not be started')
 
