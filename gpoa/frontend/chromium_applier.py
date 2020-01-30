@@ -101,7 +101,11 @@ class chromium_applier(applier_frontend):
                 logging.info(slogm('Set user ({}) property \'{}\' to {}'.format(self.username, name, obj)))
 
     def get_home_page(self, hkcu=False):
-        return self.get_hklm_string_entry('HomepageLocation')
+        response = self.get_hklm_string_entry('HomepageLocation')
+        result = 'about:blank'
+        if response:
+            result = response.data
+        return result
 
     def machine_apply(self):
         '''
