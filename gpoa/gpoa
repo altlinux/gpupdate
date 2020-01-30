@@ -94,12 +94,13 @@ class gpoa_controller:
         Function to start update of settings storage
         '''
         dc = self.__args.dc
+        nodomain = False
         if self.__args.nodomain:
-            dc = None
+            nodomain = True
 
         if not self.__args.noupdate:
             if is_root():
-                back = backend_factory(dc, self.username, self.is_machine)
+                back = backend_factory(dc, self.username, self.is_machine, nodomain)
                 if back:
                     back.retrieve_and_store()
 

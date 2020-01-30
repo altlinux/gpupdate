@@ -37,13 +37,17 @@ class samba_backend(applier_backend):
         self.storage = registry_factory('registry')
         self.storage.set_info('domain', domain)
         machine_name = get_machine_name()
+        machine_sid = get_sid(domain, machine_name, is_machine)
         self.storage.set_info('machine_name', machine_name)
-        self.storage.set_info('machine_sid', get_sid(domain, machine_name))
+        self.storage.set_info('machine_sid', machine_sid)
 
         # User SID to work with HKCU hive
         self.username = username
         self._is_machine_username = is_machine
-        self.sid = get_sid(self.storage.get_info('domain'), self.username)
+        if is_machine:
+            self.sid = machine_sid
+        else:
+            self.sid = get_sid(self.storage.get_info('domain'), self.username)
 
         self.cache = cache_factory('regpol_cache')
         self.gpo_names = cache_factory('gpo_names')

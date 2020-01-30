@@ -21,23 +21,27 @@ from util.windows import smbcreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
 
-def backend_factory(dc, username, is_machine):
+def backend_factory(dc, username, is_machine, no_domain = False):
     '''
     Return one of backend objects. Please note that backends must
     store their configuration in a storage with administrator
     write permissions in order to prevent users from modifying
     policies enforced by domain administrators.
     '''
-    sc = smbcreds(dc)
-    domain = sc.get_domain()
     back = None
+    domain = None
+    if not no_domain:
+        sc = smbcreds(dc)
+        domain = sc.get_domain()
 
-    if dc:
+    if domain:
+        logging.debug('Initialize Samba backend for domain: {}'.format(domain))
         try:
             back = samba_backend(sc, username, domain, is_machine)
         except Exception as exc:
             logging.error('Unable to initialize Samba backend: {}'.format(exc))
     else:
+        logging.debug('Initialize local backend with no domain')
         try:
             back = nodomain_backend()
         except Exception as exc:

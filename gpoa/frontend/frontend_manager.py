@@ -75,7 +75,7 @@ class frontend_manager:
         self.username = determine_username(username)
         self.is_machine = is_machine
         self.process_uname = get_process_user()
-        self.sid = get_sid(self.storage.get_info('domain'), self.username)
+        self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
 
         self.machine_appliers = dict({
             'control':  control_applier(self.storage),
