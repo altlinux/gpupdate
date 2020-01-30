@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.3.0
+Version: 0.4.0
 Release: alt1
 
 Summary: GPT applier
@@ -15,7 +15,7 @@ Requires: local-policy >= 0.1.0
 
 BuildRequires: rpm-build-python3
 Requires: python3-module-rpm
-Requires: oddjob-%name
+Requires: oddjob-%name >= 0.2.0
 Requires: libnss-role
 
 Source0: %name-%version.tar
@@ -74,6 +74,9 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %dir %_cachedir/%name
 
 %changelog
+* Thu Jan 30 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.0-alt1
+- Update release with first pack of stabilization fixes
+
 * Thu Jan 16 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.3.0-alt1
 - Add user appliers support and machine gsettings apllier
 - Add require to oddjob-gpupdate
