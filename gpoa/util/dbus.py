@@ -19,6 +19,7 @@ import logging
 import dbus
 
 from .logging import slogm
+from .users import is_root
 
 
 class dbus_runner:
@@ -40,7 +41,10 @@ class dbus_runner:
         #print(obj.Introspect()[0])
         if self.username:
             logging.info(slogm('Starting GPO applier for user {} via D-Bus'.format(self.username)))
-            result = self.interface.gpupdatefor(dbus.String(self.username))
+            if is_root():
+                result = self.interface.gpupdatefor(dbus.String(self.username))
+            else:
+                result = self.interface.gpupdate()
             print_dbus_result(result)
         else:
             logging.info(slogm('Starting GPO applier for computer via D-Bus'))

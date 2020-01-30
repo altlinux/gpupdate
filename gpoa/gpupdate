@@ -91,14 +91,13 @@ def runner_factory(args, target):
     else:
         # User may only perform gpupdate for machine (None) or
         # itself (os.getusername()).
-        if args.user:
-            username = pwd.getpwuid(os.getuid()).pw_name
-            if args.user != username:
-                logstring = (
-                    'Unable to perform gpupdate for {} with current'
-                    ' permissions, will update current user settings'
-                )
-                logging.error(logstring.format(args.user))
+        username = pwd.getpwuid(os.getuid()).pw_name
+        if args.user != username:
+            logstring = (
+                'Unable to perform gpupdate for {} with current'
+                ' permissions, will update current user settings'
+            )
+            logging.error(logstring.format(args.user))
 
     if is_oddjobd_gpupdate_accessible():
         logging.debug('Starting gpupdate via D-Bus')
@@ -106,8 +105,9 @@ def runner_factory(args, target):
         user_runner = None
         if target == 'All' or target == 'Computer':
             computer_runner = dbus_runner()
-        if target == 'All' or target == 'User':
-            user_runner = dbus_runner(username)
+        if username:
+            if target == 'All' or target == 'User':
+                user_runner = dbus_runner(username)
         return (computer_runner, user_runner)
     else:
         logging.warning('oddjobd is inaccessible')
