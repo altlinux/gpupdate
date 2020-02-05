@@ -4,6 +4,7 @@
 
 * [Introduction](#introduction)
 * [Development](#development)
+* [Contributing](#contributing)
 * [License](#license)
 
 * * *
@@ -27,6 +28,15 @@ And then you may install prospector like:
 ```sh
 # pip install prospector[with_pyroma]
 ```
+
+
+## Contributing
+
+The main communication channel for GPOA is
+[Samba@ALT Linux mailing lists](https://lists.altlinux.org/mailman/listinfo/samba).
+The mailing list is in Russian but you may also send e-mail in English
+or German.
+
 
 ## License
 
