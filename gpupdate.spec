@@ -5,7 +5,7 @@ Version: 0.4.0
 Release: alt1
 
 Summary: GPT applier
-License: GPLv2+
+License: GPLv3+
 Group: Other
 Url: http://git.altlinux.org/
 BuildArch: noarch
