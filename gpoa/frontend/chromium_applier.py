@@ -25,7 +25,7 @@ from util.logging import slogm
 from util.util import is_machine_name
 
 class chromium_applier(applier_frontend):
-    __registry_branch = 'Software\\Policies\\Chromium'
+    __registry_branch = 'Software\\Policies\\Google\\Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
     __recommended_policies_path = '/etc/chromium/policies/recommended'
     # JSON file where Chromium stores its settings (and which is
@@ -101,7 +101,11 @@ class chromium_applier(applier_frontend):
                 logging.info(slogm('Set user ({}) property \'{}\' to {}'.format(self.username, name, obj)))
 
     def get_home_page(self, hkcu=False):
-        return self.get_hklm_string_entry('HomepageLocation')
+        response = self.get_hklm_string_entry('HomepageLocation')
+        result = 'about:blank'
+        if response:
+            result = response.data
+        return result
 
     def machine_apply(self):
         '''
