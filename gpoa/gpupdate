@@ -80,7 +80,10 @@ def runner_factory(args, target):
     if is_root():
         # Only root may specify any username to update.
         try:
-            username = pwd.getpwnam(args.user).pw_name
+            if args.user:
+                username = pwd.getpwnam(args.user).pw_name
+            else:
+                target = 'Computer'
         except:
             username = None
             logstring = (
