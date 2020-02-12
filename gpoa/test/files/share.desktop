@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Link
+Version=1.0
+Name=Docs
+GenericName=Link to CIFS disk
+Comment=Link to Samba share
+URL=smb://10.0.0.0/
+
