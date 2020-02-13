@@ -5,7 +5,7 @@ Description=gpupdate in userspace
 # gpupdate on Windows runs once per hour
 [Service]
 Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
-Type=notify
+Type=simple
 WatchdogSec=3600
 TimeoutSec=3000
 Restart=always
