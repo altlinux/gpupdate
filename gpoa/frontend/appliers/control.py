@@ -25,19 +25,6 @@ class control:
     def __init__(self, name, value):
         self.control_name = name
         self.control_value = value
-        self.possible_values = self._query_control_values()
-        if self.possible_values == None:
-            raise Exception('Unable to query possible values')
-
-    def _query_control_values(self):
-        proc = subprocess.Popen(['/usr/sbin/control', self.control_name, 'list'], stdout=subprocess.PIPE)
-        for line in proc.stdout:
-            values = line.split()
-            return values
-
-    def _map_control_status(self, int_status):
-        str_status = self.possible_values[int_status].decode()
-        return str_status
 
     def get_control_name(self):
         return self.control_name
@@ -48,11 +35,10 @@ class control:
             return line.rstrip('\n\r')
 
     def set_control_status(self):
-        status = self._map_control_status(self.control_value)
-        logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
+        logging.debug(slogm('Setting control {} to {}'.format(self.control_name, self.control_value)))
 
         try:
-            proc = subprocess.Popen(['/usr/sbin/control', self.control_name, status], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(['/usr/sbin/control', self.control_name, self.control_value], stdout=subprocess.PIPE)
         except:
-            logging.error(slogm('Unable to set {} to {}'.format(self.control_name, status)))
+            logging.error(slogm('Unable to set {} to {}'.format(self.control_name, self.control_value)))
 
