@@ -21,6 +21,7 @@ import unittest.mock
 import os
 
 import util.paths
+import json
 
 
 class GptShortcutsTestCase(unittest.TestCase):
@@ -34,7 +35,10 @@ class GptShortcutsTestCase(unittest.TestCase):
         import gpt.shortcuts
         testdata_path = '{}/test/gpt/data/Shortcuts.xml'.format(os.getcwd())
         sc = gpt.shortcuts.read_shortcuts(testdata_path)
-        print(sc[0].to_json())
+
+        json_obj = json.loads(sc[0].to_json())
+        self.assertIsNotNone(json_obj['Desktop Entry'])
+        self.assertEqual(json_obj['Desktop Entry']['Type'], 'Application')
 
     @unittest.mock.patch('util.paths.cache_dir')
     def test_shortcut_link(self, cdir_mock):
@@ -47,5 +51,9 @@ class GptShortcutsTestCase(unittest.TestCase):
         import gpt.shortcuts
         testdata_path = '{}/test/gpt/data/Shortcuts_link.xml'.format(os.getcwd())
         sc = gpt.shortcuts.read_shortcuts(testdata_path)
-        print(sc[0].to_json())
+
+        json_obj = json.loads(sc[0].to_json())
+        self.assertIsNotNone(json_obj['Desktop Entry'])
+        self.assertEqual(json_obj['Desktop Entry']['Type'], 'Link')
+        self.assertEqual(json_obj['Desktop Entry']['URL'], 'smb://10.0.0.0/')
 
