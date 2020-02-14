@@ -169,7 +169,7 @@ class shortcut:
         self.desktop_file = DesktopEntry()
         self.desktop_file.addGroup('Desktop Entry')
 
-        if self.type == TargetType.URL
+        if self.type == TargetType.URL:
             self.desktop_file.set('Type', 'Link')
         else:
             self.desktop_file.set('Type', 'Application')
