@@ -36,3 +36,16 @@ class GptShortcutsTestCase(unittest.TestCase):
         sc = gpt.shortcuts.read_shortcuts(testdata_path)
         print(sc[0].to_json())
 
+    @unittest.mock.patch('util.paths.cache_dir')
+    def test_shortcut_link(self, cdir_mock):
+        '''
+        Test generation of .desktop file with Type=Link pointing to
+        Samba share.
+        '''
+        cdir_mock.return_value = '/var/cache/gpupdate'
+
+        import gpt.shortcuts
+        testdata_path = '{}/test/gpt/data/Shortcuts_link.xml'.format(os.getcwd())
+        sc = gpt.shortcuts.read_shortcuts(testdata_path)
+        print(sc[0].to_json())
+
