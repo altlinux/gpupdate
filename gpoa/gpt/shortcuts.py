@@ -46,6 +46,19 @@ def get_ttype(targetstr):
 
     return ttype
 
+def ttype2str(ttype):
+    '''
+    Transform TargetType to string for JSON serialization
+
+    :param ttype: TargetType object
+    '''
+    result = 'FILESYSTEM'
+
+    if ttype == TargetType.URL:
+        result = 'URL'
+
+    return result
+
 def read_shortcuts(shortcuts_file):
     '''
     Read shortcut objects from GPTs XML file
