@@ -239,6 +239,27 @@ User Shortcuts.xml: {}
         )
         return result
 
+def find_dir(search_path, name):
+    '''
+    Attempt for case-insensitive search of directory
+
+    :param search_path: Path to get file list from
+    :param name: Name of the directory to search for
+    '''
+    if not search_path:
+        return None
+
+    try:
+        file_list = os.listdir(search_path)
+        for entry in file_list:
+            dir_path = os.path.join(search_path, entry)
+            if os.path.isdir(file_path) and name.lower() == entry.lower():
+                return dir_path
+    except Exception as exc:
+        pass
+
+    return None
+
 def find_file(search_path, name):
     '''
     Attempt for case-insensitive file search in directory.
