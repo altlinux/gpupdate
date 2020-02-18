@@ -57,9 +57,10 @@ class gpt:
         if 'default' == self.guid:
             self.guid = 'Local Policy'
 
-        self._machine_path = None
-        self._user_path = None
-        self._get_machine_user_dirs()
+        self._machine_path = find_dir(self.path, 'Machine')
+        self._user_path = find_dir(self.path, 'User')
+        self._machine_prefs = find_dir(self._machine_path, 'Preferences')
+        self._user_prefs = find_dir(self._user_path, 'Preferences')
 
         logging.debug(slogm('Looking for machine part of GPT {}'.format(self.guid)))
         self._find_machine()
@@ -87,19 +88,6 @@ class gpt:
 
         return upm
 
-    def _get_machine_user_dirs(self):
-        '''
-        Find full path to Machine and User parts of GPT.
-        '''
-        entries = os.listdir(self.path)
-        for entry in entries:
-            full_entry_path = os.path.join(self.path, entry)
-            if os.path.isdir(full_entry_path):
-                if 'machine' == entry.lower():
-                    self._machine_path = full_entry_path
-                if 'user' == entry.lower():
-                    self._user_path = full_entry_path
-
     def _find_user(self):
         self._user_regpol = self._find_regpol('user')
         self._user_shortcuts = self._find_shortcuts('user')
@@ -124,16 +112,14 @@ class gpt:
         '''
         Find Shortcuts.xml files.
         '''
-        search_path = os.path.join(self._machine_path, 'Preferences', 'Shortcuts')
-        if 'user' == part:
-            try:
-                search_path = os.path.join(self._user_path, 'Preferences', 'Shortcuts')
-            except Exception as exc:
-                return None
-        if not search_path:
-            return None
+        shortcuts_dir = find_dir(self._machine_prefs, 'Shortcuts')
+        shortcuts_file = find_file(shortcuts_dir, 'shortcuts.xml')
 
-        return find_file(search_path, 'shortcuts.xml')
+        if 'user' == part:
+            shortcuts_dir = find_dir(self._user_prefs, 'Shortcuts')
+            shortcuts_file = find_file(shortcuts_dir, 'shortcuts.xml')
+
+        return shortcuts_file
 
     def _find_envvars(self, part):
         '''
