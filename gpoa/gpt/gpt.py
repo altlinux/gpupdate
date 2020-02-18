@@ -264,6 +264,12 @@ def find_file(search_path, name):
     '''
     Attempt for case-insensitive file search in directory.
     '''
+    if not search_path:
+        return None
+
+    if not name:
+        return None
+
     try:
         file_list = os.listdir(search_path)
         for entry in file_list:
