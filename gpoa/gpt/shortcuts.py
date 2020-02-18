@@ -92,8 +92,9 @@ def json2sc(json_str):
     Build shortcut out of string-serialized JSON
     '''
     json_obj = json.loads(json_str)
+    link_type = get_ttype(json_obj['type'])
 
-    sc = shortcut(json_obj['dest'], json_obj['path'], json_obj['arguments'], json_obj['name'])
+    sc = shortcut(json_obj['dest'], json_obj['path'], json_obj['arguments'], json_obj['name'], link_type)
     sc.set_changed(json_obj['changed'])
     sc.set_clsid(json_obj['clsid'])
     sc.set_guid(json_obj['guid'])
@@ -102,7 +103,7 @@ def json2sc(json_str):
     return sc
 
 class shortcut:
-    def __init__(self, dest, path, arguments, name=None, ttype='FILESYSTEM'):
+    def __init__(self, dest, path, arguments, name=None, ttype=TargetType.FILESYSTEM):
         '''
         :param dest: Path to resulting file on file system
         :param path: Path where the link should point to
@@ -169,6 +170,7 @@ class shortcut:
         content['guid'] = self.guid
         content['changed'] = self.changed
         content['is_in_user_context'] = self.is_in_user_context
+        content['type'] = ttype2str(self.type)
 
         result = self.desktop()
         result.content.update(content)
