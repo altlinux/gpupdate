@@ -23,6 +23,10 @@ from .applier_frontend import applier_frontend
 from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
 from util.logging import slogm
+from util.util import (
+        get_homedir,
+        homedir_exists
+)
 
 def storage_get_shortcuts(storage, sid):
     '''
@@ -44,6 +48,17 @@ def write_shortcut(shortcut, username=None):
     :username: None means working with machine variables and paths
     '''
     dest_abspath = expand_windows_var(shortcut.dest, username).replace('\\', '/') + '.desktop'
+
+    # Check that we're working for user, not on global system level
+    if username:
+        # Check that link destination path starts with specification of
+        # user's home directory
+        if dest_abspath.startswith(get_homedir(username)):
+            # Don't try to operate on non-existent directory
+            if not homedir_exists(username):
+                logging.warning(slogm('No home directory exists for user {}: will not create link {}'.format(username, dest_abspath)))
+                return None
+
     logging.debug(slogm('Writing shortcut file to {}'.format(dest_abspath)))
     shortcut.write_desktop(dest_abspath)
 

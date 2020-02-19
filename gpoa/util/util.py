@@ -20,6 +20,7 @@
 import socket
 import os
 import pwd
+from pathlib import Path
 
 
 def get_machine_name():
@@ -53,6 +54,19 @@ def get_homedir(username):
     '''
     return pwd.getpwnam(username).pw_dir
 
+def homedir_exists(username):
+    '''
+    Check that home directory exists for specified user.
+
+    :param username: string representing user name to work with
+    :return: True in case home directory exists and False otherwise
+    '''
+    hd = Path(get_homedir(username))
+
+    if hd.exists() and hd.is_dir():
+        return True
+
+    return False
 
 def mk_homedir_path(username, homedir_path):
     '''
