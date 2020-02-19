@@ -239,7 +239,7 @@ def find_dir(search_path, name):
         file_list = os.listdir(search_path)
         for entry in file_list:
             dir_path = os.path.join(search_path, entry)
-            if os.path.isdir(file_path) and name.lower() == entry.lower():
+            if os.path.isdir(dir_path) and name.lower() == str(entry).lower():
                 return dir_path
     except Exception as exc:
         pass
@@ -260,7 +260,7 @@ def find_file(search_path, name):
         file_list = os.listdir(search_path)
         for entry in file_list:
             file_path = os.path.join(search_path, entry)
-            if os.path.isfile(file_path) and name.lower() == entry.lower():
+            if os.path.isfile(file_path) and name.lower() == str(entry).lower():
                 return file_path
     except Exception as exc:
         #logging.error(exc)
