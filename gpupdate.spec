@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.4.1
+Version: 0.4.2
 Release: alt1
 
 Summary: GPT applier
@@ -74,6 +74,10 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %dir %_cachedir/%name
 
 %changelog
+* Wed Feb 19 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.2-alt1
+- Change service type to 'simple' because gpoa is not systemd-aware
+- Shortcuts fixes and improvements
+
 * Wed Feb 12 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.1-alt1
 - Update license to GPLv3+
 - Run gpudate as root without user argument for Computer target only
