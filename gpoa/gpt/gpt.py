@@ -194,7 +194,7 @@ class gpt:
                 util.preg.merge_polfile(self._machine_regpol)
             if self._user_regpol:
                 logging.debug(slogm('Merging machine(user) settings from {}'.format(self._machine_regpol)))
-                util.preg.merge_polfile(self._user_regpol, self.machine_sid)
+                util.preg.merge_polfile(self._user_regpol, self.sid)
             if self._machine_shortcuts:
                 logging.debug(slogm('Merging machine shortcuts from {}'.format(self._machine_shortcuts)))
                 self._merge_shortcuts()
