@@ -39,6 +39,9 @@ class control_applier(applier_frontend):
             try:
                 self.controls.append(control(valuename, int(setting.data)))
                 logging.info(slogm('Working with control {}'.format(valuename)))
+            except ValueError as exc:
+                self.controls.append(control(valuename, str(setting.data.decode())))
+                logging.info(slogm('Working with control {} with string value'.format(valuename)))
             except Exception as exc:
                 logging.info(slogm('Unable to work with control {}: {}'.format(valuename, exc)))
         #for e in polfile.pol_file.entries:
