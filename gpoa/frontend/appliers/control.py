@@ -23,6 +23,8 @@ from util.logging import slogm
 
 class control:
     def __init__(self, name, value):
+        if type(value) != int and type(value) != str:
+            raise Exception('Unknown type of value for control')
         self.control_name = name
         self.control_value = value
         self.possible_values = self._query_control_values()
@@ -31,12 +33,15 @@ class control:
 
     def _query_control_values(self):
         proc = subprocess.Popen(['/usr/sbin/control', self.control_name, 'list'], stdout=subprocess.PIPE)
+        values = list()
         for line in proc.stdout:
-            values = line.split()
-            return values
+            values = [x.decode() for x in line.split()]
+            break
+
+        return values
 
     def _map_control_status(self, int_status):
-        str_status = self.possible_values[int_status].decode()
+        str_status = self.possible_values[int_status]
         return str_status
 
     def get_control_name(self):
@@ -48,7 +53,13 @@ class control:
             return line.rstrip('\n\r')
 
     def set_control_status(self):
-        status = self._map_control_status(self.control_value)
+        if type(self.control_value) == int:
+            status = self._map_control_status(self.control_value)
+        elif type(self.control_value) == str:
+            if self.control_value not in self.possible_values:
+                raise Exception('{} is not in possible values for control {}'.format(self.control_value, self.control_name))
+            status = self.control_value
+
         logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
 
         try:
