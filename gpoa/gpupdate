@@ -29,7 +29,8 @@ from util.users import (
     is_root
 )
 from util.arguments import (
-    process_target
+    process_target,
+    ExitCodeUpdater
 )
 from util.dbus import (
     is_oddjobd_gpupdate_accessible,
@@ -132,14 +133,27 @@ def runner_factory(args, target):
 def main():
     args = parse_cli_arguments()
     gpo_appliers = runner_factory(args, process_target(args.target))
+
     if gpo_appliers:
         if gpo_appliers[0]:
-            gpo_appliers[0].run()
+            try:
+                gpo_appliers[0].run()
+            except Exception as exc:
+                logging.error('Error running GPOA for computer: {}'.format(exc))
+                return int(ExitCodeUpdater.FAIL_GPUPDATE_COMPUTER_NOREPLY)
+
         if gpo_appliers[1]:
-            gpo_appliers[1].run()
+            try:
+                gpo_appliers[1].run()
+            except Exception as exc:
+                logging.error('Error running GPOA for user: {}'.format(exc))
+                return int(ExitCodeUpdater.FAIL_GPUPDATE_USER_NOREPLY)
     else:
         logging.error('gpupdate will not be started')
+        return int(ExitCodeUpdater.FAIL_NO_RUNNER)
+
+    return int(ExitCodeUpdater.EXIT_SUCCESS)
 
 if __name__ == '__main__':
-    main()
+    sys.exit(int(main()))
 

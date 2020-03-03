@@ -43,14 +43,27 @@ class dbus_runner:
         if self.username:
             logging.info(slogm('Starting GPO applier for user {} via D-Bus'.format(self.username)))
             if is_root():
-                result = self.interface.gpupdatefor(dbus.String(self.username))
+                try:
+                    result = self.interface.gpupdatefor(dbus.String(self.username))
+                    print_dbus_result(result)
+                except dbus.exceptions.DBusException as exc:
+                    logging.error(slogm('No reply from oddjobd gpoa runner for {}'.format(self.username)))
+                    raise exc
             else:
-                result = self.interface.gpupdate()
-            print_dbus_result(result)
+                try:
+                    result = self.interface.gpupdate()
+                    print_dbus_result(result)
+                except dbus.exceptions.DBusException as exc:
+                    logging.error(slogm('No reply from oddjobd gpoa runner for current user'))
+                    raise exc
         else:
             logging.info(slogm('Starting GPO applier for computer via D-Bus'))
-            result = self.interface.gpupdate_computer()
-            print_dbus_result(result)
+            try:
+                result = self.interface.gpupdate_computer()
+                print_dbus_result(result)
+            except dbus.exceptions.DBusException as exc:
+                logging.error(slogm('No reply from oddjobd gpoa runner for computer'))
+                raise exc
         #self.interface.Quit()
 
 
