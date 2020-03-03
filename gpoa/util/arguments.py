@@ -18,6 +18,7 @@
 
 import logging
 import logging.handlers
+from enum import IntEnum
 
 from .logging import slogm
 
@@ -74,4 +75,13 @@ def process_target(target_name=None):
     logging.debug(slogm('Target is: {}'.format(target)))
 
     return target
+
+class ExitCodeUpdater(IntEnum):
+    '''
+    Exit code contract for gpupdate application
+    '''
+    EXIT_SUCCESS = 0
+    FAIL_NO_RUNNER = 1
+    FAIL_GPUPDATE_COMPUTER_NOREPLY = 2
+    FAIL_GPUPDATE_USER_NOREPLY = 3
 
