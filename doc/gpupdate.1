@@ -44,6 +44,22 @@ Show help.
 \fB--user \fIusername\fR
 Run \fBgpupdate\fP for \fIusername\fP.
 .
+.SS "EXIT CODES"
+.TP
+\fB0\fR
+Application exited successfully.
+.TP
+\fB1\fR
+No runner is able to start \fBgpoa\fR.
+.TP
+\fB2\fR
+No reply from \fID-Bus\fR when starting \fBgpoa\fR for computer using
+\fBoddjobd\fR via \fID-Bus\fR.
+.TP
+\fB3\fR
+No reply from \fID-Bus\fR when starting \fBgpoa\fR for user using
+\fBoddjobd\fR via \fID-Bus\fR.
+.
 .SH "SEE ALSO"
 gpoa(1)
 .SH BUGS
