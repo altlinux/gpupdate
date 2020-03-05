@@ -41,7 +41,10 @@ class control:
         return values
 
     def _map_control_status(self, int_status):
-        str_status = self.possible_values[int_status]
+        try:
+            str_status = self.possible_values[int_status]
+        except IndexError:
+            str_status = None
         return str_status
 
     def get_control_name(self):
@@ -55,9 +58,13 @@ class control:
     def set_control_status(self):
         if type(self.control_value) == int:
             status = self._map_control_status(self.control_value)
+            if status == None:
+                logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
+                return
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
-                raise Exception('{} is not in possible values for control {}'.format(self.control_value, self.control_name))
+                logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
+                return
             status = self.control_value
 
         logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
