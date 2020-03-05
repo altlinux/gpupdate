@@ -1,3 +1,9 @@
 [submodule "wiki"]
 	path = wiki
 	url = https://github.com/altlinux/gpupdate.wiki.git
+[submodule "admx-basealt"]
+	path = admx-basealt
+	url = git@github.com:altlinuxteam/admx-basealt.git
+[submodule "local-policy"]
+	path = local-policy
+	url = git://git.altlinux.org/people/sin/packages/local-policy.git
