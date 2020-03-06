@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.4.2
+Version: 0.4.3
 Release: alt1
 
 Summary: GPT applier
@@ -74,6 +74,11 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %dir %_cachedir/%name
 
 %changelog
+* Fri Mar 06 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.3-alt1
+- Fix polfile merging
+- Add support controls with strings values
+- Initial SIGINT signal handling
+
 * Wed Feb 19 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.2-alt1
 - Change service type to 'simple' because gpoa is not systemd-aware
 - Shortcuts fixes and improvements
