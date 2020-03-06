@@ -43,6 +43,20 @@ class ControlTestCase(unittest.TestCase):
             test_control = control(control_name, int(control_value))
             test_control.set_control_status()
 
+    def test_control_int_out_of_range(self):
+        '''
+        Test procedure for control framework invocation with incorrect
+        integer value (out of range). The type of data loaded from PReg
+        must be 'int' but we're storing all values as strings inside the
+        database. So, for the test to be correct - we transform the
+        value to string first.
+        '''
+        control_name = 'sshd-gssapi-auth'
+        control_value = '50'
+
+        test_control = control(control_name, int(control_value))
+        test_control.set_control_status()
+
     def test_control_with_str(self):
         '''
         Test procedure for control framework invocation with string
