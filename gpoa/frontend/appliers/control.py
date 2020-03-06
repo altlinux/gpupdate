@@ -32,28 +32,46 @@ class control:
             raise Exception('Unable to query possible values')
 
     def _query_control_values(self):
-        proc = subprocess.Popen(['/usr/sbin/control', self.control_name, 'list'], stdout=subprocess.PIPE)
+        '''
+        Query possible values from control in order to perform check of
+        parameter passed to constructor.
+        '''
         values = list()
-        for line in proc.stdout:
-            values = [x.decode() for x in line.split()]
-            break
+
+        popen_call = ['/usr/sbin/control', self.control_name, 'list']
+        with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+            values = proc.stdout.readline().decode('utf-8').split()
+            proc.wait()
 
         return values
 
     def _map_control_status(self, int_status):
+        '''
+        Get control's string value by numeric index
+        '''
         try:
             str_status = self.possible_values[int_status]
-        except IndexError:
+        except IndexError as exc:
+            logging.error(slogm('Error getting control ({}) value from {} by index {}'.format(self.control_name, self.possible_values, int_status)))
             str_status = None
+
         return str_status
 
     def get_control_name(self):
         return self.control_name
 
     def get_control_status(self):
-        proc = subprocess.Popen(['/usr/sbin/control', self.control_name], stdout=subprocess.PIPE)
-        for line in proc.stdout:
-            return line.rstrip('\n\r')
+        '''
+        Get current control value
+        '''
+        line = None
+
+        popen_call = ['/usr/sbin/control', self.control_name]
+        with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+            line = proc.stdout.readline().decode('utf-8').rstrip('\n\r')
+            proc.wait()
+
+        return line
 
     def set_control_status(self):
         if type(self.control_value) == int:
@@ -70,7 +88,9 @@ class control:
         logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
 
         try:
-            proc = subprocess.Popen(['/usr/sbin/control', self.control_name, status], stdout=subprocess.PIPE)
+            popen_call = ['/usr/sbin/control', self.control_name, status]
+            with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+                proc.wait()
         except:
             logging.error(slogm('Unable to set {} to {}'.format(self.control_name, status)))
 
