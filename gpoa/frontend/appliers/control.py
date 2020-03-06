@@ -23,6 +23,8 @@ from util.logging import slogm
 
 class control:
     def __init__(self, name, value):
+        if type(value) != int and type(value) != str:
+            raise Exception('Unknown type of value for control')
         self.control_name = name
         self.control_value = value
         self.possible_values = self._query_control_values()
@@ -30,29 +32,65 @@ class control:
             raise Exception('Unable to query possible values')
 
     def _query_control_values(self):
-        proc = subprocess.Popen(['/usr/sbin/control', self.control_name, 'list'], stdout=subprocess.PIPE)
-        for line in proc.stdout:
-            values = line.split()
-            return values
+        '''
+        Query possible values from control in order to perform check of
+        parameter passed to constructor.
+        '''
+        values = list()
+
+        popen_call = ['/usr/sbin/control', self.control_name, 'list']
+        with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+            values = proc.stdout.readline().decode('utf-8').split()
+            proc.wait()
+
+        return values
 
     def _map_control_status(self, int_status):
-        str_status = self.possible_values[int_status].decode()
+        '''
+        Get control's string value by numeric index
+        '''
+        try:
+            str_status = self.possible_values[int_status]
+        except IndexError as exc:
+            logging.error(slogm('Error getting control ({}) value from {} by index {}'.format(self.control_name, self.possible_values, int_status)))
+            str_status = None
+
         return str_status
 
     def get_control_name(self):
         return self.control_name
 
     def get_control_status(self):
-        proc = subprocess.Popen(['/usr/sbin/control', self.control_name], stdout=subprocess.PIPE)
-        for line in proc.stdout:
-            return line.rstrip('\n\r')
+        '''
+        Get current control value
+        '''
+        line = None
+
+        popen_call = ['/usr/sbin/control', self.control_name]
+        with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+            line = proc.stdout.readline().decode('utf-8').rstrip('\n\r')
+            proc.wait()
+
+        return line
 
     def set_control_status(self):
-        status = self._map_control_status(self.control_value)
+        if type(self.control_value) == int:
+            status = self._map_control_status(self.control_value)
+            if status == None:
+                logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
+                return
+        elif type(self.control_value) == str:
+            if self.control_value not in self.possible_values:
+                logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
+                return
+            status = self.control_value
+
         logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
 
         try:
-            proc = subprocess.Popen(['/usr/sbin/control', self.control_name, status], stdout=subprocess.PIPE)
+            popen_call = ['/usr/sbin/control', self.control_name, status]
+            with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+                proc.wait()
         except:
             logging.error(slogm('Unable to set {} to {}'.format(self.control_name, status)))
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PolFile num_entries="1" signature="PReg" version="1">
+	<Entry type="1" type_name="REG_SZ">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>dvd-ram-control</ValueName>
+		<Value>restricted</Value>
+	</Entry>
+</PolFile>
