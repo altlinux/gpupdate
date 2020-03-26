@@ -19,14 +19,79 @@
 
 set -eu
 
-main() {
+SYSTEMD_UNIT_LINK=/etc/systemd/system/multi-user.target.wants/gpupdate.service
+POLICY_DIR=/usr/share/local-policy
+
+
+status() {
+	test -h ${SYSTEMD_UNIT_LINK}
+	STATUS=$?
+	return ${STATUS}
+}
+
+list() {
+	ls "${POLICY_DIR}"
+}
+
+enable() {
+	POLICY_SETTING="/etc/local-policy"
+	POLICY="${1:-default}"
+
+	test -d "${POLICY_DIR}/${POLICY}"
+
+	if $?; then
+		POLICY=default
+	fi
+
+	mkdir -p "${POLICY_SETTING}"
+	ln -s "${POLICY_DIR}/${POLICY}" "${POLICY_SETTING}/${POLICY}"
+
 	# Enable oddjobd_gpupdate in PAM config
 	/usr/sbin/control system-policy gpupdate
 	# Bootstrap the Group Policy engine
 	/usr/sbin/gpoa --nodomain
 	# Enable gpupdate-setup.service for all users
-	systemctl --global --user enable gpupdate-setup.service
+	systemctl --global --user enable gpupdate-user.service
 }
 
-main
+disable() {
+	/usr/sbin/control system-policy local
+	systemctl --global --user disable gpupdate-user.service
+}
+
+main() {
+	COMMAND="${1:-status}"
+	echo COMMAND ${COMMAND}
+
+	if test ${COMMAND} == "status"; then
+		status
+		RESULT=$?
+
+		if test ${RESULT} == 0; then
+			echo "enabled"
+		else
+			echo "disabled"
+		fi
+
+		return ${RESULT}
+	fi
+
+	if test ${COMMAND} == "list"; then
+		list
+		return 0
+	fi
+
+	if test "${COMMAND}" == "write"; then
+		WRITE_ACTION="${2:-noting}"
+		if test ${WRITE_ACTION} == "#t"; then
+			ENABLE_POLICY=${3:-default}
+			enable "${ENABLE_POLICY}"
+		fi
+		if test ${WRITE_ACTION} == "#f"; then
+			disable
+		fi
+	fi
+}
+
+main $@
 
