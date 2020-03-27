@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /usr/bin/env python3
 #
 # GPOA - GPO Applier for Linux
 #
@@ -17,79 +17,136 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -eu
 
-SYSTEMD_UNIT_LINK=/etc/systemd/system/multi-user.target.wants/gpupdate.service
-POLICY_DIR=/usr/share/local-policy
+import os
+import sys
+import argparse
+
+def parse_arguments():
+    '''
+    Parse CLI arguments.
+    '''
+    parser = argparse.ArgumentParser(prog='gpupdate-setup')
+    subparsers = parser.add_subparsers(dest='action',
+        metavar='action',
+        help='Group Policy management actions')
+
+    parser_list = subparsers.add_parser('list',
+        help='List avalable types of local policy')
+    parser_status = subparsers.add_parser('status',
+        help='Show current Group Policy status')
+    parser_write = subparsers.add_parser('write',
+        help='Operate on Group Policies')
+
+    parser_write.add_argument('status',
+        choices=['enable', 'disable'],
+        help='Enable or disable Group Policies')
+    parser_write.add_argument('localpolicy',
+        default='server',
+        nargs='?',
+        help='Name of local policy to enable')
+
+    return parser.parse_args()
+
+def get_policy_entries(directory):
+
+    entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
+    filtered_entries = list()
+
+    for entry in entries:
+        if os.path.isdir(os.path.join(entry)):
+            if not os.path.islink(os.path.join(entry)):
+                if not entry.rpartition('/')[2] == 'default':
+                    filtered_entries.append(entry)
+
+    return filtered_entries
 
 
-status() {
-	test -h ${SYSTEMD_UNIT_LINK}
-	STATUS=$?
-	return ${STATUS}
-}
+def get_policy_variants():
+    '''
+    Get the list of local policy variants deployed on this system.
+    Please note that is case overlapping names the names in
+    /etc/local-policy must override names in /usr/share/local-policy
+    '''
+    policy_dir = '/usr/share/local-policy'
+    etc_policy_dir = '/etc/local-policy'
 
-list() {
-	ls "${POLICY_DIR}"
-}
+    system_policies = get_policy_entries(policy_dir)
+    user_policies = get_policy_entries(etc_policy_dir)
 
-enable() {
-	POLICY_SETTING="/etc/local-policy"
-	POLICY="${1:-default}"
+    general_listing = list()
+    general_listing.extend(system_policies)
+    general_listing.extend(user_policies)
 
-	if ! test -d "${POLICY_DIR}/${POLICY}"; then
-		POLICY=default
-	fi
+    return general_listing
 
-	mkdir -p "${POLICY_SETTING}"
-	ln -s "${POLICY_DIR}/${POLICY}" "${POLICY_SETTING}/${POLICY}"
+def get_status():
+    systemd_unit_link = '/etc/systemd/system/multi-user.target.wants/gpupdate.service'
 
-	# Enable oddjobd_gpupdate in PAM config
-	/usr/sbin/control system-policy gpupdate
-	# Bootstrap the Group Policy engine
-	/usr/sbin/gpoa --nodomain
-	# Enable gpupdate-setup.service for all users
-	systemctl --global --user enable gpupdate-user.service
-}
+    return os.path.islink(systemd_unit_link)
 
-disable() {
-	/usr/sbin/control system-policy local
-	systemctl --global --user disable gpupdate-user.service
-}
+def get_active_policy():
+    policy_dir = '/usr/share/local-policy'
+    etc_policy_dir = '/etc/local-policy'
+    default_policy_name = os.path.join(policy_dir, 'default')
 
-main() {
-	COMMAND="${1:-status}"
-	echo COMMAND ${COMMAND}
+    active_policy_name = os.path.join(etc_policy_dir, 'policy')
 
-	if test ${COMMAND} == "status"; then
-		status
-		RESULT=$?
+    actual_policy_name = os.path.realpath(default_policy_name)
 
-		if test ${RESULT} == 0; then
-			echo "enabled"
-		else
-			echo "disabled"
-		fi
+    if os.path.isdir(active_policy_name):
+        return os.path.realpath(active_policy_name)
 
-		return ${RESULT}
-	fi
+    return actual_policy_name
 
-	if test ${COMMAND} == "list"; then
-		list
-		return 0
-	fi
 
-	if test "${COMMAND}" == "write"; then
-		WRITE_ACTION="${2:-noting}"
-		if test ${WRITE_ACTION} == "#t"; then
-			ENABLE_POLICY=${3:-default}
-			enable "${ENABLE_POLICY}"
-		fi
-		if test ${WRITE_ACTION} == "#f"; then
-			disable
-		fi
-	fi
-}
+def disable_gp():
+    os.system('/usr/sbin/control system-policy local')
+    os.system('systemctl --global --user disable gpupdate-user.service')
 
-main $@
+def enable_gp(policy_name='default'):
+    policy_dir = '/usr/share/local-policy'
+    etc_policy_dir = '/etc/local-policy'
+    target_policy_name = 'default'
+    if policy_name:
+        target_policy_name = policy_name
+    
+    default_policy_name = os.path.join(policy_dir, policy_name)
+    active_policy_name = os.path.join(etc_policy_dir, 'active')
+
+    if not os.path.isdir(etc_policy_dir):
+        os.makedirs(etc_policy_dir)
+
+    if not os.path.isdir(active_policy_name):
+        os.symlink(default_policy_name, active_policy_name)
+
+    # Enable oddjobd_gpupdate in PAM config
+    os.system('/usr/sbin/control system-policy gpupdate')
+    # Bootstrap the Group Policy engine
+    os.system('/usr/sbin/gpoa --nodomain')
+    # Enable gpupdate-setup.service for all users
+    os.system('systemctl --global --user enable gpupdate-user.service')
+
+def main():
+    arguments = parse_arguments()
+
+    if arguments.action == 'list':
+        for entry in get_policy_variants():
+            print(entry.rpartition('/')[2])
+
+    if arguments.action == 'status':
+        active_policy = get_active_policy()
+        if get_status():
+            print('{} {}'.format('enabled', active_policy))
+        else:
+            print('{}'.format('disabled'))
+
+    if arguments.action == 'write':
+        if arguments.status == 'enable' or arguments.status == '#t':
+            enable_gp(arguments.localpolicy)
+        if arguments.status == 'disable' or arguments.status == '#f':
+            disable_gp()
+
+if __name__ == '__main__':
+    main()
 
