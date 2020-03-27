@@ -37,9 +37,7 @@ enable() {
 	POLICY_SETTING="/etc/local-policy"
 	POLICY="${1:-default}"
 
-	test -d "${POLICY_DIR}/${POLICY}"
-
-	if $?; then
+	if ! test -d "${POLICY_DIR}/${POLICY}"; then
 		POLICY=default
 	fi
 
