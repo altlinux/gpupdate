@@ -37,6 +37,8 @@ def parse_arguments():
         help='Show current Group Policy status')
     parser_write = subparsers.add_parser('write',
         help='Operate on Group Policies')
+    parser_active = subparsers.add_parser('active-policy',
+        help='Show name of policy enabled')
 
     parser_write.add_argument('status',
         choices=['enable', 'disable'],
@@ -49,15 +51,15 @@ def parse_arguments():
     return parser.parse_args()
 
 def get_policy_entries(directory):
-
-    entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
     filtered_entries = list()
+    if os.path.isdir(directory):
+        entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
 
-    for entry in entries:
-        if os.path.isdir(os.path.join(entry)):
-            if not os.path.islink(os.path.join(entry)):
-                if not entry.rpartition('/')[2] == 'default':
-                    filtered_entries.append(entry)
+        for entry in entries:
+            if os.path.isdir(os.path.join(entry)):
+                if not os.path.islink(os.path.join(entry)):
+                    if not entry.rpartition('/')[2] == 'default':
+                        filtered_entries.append(entry)
 
     return filtered_entries
 
@@ -90,18 +92,19 @@ def get_active_policy():
     etc_policy_dir = '/etc/local-policy'
     default_policy_name = os.path.join(policy_dir, 'default')
 
-    active_policy_name = os.path.join(etc_policy_dir, 'policy')
+    active_policy_name = os.path.join(etc_policy_dir, 'active')
 
     actual_policy_name = os.path.realpath(default_policy_name)
 
     if os.path.isdir(active_policy_name):
-        return os.path.realpath(active_policy_name)
+        actual_policy_name = os.path.realpath(active_policy_name)
 
     return actual_policy_name
 
 
 def disable_gp():
-    os.system('/usr/sbin/control system-policy local')
+    #os.system('/usr/sbin/control system-policy local')
+    os.system('systemctl disable gpupdate.service')
     os.system('systemctl --global --user disable gpupdate-user.service')
 
 def enable_gp(policy_name='default'):
@@ -110,7 +113,7 @@ def enable_gp(policy_name='default'):
     target_policy_name = 'default'
     if policy_name:
         target_policy_name = policy_name
-    
+
     default_policy_name = os.path.join(policy_dir, policy_name)
     active_policy_name = os.path.join(etc_policy_dir, 'active')
 
@@ -119,9 +122,12 @@ def enable_gp(policy_name='default'):
 
     if not os.path.isdir(active_policy_name):
         os.symlink(default_policy_name, active_policy_name)
+    else:
+        os.unlink(active_policy_name)
+        os.symlink(default_policy_name, active_policy_name)
 
     # Enable oddjobd_gpupdate in PAM config
-    os.system('/usr/sbin/control system-policy gpupdate')
+    #os.system('/usr/sbin/control system-policy gpupdate')
     # Bootstrap the Group Policy engine
     os.system('/usr/sbin/gpoa --nodomain')
     # Enable gpupdate-setup.service for all users
@@ -135,17 +141,19 @@ def main():
             print(entry.rpartition('/')[2])
 
     if arguments.action == 'status':
-        active_policy = get_active_policy()
         if get_status():
-            print('{} {}'.format('enabled', active_policy))
+            print('enabled')
         else:
-            print('{}'.format('disabled'))
+            print('disabled')
 
     if arguments.action == 'write':
         if arguments.status == 'enable' or arguments.status == '#t':
             enable_gp(arguments.localpolicy)
         if arguments.status == 'disable' or arguments.status == '#f':
             disable_gp()
+
+    if arguments.action == 'active-policy':
+        print(get_active_policy())
 
 if __name__ == '__main__':
     main()
