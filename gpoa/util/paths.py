@@ -17,13 +17,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pathlib
+import os
 
 
 def default_policy_path():
     '''
     Returns path pointing to Default Policy directory.
     '''
-    return pathlib.Path('/usr/share/local-policy/default')
+    local_policy_default = '/usr/share/local-policy/default'
+    etc_local_policy_default = '/etc/local-policy/active'
+
+    result_path = pathlib.Path(local_policy_default)
+
+    if os.path.exists(etc_local_policy_default):
+        result_path = pathlib.Path(etc_local_policy_default)
+
+    return pathlib.Path(result_path)
 
 
 def cache_dir():
