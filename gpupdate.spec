@@ -16,7 +16,8 @@ Requires: local-policy >= 0.1.0
 BuildRequires: rpm-build-python3
 Requires: python3-module-rpm
 Requires: oddjob-%name >= 0.2.0
-Requires: libnss-role
+Requires: libnss-role >= 0.5.0
+Requires: local-policy >=  0.2.0
 
 Source0: %name-%version.tar
 
@@ -42,6 +43,8 @@ ln -s %python3_sitelibdir/gpoa/gpoa \
 	%buildroot%_sbindir/gpoa
 ln -s %python3_sitelibdir/gpoa/gpupdate \
 	%buildroot%_bindir/gpupdate
+cp dist/gpupdate-setup \
+	%buildroot%_sbindir/gpupdate-setup
 
 mkdir -p %buildroot%_datadir/%name
 mv %buildroot%python3_sitelibdir/gpoa/templates \
@@ -61,6 +64,7 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 
 %files
 %_sbindir/gpoa
+%_sbindir/gpupdate-setup
 %_bindir/gpupdate
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpoa
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate
