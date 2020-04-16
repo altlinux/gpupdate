@@ -31,7 +31,7 @@ def command(args):
     except:
         print ('command: \'%s\' error' % args)
 
-def get_default_localpolicy():
+def get_default_policy_name():
     localpolicy = 'workstation'
 
     try:
@@ -126,7 +126,7 @@ def get_status():
 def get_active_policy():
     policy_dir = '/usr/share/local-policy'
     etc_policy_dir = '/etc/local-policy'
-    default_policy_name = os.path.join(policy_dir, 'default')
+    default_policy_name = os.path.join(policy_dir, get_default_policy_name())
 
     active_policy_name = os.path.join(etc_policy_dir, 'active')
 
@@ -146,7 +146,7 @@ def disable_gp():
 def enable_gp(policy_name):
     policy_dir = '/usr/share/local-policy'
     etc_policy_dir = '/etc/local-policy'
-    target_policy_name = get_default_localpolicy()
+    target_policy_name = get_default_policy_name()
     if policy_name:
         if validate_policy_name(policy_name):
             target_policy_name = policy_name
