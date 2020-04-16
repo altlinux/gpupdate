@@ -21,6 +21,13 @@
 import os
 import sys
 import argparse
+import subprocess
+
+def command(args):
+    try:
+        subprocess.check_call(args.split())
+    except:
+        print ('command: \'%s\' error' % args)
 
 def parse_arguments():
     '''
@@ -103,9 +110,9 @@ def get_active_policy():
 
 
 def disable_gp():
-    #os.system('/usr/sbin/control system-policy local')
-    os.system('systemctl disable gpupdate.service')
-    os.system('systemctl --global --user disable gpupdate-user.service')
+    #command('/usr/sbin/control system-policy local')
+    command('systemctl disable gpupdate.service')
+    command('systemctl --global --user disable gpupdate-user.service')
 
 def enable_gp(policy_name='default'):
     policy_dir = '/usr/share/local-policy'
@@ -127,11 +134,11 @@ def enable_gp(policy_name='default'):
         os.symlink(default_policy_name, active_policy_name)
 
     # Enable oddjobd_gpupdate in PAM config
-    #os.system('/usr/sbin/control system-policy gpupdate')
+    #command('/usr/sbin/control system-policy gpupdate')
     # Bootstrap the Group Policy engine
-    os.system('/usr/sbin/gpoa --nodomain')
+    command('/usr/sbin/gpoa --nodomain')
     # Enable gpupdate-setup.service for all users
-    os.system('systemctl --global --user enable gpupdate-user.service')
+    command('systemctl --global --user enable gpupdate-user.service')
 
 def main():
     arguments = parse_arguments()
