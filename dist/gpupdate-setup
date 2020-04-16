@@ -29,7 +29,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(prog='gpupdate-setup')
     subparsers = parser.add_subparsers(dest='action',
         metavar='action',
-        help='Group Policy management actions')
+        help='Group Policy management actions (default action is status)')
 
     parser_list = subparsers.add_parser('list',
         help='List avalable types of local policy')
@@ -140,7 +140,7 @@ def main():
         for entry in get_policy_variants():
             print(entry.rpartition('/')[2])
 
-    if arguments.action == 'status':
+    if arguments.action == 'status' or arguments.action == None:
         if get_status():
             print('enabled')
         else:
