@@ -42,8 +42,12 @@ def parse_arguments():
         help='List avalable types of local policy')
     parser_status = subparsers.add_parser('status',
         help='Show current Group Policy status')
+    parser_enable = subparsers.add_parser('enable',
+        help='Enable Group Policy subsystem')
+    parser_disable = subparsers.add_parser('disable',
+        help='Disable Group Policy subsystem')
     parser_write = subparsers.add_parser('write',
-        help='Operate on Group Policies')
+        help='Operate on Group Policies (enable or disable)')
     parser_active = subparsers.add_parser('active-policy',
         help='Show name of policy enabled')
 
@@ -51,7 +55,12 @@ def parse_arguments():
         choices=['enable', 'disable'],
         help='Enable or disable Group Policies')
     parser_write.add_argument('localpolicy',
-        default='server',
+        default=None,
+        nargs='?',
+        help='Name of local policy to enable')
+
+    parser_enable.add_argument('localpolicy',
+        default=None,
         nargs='?',
         help='Name of local policy to enable')
 
@@ -158,6 +167,12 @@ def main():
             enable_gp(arguments.localpolicy)
         if arguments.status == 'disable' or arguments.status == '#f':
             disable_gp()
+
+    if arguments.action == "enable":
+        enable_gp(arguments.localpolicy)
+
+    if arguments.action == "disable":
+        disable_gp()
 
     if arguments.action == 'active-policy':
         print(get_active_policy())
