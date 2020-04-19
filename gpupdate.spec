@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.4.3
+Version: 0.4.4
 Release: alt1
 
 Summary: GPT applier
@@ -78,6 +78,9 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %dir %_cachedir/%name
 
 %changelog
+* Sun Apr 19 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.4-alt1
+- Add gpupdate-setup initialization script supported local-policy profiles
+
 * Fri Mar 06 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.3-alt1
 - Fix polfile merging
 - Add support controls with strings values
