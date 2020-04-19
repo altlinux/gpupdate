@@ -31,6 +31,17 @@ def command(args):
     except:
         print ('command: \'%s\' error' % args)
 
+def from_command(args):
+    try:
+        with subprocess.Popen(args.split(), stdout=subprocess.PIPE) as proc:
+            value = proc.stdout.readline().decode('utf-8')
+            proc.wait()
+    except:
+        print ('from_command: \'%s\' error' % args)
+        return 'local'
+
+    return value.strip()
+
 def get_default_policy_name():
     localpolicy = 'workstation'
 
@@ -139,7 +150,10 @@ def get_active_policy():
 
 
 def disable_gp():
-    #command('/usr/sbin/control system-policy local')
+    if from_command('/usr/sbin/control system-auth') != 'local':
+        command('/usr/sbin/control system-policy global')
+    else:
+        command('/usr/sbin/control system-policy local')
     command('systemctl disable gpupdate.service')
     command('systemctl --global --user disable gpupdate-user.service')
 
@@ -165,7 +179,7 @@ def enable_gp(policy_name):
         os.symlink(default_policy_name, active_policy_name)
 
     # Enable oddjobd_gpupdate in PAM config
-    #command('/usr/sbin/control system-policy gpupdate')
+    command('/usr/sbin/control system-policy gpupdate')
     # Bootstrap the Group Policy engine
     command('/usr/sbin/gpoa --nodomain')
     # Enable gpupdate-setup.service for all users
