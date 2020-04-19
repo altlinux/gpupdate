@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.4.4
+Version: 0.4.5
 Release: alt1
 
 Summary: GPT applier
@@ -17,7 +17,8 @@ BuildRequires: rpm-build-python3
 Requires: python3-module-rpm
 Requires: oddjob-%name >= 0.2.0
 Requires: libnss-role >= 0.5.0
-Requires: local-policy >=  0.2.0
+Requires: local-policy >= 0.2.0
+Requires: pam-config >= 1.8
 
 Source0: %name-%version.tar
 
@@ -78,6 +79,9 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %dir %_cachedir/%name
 
 %changelog
+* Mon Apr 20 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.5-alt1
+- Add support for control system-policy and requires to new pam-config
+
 * Sun Apr 19 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.4-alt1
 - Add gpupdate-setup initialization script supported local-policy profiles
 
