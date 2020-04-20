@@ -273,7 +273,7 @@ def lp2gpt():
     '''
     Convert local-policy to full-featured GPT.
     '''
-    lppath = os.path.join(default_policy_path(), 'local.xml')
+    lppath = os.path.join(default_policy_path(), 'Machine/Registry.pol.xml')
 
     # Load settings from XML PolFile
     polparser = GPPolParser()
