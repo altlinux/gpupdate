@@ -25,6 +25,9 @@ import subprocess
 
 import re
 
+from gpoa.util.samba import smbopts
+
+
 def command(args):
     try:
         subprocess.check_call(args.split())
@@ -44,6 +47,13 @@ def from_command(args):
 
 def get_default_policy_name():
     localpolicy = 'workstation'
+    dcpolicy = 'ad-domain-controller'
+
+    try:
+        if smbopt.get_server_role() == 'active directory domain controller':
+            return dcpolicy
+    except:
+        pass
 
     try:
         release = '/etc/altlinux-release'
