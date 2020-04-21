@@ -22,6 +22,6 @@ from .sqlite_cache import sqlite_cache
 def cache_factory(cache_name):
     return sqlite_cache(cache_name)
 
-def registry_factory(registry_name):
-    return sqlite_registry(registry_name)
+def registry_factory(registry_name='registry', registry_dir=None):
+    return sqlite_registry(registry_name, registry_dir)
 
