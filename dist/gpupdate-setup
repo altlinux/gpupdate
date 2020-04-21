@@ -155,7 +155,7 @@ def disable_gp():
     else:
         command('/usr/sbin/control system-policy local')
     command('systemctl disable gpupdate.service')
-    command('systemctl --global --user disable gpupdate-user.service')
+    command('systemctl --global disable gpupdate-user.service')
 
 def enable_gp(policy_name):
     policy_dir = '/usr/share/local-policy'
