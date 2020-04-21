@@ -221,15 +221,21 @@ class sqlite_registry(registry):
         Write PReg entry to HKEY_LOCAL_MACHINE
         '''
         pentry = samba_preg(preg_entry)
-        self._hklm_upsert(pentry)
+        if not pentry.hive_key.rpartition('\\')[2].startswith('**'):
+            self._hklm_upsert(pentry)
+        else:
+            logging.warning(slogm('Skipping branch deletion key: {}'.format(pentry.hive_key)))
 
     def add_hkcu_entry(self, preg_entry, sid):
         '''
         Write PReg entry to HKEY_CURRENT_USER
         '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry)
-        logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
-        self._hkcu_upsert(hkcu_pentry)
+        if not hkcu_pentry.hive_key.rpartition('\\')[2].startswith('**'):
+            logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
+            self._hkcu_upsert(hkcu_pentry)
+        else:
+            logging.warning(slogm('Skipping branch deletion key: {}'.format(hkcu_pentry.hive_key)))
 
     def add_shortcut(self, sid, sc_obj):
         '''
