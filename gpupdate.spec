@@ -1,13 +1,13 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.4.5
+Version: 0.5.0
 Release: alt1
 
 Summary: GPT applier
 License: GPLv3+
 Group: Other
-Url: http://git.altlinux.org/
+Url: https://github.com/altlinux/gpupdate
 BuildArch: noarch
 
 Requires: control
@@ -75,13 +75,18 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
-%{_man1dir}/gpoa.1.xz
-%{_man1dir}/gpupdate.1.xz
-/usr/lib/systemd/user/%{name}-user.service
+%_man1dir/gpoa.1.*
+%_man1dir/gpupdate.1.*
+/usr/lib/systemd/user/%name-user.service
 %_sysconfdir/pam.d/system-policy-%name
 %dir %_cachedir/%name
 
 %changelog
+* Wed Apr 22 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.5.0-alt1
+- Update samba format: local.xml -> Machine/Registry.pol.xml
+- Add support of ad-domain-controller local policy profile
+- Set properly URL of project
+
 * Mon Apr 20 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.4.5-alt1
 - Add support for control system-policy and requires to new pam-config
 
