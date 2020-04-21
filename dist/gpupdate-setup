@@ -183,7 +183,7 @@ def enable_gp(policy_name):
     # Bootstrap the Group Policy engine
     command('/usr/sbin/gpoa --nodomain')
     # Enable gpupdate-setup.service for all users
-    command('systemctl --global --user enable gpupdate-user.service')
+    command('systemctl --global enable gpupdate-user.service')
 
 def main():
     arguments = parse_arguments()
