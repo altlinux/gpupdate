@@ -45,9 +45,12 @@ from .record_types import (
 )
 
 class sqlite_registry(registry):
-    def __init__(self, db_name):
+    def __init__(self, db_name, registry_cache_dir=None):
         self.db_name = db_name
-        self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cache_dir(), self.db_name))
+        cdir = registry_cache_dir
+        if cdir == None:
+            cdir = cache_dir()
+        self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cdir, self.db_name))
         self.db_cnt = create_engine(self.db_path, echo=False)
         self.__metadata = MetaData(self.db_cnt)
         self.__info = Table(
