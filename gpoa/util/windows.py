@@ -21,7 +21,6 @@ import logging
 import os
 import pwd
 
-import optparse
 from samba import getopt as options
 
 from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
@@ -33,15 +32,14 @@ from storage import cache_factory
 from .xdg import get_user_dir
 from .util import get_homedir
 from .logging import slogm
+from .samba import smbopts
 
 
-class smbcreds:
+class smbcreds (smbopts):
 
     def __init__(self, dc_fqdn=None):
-        self.parser = optparse.OptionParser('GPO Applier')
-        self.sambaopts = options.SambaOptions(self.parser)
+        smbopts.__init__(self, 'GPO Applier')
         self.credopts = options.CredentialsOptions(self.parser)
-        self.lp = self.sambaopts.get_loadparm()
         self.creds = self.credopts.get_credentials(self.lp, fallback_machine=True)
         self.selected_dc = self.set_dc(dc_fqdn)
 
@@ -87,9 +85,6 @@ class smbcreds:
 
         return dns_domainname
 
-    def get_cache_dir(self):
-        return self._get_prop('cache directory')
-
     def get_gpos(self, username):
         '''
         Get GPO list for the specified username for the specified DC
@@ -124,9 +119,6 @@ class smbcreds:
                 slogm('Unable to refresh GPO list for {} from {}'.format(
                     username, self.selected_dc)))
         return gpos
-
-    def _get_prop(self, property_name):
-        return self.lp.get(property_name)
 
 
 def wbinfo_getsid(domain, user):
