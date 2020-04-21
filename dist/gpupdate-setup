@@ -22,7 +22,7 @@ import os
 import sys
 import argparse
 import subprocess
-from subprocess import DEVNULL, PIPE, STDOUT
+from subprocess import DEVNULL, STDOUT
 
 import re
 
@@ -31,7 +31,7 @@ from gpoa.util.samba import smbopts
 
 def command(args):
     try:
-        subprocess.check_call(args.split(), stdin=PIPE, stdout=DEVNULL, stderr=STDOUT)
+        subprocess.check_call(args.split(), stdout=DEVNULL, stderr=STDOUT)
     except:
         print ('command: \'%s\' error' % args)
 
