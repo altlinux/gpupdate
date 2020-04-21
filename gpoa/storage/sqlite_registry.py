@@ -36,48 +36,13 @@ from sqlalchemy.orm import (
 from util.logging import slogm
 from util.paths import cache_dir
 from .registry import registry
-
-class samba_preg(object):
-    '''
-    Object mapping representing HKLM entry (registry key without SID)
-    '''
-    def __init__(self, preg_obj):
-        self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
-        self.type = preg_obj.type
-        self.data = preg_obj.data
-
-class samba_hkcu_preg(object):
-    '''
-    Object mapping representing HKCU entry (registry key with SID)
-    '''
-    def __init__(self, sid, preg_obj):
-        self.sid = sid
-        self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
-        self.type = preg_obj.type
-        self.data = preg_obj.data
-
-class ad_shortcut(object):
-    '''
-    Object mapping representing Windows shortcut.
-    '''
-    def __init__(self, sid, sc):
-        self.sid = sid
-        self.path = sc.dest
-        self.shortcut = sc.to_json()
-
-class info_entry(object):
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-class printer_entry(object):
-    '''
-    Object mapping representing Windows printer of some type.
-    '''
-    def __init__(self, sid, pobj):
-        self.sid = sid
-        self.name = pobj.name
-        self.printer = pobj.to_json()
+from .record_types import (
+      samba_preg
+    , samba_hkcu_preg
+    , ad_shortcut
+    , info_entry
+    , printer_entry
+)
 
 class sqlite_registry(registry):
     def __init__(self, db_name):
