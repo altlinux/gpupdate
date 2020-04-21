@@ -191,7 +191,7 @@ def enable_gp(policy_name):
     # Enable oddjobd_gpupdate in PAM config
     command('/usr/sbin/control system-policy gpupdate')
     # Bootstrap the Group Policy engine
-    command('/usr/sbin/gpoa --nodomain')
+    command('/usr/sbin/gpoa --nodomain --loglevel 5')
     # Enable gpupdate-setup.service for all users
     command('systemctl --global enable gpupdate-user.service')
 
