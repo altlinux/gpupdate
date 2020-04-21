@@ -20,6 +20,8 @@ Requires: oddjob-%name >= 0.2.0
 Requires: libnss-role >= 0.5.0
 Requires: local-policy >= 0.2.0
 Requires: pam-config >= 1.8
+# This is needed by shortcuts_applier
+Requires: desktop-file-utils
 
 Source0: %name-%version.tar
 
