@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PolFile num_entries="3" signature="PReg" version="1">
+	<Entry type="1" type_name="REG_SZ">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>**del.cups</ValueName>
+		<Value> </Value>
+	</Entry>
+	<Entry type="1" type_name="REG_SZ">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>**del.postfix</ValueName>
+		<Value> </Value>
+	</Entry>
+	<Entry type="1" type_name="REG_SZ">
+		<Key>Software\BaseALT\Policies\Control</Key>
+		<ValueName>**del.postqueue</ValueName>
+		<Value> </Value>
+	</Entry>
+</PolFile>

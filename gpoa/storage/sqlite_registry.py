@@ -36,53 +36,21 @@ from sqlalchemy.orm import (
 from util.logging import slogm
 from util.paths import cache_dir
 from .registry import registry
-
-class samba_preg(object):
-    '''
-    Object mapping representing HKLM entry (registry key without SID)
-    '''
-    def __init__(self, preg_obj):
-        self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
-        self.type = preg_obj.type
-        self.data = preg_obj.data
-
-class samba_hkcu_preg(object):
-    '''
-    Object mapping representing HKCU entry (registry key with SID)
-    '''
-    def __init__(self, sid, preg_obj):
-        self.sid = sid
-        self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
-        self.type = preg_obj.type
-        self.data = preg_obj.data
-
-class ad_shortcut(object):
-    '''
-    Object mapping representing Windows shortcut.
-    '''
-    def __init__(self, sid, sc):
-        self.sid = sid
-        self.path = sc.dest
-        self.shortcut = sc.to_json()
-
-class info_entry(object):
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-class printer_entry(object):
-    '''
-    Object mapping representing Windows printer of some type.
-    '''
-    def __init__(self, sid, pobj):
-        self.sid = sid
-        self.name = pobj.name
-        self.printer = pobj.to_json()
+from .record_types import (
+      samba_preg
+    , samba_hkcu_preg
+    , ad_shortcut
+    , info_entry
+    , printer_entry
+)
 
 class sqlite_registry(registry):
-    def __init__(self, db_name):
+    def __init__(self, db_name, registry_cache_dir=None):
         self.db_name = db_name
-        self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cache_dir(), self.db_name))
+        cdir = registry_cache_dir
+        if cdir == None:
+            cdir = cache_dir()
+        self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cdir, self.db_name))
         self.db_cnt = create_engine(self.db_path, echo=False)
         self.__metadata = MetaData(self.db_cnt)
         self.__info = Table(
@@ -221,15 +189,21 @@ class sqlite_registry(registry):
         Write PReg entry to HKEY_LOCAL_MACHINE
         '''
         pentry = samba_preg(preg_entry)
-        self._hklm_upsert(pentry)
+        if not pentry.hive_key.rpartition('\\')[2].startswith('**'):
+            self._hklm_upsert(pentry)
+        else:
+            logging.warning(slogm('Skipping branch deletion key: {}'.format(pentry.hive_key)))
 
     def add_hkcu_entry(self, preg_entry, sid):
         '''
         Write PReg entry to HKEY_CURRENT_USER
         '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry)
-        logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
-        self._hkcu_upsert(hkcu_pentry)
+        if not hkcu_pentry.hive_key.rpartition('\\')[2].startswith('**'):
+            logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
+            self._hkcu_upsert(hkcu_pentry)
+        else:
+            logging.warning(slogm('Skipping branch deletion key: {}'.format(hkcu_pentry.hive_key)))
 
     def add_shortcut(self, sid, sc_obj):
         '''

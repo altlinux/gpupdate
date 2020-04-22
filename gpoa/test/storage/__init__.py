@@ -16,12 +16,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .sqlite_registry import sqlite_registry
-from .sqlite_cache import sqlite_cache
-
-def cache_factory(cache_name):
-    return sqlite_cache(cache_name)
-
-def registry_factory(registry_name='registry', registry_dir=None):
-    return sqlite_registry(registry_name, registry_dir)
-
