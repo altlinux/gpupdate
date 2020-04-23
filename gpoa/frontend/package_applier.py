@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from util.logging import slogm
 
 from .applier_frontend import applier_frontend
 from .appliers.rpm import rpm
@@ -24,9 +25,22 @@ from .appliers.rpm import rpm
 class package_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
+        self.package_applier_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Packages%')
 
     def apply(self):
-        pass
+        packages_for_install = None
+        packages_for_remove = None
+
+        for setting in self.package_applier_settings:
+            action = setting.hive_key.rpartition('\\')[2]
+            if action == 'PackagesForInstall':
+                packages_for_install = setting.data.split()
+            if action == 'PackagesForRemove':
+                packages_for_remove = setting.data.split()
+
+        r = rpm(packages_for_install, packages_for_remove)
+        r.apply()
+
 
 class package_applier_user(applier_frontend):
     def __init__(self):

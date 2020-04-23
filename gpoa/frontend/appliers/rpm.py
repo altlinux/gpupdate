@@ -16,16 +16,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.rpm import (
-    install_rpm,
-    remove_rpm
-)
+import subprocess
+import logging
+from util.logging import slogm
 
 class rpm:
-    def __init__(self, name, action):
-        self.name = name
-        self.action = action
+    def __init__(self, packages_for_instsall, packages_for_remove):
+        self.packages_for_instsall = packages_for_instsall
+        self.packages_for_remove = packages_for_remove
 
     def apply(self):
-        pass
+        try:
+            logging.info(slogm('Updating APT-RPM database'))
+            subprocess.check_call(['/usr/bin/apt-get', 'update'])
+        except Exception as exc:
+            logging.info(slogm('Failed to update APT-RPM database: {}'.format(exc)))
+
+        logging.info(slogm('Installing packages: {}. Removing packages {}.'.format(self.packages_for_instsall, self.packages_for_remove)))
+
+        if self.packages_for_remove:
+            self.packages_for_remove = [i + "-" for i in self.packages_for_remove]
+
+        cmd = ['/usr/bin/apt-get', '-y', 'install']
+        cmd.extend(self.packages_for_instsall)
+        cmd.extend(self.packages_for_remove)
+
+        try:
+            subprocess.check_call(cmd)
+        except Exception as exc:
+            logging.info(slogm('Failed to install/remove packages: {}'.format(exc)))
 
