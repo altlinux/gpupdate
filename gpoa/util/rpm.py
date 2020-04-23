@@ -41,17 +41,43 @@ def update():
     subprocess.check_call(['/usr/bin/apt-get', 'update'])
 
 
-def install_rpm(rpm_name):
+def install_rpm(rpm_names, force=True):
     '''
     Install RPM from APT-RPM sources.
+
+    :param rpm_names: List of names of RPM packages to install
+    :param force: Check if RPM is installed
     '''
+
+    install_command = ['/usr/bin/apt-get', '-y', 'install']
+
     update()
-    subprocess.check_call(['/usr/bin/apt-get', '-y', 'install', rpm_name])
+    if force:
+        for package in rpm_names:
+            if not is_rpm_installed(package)
+                install_command.append(package)
+    else:
+        install_command.extend(rpm_names)
 
+    subprocess.check_call(install_command)
 
-def remove_rpm(rpm_name):
+def remove_rpm(rpm_names, force=True):
     '''
     Remove RPM from file system.
+
+    :param rpm_names: List of names of RPM packages to install
+    :param force: Check if rpm is installed
     '''
-    subprocess.check_call(['/usr/bin/apt-get', '-y', 'remove', rpm_name])
+    remove_command = ['/usr/bin/apt-get', '-y', 'remove']
+
+    update()
+
+    if force:
+        remove_command.extend(rpm_names)
+    else:
+        for package in rpm_names:
+            if is_rpm_installed(package):
+                remove_command.append(package)
+
+    subprocess.check_call(remove_command)
 
