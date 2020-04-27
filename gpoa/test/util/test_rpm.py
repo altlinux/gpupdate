@@ -20,18 +20,18 @@
 import unittest
 
 from util.rpm import (
-      install_rpm
-    , remove_rpm
+      install_rpms
+    , remove_rpms
 )
 
 class RPMTestCase(unittest.TestCase):
     @unittest.skip('test_install_rpm is not unit test')
     def test_install_rpm(self):
         test_package_names = ['tortoisehg', 'csync']
-        install_rpm(test_package_names, force=False, single_call=False)
+        install_rpms(test_package_names)
 
     @unittest.skip('test_remove_rpm is not unit test')
     def test_remove_rpm(self):
         test_package_names = ['tortoisehg', 'csync']
-        util.rpm.remove_rpm(test_package_names, force=False, single_call=False)
+        remove_rpms(test_package_names)
 
