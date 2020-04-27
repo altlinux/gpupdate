@@ -41,8 +41,13 @@ from util.users import (
     with_privileges
 )
 from util.logging import slogm
+from util.paths import (
+    frontend_module_dir
+)
 
 import logging
+import os
+import subprocess
 
 def determine_username(username=None):
     '''
@@ -72,6 +77,12 @@ class frontend_manager:
     '''
 
     def __init__(self, username, is_machine):
+        frontend_module_files = frontend_module_dir().glob('**/*')
+        self.frontend_module_binaries = list()
+        for exe in frontend_module_files:
+            if (exe.is_file() and os.access(exe.resolve(), os.X_OK)):
+                self.frontend_module_binaries.append(exe)
+
         self.storage = registry_factory('registry')
         self.username = determine_username(username)
         self.is_machine = is_machine
@@ -105,6 +116,10 @@ class frontend_manager:
             logging.error('Not sufficient privileges to run machine appliers')
             return
         logging.debug(slogm('Applying computer part of settings'))
+
+        for exe in self.frontend_module_binaries:
+            subprocess.check_call([exe.resolve()])
+
         self.machine_appliers['systemd'].apply()
         self.machine_appliers['control'].apply()
         self.machine_appliers['polkit'].apply()
