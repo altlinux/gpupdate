@@ -33,6 +33,64 @@ def is_rpm_installed(rpm_name):
 
     return False
 
+class Package:
+    __install_command = ['/usr/bin/apt-get', '-y', 'install']
+    __remove_command = ['/usr/bin/apt-get', '-y', 'remove']
+    __reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
+
+    def __init__(self, package_name):
+        self.package_name = package_name
+        self.for_install = True
+
+        if package_name.endswith('-'):
+            self.package_name = package_name[:-1]
+            self.for_install = False
+
+        self.installed = is_rpm_installed(self.package_name)
+
+    def mark_for_install(self):
+        self.for_install = True
+
+    def mark_for_removal(self):
+        self.for_install = False
+
+    def is_installed(self):
+        return self.installed
+
+    def is_for_install(self):
+        return self.for_install
+
+    def is_for_removal(self):
+        return (not self.for_install)
+
+    def action(self):
+        if self.for_install:
+            if not self.is_installed():
+                return self.install()
+        else:
+            if self.is_installed():
+                return self.remove()
+
+    def install(self):
+        fullcmd = self.__install_command
+        fullcmd.append(self.package_name)
+        return subprocess.check_call(fullcmd)
+
+    def reinstall(self):
+        fullcmd = self.__reinstall_command
+        fullcmd.append(self.package_name)
+        return subprocess.check_call(fullcmd)
+
+    def remove(self):
+        fullcmd = self.__remove_command
+        fullcmd.append(self.package_name)
+        return subprocess.check_call(fullcmd)
+
+    def __repr__(self):
+        return self.package_name
+
+    def __str__(self):
+        return self.package_name
 
 def update():
     '''
@@ -40,18 +98,40 @@ def update():
     '''
     subprocess.check_call(['/usr/bin/apt-get', 'update'])
 
-
 def install_rpm(rpm_name):
     '''
-    Install RPM from APT-RPM sources.
+    Install single RPM
     '''
     update()
-    subprocess.check_call(['/usr/bin/apt-get', '-y', 'install', rpm_name])
-
+    rpm = Package(rpm_name)
+    return rpm.install()
 
 def remove_rpm(rpm_name):
     '''
-    Remove RPM from file system.
+    Remove single RPM
     '''
-    subprocess.check_call(['/usr/bin/apt-get', '-y', 'remove', rpm_name])
+    rpm = Package(rpm_name)
+    return rpm.remove()
+
+def install_rpms(rpm_names):
+    '''
+    Install set of RPMs sequentially
+    '''
+    result = list()
+
+    for package in rpm_names:
+        result.append(install_rpm(package))
+
+    return result
+
+def remove_rpms(rpm_names):
+    '''
+    Remove set of RPMs requentially
+    '''
+    result = list()
+
+    for package in rpm_names:
+        result.append(remove_rpm(package))
+
+    return result
 
