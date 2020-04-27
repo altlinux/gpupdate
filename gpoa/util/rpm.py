@@ -92,71 +92,46 @@ class Package:
     def __str__(self):
         return self.package_name
 
-
 def update():
     '''
     Update APT-RPM database.
     '''
     subprocess.check_call(['/usr/bin/apt-get', 'update'])
 
-def install_rpm(rpm_names, force=True, single_call=True):
+def install_rpm(rpm_name):
     '''
-    Install RPM from APT-RPM sources.
-
-    :param rpm_names: List of names of RPM packages to install
-    :param force: Check if RPM is installed
+    Install single RPM
     '''
-    install_command = ['/usr/bin/apt-get', '-y', 'install']
-
-    package_list = [Package(rpm_name) for rpm_name in rpm_names]
-
     update()
+    rpm = Package(rpm_name)
+    return rpm.install()
 
-    filtered_package_list = list()
-    if not force:
-        for package in package_list:
-            if (not package.is_installed()) and package.is_for_install():
-                filtered_package_list.append(package)
-
-            if package.is_installed() and package.is_for_removal():
-                filtered_package_list.append(package)
-    else:
-        filtered_package_list = package_list()
-
-    if len(filtered_package_list) > 0:
-        if single_call:
-            string_filtered_list = [str(x) for x in filtered_package_list]
-            install_command.extend(string_filtered_list)
-            subprocess.check_call(install_command)
-        else:
-            for package in filtered_package_list:
-                package.action()
-
-def remove_rpm(rpm_names, force=True, single_call=True):
+def remove_rpm(rpm_name):
     '''
-    Remove RPM from file system.
-
-    :param rpm_names: List of names of RPM packages to install
-    :param force: Don't check if rpm is installed
+    Remove single RPM
     '''
-    remove_command = ['/usr/bin/apt-get', '-y', 'remove']
+    rpm = Package(rpm_name)
+    return rpm.remove()
 
-    package_list = [Package(rpm_name) for rpm_name in rpm_names]
+def install_rpms(rpm_names):
+    '''
+    Install set of RPMs sequentially
+    '''
+    result = list()
 
-    filtered_package_list = list()
-    if not force:
-        for package in package_list:
-            if package.is_installed() and package.is_for_removal():
-                filtered_package_list.append(package)
-    else:
-        filtered_package_list = package_list
+    for package in rpm_names:
+        result.append(install_rpm(package))
 
-    if len(filtered_package_list) > 0:
-        if single_call:
-            string_filtered_list = [str(x) for x in filtered_package_list]
-            remove_command.extend(string_filtered_list)
-            subprocess.check_call(remove_command)
-        else:
-            for package in filtered_package_list:
-                package.action()
+    return result
+
+def remove_rpms(rpm_names):
+    '''
+    Remove set of RPMs requentially
+    '''
+    result = list()
+
+    for package in rpm_names:
+        result.append(remove_rpm(package))
+
+    return result
 
