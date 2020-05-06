@@ -50,7 +50,7 @@ def get_default_policy_name():
     dcpolicy = 'ad-domain-controller'
 
     try:
-        if smbopt.get_server_role() == 'active directory domain controller':
+        if smbopts().get_server_role() == 'active directory domain controller':
             return dcpolicy
     except:
         pass
