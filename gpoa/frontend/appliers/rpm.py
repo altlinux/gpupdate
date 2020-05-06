@@ -26,23 +26,20 @@ class rpm:
         self.packages_for_remove = packages_for_remove
 
     def apply(self):
-        try:
-            logging.info(slogm('Updating APT-RPM database'))
-            subprocess.check_call(['/usr/bin/apt-get', 'update'])
-        except Exception as exc:
-            logging.info(slogm('Failed to update APT-RPM database: {}'.format(exc)))
-
-        logging.info(slogm('Installing packages: {}. Removing packages {}.'.format(self.packages_for_instsall, self.packages_for_remove)))
-
-        if self.packages_for_remove:
-            self.packages_for_remove = [i + "-" for i in self.packages_for_remove]
-
-        cmd = ['/usr/bin/apt-get', '-y', 'install']
-        cmd.extend(self.packages_for_instsall)
-        cmd.extend(self.packages_for_remove)
+        cmd = 'update\n'
+        cmd += 'install ' + self.packages_for_instsall + '\n'
+        cmd += 'remove ' + self.packages_for_remove + '\n'
+        cmd += 'commit -y\n'
 
         try:
-            subprocess.check_call(cmd)
+            logging.info(slogm('Installing packages: {}. Removing packages: {}.'.format(self.packages_for_instsall, self.packages_for_remove)))
+            p = subprocess.run(['/usr/bin/apt-shell'], stdout = subprocess.PIPE, stderr = subprocess.PIPE, input = cmd, encoding='utf-8')
         except Exception as exc:
-            logging.info(slogm('Failed to install/remove packages: {}'.format(exc)))
+            logging.error(slogm('Failed to run /usr/bin/apt-shell: {}'.format(exc)))
+            return
+
+        logging.info(slogm('/usr/bin/apt-shell returned {}'.format(p.returncode)))
+        logging.info(slogm('/usr/bin/apt-shell output:\n{}'.format(p.stdout)))
+        if p.stderr:
+            logging.error(slogm('/usr/bin/apt-shell errors:\n{}'.format(p.stderr)))
 

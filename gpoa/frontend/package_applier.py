@@ -28,18 +28,19 @@ class package_applier(applier_frontend):
         self.package_applier_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Packages%')
 
     def apply(self):
-        packages_for_install = None
-        packages_for_remove = None
+        packages_for_install = ''
+        packages_for_remove = ''
 
         for setting in self.package_applier_settings:
             action = setting.hive_key.rpartition('\\')[2]
             if action == 'PackagesForInstall':
-                packages_for_install = setting.data.split()
+                packages_for_install = setting.data
             if action == 'PackagesForRemove':
-                packages_for_remove = setting.data.split()
+                packages_for_remove = setting.data
 
-        r = rpm(packages_for_install, packages_for_remove)
-        r.apply()
+        if packages_for_install or packages_for_remove:
+            r = rpm(packages_for_install, packages_for_remove)
+            r.apply()
 
 
 class package_applier_user(applier_frontend):
