@@ -96,6 +96,15 @@ class sqlite_registry(registry):
             Column('printer', String),
             UniqueConstraint('sid', 'name')
         )
+        self.__drives = Table(
+            'Drives',
+            self.__metadata,
+            Column('id', Integer, primary_key=True),
+            Column('sid', String),
+            Column('letter', String),
+            Column('drive', String),
+            UniqueConstraint('sid', 'letter')
+        )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
