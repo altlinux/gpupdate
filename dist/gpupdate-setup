@@ -50,7 +50,7 @@ def get_default_policy_name():
     dcpolicy = 'ad-domain-controller'
 
     try:
-        if smbopt.get_server_role() == 'active directory domain controller':
+        if smbopts().get_server_role() == 'active directory domain controller':
             return dcpolicy
     except:
         pass
@@ -86,6 +86,8 @@ def parse_arguments():
         help='Disable Group Policy subsystem')
     parser_write = subparsers.add_parser('write',
         help='Operate on Group Policies (enable or disable)')
+    parser_default = subparsers.add_parser('default-policy',
+        help='Show name of default policy')
     parser_active = subparsers.add_parser('active-policy',
         help='Show name of policy enabled')
 
@@ -144,17 +146,17 @@ def get_status():
 
     return os.path.islink(systemd_unit_link)
 
-def get_active_policy():
-    policy_dir = '/usr/share/local-policy'
+def get_active_policy_name():
     etc_policy_dir = '/etc/local-policy'
-    default_policy_name = os.path.join(policy_dir, get_default_policy_name())
+    actual_policy_name = 'unknown'
 
-    active_policy_name = os.path.join(etc_policy_dir, 'active')
+    active_policy_path = os.path.join(etc_policy_dir, 'active')
 
-    actual_policy_name = os.path.realpath(default_policy_name)
+    if os.path.islink(active_policy_path):
+        active_policy_path = os.path.realpath(active_policy_path)
 
-    if os.path.isdir(active_policy_name):
-        actual_policy_name = os.path.realpath(active_policy_name)
+    if os.path.isdir(active_policy_path):
+        actual_policy_name = os.path.basename(active_policy_path)
 
     return actual_policy_name
 
@@ -221,7 +223,10 @@ def main():
         disable_gp()
 
     if arguments.action == 'active-policy':
-        print(get_active_policy())
+        print(get_active_policy_name())
+
+    if arguments.action == 'default-policy':
+        print(get_default_policy_name())
 
 if __name__ == '__main__':
     main()
