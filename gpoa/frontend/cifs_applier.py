@@ -18,7 +18,27 @@
 
 from .applier_frontend import applier_frontend
 
+
 class cifs_applier(applier_frontend):
-    def __init__(self):
+    def __init__(self, storage):
+        self.storage = storage
+
+    def apply(self):
+        valuename = self.autosmb.hive_key.rpartition('\\')[2]
+
+
+class cifs_applier_user(applier_frontend):
+    def __init__(self, storage, sid, username):
+        self.storage = storage
+        self.sid = sid
+        self.username = username
+
+    def user_context_apply(self):
+        '''
+        Nothing to implement.
+        '''
+        pass
+
+    def admin_context_apply(self):
         pass
 
