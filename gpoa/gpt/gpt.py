@@ -92,10 +92,12 @@ class gpt:
     def _find_user(self):
         self._user_regpol = self._find_regpol('user')
         self._user_shortcuts = self._find_shortcuts('user')
+        self._user_drives = self._find_drives('user')
 
     def _find_machine(self):
         self._machine_regpol = self._find_regpol('machine')
         self._machine_shortcuts = self._find_shortcuts('machine')
+        self._machine_drives = self._find_drives('machine')
 
     def _find_regpol(self, part):
         '''
@@ -169,6 +171,17 @@ class gpt:
         for sc in shortcuts:
             self.storage.add_shortcut(self.sid, sc)
 
+    def _merge_drives(self):
+        drives = list()
+
+        if self.sid == self.storage.get_info('machine_sid'):
+            drives = read_drives(self._machine_drives)
+        else:
+            drives = read_drives(self._user_drives)
+
+        for drv in drives:
+            self.storage.add_drive(self.sid, drv)
+
     def merge(self):
         '''
         Merge machine and user (if sid provided) settings to storage.
@@ -184,6 +197,10 @@ class gpt:
             if self._machine_shortcuts:
                 logging.debug(slogm('Merging machine shortcuts from {}'.format(self._machine_shortcuts)))
                 self._merge_shortcuts()
+            if self._machine_drives:
+                logging.debug(slogm('Merging machine drives from {}'.format(self._machine_drives)))
+                self._merge_drives()
+
         else:
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
@@ -195,6 +212,9 @@ class gpt:
                 if self._user_shortcuts:
                     logging.debug(slogm('Merging user shortcuts from {} for {}'.format(self._user_shortcuts, self.sid)))
                     self._merge_shortcuts()
+                if self._user_drives:
+                    logging.debug(slogm('Merging user drives from {} for {}'.format(self._user_drives, self.sid)))
+                    self._merge_drives()
 
     def __str__(self):
         template = '''
