@@ -64,3 +64,8 @@ class drive_entry(object):
     '''
     def __init__(self, sid, dobj):
         self.sid = sid
+        self.login = dobj.login
+        self.password = dobj.password
+        self.dir = dobj.dir
+        self.path = dobj.path
+

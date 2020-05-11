@@ -42,6 +42,7 @@ from .record_types import (
     , ad_shortcut
     , info_entry
     , printer_entry
+    , drive_entry
 )
 
 class sqlite_registry(registry):
@@ -101,9 +102,11 @@ class sqlite_registry(registry):
             self.__metadata,
             Column('id', Integer, primary_key=True),
             Column('sid', String),
-            Column('letter', String),
-            Column('drive', String),
-            UniqueConstraint('sid', 'letter')
+            Column('login', String),
+            Column('password', String),
+            Column('dir', String),
+            Column('path', String),
+            UniqueConstraint('sid', 'dir')
         )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
@@ -114,6 +117,7 @@ class sqlite_registry(registry):
             mapper(samba_hkcu_preg, self.__hkcu)
             mapper(ad_shortcut, self.__shortcuts)
             mapper(printer_entry, self.__printers)
+            mapper(drive_entry, self.__drives)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -188,6 +192,19 @@ class sqlite_registry(registry):
                 .update(update_obj))
             self.db_session.commit()
 
+    def _drive_upsert(self, row):
+        try:
+            self._add(row)
+        except:
+            update_obj = dict({ 'drive': row.drive })
+            (self
+                .db_session
+                .query(drive_entry)
+                .filter(drive_entry.sid == row.sid)
+                .filter(drive_entry.dir == row.dir)
+                .update(update_obj))
+            self.db_session.commit()
+
     def set_info(self, name, value):
         ientry = info_entry(name, value)
         logging.debug(slogm('Setting info {}:{}'.format(name, value)))
@@ -230,6 +247,11 @@ class sqlite_registry(registry):
         logging.debug(slogm('Saving info about printer {} for {}'.format(prn_entry.name, sid)))
         self._printer_upsert(prn_entry)
 
+    def add_drive(self, sid, dobj):
+        drv_entry = drive_entry(sid, dobj)
+        logging.debug(slogm('Saving info about drive mapping {} for {}'.format(drv_entry.path, sid)))
+        self._drive_upsert(drv_entry)
+
     def get_shortcuts(self, sid):
         res = (self
             .db_session
@@ -243,6 +265,14 @@ class sqlite_registry(registry):
             .db_session
             .query(printer_entry)
             .filter(printer_entry.sid == sid)
+            .all())
+        return res
+
+    def get_drives(self, sid):
+        res = (self
+            .db_session
+            .query(drive_entry)
+            .filter(drive_entry.sid == sid)
             .all())
         return res
 
@@ -308,6 +338,14 @@ class sqlite_registry(registry):
             .db_session
             .query(printer_entry)
             .filter(printer_entry.sid == sid)
+            .delete())
+        self.db_session.commit()
+
+    def wipe_drives(self, sid):
+        (self
+            .db_session
+            .query(drive_entry)
+            .filter(drive_entry.sid == sid)
             .delete())
         self.db_session.commit()
 
