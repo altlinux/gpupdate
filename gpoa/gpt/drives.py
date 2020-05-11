@@ -31,10 +31,23 @@ def read_drives(drives_file):
         props = drive.find('Properties')
         drive_obj.set_login(props.get('username'))
         drive_obj.set_pass(props.get('cpassword'))
+        drive_obj.set_dir(props.get('letter'))
+        drive_obj.set_path(props.get('path'))
 
         drives.append(drive_obj)
 
     return drives
+
+def json2drive(json_str):
+    json_obj = json.loads(json_str)
+    drive_obj = drivemap()
+
+    drive_obj.set_login(json_obj['login'])
+    drive_obj.set_pass(json_obj['[password]'])
+    drive_obj.set_dir(json_obj['dir'])
+    drive_obj.set_path(json_obj['[path]'])
+
+    return drive_obj
 
 def decrypt_pass(cpassword):
     '''
@@ -61,6 +74,8 @@ class drivemap:
     def __init__(self):
         self.login = None
         self.password = None
+        self.dir = None
+        self.path = None
 
     def set_login(self, username):
         self.login = username
@@ -68,8 +83,18 @@ class drivemap:
     def set_pass(self, password):
         self.password = password
 
+    def set_dir(self, path):
+        self.dir = path
+
+    def set_path(self, path):
+        self.path = path
+
     def to_json(self):
         drive = dict()
+        drive['login'] = self.login
+        drive['password'] = self.password
+        drive['dir'] = self.dir
+        drive['path'] = self.path
 
         contents = dict()
         contents['drive'] = drive
