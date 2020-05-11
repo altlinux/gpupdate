@@ -17,21 +17,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .applier_frontend import applier_frontend
+from gpt.drives import json2drive
 
+def storage_get_drives(storage, sid):
+    drives = storage.get_drives(sid)
+    drive_list = list()
+
+    for drv_obj in drives:
+        drv = json2drive(drv_obj)
+        drive_list.append(drive_list)
+
+    return drive_list
 
 class cifs_applier(applier_frontend):
     def __init__(self, storage):
-        self.storage = storage
+        pass
 
     def apply(self):
-        valuename = self.autosmb.hive_key.rpartition('\\')[2]
-
+        pass
 
 class cifs_applier_user(applier_frontend):
+    __auto_file = '/etc/auto.master'
+    __drive_entry_template = '/mnt/{}\t/etc/auto.smb\t-t 120'
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
+        self.drives = storage_get_drives(self.storage, self.sid)
 
     def user_context_apply(self):
         '''
@@ -39,6 +52,13 @@ class cifs_applier_user(applier_frontend):
         '''
         pass
 
+
     def admin_context_apply(self):
-        pass
+        with open(self.__auto_file, 'w') as auf:
+            for drv in self.drives:
+                for line in auf:
+                    if line.startswith('/mnt/{}'.format(drv.dir))
+                        break
+                else:
+                    auf.write(self.__drive_entry_template.format(drv.dir))
 
