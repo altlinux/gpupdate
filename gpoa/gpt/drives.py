@@ -43,9 +43,9 @@ def json2drive(json_str):
     drive_obj = drivemap()
 
     drive_obj.set_login(json_obj['login'])
-    drive_obj.set_pass(json_obj['[password]'])
+    drive_obj.set_pass(json_obj['password'])
     drive_obj.set_dir(json_obj['dir'])
-    drive_obj.set_path(json_obj['[path]'])
+    drive_obj.set_path(json_obj['path'])
 
     return drive_obj
 
