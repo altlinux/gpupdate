@@ -33,6 +33,10 @@ from .gsettings_applier import (
     gsettings_applier,
     gsettings_applier_user
 )
+from .tmp_applier import (
+    tmp_applier,
+    tmp_applier_user
+)
 from util.windows import get_sid
 from util.users import (
     is_root,
@@ -87,14 +91,16 @@ class frontend_manager:
             'shortcuts': shortcut_applier(self.storage),
             'gsettings': gsettings_applier(self.storage),
             'cups': cups_applier(self.storage),
-            'package': package_applier(self.storage)
+            'package': package_applier(self.storage),
+            'tmp': tmp_applier(self.storage)
         })
 
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
         self.user_appliers = dict({
             'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username),
-            'gsettings': gsettings_applier_user(self.storage, self.sid, self.username)
+            'gsettings': gsettings_applier_user(self.storage, self.sid, self.username),
+            'tmp': tmp_applier_user(self.storage, self.sid, self.username)
         })
 
     def machine_apply(self):
@@ -112,6 +118,7 @@ class frontend_manager:
         self.machine_appliers['chromium'].apply()
         self.machine_appliers['shortcuts'].apply()
         self.machine_appliers['gsettings'].apply()
+        self.machine_appliers['tmp'].apply()
         self.machine_appliers['cups'].apply()
         #self.machine_appliers['package'].apply()
 
@@ -127,10 +134,12 @@ class frontend_manager:
             logging.debug(slogm('Running user appliers for user context'))
             with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)
             with_privileges(self.username, self.user_appliers['gsettings'].user_context_apply)
+            with_privileges(self.username, self.user_appliers['tmp'].user_context_apply)
         else:
             logging.debug(slogm('Running user appliers from user context'))
             self.user_appliers['shortcuts'].user_context_apply()
             self.user_appliers['gsettings'].user_context_apply()
+            self.user_appliers['tmp'].user_context_apply()
 
     def apply_parameters(self):
         '''
