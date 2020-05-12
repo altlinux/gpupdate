@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import fileinput
+
 from .applier_frontend import applier_frontend
 from gpt.drives import json2drive
 
@@ -29,6 +31,35 @@ def storage_get_drives(storage, sid):
 
     return drive_list
 
+def insubst_line(filename, start, replace):
+    '''
+    Replace or insert line if not present.
+    '''
+    contents = list()
+    with open(filename, 'r') as fcontents:
+        contents = fcontents.read().splitlines()
+
+    result = list()
+    for line in contents:
+        line_found = False
+
+        for line in contents:
+            tmp_line = line.strip()
+
+            if tmp_line.startswith(start):
+                line_found = True
+                result.append(replace)
+            else:
+                result.append(tmp_line)
+
+        if not line_found:
+            result.append(replace)
+
+    with open(filename, 'w') as out:
+        out.truncate()
+        out.writelines(result)
+        out.flush()
+
 class cifs_applier(applier_frontend):
     def __init__(self, storage):
         pass
@@ -38,7 +69,7 @@ class cifs_applier(applier_frontend):
 
 class cifs_applier_user(applier_frontend):
     __auto_file = '/etc/auto.master'
-    __drive_entry_template = '/mnt/{}\t/etc/auto.smb\t-t 120'
+    __drive_entry_template = '/mnt/{}\t-fstype=cifs,rw,username={},password={}\t:{}'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -52,13 +83,9 @@ class cifs_applier_user(applier_frontend):
         '''
         pass
 
-
     def admin_context_apply(self):
-        with open(self.__auto_file, 'w') as auf:
-            for drv in self.drives:
-                for line in auf:
-                    if line.startswith('/mnt/{}'.format(drv.dir))
-                        break
-                else:
-                    auf.write(self.__drive_entry_template.format(drv.dir))
+        line_start = '/mnt/{}'.format(drv.dir)
+        autofs_path = drv.path.replace('\\', '/')
+        line_subst = self.__drive_entry_template.format(drv.dir, drv.login, drv.password, autofs_path)
+        insubst_line(self.__auto_file, line_start, line_subst)
 
