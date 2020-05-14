@@ -22,6 +22,9 @@ import os
 from xdg.BaseDirectory import xdg_config_home
 
 
+from users import with_privileges
+
+
 def get_user_dir(dir_name, default=None):
     '''
     Get path to XDG's user directory
@@ -34,4 +37,16 @@ def get_user_dir(dir_name, default=None):
         return config.get(DEFAULTSECT, 'XDG_DESKTOP_DIR')
     except Exception as exc:
         return default
+
+def xdg_get_desktop_user(username):
+    if not username:
+        return '/etc/skel/Desktop'
+
+    return with_privileges(username, xdg_get_desktop)
+
+def xdg_get_desktop():
+    stream = os.popen('source /etc/locale.conf; xdg-user-dir DESKTOP')
+    output = stream.read()[:-1]
+
+    return output
 
