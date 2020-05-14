@@ -41,7 +41,8 @@ def add_line_if_missing(filename, ins_line):
             if ins_line in line.strip():
                 break
         else:
-            f.write(ins_line)
+            f.write(ins_line + '\n')
+            f.flush()
 
 class cifs_applier(applier_frontend):
     def __init__(self, storage):
