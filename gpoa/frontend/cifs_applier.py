@@ -30,8 +30,7 @@ def storage_get_drives(storage, sid):
     drive_list = list()
 
     for drv_obj in drives:
-        drv = json2drive(drv_obj)
-        drive_list.append(drive_list)
+        drive_list.append(drv_obj)
 
     return drive_list
 
@@ -55,18 +54,36 @@ class cifs_applier_user(applier_frontend):
     __auto_file = '/etc/auto.master'
     __auto_dir = '/etc/auto.master.gpupdate.d'
     __template_path = '/usr/share/gpupdate/templates'
-    __template_name = os.path.join(__template_path, 'gpupdate_mount.j2')
-    __drive_entry_template = '/mnt/{}\t-fstype=cifs,rw,username={},password={}\t:{}'
+    __template_mountpoints = 'autofs_mountpoints.j2'
+    __template_identity = 'autofs_identity.j2'
+    __template_auto = 'autofs_auto.j2'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
+
+        self.home = get_homedir(username)
+        conf_file = '{}.conf'.format(sid)
+        autofs_file = '{}.autofs'.format(sid)
+        cred_file = '{}.creds'.format(sid)
+
         self.auto_master_d = Path(self.__auto_dir)
-        self.user_config = self.auto_master_d / sid
-        home = get_homedir(username)
+
+        self.user_config = self.auto_master_d / conf_file
+        self.user_autofs = self.auto_master_d / autofs_file
+        self.user_creds = self.auto_master_d / cred_file
+
         self.mount_dir = Path(os.path.join(home, 'net'))
         self.drives = storage_get_drives(self.storage, self.sid)
+
+        self.template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
+        self.template_env = jinja2.Environment(loader=self.template_loader)
+
+        self.template_mountpoints = self.template_env.get_template(self.__template_mountpoints)
+        self.template_indentity = self.template_env.get_template(self.__template_identity)
+        self.template_auto = self.template_env.get_template(self.__template_auto)
+
 
     def user_context_apply(self):
         '''
@@ -81,7 +98,7 @@ class cifs_applier_user(applier_frontend):
         self.mount_dir.mkdir(parents=True, exist_ok=True)
 
         # Add pointer to /etc/auto.master.gpiupdate.d in /etc/auto.master
-        auto_destdir = '+dir:\t{}'.format(self.__auto_dir)
+        auto_destdir = '+dir:{}'.format(self.__auto_dir)
         add_line_if_missing(self.__auto_file, auto_destdir)
 
         # Collect data for drive settings
@@ -95,18 +112,22 @@ class cifs_applier_user(applier_frontend):
 
             drive_list.append(drive_settings)
 
-        template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
-        template_env = jinja2.Environment(loader=template_loader)
-        template = template_env.get_template(self.__template_name)
-
-        templating_settings = dict()
-        templating_settings['drives'] = drive_list
-        templating_settings['mountdir'] = self.mount_dir.resolve()
-        text = template.render(**template_settings)
+        mount_settings = dict()
+        mount_settings['drives'] = drive_list
+        mount_text = self.template_mountpoints.render(**mount_settings)
 
         with open(self.user_config.resolve(), 'w') as f:
             f.truncate()
-            f.write(text)
+            f.write(mount_text)
             f.flush()
-            f.close()
+
+        autofs_settings = dict()
+        autofs_settings['home_dir'] = self.home
+        autofs_settings['mount_file'] = self.user_config.resolve()
+        autofs_text = self.template_auto.render(**autofs_settings)
+
+       with open(self.user_autofs.resolve(), 'w') as f:
+           f.truncate()
+           f.write(autofs_text)
+           f.flush()
 
