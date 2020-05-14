@@ -99,11 +99,14 @@ def with_privileges(username, func):
 
     # We need to catch exception in order to be able to restore
     # privileges later in this function
+    out = None
     try:
-        func()
+        out = func()
     except Exception as exc:
         logging.debug(slogm(exc))
 
     # Restore privileges
     set_privileges('root', current_uid, 0, current_groups)
+
+    return out
 
