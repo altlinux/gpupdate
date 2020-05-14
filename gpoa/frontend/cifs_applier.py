@@ -39,7 +39,7 @@ def storage_get_drives(storage, sid):
 def add_line_if_missing(filename, ins_line):
     with open(filename, 'r+') as f:
         for line in f:
-            if ins_line in line.strip():
+            if ins_line == line.strip():
                 break
         else:
             f.write(ins_line + '\n')
@@ -73,7 +73,11 @@ class cifs_applier_user(applier_frontend):
         self.auto_master_d = Path(self.__auto_dir)
 
         self.user_config = self.auto_master_d / conf_file
+        if os.path.exists(self.user_config.resolve()):
+            self.user_config.unlink()
         self.user_autofs = self.auto_master_d / autofs_file
+        if os.path.exists(self.user_autofs.resolve()):
+            self.user_autofs.unlink()
         self.user_creds = self.auto_master_d / cred_file
 
         self.mount_dir = Path(os.path.join(self.home, 'net'))
