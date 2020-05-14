@@ -140,13 +140,16 @@ class gpt:
         '''
         Find Drives.xml files.
         '''
-        search_path = os.path.join(self._machine_path, 'Preferences', 'Drives')
-        if 'user' == part:
-            search_path = os.path.join(self._user_path, 'Preferences', 'Drives')
-        if not search_path:
-            return None
+        try:
+            search_path = os.path.join(self._machine_path, 'Preferences', 'Drives')
+            if 'user' == part:
+                search_path = os.path.join(self._user_path, 'Preferences', 'Drives')
+            if not search_path:
+                return None
 
-        return find_file(search_path, 'drives.xml')
+            return find_file(search_path, 'drives.xml')
+        except Exception as exc:
+            return None
 
     def _find_printers(self, part):
         '''
