@@ -196,7 +196,7 @@ class sqlite_registry(registry):
         try:
             self._add(row)
         except:
-            update_obj = dict({ 'drive': row.drive })
+            update_obj = dict({ 'dir': row.dir, 'path': row.path, 'login': row.login, 'password': row.password })
             (self
                 .db_session
                 .query(drive_entry)
