@@ -101,7 +101,7 @@ class cifs_applier_user(applier_frontend):
         templating_settings = dict()
         templating_settings['drives'] = drive_list
         templating_settings['mountdir'] = self.mount_dir.resolve()
-        text = template.render(**dict)
+        text = template.render(**template_settings)
 
         with open(self.user_config.resolve(), 'w') as f:
             f.truncate()
