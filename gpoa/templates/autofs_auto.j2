@@ -16,7 +16,5 @@
  # You should have received a copy of the GNU General Public License
  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #}
-{% for drv in drives %}
-{% mountdir %}/{% drv.dir %}	-fstype=cifs,rw,username={% drv.login %},password={% drv.password %}	:{% drv.path %}
-{% endfor %}
+{{ home_dir }}/net	{{ mount_file }}	-t 120
 
