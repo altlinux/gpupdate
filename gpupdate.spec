@@ -80,6 +80,10 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 /usr/lib/systemd/user/%name-user.service
 %_sysconfdir/pam.d/system-policy-%name
 %dir %_cachedir/%name
+%exclude %python3_sitelibdir/gpoa/.pylintrc
+%exclude %python3_sitelibdir/gpoa/.prospector.yaml
+%exclude %python3_sitelibdir/gpoa/Makefile
+%exclude %python3_sitelibdir/gpoa/test
 
 %changelog
 * Wed Apr 22 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.5.0-alt1
