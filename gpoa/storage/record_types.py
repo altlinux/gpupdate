@@ -57,3 +57,15 @@ class printer_entry(object):
         self.sid = sid
         self.name = pobj.name
         self.printer = pobj.to_json()
+
+class drive_entry(object):
+    '''
+    Object mapping representing Samba share bound to drive letter
+    '''
+    def __init__(self, sid, dobj):
+        self.sid = sid
+        self.login = dobj.login
+        self.password = dobj.password
+        self.dir = dobj.dir
+        self.path = dobj.path
+
