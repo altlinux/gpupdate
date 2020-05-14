@@ -19,6 +19,7 @@
 import fileinput
 import jinja2
 import os
+import subprocess
 from pathlib import Path
 
 from .applier_frontend import applier_frontend
@@ -131,4 +132,6 @@ class cifs_applier_user(applier_frontend):
             f.truncate()
             f.write(autofs_text)
             f.flush()
+
+        subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
