@@ -84,6 +84,7 @@ def read_shortcuts(shortcuts_file):
         sc.set_clsid(link.get('clsid'))
         sc.set_guid(link.get('uid'))
         sc.set_usercontext(link.get('userContext', False))
+        sc.set_icon(link.get('iconPath'))
         shortcuts.append(sc)
 
     return shortcuts
@@ -100,6 +101,7 @@ def json2sc(json_str):
     sc.set_clsid(json_obj['clsid'])
     sc.set_guid(json_obj['guid'])
     sc.set_usercontext(json_obj['is_in_user_context'])
+    sc.set_icon(json_obj['icon'])
 
     return sc
 
@@ -117,6 +119,7 @@ class shortcut:
         self.arguments = arguments
         self.name = name
         self.changed = ''
+        self.icon = None
         self.is_in_user_context = self.set_usercontext()
         self.type = ttype
 
@@ -135,6 +138,9 @@ class shortcut:
 
     def set_guid(self, uid):
         self.guid = uid
+
+    def set_icon(self, icon_name):
+        self.icon = icon_name
 
     def set_type(self, ttype):
         '''
@@ -172,7 +178,8 @@ class shortcut:
         content['changed'] = self.changed
         content['is_in_user_context'] = self.is_in_user_context
         content['type'] = ttype2str(self.type)
-
+        if self.icon:
+            content['icon'] = self.icon
         result = self.desktop()
         result.content.update(content)
 
@@ -198,6 +205,9 @@ class shortcut:
         else:
             self.desktop_file.set('Terminal', 'false')
             self.desktop_file.set('Exec', '{} {}'.format(self.path, self.arguments))
+
+        if self.icon:
+            self.desktop_file.set('Icon', self.icon)
 
         return self.desktop_file
 
