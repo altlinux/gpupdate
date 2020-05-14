@@ -18,6 +18,7 @@
 
 import fileinput
 import jinja2
+import os
 from pathlib import Path
 
 from .applier_frontend import applier_frontend
