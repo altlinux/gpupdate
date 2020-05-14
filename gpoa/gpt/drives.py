@@ -26,6 +26,9 @@ def decrypt_pass(cpassword):
     '''
     AES key for cpassword decryption: http://msdn.microsoft.com/en-us/library/2c15cbf0-f086-4c74-8b70-1f2fa45dd4be%28v=PROT.13%29#endNote2
     '''
+    if not cpassword:
+        return cpassword
+
     key = (
             b'\x4e\x99\x06\xe8'
             b'\xfc\xb6\x6c\xc9'
@@ -89,9 +92,13 @@ class drivemap:
 
     def set_login(self, username):
         self.login = username
+        if not username:
+            self.login = ''
 
     def set_pass(self, password):
         self.password = password
+        if not password:
+            self.password = ''
 
     def set_dir(self, path):
         self.dir = path
