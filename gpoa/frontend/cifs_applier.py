@@ -55,7 +55,7 @@ class cifs_applier_user(applier_frontend):
     __auto_file = '/etc/auto.master'
     __auto_dir = '/etc/auto.master.gpupdate.d'
     __template_path = '/usr/share/gpupdate/templates'
-    __template_name = os.path.join(__template_path, 'gpupdate-mount.j2')
+    __template_name = os.path.join(__template_path, 'gpupdate_mount.j2')
     __drive_entry_template = '/mnt/{}\t-fstype=cifs,rw,username={},password={}\t:{}'
 
     def __init__(self, storage, sid, username):
