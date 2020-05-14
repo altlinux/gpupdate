@@ -29,7 +29,10 @@ import samba.gpo
 import pysss_nss_idmap
 
 from storage import cache_factory
-from .xdg import get_user_dir
+from .xdg import (
+      get_user_dir
+    , xdg_get_desktop_user
+)
 from .util import get_homedir
 from .logging import slogm
 from .samba import smbopts
@@ -178,12 +181,10 @@ def expand_windows_var(text, username=None):
     variables['SystemRoot'] = '/'
     variables['StartMenuDir'] = '/usr/share/applications'
     variables['SystemDrive'] = '/'
+    variables['DesktopDir'] = xdg_get_desktop_user(username)
 
     if username:
         variables['HOME'] = get_homedir(username)
-
-        variables['DesktopDir'] = get_user_dir(
-            'DESKTOP', os.path.join(variables['HOME'], 'Desktop'))
 
         variables['StartMenuDir'] = os.path.join(
             variables['HOME'], '.local', 'share', 'applications')
