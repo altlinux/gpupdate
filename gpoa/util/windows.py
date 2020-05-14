@@ -174,7 +174,7 @@ def expand_windows_var(text, username=None):
     Scan the line for percent-encoded variables and expand them.
     '''
     variables = dict()
-    variables['HOME'] = '/'
+    variables['HOME'] = '/etc/skel'
     variables['SystemRoot'] = '/'
     variables['StartMenuDir'] = '/usr/share/applications'
     variables['SystemDrive'] = '/'
