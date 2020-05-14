@@ -114,24 +114,25 @@ class cifs_applier_user(applier_frontend):
 
             drive_list.append(drive_settings)
 
-        mount_settings = dict()
-        mount_settings['drives'] = drive_list
-        mount_text = self.template_mountpoints.render(**mount_settings)
+        if len(drive_list) > 0:
+            mount_settings = dict()
+            mount_settings['drives'] = drive_list
+            mount_text = self.template_mountpoints.render(**mount_settings)
 
-        with open(self.user_config.resolve(), 'w') as f:
-            f.truncate()
-            f.write(mount_text)
-            f.flush()
+            with open(self.user_config.resolve(), 'w') as f:
+                f.truncate()
+                f.write(mount_text)
+                f.flush()
 
-        autofs_settings = dict()
-        autofs_settings['home_dir'] = self.home
-        autofs_settings['mount_file'] = self.user_config.resolve()
-        autofs_text = self.template_auto.render(**autofs_settings)
+            autofs_settings = dict()
+            autofs_settings['home_dir'] = self.home
+            autofs_settings['mount_file'] = self.user_config.resolve()
+            autofs_text = self.template_auto.render(**autofs_settings)
 
-        with open(self.user_autofs.resolve(), 'w') as f:
-            f.truncate()
-            f.write(autofs_text)
-            f.flush()
+            with open(self.user_autofs.resolve(), 'w') as f:
+                f.truncate()
+                f.write(autofs_text)
+                f.flush()
 
-        subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
+            subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
