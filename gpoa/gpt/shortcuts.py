@@ -89,6 +89,10 @@ def read_shortcuts(shortcuts_file):
 
     return shortcuts
 
+def merge_shortcuts(storage, sid, shortcut_objects, policy_name):
+    for shortcut in shortcut_objects:
+        storage.add_shortcut(sid, shortcut, policy_name)
+
 def json2sc(json_str):
     '''
     Build shortcut out of string-serialized JSON
