@@ -18,18 +18,54 @@
 
 import logging
 import os
+from pathlib import Path
+from enum import Enum, unique
 
 from samba.gp_parse.gp_pol import GPPolParser
 
 from storage import registry_factory
-from .shortcuts import read_shortcuts
-from .services import read_services
-from .printers import read_printers
-from .inifiles import read_inifiles
-from .folders import read_folders
-from .files import read_files
-from .envvars import read_envvars
-from .drives import read_drives
+
+from .polfile import (
+      read_polfile
+    , merge_polfile
+)
+from .shortcuts import (
+      read_shortcuts
+    , merge_shortcuts
+)
+from .services import (
+      read_services
+    , merge_services
+)
+from .printers import (
+      read_printers
+    , merge_printers
+)
+from .inifiles import (
+      read_inifiles
+    , merge_inifiles
+)
+from .folders import (
+      read_folders
+    , merge_folders
+)
+from .files import (
+      read_files
+    , merge_files
+)
+from .envvars import (
+      read_envvars
+    , merge_envvars
+)
+from .drives import (
+      read_drives
+    , merge_drives
+)
+from .tasks import (
+      read_tasks
+    , merge_tasks
+)
+
 import util
 import util.preg
 from util.paths import (
@@ -39,6 +75,68 @@ from util.paths import (
 )
 from util.logging import slogm
 
+
+@unique
+class FileType(Enum):
+    PREG = 'registry.pol'
+    SHORTCUTS = 'shortcuts.xml'
+    FOLDERS = 'folders.xml'
+    FILES = 'files.xml'
+    DRIVES = 'drives.xml'
+    SCHEDULEDTASKS = 'scheduledtasks.xml'
+    ENVIRONMENTVARIABLES = 'environmentvariables.xml'
+    INIFILES = 'inifiles.xml'
+    SERVICES = 'services.xml'
+
+def get_preftype(path_to_file):
+    fpath = Path(path_to_file)
+
+    if fpath.exists():
+        file_name = fpath.name.lower()
+        for item in FileType:
+            if file_name == item.value:
+                return item
+
+    return None
+
+def pref_parsers():
+    parsers = dict()
+
+    parsers[FileType.PREG] = read_polfile
+    parsers[FileType.SHORTCUTS] = read_shortcuts
+    parsers[FileType.FOLDERS] = read_folders
+    parsers[FileType.FILES] = read_files
+    parsers[FileType.DRIVES] = read_drives
+    parsers[FileType.SCHEDULEDTASKS] = read_tasks
+    parsers[FileType.ENVIRONMENTVARIABLES] = read_envvars
+    parsers[FileType.INIFILES] = read_inifiles
+    parsers[FileType.SERVICES] = read_services
+
+    return parsers
+
+def get_parser(preference_type):
+    parsers = pref_parsers()
+    return parsers[preference_type]
+
+def pref_mergers():
+    mergers = dict()
+
+    mergers[FileType.PREG] = merge_polfile
+    mergers[FileType.SHORTCUTS] = merge_shortcuts
+    mergers[FileType.FOLDERS] = merge_folders
+    mergers[FileType.FILES] = merge_files
+    mergers[FileType.DRIVES] = merge_drives
+    mergers[FileType.SCHEDULEDTASKS] = merge_tasks
+    mergers[FileType.ENVIRONMENTVARIABLES] = merge_envvars
+    mergers[FileType.INIFILES] = merge_inifiles
+    mergers[FileType.SERVICES] = merge_services
+
+    return mergers
+
+def get_merger(preference_type):
+    mergers = pref_mergers()
+    return mergers[preference_type]
+
 class gpt:
     __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
 
@@ -46,13 +144,8 @@ class gpt:
         self.path = gpt_path
         self.sid = sid
         self.storage = registry_factory('registry')
-        self._scan_gpt()
+        self.name = ''
 
-    def _scan_gpt(self):
-        '''
-        Collect the data from the specified GPT on file system (cached
-        by Samba).
-        '''
         self.guid = self.path.rpartition('/')[2]
         self.name = ''
         if 'default' == self.guid:
@@ -60,22 +153,30 @@ class gpt:
 
         self._machine_path = find_dir(self.path, 'Machine')
         self._user_path = find_dir(self.path, 'User')
-        self._machine_prefs = find_dir(self._machine_path, 'Preferences')
-        self._user_prefs = find_dir(self._user_path, 'Preferences')
 
-        logging.debug(slogm('Looking for machine part of GPT {}'.format(self.guid)))
-        self._machine_regpol = self._find_regpol('machine')
-        self._machine_shortcuts = find_preffile(self._machine_path, 'shortcuts')
-        self._machine_drives = find_preffile(self._machine_path, 'drives')
-        self._machine_envvars = find_preffile(self._machine_path, 'environmentvariables')
-        self._machine_printers = find_preffile(self._machine_path, 'printers')
-
-        logging.debug(slogm('Looking for user part of GPT {}'.format(self.guid)))
-        self._user_regpol = self._find_regpol('user')
-        self._user_shortcuts = find_preffile(self._user_path, 'shortcuts')
-        self._user_drives = find_preffile(self._user_path, 'drives')
-        self._user_envvars = find_preffile(self._user_path, 'environmentvariables')
-        self._user_printers = find_preffile(self._user_path, 'printers')
+        self.settings_list = [
+              'shortcuts'
+            , 'drives'
+            , 'environmentvariables'
+            , 'printers'
+            , 'folders'
+            , 'files'
+            , 'inifiles'
+            , 'services'
+            , 'scheduledtasks'
+        ]
+        self.settings = dict()
+        self.settings['machine'] = dict()
+        self.settings['user'] = dict()
+        self.settings['machine']['regpol'] = find_file(self._machine_path, 'registry.pol')
+        self.settings['user']['regpol'] = find_file(self._user_path, 'registry.pol')
+        for setting in self.settings_list:
+            machine_preffile = find_preffile(self._machine_path, setting)
+            user_preffile = find_preffile(self._user_path, setting)
+            logging.debug('Looking for {} in machine part of GPT {}: {}'.format(setting, self.name, machine_preffile))
+            self.settings['machine'][setting] = machine_preffile
+            logging.debug('Looking for {} in user part of GPT {}: {}'.format(setting, self.name, user_preffile))
+            self.settings['user'][setting] = user_preffile
 
     def set_name(self, name):
         '''
@@ -98,73 +199,41 @@ class gpt:
 
         return upm
 
-    def _find_regpol(self, part):
-        '''
-        Find Registry.pol files.
-        '''
-        search_path = self._machine_path
-        if 'user' == part:
-            search_path = self._user_path
-        if not search_path:
-            return None
-
-        return find_file(search_path, 'registry.pol')
-
-    def _merge_shortcuts(self):
-        shortcuts = list()
-
-        if self.sid == self.storage.get_info('machine_sid'):
-            shortcuts = read_shortcuts(self._machine_shortcuts)
-        else:
-            shortcuts = read_shortcuts(self._user_shortcuts)
-
-        for sc in shortcuts:
-            self.storage.add_shortcut(self.sid, sc)
-
-    def _merge_drives(self):
-        drives = list()
-
-        if self.sid == self.storage.get_info('machine_sid'):
-            drives = read_drives(self._machine_drives)
-        else:
-            drives = read_drives(self._user_drives)
-
-        for drv in drives:
-            self.storage.add_drive(self.sid, drv)
-
     def merge(self):
         '''
         Merge machine and user (if sid provided) settings to storage.
         '''
         if self.sid == self.storage.get_info('machine_sid'):
             # Merge machine settings to registry if possible
-            if self._machine_regpol:
-                logging.debug(slogm('Merging machine settings from {}'.format(self._machine_regpol)))
-                util.preg.merge_polfile(self._machine_regpol)
-            if self._user_regpol:
-                logging.debug(slogm('Merging machine(user) settings from {}'.format(self._machine_regpol)))
-                util.preg.merge_polfile(self._user_regpol, self.sid)
-            if self._machine_shortcuts:
-                logging.debug(slogm('Merging machine shortcuts from {}'.format(self._machine_shortcuts)))
-                self._merge_shortcuts()
-            if self._machine_drives:
-                logging.debug(slogm('Merging machine drives from {}'.format(self._machine_drives)))
-                self._merge_drives()
-
+            for preference_name, preference_path in self.settings['machine'].items():
+                if preference_path:
+                    preference_type = get_preftype(preference_path)
+                    logstring = 'Reading and merging {} for {}'.format(preference_type.value, self.sid)
+                    logging.debug(logstring)
+                    preference_parser = get_parser(preference_type)
+                    preference_merger = get_merger(preference_type)
+                    preference_objects = preference_parser(preference_path)
+                    preference_merger(self.storage, self.sid, preference_objects, self.name)
+            if self.settings['user']['regpol']:
+                logging.debug(slogm('Merging machine(user) settings from {}'.format(self.settings['machine']['regpol'])))
+                util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
+            if self.settings['machine']['regpol']:
+                logging.debug(slogm('Merging machine settings from {}'.format(self.settings['machine']['regpol'])))
+                util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
         else:
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
             policy_mode = upm2str(self.get_policy_mode())
             if 'Merge' == policy_mode or 'Not configured' == policy_mode:
-                if self._user_regpol:
-                    logging.debug(slogm('Merging user settings from {} for {}'.format(self._user_regpol, self.sid)))
-                    util.preg.merge_polfile(self._user_regpol, self.sid)
-                if self._user_shortcuts:
-                    logging.debug(slogm('Merging user shortcuts from {} for {}'.format(self._user_shortcuts, self.sid)))
-                    self._merge_shortcuts()
-                if self._user_drives:
-                    logging.debug(slogm('Merging user drives from {} for {}'.format(self._user_drives, self.sid)))
-                    self._merge_drives()
+                for preference_name, preference_path in self.settings['user'].items():
+                    if preference_path:
+                        preference_type = get_preftype(preference_path)
+                        logstring = 'Reading and merging {} for {}'.format(preference_type.value, self.sid)
+                        logging.debug(logstring)
+                        preference_parser = get_parser(preference_type)
+                        preference_merger = get_merger(preference_type)
+                        preference_objects = preference_parser(preference_path)
+                        preference_merger(self.storage, self.sid, preference_objects, self.name)
 
 def find_dir(search_path, name):
     '''
