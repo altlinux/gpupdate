@@ -68,6 +68,10 @@ def write_shortcut(shortcut, username=None):
                 logging.warning(slogm('No home directory exists for user {}: will not create link {}'.format(username, dest_abspath)))
                 return None
 
+    if '%' in dest_abspath:
+        logging.debug(slogm('Fail for writing shortcut to file with \'%\': {}'.format(dest_abspath)))
+        return None
+
     logging.debug(slogm('Writing shortcut file to {}'.format(dest_abspath)))
     shortcut.write_desktop(dest_abspath)
 
