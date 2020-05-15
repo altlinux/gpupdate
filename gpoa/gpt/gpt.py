@@ -290,6 +290,33 @@ def find_file(search_path, name):
 
     return None
 
+def find_preferences(search_path):
+    '''
+    Find 'Preferences' directory
+    '''
+    if not search_path:
+        return None
+
+    return find_dir(search_path, 'Preferences')
+
+def find_preffile(search_path, prefname):
+    '''
+    Find file with path like Preferences/prefname/prefname.xml
+    '''
+    # Look for 'Preferences' directory
+    prefdir = find_preferences(search_path)
+
+    if not prefdir:
+        return None
+
+    # Then search for preference directory
+    pref_dir = find_dir(prefdir, prefname)
+    file_name = '{}.xml'.format(prefname)
+    # And then try to find the corresponding file.
+    pref_file = find_file(pref_dir, file_name)
+
+    return pref_file
+
 def lp2gpt():
     '''
     Convert local-policy to full-featured GPT.
