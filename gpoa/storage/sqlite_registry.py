@@ -324,6 +324,7 @@ class sqlite_registry(registry):
         self.wipe_hkcu(sid)
         self.wipe_shortcuts(sid)
         self.wipe_printers(sid)
+        self.wipe_drives(sid)
 
     def wipe_shortcuts(self, sid):
         (self
