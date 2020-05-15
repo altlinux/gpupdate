@@ -64,9 +64,18 @@ class gpt:
         self._user_prefs = find_dir(self._user_path, 'Preferences')
 
         logging.debug(slogm('Looking for machine part of GPT {}'.format(self.guid)))
-        self._find_machine()
+        self._machine_regpol = self._find_regpol('machine')
+        self._machine_shortcuts = find_preffile(self._machine_path, 'shortcuts')
+        self._machine_drives = find_preffile(self._machine_path, 'drives')
+        self._machine_envvars = find_preffile(self._machine_path, 'environmentvariables')
+        self._machine_printers = find_preffile(self._machine_path, 'printers')
+
         logging.debug(slogm('Looking for user part of GPT {}'.format(self.guid)))
-        self._find_user()
+        self._user_regpol = self._find_regpol('user')
+        self._user_shortcuts = find_preffile(self._user_path, 'shortcuts')
+        self._user_drives = find_preffile(self._user_path, 'drives')
+        self._user_envvars = find_preffile(self._user_path, 'environmentvariables')
+        self._user_printers = find_preffile(self._user_path, 'printers')
 
     def set_name(self, name):
         '''
