@@ -84,7 +84,7 @@ def read_shortcuts(shortcuts_file):
         sc.set_clsid(link.get('clsid'))
         sc.set_guid(link.get('uid'))
         sc.set_usercontext(link.get('userContext', False))
-        sc.set_icon(link.get('iconPath'))
+        sc.set_icon(props.get('iconPath'))
         shortcuts.append(sc)
 
     return shortcuts
@@ -101,7 +101,8 @@ def json2sc(json_str):
     sc.set_clsid(json_obj['clsid'])
     sc.set_guid(json_obj['guid'])
     sc.set_usercontext(json_obj['is_in_user_context'])
-    sc.set_icon(json_obj['icon'])
+    if 'icon' in json_obj:
+        sc.set_icon(json_obj['icon'])
 
     return sc
 
