@@ -29,7 +29,9 @@ import samba.gpo
 import pysss_nss_idmap
 
 from storage import cache_factory
-from .xdg import get_user_dir
+from .xdg import (
+      xdg_get_desktop
+)
 from .util import get_homedir
 from .logging import slogm
 from .samba import smbopts
@@ -174,16 +176,14 @@ def expand_windows_var(text, username=None):
     Scan the line for percent-encoded variables and expand them.
     '''
     variables = dict()
-    variables['HOME'] = '/'
+    variables['HOME'] = '/etc/skel'
     variables['SystemRoot'] = '/'
     variables['StartMenuDir'] = '/usr/share/applications'
     variables['SystemDrive'] = '/'
+    variables['DesktopDir'] = xdg_get_desktop(username, variables['HOME'])
 
     if username:
         variables['HOME'] = get_homedir(username)
-
-        variables['DesktopDir'] = get_user_dir(
-            'DESKTOP', os.path.join(variables['HOME'], 'Desktop'))
 
         variables['StartMenuDir'] = os.path.join(
             variables['HOME'], '.local', 'share', 'applications')
