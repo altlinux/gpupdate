@@ -30,8 +30,7 @@ import pysss_nss_idmap
 
 from storage import cache_factory
 from .xdg import (
-      get_user_dir
-    , xdg_get_desktop_user
+      xdg_get_desktop
 )
 from .util import get_homedir
 from .logging import slogm
@@ -181,7 +180,7 @@ def expand_windows_var(text, username=None):
     variables['SystemRoot'] = '/'
     variables['StartMenuDir'] = '/usr/share/applications'
     variables['SystemDrive'] = '/'
-    variables['DesktopDir'] = xdg_get_desktop_user(username)
+    variables['DesktopDir'] = xdg_get_desktop(username, variables['HOME'])
 
     if username:
         variables['HOME'] = get_homedir(username)

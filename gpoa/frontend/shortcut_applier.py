@@ -51,12 +51,8 @@ def write_shortcut(shortcut, username=None):
     if not dest_abspath.startswith('/') and not dest_abspath.startswith('%'):
         dest_abspath = '%HOME%/' + dest_abspath
 
+    logging.debug(slogm('Try to expand path for shortcut: {} for {}'.format(dest_abspath, username)))
     dest_abspath = expand_windows_var(dest_abspath, username).replace('\\', '/') + '.desktop'
-    # If the resulting path is not absolute then operate in home
-    # directory
-    if not dest_abspath.startswith('/'):
-        if username:
-            dest_abspath = get_homedir(username) + dest_abspath
 
     # Check that we're working for user, not on global system level
     if username:
@@ -67,9 +63,16 @@ def write_shortcut(shortcut, username=None):
             if not homedir_exists(username):
                 logging.warning(slogm('No home directory exists for user {}: will not create link {}'.format(username, dest_abspath)))
                 return None
+        else:
+            logging.warning(slogm('User\'s shortcut not placed to home directory for {}: bad path {}'.format(username, dest_abspath)))
+            return None
 
     if '%' in dest_abspath:
         logging.debug(slogm('Fail for writing shortcut to file with \'%\': {}'.format(dest_abspath)))
+        return None
+
+    if not dest_abspath.startswith('/'):
+        logging.debug(slogm('Fail for writing shortcut to not absolute path \'%\': {}'.format(dest_abspath)))
         return None
 
     logging.debug(slogm('Writing shortcut file to {}'.format(dest_abspath)))

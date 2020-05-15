@@ -17,38 +17,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from configparser import RawConfigParser, DEFAULTSECT
 import os
-from xdg.BaseDirectory import xdg_config_home
 
+from .util import get_homedir
+from .logging import slogm
 
-from .users import with_privileges
+def xdg_get_desktop(username, homedir = None):
+    if username:
+        homedir = get_homedir(username)
+    if not homedir:
+        logging.warning(
+            slogm('Error for get XDG_DESKTOP_DIR for unknown user with unknown homedir'))
+        raise "Error for get XDG_DESKTOP_DIR for unknown user with unknown homedir"
 
-
-def get_user_dir(dir_name, default=None):
-    '''
-    Get path to XDG's user directory
-    '''
-    config = RawConfigParser(allow_no_value=True)
-    userdirs_path = os.path.join(xdg_config_home, 'user-dirs.dirs')
-    try:
-        with open(userdirs_path, 'r') as f:
-            config.read_string('[DEFAULT]\n' + f.read())
-        return config.get(DEFAULTSECT, 'XDG_DESKTOP_DIR')
-    except Exception as exc:
-        return default
-
-def xdg_get_desktop_user(username):
-    if not username:
-        name = 'root'
-        desktop_full_path = with_privileges(name, xdg_get_desktop)
-        return '/etc/skel/{}'.format(desktop_full_path.rpartition('/')[2])
-
-    return xdg_get_desktop()
-
-def xdg_get_desktop():
-    stream = os.popen('source /etc/locale.conf; xdg-user-dir DESKTOP')
+    stream = os.popen('export HOME={}; xdg-user-dir DESKTOP'.format(homedir))
     output = stream.read()[:-1]
-    print(output)
     return output
 
