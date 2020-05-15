@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.5.0
+Version: 0.6.0
 Release: alt1
 
 Summary: GPT applier
@@ -56,10 +56,10 @@ mv %buildroot%python3_sitelibdir/gpoa/templates \
 	%buildroot%_datadir/%name/
 
 install -Dm0644 dist/%name.service %buildroot%_unitdir/%name.service
-install -Dm0644 dist/%name.service %{buildroot}/usr/lib/systemd/user/%{name}-user.service
+install -Dm0644 dist/%name.service %buildroot/usr/lib/systemd/user/%name-user.service
 install -Dm0644 dist/system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%name
-install -Dm0644 doc/gpoa.1 %buildroot/%{_man1dir}/gpoa.1
-install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
+install -Dm0644 doc/gpoa.1 %buildroot/%_man1dir/gpoa.1
+install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 
 %preun
 %preun_service gpupdate
@@ -87,6 +87,10 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%{_man1dir}/gpupdate.1
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Fri May 15 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.6.0-alt1
+- Add drives policy for shared folders with cifs applier using autofs
+- Update shortcuts policy with xdg-users-dir support for DESKTOP
+
 * Wed Apr 22 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.5.0-alt1
 - Update samba format: local.xml -> Machine/Registry.pol.xml
 - Add support of ad-domain-controller local policy profile
