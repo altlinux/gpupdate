@@ -47,7 +47,11 @@ def write_shortcut(shortcut, username=None):
 
     :username: None means working with machine variables and paths
     '''
-    dest_abspath = expand_windows_var(shortcut.dest, username).replace('\\', '/') + '.desktop'
+    dest_abspath = shortcut.dest
+    if not dest_abspath.startswith('/') and not dest_abspath.startswith('%'):
+        dest_abspath = '%HOME%/' + dest_abspath
+
+    dest_abspath = expand_windows_var(dest_abspath, username).replace('\\', '/') + '.desktop'
     # If the resulting path is not absolute then operate in home
     # directory
     if not dest_abspath.startswith('/'):
