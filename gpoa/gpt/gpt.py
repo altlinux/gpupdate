@@ -98,16 +98,6 @@ class gpt:
 
         return upm
 
-    def _find_user(self):
-        self._user_regpol = self._find_regpol('user')
-        self._user_shortcuts = self._find_shortcuts('user')
-        self._user_drives = self._find_drives('user')
-
-    def _find_machine(self):
-        self._machine_regpol = self._find_regpol('machine')
-        self._machine_shortcuts = self._find_shortcuts('machine')
-        self._machine_drives = self._find_drives('machine')
-
     def _find_regpol(self, part):
         '''
         Find Registry.pol files.
@@ -119,56 +109,6 @@ class gpt:
             return None
 
         return find_file(search_path, 'registry.pol')
-
-    def _find_shortcuts(self, part):
-        '''
-        Find Shortcuts.xml files.
-        '''
-        shortcuts_dir = find_dir(self._machine_prefs, 'Shortcuts')
-        shortcuts_file = find_file(shortcuts_dir, 'shortcuts.xml')
-
-        if 'user' == part:
-            shortcuts_dir = find_dir(self._user_prefs, 'Shortcuts')
-            shortcuts_file = find_file(shortcuts_dir, 'shortcuts.xml')
-
-        return shortcuts_file
-
-    def _find_envvars(self, part):
-        '''
-        Find EnvironmentVariables.xml files.
-        '''
-        search_path = os.path.join(self._machine_path, 'Preferences', 'EnvironmentVariables')
-        if 'user' == part:
-            search_path = os.path.join(self._user_path, 'Preferences', 'EnvironmentVariables')
-        if not search_path:
-            return None
-
-        return find_file(search_path, 'environmentvariables.xml')
-
-    def _find_drives(self, part):
-        '''
-        Find Drives.xml files.
-        '''
-        drives_dir = find_dir(self._machine_prefs, 'Drives')
-        drives_file = find_file(drives_dir, 'drives.xml')
-
-        if 'user' == part:
-            drives_dir = find_dir(self._user_prefs, 'Drives')
-            drives_file = find_file(drives_dir, 'drives.xml')
-
-        return drives_file
-
-    def _find_printers(self, part):
-        '''
-        Find Printers.xml files.
-        '''
-        search_path = os.path.join(self._machine_path, 'Preferences', 'Printers')
-        if 'user' == part:
-            search_path = os.path.join(self._user_path, 'Preferences', 'Printers')
-        if not search_path:
-            return None
-
-        return find_file(search_path, 'printers.xml')
 
     def _merge_shortcuts(self):
         shortcuts = list()
@@ -225,36 +165,6 @@ class gpt:
                 if self._user_drives:
                     logging.debug(slogm('Merging user drives from {} for {}'.format(self._user_drives, self.sid)))
                     self._merge_drives()
-
-    def __str__(self):
-        template = '''
-GUID: {}
-Name: {}
-For SID: {}
-
-Machine part: {}
-Machine Registry.pol: {}
-Machine Shortcuts.xml: {}
-
-User part: {}
-User Registry.pol: {}
-User Shortcuts.xml: {}
-
-'''
-        result = template.format(
-            self.guid,
-            self.name,
-            self.sid,
-
-            self._machine_path,
-            self._machine_regpol,
-            self._machine_shortcuts,
-
-            self._user_path,
-            self._user_regpol,
-            self._user_shortcuts,
-        )
-        return result
 
 def find_dir(search_path, name):
     '''
