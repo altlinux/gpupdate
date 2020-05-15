@@ -28,6 +28,10 @@ def read_files(filesxml):
 
     return files
 
+def merge_files(storage, sid, file_objects, policy_name):
+    for fileobj in file_objects:
+        pass
+
 class fileentry:
     def __init__(self):
         pass

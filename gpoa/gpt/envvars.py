@@ -28,6 +28,10 @@ def read_envvars(envvars_file):
 
     return variables
 
+def merge_envvars(storage, sid, envvars_objects, policy_name):
+    for envvar in envvar_objects:
+        pass
+
 class envvar:
     def __init__(self):
         pass

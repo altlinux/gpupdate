@@ -28,6 +28,10 @@ def read_inifiles(inifiles_file):
 
     return inifiles
 
+def merge_inifiles(storage, sid, inifile_objects, policy_name):
+    for inifile in inifile_objects:
+        pass
+
 def inifile():
     def __init__(self):
         pass
