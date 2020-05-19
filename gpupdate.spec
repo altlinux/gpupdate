@@ -2,7 +2,7 @@
 
 Name: gpupdate
 Version: 0.6.0
-Release: alt1
+Release: alt2
 
 Summary: GPT applier
 License: GPLv3+
@@ -19,7 +19,7 @@ Requires: python3-module-dbus
 Requires: oddjob-%name >= 0.2.0
 Requires: libnss-role >= 0.5.0
 Requires: local-policy >= 0.3.0
-Requires: pam-config >= 1.8
+Requires: pam-config >= 1.9.0
 Requires: autofs
 # This is needed by shortcuts_applier
 Requires: desktop-file-utils
@@ -55,6 +55,9 @@ mkdir -p %buildroot%_datadir/%name
 mv %buildroot%python3_sitelibdir/gpoa/templates \
 	%buildroot%_datadir/%name/
 
+mkdir -p %buildroot%_sysconfdir/%name
+touch %buildroot%_sysconfdir/%name/environment
+
 install -Dm0644 dist/%name.service %buildroot%_unitdir/%name.service
 install -Dm0644 dist/%name.service %buildroot/usr/lib/systemd/user/%name-user.service
 install -Dm0644 dist/system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%name
@@ -79,7 +82,9 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 %_man1dir/gpoa.1.*
 %_man1dir/gpupdate.1.*
 /usr/lib/systemd/user/%name-user.service
-%_sysconfdir/pam.d/system-policy-%name
+%dir %_sysconfdir/%name
+%config(noreplace) %_sysconfdir/%name/environment
+%config(noreplace) %_sysconfdir/pam.d/system-policy-%name
 %dir %_cachedir/%name
 %exclude %python3_sitelibdir/gpoa/.pylintrc
 %exclude %python3_sitelibdir/gpoa/.prospector.yaml
@@ -87,6 +92,10 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Wed May 20 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.6.0-alt2
+- Update system-policy PAM-rules (clean system-auth-common, add pam_env support)
+- Add dependency to pam-config later than 1.9.0 release
+
 * Fri May 15 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.6.0-alt1
 - Add drives policy for shared folders with cifs applier using autofs
 - Update shortcuts policy with xdg-users-dir support for DESKTOP
