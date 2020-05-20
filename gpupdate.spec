@@ -11,7 +11,6 @@ Url: https://github.com/altlinux/gpupdate
 BuildArch: noarch
 
 Requires: control
-Requires: local-policy >= 0.1.0
 
 BuildRequires: rpm-build-python3
 Requires: python3-module-rpm
