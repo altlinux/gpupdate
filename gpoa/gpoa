@@ -105,7 +105,10 @@ class gpoa_controller:
             if is_root():
                 back = backend_factory(dc, self.username, self.is_machine, nodomain)
                 if back:
-                    back.retrieve_and_store()
+                    try:
+                        back.retrieve_and_store()
+                    except Exception as exc:
+                        logging.error(slogm('Backend execution error: {}'.format(str(exc))))
 
     def start_frontend(self):
         '''

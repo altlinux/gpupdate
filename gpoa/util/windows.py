@@ -66,8 +66,9 @@ class smbcreds (smbopts):
                 self.selected_dc = dc_fqdn
             else:
                 self.selected_dc = samba_dc
-        except:
+        except Exception as exc:
             logging.error(slogm('Unable to determine DC hostname'))
+            raise exc
 
         return self.selected_dc
 
@@ -82,8 +83,9 @@ class smbcreds (smbopts):
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
             logging.info(slogm('Found domain via CLDAP: {}'.format(dns_domainname)))
-        except:
+        except Exception as exc:
             logging.error(slogm('Unable to retrieve domain name via CLDAP query'))
+            raise exc
 
         return dns_domainname
 
@@ -120,6 +122,7 @@ class smbcreds (smbopts):
             logging.error(
                 slogm('Unable to refresh GPO list for {} from {}'.format(
                     username, self.selected_dc)))
+            raise exc
         return gpos
 
 
