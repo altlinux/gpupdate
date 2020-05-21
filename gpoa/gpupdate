@@ -39,6 +39,8 @@ from util.dbus import (
 )
 from util.signals import signal_handler
 
+from messages import message_with_code
+
 logging.basicConfig(level=logging.DEBUG)
 
 class file_runner:
@@ -128,7 +130,7 @@ def runner_factory(args, target):
             user_runner = file_runner(username)
         return (computer_runner, user_runner)
     else:
-        logging.error('Insufficient permissions to run gpupdate')
+        logging.error(message_with_code('E1'))
 
     return None
 
@@ -151,7 +153,7 @@ def main():
                 logging.error('Error running GPOA for user: {}'.format(exc))
                 return int(ExitCodeUpdater.FAIL_GPUPDATE_USER_NOREPLY)
     else:
-        logging.error('gpupdate will not be started')
+        logging.error(message_with_code('E2'))
         return int(ExitCodeUpdater.FAIL_NO_RUNNER)
 
     return int(ExitCodeUpdater.EXIT_SUCCESS)
