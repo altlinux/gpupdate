@@ -26,12 +26,16 @@ from util.xml import get_xml_root
 class FileAction(Enum):
     CREATE = 'C'
     REPLACE = 'R'
+    UPDATE = 'U'
+    DELETE = 'D'
 
 
 def action_letter2enum(letter):
-    if letter in ['C', 'R']:
+    if letter in ['C', 'R', 'U', 'D']:
         if letter == 'C': return FileAction.CREATE
         if letter == 'R': return FileAction.REPLACE
+        if letter == 'U': return FileAction.UPDATE
+        if letter == 'D': return FileAction.DELETE
 
     return FileAction.CREATE
 
