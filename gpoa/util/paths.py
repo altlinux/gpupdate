@@ -59,3 +59,31 @@ def local_policy_cache():
 
     return lpcache
 
+def backend_module_dir():
+    backend_dir = '/usr/lib/gpoa/backend'
+    return pathlib.Path(backend_dir)
+
+def frontend_module_dir():
+    frontend_dir = '/usr/lib/gpoa/frontend'
+    return pathlib.Path(frontend_dir)
+
+def storage_module_dir():
+    storage_dir = '/usr/lib/gpoa/storage'
+    return pathlib.Path(storage_dir)
+
+def pre_backend_plugin_dir():
+    pre_backend_dir = '/usr/lib/gpoa/backend_pre'
+    return pathlib.Path(pre_backend_dir)
+
+def post_backend_plugin_dir():
+    post_backend_dir = '/usr/lib/gpoa/backend_post'
+    return pathlib.Path(post_backend_dir)
+
+def pre_frontend_plugin_dir():
+    pre_forntend_dir = '/usr/lib/gpoa/frontend_pre'
+    return pathlib.Path(pre_frontend_dir)
+
+def post_frontend_plugin_dir():
+    post_frontend_dir = '/usr/lib/gpoa/frontend_post'
+    return pathlib.Path(post_frontend_dir)
+
