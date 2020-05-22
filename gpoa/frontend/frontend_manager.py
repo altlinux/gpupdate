@@ -80,15 +80,15 @@ class frontend_manager:
         self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
 
         self.machine_appliers = dict({
-            'control':  control_applier(self.storage),
-            'polkit':   polkit_applier(self.storage),
-            'systemd':  systemd_applier(self.storage),
-            'firefox':  firefox_applier(self.storage, self.sid, self.username),
-            'chromium': chromium_applier(self.storage, self.sid, self.username),
-            'shortcuts': shortcut_applier(self.storage),
-            'gsettings': gsettings_applier(self.storage),
-            'cups': cups_applier(self.storage),
-            'package': package_applier(self.storage)
+              'control':  control_applier(self.storage)
+            , 'polkit':   polkit_applier(self.storage)
+            , 'systemd':  systemd_applier(self.storage)
+            , 'firefox':  firefox_applier(self.storage, self.sid, self.username)
+            , 'chromium': chromium_applier(self.storage, self.sid, self.username)
+            , 'shortcuts': shortcut_applier(self.storage)
+            , 'gsettings': gsettings_applier(self.storage)
+            , 'cups': cups_applier(self.storage)
+            #, 'package': package_applier(self.storage)
         })
 
         # User appliers are expected to work with user-writable
@@ -107,15 +107,9 @@ class frontend_manager:
             logging.error('Not sufficient privileges to run machine appliers')
             return
         logging.debug(slogm('Applying computer part of settings'))
-        self.machine_appliers['systemd'].apply()
-        self.machine_appliers['control'].apply()
-        self.machine_appliers['polkit'].apply()
-        self.machine_appliers['firefox'].apply()
-        self.machine_appliers['chromium'].apply()
-        self.machine_appliers['shortcuts'].apply()
-        self.machine_appliers['gsettings'].apply()
-        self.machine_appliers['cups'].apply()
-        #self.machine_appliers['package'].apply()
+        for applier_name, applier_object in self.machine_appliers.items():
+            logging.debug('Running machine applier {}'.format(applier_name))
+            applier_object.apply()
 
     def user_apply(self):
         '''

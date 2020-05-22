@@ -43,6 +43,7 @@ from .record_types import (
     , info_entry
     , printer_entry
     , drive_entry
+    , folder_entry
 )
 
 class sqlite_registry(registry):
@@ -62,51 +63,69 @@ class sqlite_registry(registry):
             Column('value', String(65536))
         )
         self.__hklm = Table(
-            'HKLM',
-            self.__metadata,
-            Column('id', Integer, primary_key=True),
-            Column('hive_key', String(65536), unique=True),
-            Column('type', Integer),
-            Column('data', String)
+              'HKLM'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('hive_key', String(65536), unique=True)
+            , Column('policy_name', String)
+            , Column('type', Integer)
+            , Column('data', String)
         )
         self.__hkcu = Table(
-            'HKCU',
-            self.__metadata,
-            Column('id', Integer, primary_key=True),
-            Column('sid', String),
-            Column('hive_key', String(65536)),
-            Column('type', Integer),
-            Column('data', String),
-            UniqueConstraint('sid', 'hive_key')
+              'HKCU'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('hive_key', String(65536))
+            , Column('policy_name', String)
+            , Column('type', Integer)
+            , Column('data', String)
+            , UniqueConstraint('sid', 'hive_key')
         )
         self.__shortcuts = Table(
-            'Shortcuts',
-            self.__metadata,
-            Column('id', Integer, primary_key=True),
-            Column('sid', String),
-            Column('path', String),
-            Column('shortcut', String),
-            UniqueConstraint('sid', 'path')
+              'Shortcuts'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('path', String)
+            , Column('policy_name', String)
+            , Column('shortcut', String)
+            , UniqueConstraint('sid', 'path')
         )
         self.__printers = Table(
-            'Printers',
-            self.__metadata,
-            Column('id', Integer, primary_key=True),
-            Column('sid', String),
-            Column('name', String),
-            Column('printer', String),
-            UniqueConstraint('sid', 'name')
+              'Printers'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('name', String)
+            , Column('policy_name', String)
+            , Column('printer', String)
+            , UniqueConstraint('sid', 'name')
         )
         self.__drives = Table(
-            'Drives',
-            self.__metadata,
-            Column('id', Integer, primary_key=True),
-            Column('sid', String),
-            Column('login', String),
-            Column('password', String),
-            Column('dir', String),
-            Column('path', String),
-            UniqueConstraint('sid', 'dir')
+              'Drives'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('login', String)
+            , Column('password', String)
+            , Column('dir', String)
+            , Column('policy_name', String)
+            , Column('path', String)
+            , UniqueConstraint('sid', 'dir')
+        )
+        self.__folders = Table(
+              'Folders'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('path', String)
+            , Column('policy_name', String)
+            , Column('action', String)
+            , Column('delete_folder', String)
+            , Column('delete_sub_folder', String)
+            , Column('delete_files', String)
+            , UniqueConstraint('sid', 'path')
         )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
@@ -118,6 +137,7 @@ class sqlite_registry(registry):
             mapper(ad_shortcut, self.__shortcuts)
             mapper(printer_entry, self.__printers)
             mapper(drive_entry, self.__drives)
+            mapper(folder_entry, self.__folders)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -134,75 +154,69 @@ class sqlite_registry(registry):
         try:
             self._add(row)
         except:
-            update_obj = dict({ 'value': row.value })
             (self
                 .db_session.query(info_entry)
                 .filter(info_entry.name == row.name)
-                .update(update_obj))
+                .update(row.update_fields()))
             self.db_session.commit()
 
     def _hklm_upsert(self, row):
         try:
             self._add(row)
         except:
-            update_obj = dict({'type': row.type, 'data': row.data })
             (self
                 .db_session
                 .query(samba_preg)
                 .filter(samba_preg.hive_key == row.hive_key)
-                .update(update_obj))
+                .update(row.update_fields()))
             self.db_session.commit()
 
     def _hkcu_upsert(self, row):
         try:
             self._add(row)
-        except:
-            update_obj = dict({'type': row.type, 'data': row.data })
+        except Exception as exc:
             (self
                 .db_session
                 .query(samba_preg)
                 .filter(samba_hkcu_preg.sid == row.sid)
                 .filter(samba_hkcu_preg.hive_key == row.hive_key)
-                .update(update_obj))
+                .update(row.update_fields()))
             self.db_session.commit()
 
     def _shortcut_upsert(self, row):
         try:
             self._add(row)
         except:
-            update_obj = dict({ 'shortcut': row.shortcut })
             (self
                 .db_session
                 .query(ad_shortcut)
                 .filter(ad_shortcut.sid == row.sid)
                 .filter(ad_shortcut.path == row.path)
-                .update(update_obj))
+                .update(row.update_fields()))
             self.db_session.commit()
 
     def _printer_upsert(self, row):
         try:
             self._add(row)
         except:
-            update_obj = dict({ 'printer': row.printer })
             (self
                 .db_session
                 .query(printer_entry)
                 .filter(printer_entry.sid == row.sid)
                 .filter(printer_entry.name == row.name)
-                .update(update_obj))
+                .update(row.update_fields()))
             self.db_session.commit()
 
     def _drive_upsert(self, row):
         try:
             self._add(row)
         except:
-            update_obj = dict({ 'dir': row.dir, 'path': row.path, 'login': row.login, 'password': row.password })
             (self
                 .db_session
                 .query(drive_entry)
                 .filter(drive_entry.sid == row.sid)
                 .filter(drive_entry.dir == row.dir)
-                .update(update_obj))
+                .update(row.update_fields()))
             self.db_session.commit()
 
     def set_info(self, name, value):
@@ -210,71 +224,87 @@ class sqlite_registry(registry):
         logging.debug(slogm('Setting info {}:{}'.format(name, value)))
         self._info_upsert(ientry)
 
-    def add_hklm_entry(self, preg_entry):
+    def add_hklm_entry(self, preg_entry, policy_name):
         '''
         Write PReg entry to HKEY_LOCAL_MACHINE
         '''
-        pentry = samba_preg(preg_entry)
+        pentry = samba_preg(preg_entry, policy_name)
         if not pentry.hive_key.rpartition('\\')[2].startswith('**'):
             self._hklm_upsert(pentry)
         else:
             logging.warning(slogm('Skipping branch deletion key: {}'.format(pentry.hive_key)))
 
-    def add_hkcu_entry(self, preg_entry, sid):
+    def add_hkcu_entry(self, preg_entry, sid, policy_name):
         '''
         Write PReg entry to HKEY_CURRENT_USER
         '''
-        hkcu_pentry = samba_hkcu_preg(sid, preg_entry)
+        hkcu_pentry = samba_hkcu_preg(sid, preg_entry, policy_name)
         if not hkcu_pentry.hive_key.rpartition('\\')[2].startswith('**'):
             logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
             self._hkcu_upsert(hkcu_pentry)
         else:
             logging.warning(slogm('Skipping branch deletion key: {}'.format(hkcu_pentry.hive_key)))
 
-    def add_shortcut(self, sid, sc_obj):
+    def add_shortcut(self, sid, sc_obj, policy_name):
         '''
         Store shortcut information in the database
         '''
-        sc_entry = ad_shortcut(sid, sc_obj)
+        sc_entry = ad_shortcut(sid, sc_obj, policy_name)
         logging.debug(slogm('Saving info about {} link for {}'.format(sc_entry.path, sid)))
         self._shortcut_upsert(sc_entry)
 
-    def add_printer(self, sid, pobj):
+    def add_printer(self, sid, pobj, policy_name):
         '''
         Store printer configuration in the database
         '''
-        prn_entry = printer_entry(sid, pobj)
+        prn_entry = printer_entry(sid, pobj, policy_name)
         logging.debug(slogm('Saving info about printer {} for {}'.format(prn_entry.name, sid)))
         self._printer_upsert(prn_entry)
 
-    def add_drive(self, sid, dobj):
-        drv_entry = drive_entry(sid, dobj)
+    def add_drive(self, sid, dobj, policy_name):
+        drv_entry = drive_entry(sid, dobj, policy_name)
         logging.debug(slogm('Saving info about drive mapping {} for {}'.format(drv_entry.path, sid)))
         self._drive_upsert(drv_entry)
 
-    def get_shortcuts(self, sid):
+    def add_folder(self, sid, fobj, policy_name):
+        fld_entry = folder_entry(sid, fobj, policy_name)
+        logstring = 'Saving info about folder {} for {}'.format(fld_entry.path, sid)
+        logging.debug(logstring)
+        try:
+            self._add(fld_entry)
+        except Exception as exc:
+            (self
+                ._filter_sid_obj(folder_entry, sid)
+                .filter(folder_entry.path == fld_entry.path)
+                .update(fld_entry.update_fields()))
+            self.db_session.commit()
+
+    def _filter_sid_obj(self, row_object, sid):
         res = (self
             .db_session
-            .query(ad_shortcut)
-            .filter(ad_shortcut.sid == sid)
+            .query(row_object)
+            .filter(row_object.sid == sid))
+        return res
+
+    def _filter_sid_list(self, row_object, sid):
+        res = (self
+            .db_session
+            .query(row_object)
+            .filter(row_object.sid == sid)
             .all())
         return res
+
+    def get_shortcuts(self, sid):
+        return self._filter_sid_list(ad_shortcut, sid)
 
     def get_printers(self, sid):
-        res = (self
-            .db_session
-            .query(printer_entry)
-            .filter(printer_entry.sid == sid)
-            .all())
-        return res
+        return self._filter_sid_list(printer_entry, sid)
 
     def get_drives(self, sid):
-        res = (self
-            .db_session
-            .query(drive_entry)
-            .filter(drive_entry.sid == sid)
-            .all())
-        return res
+        return self._filter_sid_list(drive_entry, sid)
+
+    def get_folders(self, sid):
+        return self._filter_sid_list(folder_entry, sid)
 
     def get_hkcu_entry(self, sid, hive_key):
         res = (self
@@ -321,40 +351,16 @@ class sqlite_registry(registry):
         return res
 
     def wipe_user(self, sid):
-        self.wipe_hkcu(sid)
-        self.wipe_shortcuts(sid)
-        self.wipe_printers(sid)
-        self.wipe_drives(sid)
+        self._wipe_sid(samba_hkcu_preg, sid)
+        self._wipe_sid(ad_shortcut, sid)
+        self._wipe_sid(printer_entry, sid)
+        self._wipe_sid(drive_entry, sid)
 
-    def wipe_shortcuts(self, sid):
+    def _wipe_sid(self, row_object, sid):
         (self
             .db_session
-            .query(ad_shortcut)
-            .filter(ad_shortcut.sid == sid)
-            .delete())
-        self.db_session.commit()
-
-    def wipe_printers(self, sid):
-        (self
-            .db_session
-            .query(printer_entry)
-            .filter(printer_entry.sid == sid)
-            .delete())
-        self.db_session.commit()
-
-    def wipe_drives(self, sid):
-        (self
-            .db_session
-            .query(drive_entry)
-            .filter(drive_entry.sid == sid)
-            .delete())
-        self.db_session.commit()
-
-    def wipe_hkcu(self, sid):
-        (self
-            .db_session
-            .query(samba_hkcu_preg)
-            .filter(samba_hkcu_preg.sid == sid)
+            .query(row_object)
+            .filter(row_object.sid == sid)
             .delete())
         self.db_session.commit()
 

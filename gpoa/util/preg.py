@@ -76,15 +76,15 @@ def preg_keymap(preg):
     return keymap
 
 
-def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None):
+def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_name='Unknown'):
     pregfile = load_preg(preg)
     logging.info(slogm('Loaded PReg {}'.format(preg)))
     storage = registry_factory(reg_name, reg_path)
     for entry in pregfile.entries:
         if not sid:
-            storage.add_hklm_entry(entry)
+            storage.add_hklm_entry(entry, policy_name)
         else:
-            storage.add_hkcu_entry(entry, sid)
+            storage.add_hkcu_entry(entry, sid, policy_name)
 
 
 class entry:

@@ -16,23 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.xml import get_xml_root
+def read_tasks(filename):
+    pass
 
-def read_files(filesxml):
-    files = list()
-
-    for fil in get_xml_root(filesxml):
-        fil_obj = fileentry()
-
-        files.append(fil_obj)
-
-    return files
-
-def merge_files(storage, sid, file_objects, policy_name):
-    for fileobj in file_objects:
-        pass
-
-class fileentry:
-    def __init__(self):
+def merge_tasks(storage, sid, task_objects, policy_name):
+    for task in task_objects:
         pass
 

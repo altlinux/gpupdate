@@ -16,23 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.xml import get_xml_root
+from util.preg import (
+      load_preg
+)
 
-def read_files(filesxml):
-    files = list()
+def read_polfile(filename):
+    return load_preg(filename).entries
 
-    for fil in get_xml_root(filesxml):
-        fil_obj = fileentry()
-
-        files.append(fil_obj)
-
-    return files
-
-def merge_files(storage, sid, file_objects, policy_name):
-    for fileobj in file_objects:
-        pass
-
-class fileentry:
-    def __init__(self):
-        pass
+def merge_polfile(storage, sid, policy_objects, policy_name):
+    for entry in policy_objects:
+        if not sid:
+            storage.add_hklm_entry(entry, policy_name)
+        else:
+            storage.add_hkcu_entry(entry, sid, policy_name)
 

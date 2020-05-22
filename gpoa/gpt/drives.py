@@ -72,6 +72,10 @@ def read_drives(drives_file):
 
     return drives
 
+def merge_drives(storage, sid, drive_objects, policy_name):
+    for drive in drive_objects:
+        storage.add_drive(sid, drive, policy_name)
+
 def json2drive(json_str):
     json_obj = json.loads(json_str)
     drive_obj = drivemap()

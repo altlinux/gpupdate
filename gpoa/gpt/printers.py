@@ -41,6 +41,10 @@ def read_printers(printers_file):
 
     return printers
 
+def merge_printers(storage, sid, printer_objects, policy_name):
+    for device in printer_objects:
+        pass
+
 def json2printer(json_str):
     '''
     Build printer object out of string-serialized JSON.

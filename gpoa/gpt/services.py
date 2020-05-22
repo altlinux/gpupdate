@@ -39,6 +39,10 @@ def read_services(service_file):
 
     return services
 
+def merge_services(storage, sid, service_objects, policy_name):
+    for srv in service_objects:
+        pass
+
 class service:
     def __init__(self, name):
         self.unit = name

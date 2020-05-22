@@ -20,52 +20,131 @@ class samba_preg(object):
     '''
     Object mapping representing HKLM entry (registry key without SID)
     '''
-    def __init__(self, preg_obj):
+    def __init__(self, preg_obj, policy_name):
+        self.policy_name = policy_name
         self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
         self.type = preg_obj.type
         self.data = preg_obj.data
+
+    def update_fields(self):
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['type'] = self.type
+        fields['data'] = self.data
+
+        return fields
 
 class samba_hkcu_preg(object):
     '''
     Object mapping representing HKCU entry (registry key with SID)
     '''
-    def __init__(self, sid, preg_obj):
+    def __init__(self, sid, preg_obj, policy_name):
         self.sid = sid
+        self.policy_name = policy_name
         self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
         self.type = preg_obj.type
         self.data = preg_obj.data
+
+    def update_fields(self):
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['type'] = self.type
+        fields['data'] = self.data
+
+        return fields
 
 class ad_shortcut(object):
     '''
     Object mapping representing Windows shortcut.
     '''
-    def __init__(self, sid, sc):
+    def __init__(self, sid, sc, policy_name):
         self.sid = sid
+        self.policy_name = policy_name
         self.path = sc.dest
         self.shortcut = sc.to_json()
+
+    def update_fields(self):
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['path'] = self.path
+        fields['shortcut'] = self.shortcut
+
+        return fields
 
 class info_entry(object):
     def __init__(self, name, value):
         self.name = name
         self.value = value
 
+    def update_fields(self):
+        fields = dict()
+        fields['value'] = self.value
+
+        return fields
+
 class printer_entry(object):
     '''
     Object mapping representing Windows printer of some type.
     '''
-    def __init__(self, sid, pobj):
+    def __init__(self, sid, pobj, policy_name):
         self.sid = sid
+        self.policy_name = policy_name
         self.name = pobj.name
         self.printer = pobj.to_json()
+
+    def update_fields(self):
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['name'] = self.name
+        fields['printer'] = self.printer
+
+        return fields
 
 class drive_entry(object):
     '''
     Object mapping representing Samba share bound to drive letter
     '''
-    def __init__(self, sid, dobj):
+    def __init__(self, sid, dobj, policy_name):
         self.sid = sid
+        self.policy_name = policy_name
         self.login = dobj.login
         self.password = dobj.password
         self.dir = dobj.dir
         self.path = dobj.path
+
+    def update_fields(self):
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['login'] = self.login
+        fields['password'] = self.password
+        fields['dir'] = self.dir
+        fields['path'] = self.path
+
+        return fields
+
+class folder_entry(object):
+    '''
+    Object mapping representing file system directory
+    '''
+    def __init__(self, sid, fobj, policy_name):
+        self.sid = sid
+        self.policy_name = policy_name
+        self.path = fobj.path
+        self.action = fobj.action.value
+        self.delete_folder = str(fobj.delete_folder)
+        self.delete_sub_folder = str(fobj.delete_sub_folder)
+        self.delete_files = str(fobj.delete_files)
+
+    def update_fields(self):
+        '''
+        Return list of fields to update
+        '''
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['action'] = self.action
+        fields['delete_folder'] = self.delete_folder
+        fields['delete_sub_folder'] = self.delete_sub_folder
+        fields['delete_files'] = self.delete_files
+
+        return fields
 
