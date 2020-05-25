@@ -33,6 +33,10 @@ from .gsettings_applier import (
     gsettings_applier,
     gsettings_applier_user
 )
+from .folder_applier import (
+      folder_applier
+    , folder_applier_user
+)
 from .cifs_applier import cifs_applier_user
 from util.windows import get_sid
 from util.users import (
@@ -88,6 +92,7 @@ class frontend_manager:
             , 'shortcuts': shortcut_applier(self.storage)
             , 'gsettings': gsettings_applier(self.storage)
             , 'cups': cups_applier(self.storage)
+            , 'folders': folder_applier(self.storage, self.sid)
             #, 'package': package_applier(self.storage)
         })
 
@@ -95,6 +100,7 @@ class frontend_manager:
         # files and settings, mostly in $HOME.
         self.user_appliers = dict({
             'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username),
+            'folders': folder_applier_user(self.storage, self.sid, self.username),
             'gsettings': gsettings_applier_user(self.storage, self.sid, self.username),
             'cifs': cifs_applier_user(self.storage, self.sid, self.username)
         })
@@ -118,15 +124,18 @@ class frontend_manager:
         if is_root():
             logging.debug(slogm('Running user appliers from administrator context'))
             self.user_appliers['shortcuts'].admin_context_apply()
+            self.user_appliers['folders'].admin_context_apply()
             self.user_appliers['gsettings'].admin_context_apply()
             self.user_appliers['cifs'].admin_context_apply()
 
             logging.debug(slogm('Running user appliers for user context'))
             with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)
+            with_privileges(self.username, self.user_appliers['folders'].user_context_apply)
             with_privileges(self.username, self.user_appliers['gsettings'].user_context_apply)
         else:
             logging.debug(slogm('Running user appliers from user context'))
             self.user_appliers['shortcuts'].user_context_apply()
+            self.user_appliers['folders'].user_context_apply()
             self.user_appliers['gsettings'].user_context_apply()
 
     def apply_parameters(self):
