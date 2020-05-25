@@ -102,7 +102,6 @@ def install_rpm(rpm_name):
     '''
     Install single RPM
     '''
-    update()
     rpm = Package(rpm_name)
     return rpm.install()
 
