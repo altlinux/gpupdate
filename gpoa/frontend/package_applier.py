@@ -18,34 +18,68 @@
 
 import logging
 from util.logging import slogm
+from util.rpm import (
+      update
+    , install_rpm
+    , remove_rpm
+)
 
 from .applier_frontend import applier_frontend
 from .appliers.rpm import rpm
 
 class package_applier(applier_frontend):
+    __install_key_name = 'PackagesForInstall'
+    __remove_key_name = 'PackagesForRemove'
+    __hklm_branch = 'Software\\BaseALT\\Policies\\Packages'
+
     def __init__(self, storage):
         self.storage = storage
-        self.package_applier_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Packages%')
+ 
+        install_branch = '{}\\{}'.format(self.__hklm_branch, self.__install_key_name)
+        remove_branch = '{}\\{}'.format(self.__hklm_branch, self.__remove_key_name)
+
+        self.install_packages_setting = self.storage.get_hklm_entry(install_branch)
+        self.install_packages = None
+        if self.install_packages_setting:
+            self.install_packages = self.install_packages_setting.split()
+
+        self.remove_packages_setting = self.storage.get_hklm_entry(remove_branch)
+        self.remove_packages = None
+        if self.remove_packages_setting:
+            self.remove_packages = self.remove_packages_setting.split()
 
     def apply(self):
-        packages_for_install = ''
-        packages_for_remove = ''
+        if self.install_packages:
+            for package in self.install_packages:
+                install_rpm(package)
 
-        for setting in self.package_applier_settings:
-            action = setting.hive_key.rpartition('\\')[2]
-            if action == 'PackagesForInstall':
-                packages_for_install = setting.data
-            if action == 'PackagesForRemove':
-                packages_for_remove = setting.data
-
-        if packages_for_install or packages_for_remove:
-            r = rpm(packages_for_install, packages_for_remove)
-            r.apply()
+        if self.remove_packages:
+            for package in self.remove_packages:
+                remove_rpm(package)
 
 
 class package_applier_user(applier_frontend):
-    def __init__(self):
-        pass
+    __install_key_name = 'PackagesForInstall'
+    __remove_key_name = 'PackagesForRemove'
+    __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
+
+    def __init__(self, storage, sid, username):
+        self.storage = storage
+        self.sid = sid
+        self.username = username
+
+        install_branch = '{}\\{}'.format(self.__hkcu_branch, self.__install_key_name)
+        remove_branch = '{}\\{}'.format(self.__hkcu_branch, self.__remove_key_name)
+
+        self.install_packages_setting = self.storage.get_hkcu_entry(install_branch)
+        self.install_packages = None
+        if self.install_packages_setting:
+            self.install_packages = self.install_packages_setting.split()
+
+        self.remove_packages_setting = self.storage.get_hkcu_entry(remove_branch)
+        self.remove_packages = None
+        if self.remove_packages_setting:
+            self.remove_packages = self.remove_packages_setting.split()
 
     def user_context_apply(self):
         '''
@@ -58,5 +92,13 @@ class package_applier_user(applier_frontend):
         Install software assigned to specified username regardless
         which computer he uses to log into system.
         '''
-        pass
+        if self.install_packages:
+            update()
+            for package in self.install_packages:
+                install_rpm(package)
+
+        if self.remove_packages:
+            update()
+            for package in self.remove_packages:
+                remove_rpm(package)
 
