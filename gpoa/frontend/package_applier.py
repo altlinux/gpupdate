@@ -25,7 +25,6 @@ from util.rpm import (
 )
 
 from .applier_frontend import applier_frontend
-from .appliers.rpm import rpm
 
 class package_applier(applier_frontend):
     __install_key_name = 'PackagesForInstall'
@@ -41,21 +40,28 @@ class package_applier(applier_frontend):
         self.install_packages_setting = self.storage.get_hklm_entry(install_branch)
         self.install_packages = None
         if self.install_packages_setting:
-            self.install_packages = self.install_packages_setting.split()
+            self.install_packages = self.install_packages_setting.data.split()
 
         self.remove_packages_setting = self.storage.get_hklm_entry(remove_branch)
         self.remove_packages = None
         if self.remove_packages_setting:
-            self.remove_packages = self.remove_packages_setting.split()
+            self.remove_packages = self.remove_packages_setting.data.split()
 
     def apply(self):
+        update()
         if self.install_packages:
             for package in self.install_packages:
-                install_rpm(package)
+                try:
+                    install_rpm(package)
+                except Exception as exc:
+                    logging.error(exc)
 
         if self.remove_packages:
             for package in self.remove_packages:
-                remove_rpm(package)
+                try:
+                    remove_rpm(package)
+                except Exception as exc:
+                    logging.error(exc)
 
 
 class package_applier_user(applier_frontend):
@@ -71,15 +77,15 @@ class package_applier_user(applier_frontend):
         install_branch = '{}\\{}'.format(self.__hkcu_branch, self.__install_key_name)
         remove_branch = '{}\\{}'.format(self.__hkcu_branch, self.__remove_key_name)
 
-        self.install_packages_setting = self.storage.get_hkcu_entry(install_branch)
+        self.install_packages_setting = self.storage.get_hkcu_entry(self.sid, install_branch)
         self.install_packages = None
         if self.install_packages_setting:
-            self.install_packages = self.install_packages_setting.split()
+            self.install_packages = self.install_packages_setting.data.split()
 
-        self.remove_packages_setting = self.storage.get_hkcu_entry(remove_branch)
+        self.remove_packages_setting = self.storage.get_hkcu_entry(self.sid, remove_branch)
         self.remove_packages = None
         if self.remove_packages_setting:
-            self.remove_packages = self.remove_packages_setting.split()
+            self.remove_packages = self.remove_packages_setting.data.split()
 
     def user_context_apply(self):
         '''
@@ -92,13 +98,18 @@ class package_applier_user(applier_frontend):
         Install software assigned to specified username regardless
         which computer he uses to log into system.
         '''
+        update()
         if self.install_packages:
-            update()
             for package in self.install_packages:
-                install_rpm(package)
+                try:
+                    install_rpm(package)
+                except Exception as exc:
+                    logging.debug(exc)
 
         if self.remove_packages:
-            update()
             for package in self.remove_packages:
-                remove_rpm(package)
+                try:
+                    remove_rpm(package)
+                except Exception as exc:
+                    logging.debug(exc)
 
