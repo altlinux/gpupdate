@@ -18,8 +18,26 @@
 
 class FirewallRule:
     def __init__(self, data):
-        pass
+        data_array = data.split('|')
+
+        self.version = data_array[0]
+        self.action = data_array[1]
+        self.active = data_array[2]
+        self.dir = data_array[3]
+        self.protocol = data_array[4]
+        self.profile = data_array[5]
+        self.lport = data_array[6]
+        self.name = data_array[7]
+        self.desc = data_array[8]
 
     def apply(self):
-        pass
+        pstr = '{} {} {} {} {} {} {} {} {}'.format(self.version
+            , self.action
+            , self.active
+            , self.dir
+            , self.protocol
+            , self.profile
+            , self.lport
+            , self.name
+            , self.desc)
 
