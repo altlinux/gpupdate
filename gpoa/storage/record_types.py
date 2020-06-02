@@ -96,7 +96,7 @@ class printer_entry(object):
         fields = dict()
         fields['policy_name'] = self.policy_name
         fields['name'] = self.name
-        fields['printer'] = self.printer
+        fields['printer'] = self.printer.to_json()
 
         return fields
 

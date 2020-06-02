@@ -43,7 +43,7 @@ def read_printers(printers_file):
 
 def merge_printers(storage, sid, printer_objects, policy_name):
     for device in printer_objects:
-        pass
+        storage.add_printer(sid, device, policy_name)
 
 def json2printer(json_str):
     '''

@@ -87,6 +87,7 @@ class FileType(Enum):
     ENVIRONMENTVARIABLES = 'environmentvariables.xml'
     INIFILES = 'inifiles.xml'
     SERVICES = 'services.xml'
+    PRINTERS = 'printers.xml'
 
 def get_preftype(path_to_file):
     fpath = Path(path_to_file)
@@ -111,6 +112,7 @@ def pref_parsers():
     parsers[FileType.ENVIRONMENTVARIABLES] = read_envvars
     parsers[FileType.INIFILES] = read_inifiles
     parsers[FileType.SERVICES] = read_services
+    parsers[FileType.PRINTERS] = read_printers
 
     return parsers
 
@@ -130,6 +132,7 @@ def pref_mergers():
     mergers[FileType.ENVIRONMENTVARIABLES] = merge_envvars
     mergers[FileType.INIFILES] = merge_inifiles
     mergers[FileType.SERVICES] = merge_services
+    mergers[FileType.PRINTERS] = merge_printers
 
     return mergers
 
