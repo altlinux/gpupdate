@@ -27,46 +27,37 @@ from util.rpm import (
 from .applier_frontend import applier_frontend
 
 class package_applier(applier_frontend):
-    __install_key_name = 'PackagesForInstall'
-    __remove_key_name = 'PackagesForRemove'
+    __install_key_name = 'Install'
+    __remove_key_name = 'Remove'
     __hklm_branch = 'Software\\BaseALT\\Policies\\Packages'
 
     def __init__(self, storage):
         self.storage = storage
  
-        install_branch = '{}\\{}'.format(self.__hklm_branch, self.__install_key_name)
-        remove_branch = '{}\\{}'.format(self.__hklm_branch, self.__remove_key_name)
+        install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
+        remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
 
-        self.install_packages_setting = self.storage.get_hklm_entry(install_branch)
-        self.install_packages = None
-        if self.install_packages_setting:
-            self.install_packages = self.install_packages_setting.data.split()
-
-        self.remove_packages_setting = self.storage.get_hklm_entry(remove_branch)
-        self.remove_packages = None
-        if self.remove_packages_setting:
-            self.remove_packages = self.remove_packages_setting.data.split()
+        self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
+        self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
 
     def apply(self):
         update()
-        if self.install_packages:
-            for package in self.install_packages:
-                try:
-                    install_rpm(package)
-                except Exception as exc:
-                    logging.error(exc)
+        for package in self.install_packages_setting:
+            try:
+                install_rpm(package.data)
+            except Exception as exc:
+                logging.error(exc)
 
-        if self.remove_packages:
-            for package in self.remove_packages:
-                try:
-                    remove_rpm(package)
-                except Exception as exc:
-                    logging.error(exc)
+        for package in self.remove_packages_setting:
+            try:
+                remove_rpm(package.data)
+            except Exception as exc:
+                logging.error(exc)
 
 
 class package_applier_user(applier_frontend):
-    __install_key_name = 'PackagesForInstall'
-    __remove_key_name = 'PackagesForRemove'
+    __install_key_name = 'Install'
+    __remove_key_name = 'Remove'
     __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
 
     def __init__(self, storage, sid, username):
@@ -74,18 +65,11 @@ class package_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
 
-        install_branch = '{}\\{}'.format(self.__hkcu_branch, self.__install_key_name)
-        remove_branch = '{}\\{}'.format(self.__hkcu_branch, self.__remove_key_name)
+        install_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
+        remove_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
 
-        self.install_packages_setting = self.storage.get_hkcu_entry(self.sid, install_branch)
-        self.install_packages = None
-        if self.install_packages_setting:
-            self.install_packages = self.install_packages_setting.data.split()
-
-        self.remove_packages_setting = self.storage.get_hkcu_entry(self.sid, remove_branch)
-        self.remove_packages = None
-        if self.remove_packages_setting:
-            self.remove_packages = self.remove_packages_setting.data.split()
+        self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
+        self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
 
     def user_context_apply(self):
         '''
@@ -99,17 +83,15 @@ class package_applier_user(applier_frontend):
         which computer he uses to log into system.
         '''
         update()
-        if self.install_packages:
-            for package in self.install_packages:
-                try:
-                    install_rpm(package)
-                except Exception as exc:
-                    logging.debug(exc)
+        for package in self.install_packages_setting:
+            try:
+                install_rpm(package.data)
+            except Exception as exc:
+                logging.debug(exc)
 
-        if self.remove_packages:
-            for package in self.remove_packages:
-                try:
-                    remove_rpm(package)
-                except Exception as exc:
-                    logging.debug(exc)
+        for package in self.remove_packages_setting:
+            try:
+                remove_rpm(package.data)
+            except Exception as exc:
+                logging.debug(exc)
 
