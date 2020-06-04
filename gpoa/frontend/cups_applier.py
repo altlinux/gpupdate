@@ -19,6 +19,8 @@
 import logging
 import os
 
+import cups
+
 from .applier_frontend import applier_frontend
 from gpt.printers import json2printer
 from util.rpm import is_rpm_installed
@@ -37,7 +39,7 @@ def storage_get_printers(storage, sid):
 
     return printers
 
-def write_printer(prn):
+def connect_printer(connection, prn):
     '''
     Dump printer cinfiguration to disk as CUPS config
     '''
@@ -48,6 +50,7 @@ def write_printer(prn):
 class cups_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
+        self.cups_connection = cups.Connection()
 
     def apply(self):
         '''
@@ -84,9 +87,10 @@ class cups_applier_user(applier_frontend):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
 
+        self.cups_connection = cups.Connection()
         printers = storage_get_printers(self.storage, self.sid)
 
         if printers:
             for prn in printers:
-                write_printer(prn)
+                connect_printer(self.cups_connection, prn)
 
