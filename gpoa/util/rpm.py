@@ -34,11 +34,11 @@ def is_rpm_installed(rpm_name):
     return False
 
 class Package:
-    __install_command = ['/usr/bin/apt-get', '-y', 'install']
-    __remove_command = ['/usr/bin/apt-get', '-y', 'remove']
-    __reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
 
     def __init__(self, package_name):
+        self.__install_command = ['/usr/bin/apt-get', '-y', 'install']
+        self.__remove_command = ['/usr/bin/apt-get', '-y', 'remove']
+        self.__reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
         self.package_name = package_name
         self.for_install = True
 
