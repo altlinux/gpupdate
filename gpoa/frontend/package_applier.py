@@ -17,20 +17,59 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from util.logging import slogm
+from util.rpm import (
+      update
+    , install_rpm
+    , remove_rpm
+)
 
 from .applier_frontend import applier_frontend
-from .appliers.rpm import rpm
 
 class package_applier(applier_frontend):
+    __install_key_name = 'Install'
+    __remove_key_name = 'Remove'
+    __hklm_branch = 'Software\\BaseALT\\Policies\\Packages'
+
     def __init__(self, storage):
         self.storage = storage
+ 
+        install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
+        remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
+
+        self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
+        self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
 
     def apply(self):
-        pass
+        update()
+        for package in self.install_packages_setting:
+            try:
+                install_rpm(package.data)
+            except Exception as exc:
+                logging.error(exc)
+
+        for package in self.remove_packages_setting:
+            try:
+                remove_rpm(package.data)
+            except Exception as exc:
+                logging.error(exc)
+
 
 class package_applier_user(applier_frontend):
-    def __init__(self):
-        pass
+    __install_key_name = 'Install'
+    __remove_key_name = 'Remove'
+    __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
+
+    def __init__(self, storage, sid, username):
+        self.storage = storage
+        self.sid = sid
+        self.username = username
+
+        install_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
+        remove_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
+
+        self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
+        self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
 
     def user_context_apply(self):
         '''
@@ -43,5 +82,16 @@ class package_applier_user(applier_frontend):
         Install software assigned to specified username regardless
         which computer he uses to log into system.
         '''
-        pass
+        update()
+        for package in self.install_packages_setting:
+            try:
+                install_rpm(package.data)
+            except Exception as exc:
+                logging.debug(exc)
+
+        for package in self.remove_packages_setting:
+            try:
+                remove_rpm(package.data)
+            except Exception as exc:
+                logging.debug(exc)
 

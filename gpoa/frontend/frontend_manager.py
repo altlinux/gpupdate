@@ -24,7 +24,10 @@ from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
 from .chromium_applier import chromium_applier
 from .cups_applier import cups_applier
-from .package_applier import package_applier
+from .package_applier import (
+      package_applier
+    , package_applier_user
+)
 from .shortcut_applier import (
     shortcut_applier,
     shortcut_applier_user
@@ -93,16 +96,17 @@ class frontend_manager:
             , 'gsettings': gsettings_applier(self.storage)
             , 'cups': cups_applier(self.storage)
             , 'folders': folder_applier(self.storage, self.sid)
-            #, 'package': package_applier(self.storage)
+            , 'package': package_applier(self.storage)
         })
 
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
         self.user_appliers = dict({
-            'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username),
-            'folders': folder_applier_user(self.storage, self.sid, self.username),
-            'gsettings': gsettings_applier_user(self.storage, self.sid, self.username),
-            'cifs': cifs_applier_user(self.storage, self.sid, self.username)
+              'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username)
+            , 'folders': folder_applier_user(self.storage, self.sid, self.username)
+            , 'gsettings': gsettings_applier_user(self.storage, self.sid, self.username)
+            , 'cifs': cifs_applier_user(self.storage, self.sid, self.username)
+            , 'package': package_applier_user(self.storage, self.sid, self.username)
         })
 
     def machine_apply(self):
@@ -127,6 +131,7 @@ class frontend_manager:
             self.user_appliers['folders'].admin_context_apply()
             self.user_appliers['gsettings'].admin_context_apply()
             self.user_appliers['cifs'].admin_context_apply()
+            self.user_appliers['package'].admin_context_apply()
 
             logging.debug(slogm('Running user appliers for user context'))
             with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)

@@ -16,16 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.rpm import (
-    install_rpm,
-    remove_rpm
-)
+import unittest
 
-class rpm:
-    def __init__(self, name, action):
-        self.name = name
-        self.action = action
+from frontend.appliers.rpm import rpm
 
-    def apply(self):
-        pass
+class PackageTestCase(unittest.TestCase):
+    '''
+    Semi-integrational tests for packages installation/removing
+    '''
+    def test_package_not_exist(self):
+        packages_for_install = 'dummy1 dummy2'
+        packages_for_remove = 'dummy3'
 
+        test_rpm = rpm(packages_for_install, packages_for_remove)
+        test_rpm.apply()
+
+    def test_install_remove_same_package(self):
+        packages_for_install = 'gotop'
+        packages_for_remove = 'gotop'
+
+        test_rpm = rpm(packages_for_install, packages_for_remove)
+        test_rpm.apply()
