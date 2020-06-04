@@ -24,7 +24,10 @@ from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
 from .chromium_applier import chromium_applier
 from .cups_applier import cups_applier
-from .package_applier import package_applier
+from .package_applier import (
+      package_applier
+    , package_applier_user
+)
 from .shortcut_applier import (
     shortcut_applier,
     shortcut_applier_user
