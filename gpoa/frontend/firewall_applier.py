@@ -29,6 +29,6 @@ class firewall_applier(applier_frontend):
 
     def apply(self):
         for setting in self.firewall_settings:
-            FirewallRule(setting.data)
-            FirewallRule.apply()
+            rule = FirewallRule(setting.data)
+            rule.apply()
 

@@ -16,28 +16,61 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from enum import Enum
+import subprocess
+
+def getprops(param_list):
+    props = dict()
+
+    for entry in param_list:
+        lentry = entry.lower()
+        if lentry.startswith('action'):
+            props['action'] = lentry.rpartition('=')[2]
+        if lentry.startswith('protocol'):
+            props['protocol'] = lentry.rpartition('=')[2]
+        if lentry.startswith('dir'):
+            props['dir'] = lentry.rpartition('=')[2]
+
+    return props
+
+
+def get_ports(param_list):
+    portlist = list()
+
+    for entry in param_list:
+        lentry = entry.lower()
+        if lentry.startswith('lport'):
+            port = lentry.rpartition('=')[2]
+            portlist.append(port)
+
+    return portlist
+
+class PortState(Enum):
+    OPEN = 'Allow'
+    CLOSE = 'Deny'
+
+class Protocol(Enum):
+    TCP = 'tcp'
+    UDP = 'udp'
+
+class FirewallMode(Enum):
+    ROUTER = 'router'
+    GATEWAY = 'gateway'
+
+# This shi^Wthing named alterator-net-iptables is unable to work in multi-threaded environment
 class FirewallRule:
+    __alterator_command = '/usr/bin/alterator-net-iptables'
+
     def __init__(self, data):
         data_array = data.split('|')
 
         self.version = data_array[0]
-        self.action = data_array[1]
-        self.active = data_array[2]
-        self.dir = data_array[3]
-        self.protocol = data_array[4]
-        self.profile = data_array[5]
-        self.lport = data_array[6]
-        self.name = data_array[7]
-        self.desc = data_array[8]
+        self.ports = get_ports(data_array[1:])
+        self.properties = getprops(data_array[1:])
 
     def apply(self):
-        pstr = '{} {} {} {} {} {} {} {} {}'.format(self.version
-            , self.action
-            , self.active
-            , self.dir
-            , self.protocol
-            , self.profile
-            , self.lport
-            , self.name
-            , self.desc)
+        for port in self.ports:
+            portcmd = [self.__alterator_command, 'write', '-t', '+{}'.format(port), '-u', '+{}'.format(port)]
+            proc = subprocess.Popen(portcmd)
+            proc.wait()
 
