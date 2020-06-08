@@ -17,5 +17,5 @@
  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #}
 {%- for drv in drives %}
-{{ drv.dir }}	-fstype=cifs,cruid=$AUTOFS_UID,sec=krb5	:{{ drv.path }}
+{{ drv.dir }}	-fstype=cifs,cruid=$USER,sec=krb5,noperm	:{{ drv.path }}
 {% endfor %}
