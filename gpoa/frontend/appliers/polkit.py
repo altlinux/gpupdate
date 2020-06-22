@@ -28,11 +28,15 @@ class polkit:
     __template_loader = jinja2.FileSystemLoader(searchpath=__template_path)
     __template_environment = jinja2.Environment(loader=__template_loader)
 
-    def __init__(self, template_name, arglist):
+    def __init__(self, template_name, arglist, username=None):
         self.template_name = template_name
         self.args = arglist
+        self.username = username
         self.infilename = '{}.rules.j2'.format(self.template_name)
-        self.outfile = os.path.join(self.__policy_dir, '{}.rules'.format(self.template_name))
+        if self.username:
+            self.outfile = os.path.join(self.__policy_dir, '{}.{}.rules'.format(self.template_name, self.username))
+        else:
+            self.outfile = os.path.join(self.__policy_dir, '{}.rules'.format(self.template_name))
 
     def generate(self):
         try:

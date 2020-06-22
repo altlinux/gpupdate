@@ -19,7 +19,10 @@
 from storage import registry_factory
 
 from .control_applier import control_applier
-from .polkit_applier import polkit_applier
+from .polkit_applier import (
+      polkit_applier
+    , polkit_applier_user
+)
 from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
 from .chromium_applier import chromium_applier
@@ -107,6 +110,7 @@ class frontend_manager:
             , 'gsettings': gsettings_applier_user(self.storage, self.sid, self.username)
             , 'cifs': cifs_applier_user(self.storage, self.sid, self.username)
             , 'package': package_applier_user(self.storage, self.sid, self.username)
+            , 'polkit': polkit_applier_user(self.storage, self.sid, self.username)
         })
 
     def machine_apply(self):
@@ -132,6 +136,7 @@ class frontend_manager:
             self.user_appliers['gsettings'].admin_context_apply()
             self.user_appliers['cifs'].admin_context_apply()
             self.user_appliers['package'].admin_context_apply()
+            self.user_appliers['polkit'].admin_context_apply()
 
             logging.debug(slogm('Running user appliers for user context'))
             with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)
