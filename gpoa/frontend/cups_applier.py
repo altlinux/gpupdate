@@ -18,6 +18,7 @@
 
 import logging
 import os
+import json
 
 import cups
 
@@ -44,14 +45,14 @@ def connect_printer(connection, prn):
     '''
     # PPD file location
     printer_driver = 'generic'
-    printer_parts = prn.printer['printer']['path'].partition(' ')
+    pjson = json.loads(prn.printer)
+    printer_parts = pjson['printer']['path'].partition(' ')
     # Printer queue name in CUPS
-    printer_name = printer_parts[0]
+    printer_name = printer_parts[2].replace('(', '').replace(')', '')
     # Printer description in CUPS
     printer_info = printer_name
-    printer_uri = printer_parts[2].replace('\\', '/')
-    if printer_uri.startswith('//'):
-        printer_uri = 'smb:' + printer_uri
+    printer_uri = printer_parts[0].replace('\\', '/')
+    printer_uri = 'smb:' + printer_uri
 
     connection.addPrinter(
           name=printer_name
@@ -63,7 +64,6 @@ def connect_printer(connection, prn):
 class cups_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
-        self.cups_connection = cups.Connection()
 
     def apply(self):
         '''
