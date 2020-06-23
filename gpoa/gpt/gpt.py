@@ -161,7 +161,7 @@ class gpt:
               'shortcuts'
             , 'drives'
             , 'environmentvariables'
-            #, 'printers'
+            , 'printers'
             , 'folders'
             , 'files'
             , 'inifiles'
