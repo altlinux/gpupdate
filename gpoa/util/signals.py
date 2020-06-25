@@ -16,16 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import os
 import signal
 from sys import exit
 
 from .arguments import ExitCodeUpdater
+from .kerberos import machine_kdestroy
 
 default_handler = signal.getsignal(signal.SIGINT)
 
 def signal_handler(sig_number, frame):
     # Ignore extra signals
     signal.signal(sig_number, signal.SIG_IGN)
+
+    # Kerberos cache cleanup on interrupt
+    machine_kdestroy(os.environ['KRB5CCNAME'])
+
     print('Received signal, exiting gracefully')
     exit(ExitCodeUpdater.EXIT_SIGINT)
 
