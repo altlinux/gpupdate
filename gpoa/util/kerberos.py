@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from pathlib import Path
 import logging
 import subprocess
@@ -40,7 +41,9 @@ def machine_kdestroy(cache_name):
     host = get_machine_name()
     subprocess.call(['kdestroy', '-c', cache_name])
     cache_file = Path(cache_name)
-    cache_file.unlink()
+
+    if os.path.exists(cache_name):
+        cache_file.unlink()
 
 
 def check_krb_ticket():
