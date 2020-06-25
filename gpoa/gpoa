@@ -27,7 +27,10 @@ from frontend.frontend_manager import frontend_manager, determine_username
 from plugin import plugin_manager
 
 from util.util import get_machine_name
-from util.kerberos import machine_kinit
+from util.kerberos import (
+      machine_kinit
+    , machine_kdestroy
+)
 from util.users import (
     is_root,
     get_process_user
@@ -73,7 +76,7 @@ class gpoa_controller:
             user = get_machine_name()
             self.is_machine = True
         set_loglevel(self.__args.loglevel)
-        self.__kinit_successful = machine_kinit()
+        self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
 
         uname = get_process_user()
         uid = os.getuid()
@@ -88,9 +91,14 @@ class gpoa_controller:
         '''
         GPOA controller entry point
         '''
+        self.__kinit_successful = machine_kinit(self.cache_path)
+        if self.__kinit_successful:
+            os.environ['KRB5CCNAME'] = 'FILE:{}'.format(self.cache_path)
         self.start_plugins()
         self.start_backend()
         self.start_frontend()
+        if self.__kinit_successful:
+            machine_kdestroy(self.cache_path)
 
     def start_backend(self):
         '''
