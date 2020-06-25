@@ -56,6 +56,7 @@ class Protocol(Enum):
 class FirewallMode(Enum):
     ROUTER = 'router'
     GATEWAY = 'gateway'
+    HOST = 'host'
 
 # This shi^Wthing named alterator-net-iptables is unable to work in
 # multi-threaded environment
@@ -70,8 +71,27 @@ class FirewallRule:
         self.properties = getprops(data_array[1:])
 
     def apply(self):
+        tcp_command = []
+        udp_command = []
+
         for port in self.ports:
-            portcmd = [self.__alterator_command, 'write', '-t', '+{}'.format(port), '-u', '+{}'.format(port)]
+            tcp_port = '{}'.format(port)
+            udp_port = '{}'.format(port)
+
+            if PortState.OPEN.value == self.properties['action']:
+                tcp_port = '+' + tcp_port
+                udp_port = '+' + udp_port
+            if PortState.CLOSE.value == self.properties['action']:
+                tcp_port = '-' + tcp_port
+                udp_port = '-' + udp_port
+
+            portcmd = [
+                  self.__alterator_command
+                , 'write'
+                , '-m', FirewallMode.HOST.value
+                , '-t', '+{}'.format(port)
+                , '-u', '+{}'.format(port)
+            ]
             proc = subprocess.Popen(portcmd)
             proc.wait()
 
