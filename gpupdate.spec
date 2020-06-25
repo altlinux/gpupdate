@@ -41,7 +41,8 @@ cp -r gpoa \
 mkdir -p \
 	%buildroot%_bindir/ \
 	%buildroot%_sbindir/ \
-	%buildroot%_cachedir/%name/
+	%buildroot%_cachedir/%name/ \
+	%buildroot%_cachedir/%name/creds
 
 ln -s %python3_sitelibdir/gpoa/gpoa \
 	%buildroot%_sbindir/gpoa
@@ -84,7 +85,8 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 %dir %_sysconfdir/%name
 %config(noreplace) %_sysconfdir/%name/environment
 %config(noreplace) %_sysconfdir/pam.d/system-policy-%name
-%dir %_cachedir/%name
+%dir %attr(0700, root, root) %_cachedir/%name
+%dir %attr(0700, root, root) %_cachedir/%name/creds
 %exclude %python3_sitelibdir/gpoa/.pylintrc
 %exclude %python3_sitelibdir/gpoa/.prospector.yaml
 %exclude %python3_sitelibdir/gpoa/Makefile
