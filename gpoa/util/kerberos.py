@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import logging
 import subprocess
 
@@ -23,13 +24,34 @@ from .util import get_machine_name
 from .logging import slogm
 
 
-def machine_kinit():
+def machine_kinit(cache_name=None):
     '''
     Perform kinit with machine credentials
     '''
     host = get_machine_name()
-    subprocess.call(['kinit', '-k', host])
+    kinit_cmd = ['kinit', '-k', host]
+    if cache_name:
+        kinit_cmd.extend(['-c', cache_name])
+    subprocess.call(kinit_cmd)
     return check_krb_ticket()
+
+
+def machine_kdestroy(cache_name=None):
+    '''
+    Perform kdestroy for machine credentials
+    '''
+    host = get_machine_name()
+    kdestroy_cmd = ['kdestroy']
+    if cache_name:
+        kdestroy_cmd.extend(['-c', cache_name])
+    subprocess.call(kdestroy_cmd)
+
+    if cache_name and os.path.exists(cache_name):
+        os.unlink(cache_name)
+    elif 'KRB5CCNAME' in os.environ:
+        path = os.environ['KRB5CCNAME'][5:]
+        if os.path.exists(path):
+            os.unlink(path)
 
 
 def check_krb_ticket():
