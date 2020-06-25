@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from pathlib import Path
 import logging
 import subprocess
 
@@ -23,13 +24,23 @@ from .util import get_machine_name
 from .logging import slogm
 
 
-def machine_kinit():
+def machine_kinit(cache_name):
     '''
     Perform kinit with machine credentials
     '''
     host = get_machine_name()
-    subprocess.call(['kinit', '-k', host])
+    subprocess.call(['kinit', '-k', host, '-c', cache_name])
     return check_krb_ticket()
+
+
+def machine_kdestroy(cache_name):
+    '''
+    Perform kdestroy for machine credentials
+    '''
+    host = get_machine_name()
+    subprocess.call(['kdestroy', '-c', cache_name])
+    cache_file = Path(cache_name)
+    cache_file.unlink()
 
 
 def check_krb_ticket():
