@@ -91,9 +91,8 @@ class gpoa_controller:
         '''
         GPOA controller entry point
         '''
+        os.environ['KRB5CCNAME'] = 'FILE:{}'.format(self.cache_path)
         self.__kinit_successful = machine_kinit(self.cache_path)
-        if self.__kinit_successful:
-            os.environ['KRB5CCNAME'] = 'FILE:{}'.format(self.cache_path)
         self.start_plugins()
         self.start_backend()
         self.start_frontend()
