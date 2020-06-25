@@ -18,6 +18,9 @@
 
 import logging
 import os
+import json
+
+import cups
 
 from .applier_frontend import applier_frontend
 from gpt.printers import json2printer
@@ -32,18 +35,31 @@ def storage_get_printers(storage, sid):
     printers = list()
 
     for prnj in printer_objs:
-        prn_obj = json2printer(prnj)
-        printers.append(prn_obj)
+        printers.append(prnj)
 
     return printers
 
-def write_printer(prn):
+def connect_printer(connection, prn):
     '''
     Dump printer cinfiguration to disk as CUPS config
     '''
-    printer_config_path = os.path.join('/etc/cups', prn.name)
-    with open(printer_config_path, 'r') as f:
-        print(prn.cups_config(), file=f)
+    # PPD file location
+    printer_driver = 'generic'
+    pjson = json.loads(prn.printer)
+    printer_parts = pjson['printer']['path'].partition(' ')
+    # Printer queue name in CUPS
+    printer_name = printer_parts[2].replace('(', '').replace(')', '')
+    # Printer description in CUPS
+    printer_info = printer_name
+    printer_uri = printer_parts[0].replace('\\', '/')
+    printer_uri = 'smb:' + printer_uri
+
+    connection.addPrinter(
+          name=printer_name
+        , info=printer_info
+        , device=printer_uri
+        #filename=printer_driver
+    )
 
 class cups_applier(applier_frontend):
     def __init__(self, storage):
@@ -57,11 +73,12 @@ class cups_applier(applier_frontend):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
 
-        printers = storage_get_printers(self.storage, self.storage.get_info('machine_sid'))
+        self.cups_connection = cups.Connection()
+        self.printers = storage_get_printers(self.storage, self.storage.get_info('machine_sid'))
 
-        if printers:
-            for prn in printers:
-                write_printer(prn)
+        if self.printers:
+            for prn in self.printers:
+                connect_printer(self.cups_connection, prn)
 
 class cups_applier_user(applier_frontend):
     def __init__(self, storage, sid, username):
@@ -84,9 +101,10 @@ class cups_applier_user(applier_frontend):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
 
-        printers = storage_get_printers(self.storage, self.sid)
+        self.cups_connection = cups.Connection()
+        self.printers = storage_get_printers(self.storage, self.sid)
 
-        if printers:
-            for prn in printers:
-                write_printer(prn)
+        if self.printers:
+            for prn in self.printers:
+                connect_printer(self.cups_connection, prn)
 
