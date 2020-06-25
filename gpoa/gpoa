@@ -141,6 +141,7 @@ def main():
     controller.run()
 
 if __name__ == "__main__":
+    default_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal_handler)
     main()
 

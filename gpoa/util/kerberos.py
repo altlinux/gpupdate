@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from pathlib import Path
 import logging
 import subprocess
 
@@ -46,10 +45,13 @@ def machine_kdestroy(cache_name=None):
     if cache_name:
         kdestroy_cmd.extend(['-c', cache_name])
     subprocess.call(kdestroy_cmd)
-    cache_file = Path(cache_name)
 
-    if os.path.exists(cache_name):
-        cache_file.unlink()
+    if cache_name and os.path.exists(cache_name):
+        os.unlink(cache_name)
+    elif 'KRB5CCNAME' in os.environ:
+        path = os.environ['KRB5CCNAME'][5:]
+        if os.path.exists(path):
+            os.unlink(path)
 
 
 def check_krb_ticket():

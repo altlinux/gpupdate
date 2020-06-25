@@ -19,20 +19,17 @@
 
 import os
 import signal
-from sys import exit
 
 from .arguments import ExitCodeUpdater
 from .kerberos import machine_kdestroy
 
-default_handler = signal.getsignal(signal.SIGINT)
-
 def signal_handler(sig_number, frame):
+    print('Received signal, exiting gracefully')
     # Ignore extra signals
     signal.signal(sig_number, signal.SIG_IGN)
 
     # Kerberos cache cleanup on interrupt
     machine_kdestroy()
 
-    print('Received signal, exiting gracefully')
-    exit(ExitCodeUpdater.EXIT_SIGINT)
+    os._exit(ExitCodeUpdater.EXIT_SIGINT)
 
