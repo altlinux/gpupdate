@@ -25,21 +25,27 @@ from .util import get_machine_name
 from .logging import slogm
 
 
-def machine_kinit(cache_name):
+def machine_kinit(cache_name=None):
     '''
     Perform kinit with machine credentials
     '''
     host = get_machine_name()
-    subprocess.call(['kinit', '-k', host, '-c', cache_name])
+    kinit_cmd = ['kinit', '-k', host]
+    if cache_name:
+        kinit_cmd.extend(['-c', cache_name])
+    subprocess.call(kinit_cmd)
     return check_krb_ticket()
 
 
-def machine_kdestroy(cache_name):
+def machine_kdestroy(cache_name=None):
     '''
     Perform kdestroy for machine credentials
     '''
     host = get_machine_name()
-    subprocess.call(['kdestroy', '-c', cache_name])
+    kdestroy_cmd = ['kdestroy']
+    if cache_name:
+        kdestroy_cmd.extend(['-c', cache_name])
+    subprocess.call(kdestroy_cmd)
     cache_file = Path(cache_name)
 
     if os.path.exists(cache_name):

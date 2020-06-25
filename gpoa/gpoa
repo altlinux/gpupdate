@@ -98,7 +98,7 @@ class gpoa_controller:
         self.start_backend()
         self.start_frontend()
         if self.__kinit_successful:
-            machine_kdestroy(self.cache_path)
+            machine_kdestroy()
 
     def start_backend(self):
         '''

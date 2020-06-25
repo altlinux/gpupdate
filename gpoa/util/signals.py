@@ -31,7 +31,7 @@ def signal_handler(sig_number, frame):
     signal.signal(sig_number, signal.SIG_IGN)
 
     # Kerberos cache cleanup on interrupt
-    machine_kdestroy(os.environ['KRB5CCNAME'])
+    machine_kdestroy()
 
     print('Received signal, exiting gracefully')
     exit(ExitCodeUpdater.EXIT_SIGINT)
