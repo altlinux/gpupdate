@@ -57,7 +57,8 @@ class FirewallMode(Enum):
     ROUTER = 'router'
     GATEWAY = 'gateway'
 
-# This shi^Wthing named alterator-net-iptables is unable to work in multi-threaded environment
+# This shi^Wthing named alterator-net-iptables is unable to work in
+# multi-threaded environment
 class FirewallRule:
     __alterator_command = '/usr/bin/alterator-net-iptables'
 
