@@ -89,8 +89,8 @@ class FirewallRule:
                   self.__alterator_command
                 , 'write'
                 , '-m', FirewallMode.HOST.value
-                , '-t', '+{}'.format(port)
-                , '-u', '+{}'.format(port)
+                , '-t', tcp_port
+                , '-u', udp_port
             ]
             proc = subprocess.Popen(portcmd)
             proc.wait()
