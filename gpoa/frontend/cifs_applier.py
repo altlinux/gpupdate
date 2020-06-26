@@ -22,7 +22,10 @@ import os
 import subprocess
 from pathlib import Path
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_module_enabled
+)
 from gpt.drives import json2drive
 from util.util import get_homedir
 
@@ -53,6 +56,9 @@ class cifs_applier(applier_frontend):
         pass
 
 class cifs_applier_user(applier_frontend):
+    __module_name = 'cifs_applier_user'
+    __module_enabled = False
+    __module_experimental = True
     __auto_file = '/etc/auto.master'
     __auto_dir = '/etc/auto.master.gpupdate.d'
     __template_path = '/usr/share/gpupdate/templates'
@@ -90,6 +96,8 @@ class cifs_applier_user(applier_frontend):
         self.template_indentity = self.template_env.get_template(self.__template_identity)
         self.template_auto = self.template_env.get_template(self.__template_auto)
 
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+
 
     def user_context_apply(self):
         '''
@@ -97,7 +105,7 @@ class cifs_applier_user(applier_frontend):
         '''
         pass
 
-    def admin_context_apply(self):
+    def __admin_context_apply(self):
         # Create /etc/auto.master.gpupdate.d directory
         self.auto_master_d.mkdir(parents=True, exist_ok=True)
         # Create user's destination mount directory
@@ -139,4 +147,9 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
+
+
+    def admin_context_apply(self):
+        if self.__module_enabled:
+            self.__admin_context_apply()
 
