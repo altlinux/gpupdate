@@ -22,7 +22,10 @@ import json
 
 import cups
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_module_enabled
+)
 from gpt.printers import json2printer
 from util.rpm import is_rpm_installed
 from util.logging import slogm
@@ -62,8 +65,13 @@ def connect_printer(connection, prn):
     )
 
 class cups_applier(applier_frontend):
+    __module_name = 'cups_applier'
+    __module_experimantal = True
+    __module_enabled = False
+
     def __init__(self, storage):
         self.storage = storage
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
         '''
@@ -81,10 +89,15 @@ class cups_applier(applier_frontend):
                 connect_printer(self.cups_connection, prn)
 
 class cups_applier_user(applier_frontend):
+    __module_name = 'cups_applier_user'
+    __module_experimental = True
+    __module_enabled = False
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def user_context_apply(self):
         '''
