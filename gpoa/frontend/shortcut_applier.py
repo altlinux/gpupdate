@@ -90,7 +90,7 @@ class shortcut_applier(applier_frontend):
         self.storage = storage
         self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def apply(self):
+    def run(self):
         shortcuts = storage_get_shortcuts(self.storage, self.storage.get_info('machine_sid'))
         if shortcuts:
             for sc in shortcuts:
@@ -103,6 +103,10 @@ class shortcut_applier(applier_frontend):
         # /usr/local/share/applications
         subprocess.check_call(['/usr/bin/update-desktop-database'])
 
+    def apply(self):
+        if self.__module_enabled:
+            self.run()
+
 class shortcut_applier_user(applier_frontend):
     __module_name = 'shortcut_applier_user'
     __module_experimental = False
@@ -113,7 +117,7 @@ class shortcut_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
 
-    def user_context_apply(self):
+    def run(self):
         shortcuts = storage_get_shortcuts(self.storage, self.sid)
 
         if shortcuts:
@@ -123,13 +127,11 @@ class shortcut_applier_user(applier_frontend):
         else:
             logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
 
-    def admin_context_apply(self):
-        shortcuts = storage_get_shortcuts(self.storage, self.sid)
+    def user_context_apply(self):
+        if self.__module_enabled:
+            self.run()
 
-        if shortcuts:
-            for sc in shortcuts:
-                if not sc.is_usercontext():
-                    write_shortcut(sc, self.username)
-        else:
-            logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
+    def admin_context_apply(self):
+        if self.__module_enabled:
+            self.run()
 
