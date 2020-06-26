@@ -37,10 +37,7 @@ class control_applier(applier_frontend):
         self.controls = list()
         self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def apply(self):
-        '''
-        Trigger control facility invocation.
-        '''
+    def run(self):
         for setting in self.control_settings:
             valuename = setting.hive_key.rpartition('\\')[2]
             try:
@@ -55,4 +52,11 @@ class control_applier(applier_frontend):
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
         for cont in self.controls:
             cont.set_control_status()
+
+    def apply(self):
+        '''
+        Trigger control facility invocation.
+        '''
+        if self.__module_enabled:
+            self.run()
 
