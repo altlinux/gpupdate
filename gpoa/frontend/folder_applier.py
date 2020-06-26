@@ -18,17 +18,25 @@
 
 from pathlib import Path
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_module_enabled
+)
 from .appliers.folder import Folder
 from util.logging import slogm
 
 import logging
 
 class folder_applier(applier_frontend):
+    __module_name = 'folder_applier'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage, sid):
         self.storage = storage
         self.sid = sid
         self.folders = self.storage.get_folders(self.sid)
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
         for directory_obj in self.folders:
@@ -36,11 +44,16 @@ class folder_applier(applier_frontend):
             fld.action()
 
 class folder_applier_user(applier_frontend):
+    __module_name = 'folder_applier_user'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
         self.folders = self.storage.get_folders(self.sid)
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def admin_context_apply(self):
         for directory_obj in self.folders:
