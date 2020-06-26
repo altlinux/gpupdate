@@ -18,6 +18,28 @@
 
 from abc import ABC
 
+
+def check_experimental_enabled(storage):
+    experimental_enable_flag = 'Software\\BaseALT\\Policies\\gpupdate\\global_experimental_enable'
+    flag = storage.get_hklm_entry(experimental_enable_flag)
+
+    if '1' == flag:
+        return True
+
+    return False
+
+def check_module_enabled(storage, module_name, default):
+    gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\gpupdate'
+    gpupdate_module_flag = '{}\\{}_enable'.format(gpupdate_module_enable_branch, module_name)
+    flag = storage.get_hklm_entry(gpupdate_module_flag)
+
+    if '1' == flag:
+        return True
+    if '0' == flag:
+        return True
+
+    return default
+
 class applier_frontend(ABC):
     @classmethod
     def __init__(self, regobj):
