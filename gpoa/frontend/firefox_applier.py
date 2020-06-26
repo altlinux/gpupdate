@@ -144,7 +144,8 @@ class firefox_applier(applier_frontend):
             logging.debug(slogm('Found Firefox profile in {}/{}'.format(profiledir, profile)))
 
     def apply(self):
-        self.machine_apply()
+        if self.__module_enabled:
+            self.machine_apply()
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Firefox')
         #    self.user_apply()
