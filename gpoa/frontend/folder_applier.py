@@ -55,14 +55,16 @@ class folder_applier_user(applier_frontend):
         self.folders = self.storage.get_folders(self.sid)
         self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def admin_context_apply(self):
+    def run(self):
         for directory_obj in self.folders:
             fld = Folder(directory_obj)
             fld.action()
 
+    def admin_context_apply(self):
+        if self.__module_enabled:
+            self.run()
+
     def user_context_apply(self):
-        print('folder:user:user')
-        for directory_obj in self.folders:
-            fld = Folder(directory_obj)
-            fld.action()
+        if self.__module_enabled:
+            self.run()
 
