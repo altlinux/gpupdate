@@ -73,10 +73,7 @@ class cups_applier(applier_frontend):
         self.storage = storage
         self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def apply(self):
-        '''
-        Perform configuration of printer which is assigned to computer.
-        '''
+    def run(self):
         if not is_rpm_installed('cups'):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
@@ -87,6 +84,13 @@ class cups_applier(applier_frontend):
         if self.printers:
             for prn in self.printers:
                 connect_printer(self.cups_connection, prn)
+
+    def apply(self):
+        '''
+        Perform configuration of printer which is assigned to computer.
+        '''
+        if self.__module_enabled:
+            self.run()
 
 class cups_applier_user(applier_frontend):
     __module_name = 'cups_applier_user'
@@ -106,10 +110,7 @@ class cups_applier_user(applier_frontend):
         '''
         pass
 
-    def admin_context_apply(self):
-        '''
-        Perform printer configuration assigned for user.
-        '''
+    def run(self):
         if not is_rpm_installed('cups'):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
@@ -120,4 +121,11 @@ class cups_applier_user(applier_frontend):
         if self.printers:
             for prn in self.printers:
                 connect_printer(self.cups_connection, prn)
+
+    def admin_context_apply(self):
+        '''
+        Perform printer configuration assigned for user.
+        '''
+        if self.__module_enabled:
+            self.run()
 
