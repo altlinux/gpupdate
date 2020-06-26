@@ -37,10 +37,7 @@ class systemd_applier(applier_frontend):
         self.units = []
         self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def apply(self):
-        '''
-        Trigger control facility invocation.
-        '''
+    def run(self):
         for setting in self.systemd_unit_settings:
             valuename = setting.hive_key.rpartition('\\')[2]
             try:
@@ -53,6 +50,13 @@ class systemd_applier(applier_frontend):
                 unit.apply()
             except:
                 logging.error(slogm('Failed applying unit {}'.format(unit.unit_name)))
+
+    def apply(self):
+        '''
+        Trigger control facility invocation.
+        '''
+        if self.__module_enabled:
+            self.run()
 
 class systemd_applier_user(applier_frontend):
     __module_name = 'systemd_applier_user'
