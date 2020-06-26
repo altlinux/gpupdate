@@ -19,7 +19,10 @@
 import logging
 import subprocess
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_module_enabled
+)
 from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
 from util.logging import slogm
@@ -79,8 +82,13 @@ def write_shortcut(shortcut, username=None):
     shortcut.write_desktop(dest_abspath)
 
 class shortcut_applier(applier_frontend):
+    __module_name = 'shortcut_applier'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage):
         self.storage = storage
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
         shortcuts = storage_get_shortcuts(self.storage, self.storage.get_info('machine_sid'))
@@ -96,6 +104,10 @@ class shortcut_applier(applier_frontend):
         subprocess.check_call(['/usr/bin/update-desktop-database'])
 
 class shortcut_applier_user(applier_frontend):
+    __module_name = 'shortcut_applier_user'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
