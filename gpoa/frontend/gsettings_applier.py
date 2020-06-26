@@ -84,7 +84,7 @@ class gsettings_applier_user(applier_frontend):
         self.gsettings = list()
         self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def user_context_apply(self):
+    def run(self):
         for setting in self.gsettings_keys:
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
@@ -94,6 +94,10 @@ class gsettings_applier_user(applier_frontend):
 
         for gsetting in self.gsettings:
             gsetting.apply()
+
+    def user_context_apply(self):
+        if self.__module_enabled:
+            self.run()
 
     def admin_context_apply(self):
         '''
