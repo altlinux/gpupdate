@@ -16,19 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_module_enabled
+)
 from .appliers.control import control
 from util.logging import slogm
 
 import logging
 
 class control_applier(applier_frontend):
+    __module_name = 'control_applier'
+    __module_experimental = False
+    __module_enabled = True
     _registry_branch = 'Software\\BaseALT\\Policies\\Control'
 
     def __init__(self, storage):
         self.storage = storage
         self.control_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Control%')
         self.controls = list()
+        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
         '''
