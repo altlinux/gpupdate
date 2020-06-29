@@ -177,7 +177,7 @@ class sqlite_registry(registry):
         except Exception as exc:
             (self
                 .db_session
-                .query(samba_preg)
+                .query(samba_hkcu_preg)
                 .filter(samba_hkcu_preg.sid == row.sid)
                 .filter(samba_hkcu_preg.hive_key == row.hive_key)
                 .update(row.update_fields()))
