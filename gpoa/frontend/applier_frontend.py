@@ -54,6 +54,8 @@ def check_enabled(storage, module_name, is_experimental):
     else:
         result = module_enabled
 
+    return result
+
 class applier_frontend(ABC):
     @classmethod
     def __init__(self, regobj):
