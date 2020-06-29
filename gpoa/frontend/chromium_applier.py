@@ -143,7 +143,10 @@ class chromium_applier(applier_frontend):
         All actual job done here.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running Chromium applier for machine'))
             self.machine_apply()
+        else:
+            logging.debug(slogm('Chromium applier for machine will not be started'))
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Chromium')
         #    self.user_apply()
