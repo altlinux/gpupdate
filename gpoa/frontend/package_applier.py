@@ -53,7 +53,7 @@ class package_applier(applier_frontend):
         )
 
     def run(self):
-        if 0 < len(self.install_packages_setting) or 0 < len(self.remove_packages_setting):
+        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
             update()
             for package in self.install_packages_setting:
                 try:
@@ -69,7 +69,10 @@ class package_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Package applier for machine'))
             self.run()
+        else:
+            logging.debug(slogm('Package applier for machine will not be started'))
 
 
 class package_applier_user(applier_frontend):
@@ -100,7 +103,7 @@ class package_applier_user(applier_frontend):
         pass
 
     def run(self):
-        if 0 < len(self.install_packages_setting) or 0 < len(self.remove_packages_setting):
+        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
             update()
             for package in self.install_packages_setting:
                 try:
@@ -120,5 +123,8 @@ class package_applier_user(applier_frontend):
         which computer he uses to log into system.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running Package applier for user in administrator context'))
             self.run()
+        else:
+            logging.debug(slogm('Package applier for user in administrator context will not be started'))
 
