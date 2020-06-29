@@ -49,7 +49,7 @@ class gsettings_applier(applier_frontend):
             , self.__module_experimental
         )
 
-    def apply(self):
+    def run(self):
         # Cleanup settings from previous run
         if os.path.exists(self.override_file):
             logging.debug(slogm('Removing GSettings policy file from previous run'))
@@ -72,6 +72,13 @@ class gsettings_applier(applier_frontend):
             proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True)
         except Exception as exc:
             logging.debug(slogm('Error recompiling global GSettings schemas'))
+
+    def apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running GSettings applier for machine'))
+        else:
+            logging.debug(slogm('GSettings applier for machine will not be started'))
+
 
 class gsettings_applier_user(applier_frontend):
     __module_name = 'GSettingsApplierUser'
@@ -101,7 +108,10 @@ class gsettings_applier_user(applier_frontend):
 
     def user_context_apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running GSettings applier for user in user context'))
             self.run()
+        else:
+            logging.debug(slogm('GSettings applier for user in user context will not be started'))
 
     def admin_context_apply(self):
         '''
