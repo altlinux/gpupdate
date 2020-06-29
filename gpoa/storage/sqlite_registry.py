@@ -177,7 +177,7 @@ class sqlite_registry(registry):
         except Exception as exc:
             (self
                 .db_session
-                .query(samba_preg)
+                .query(samba_hkcu_preg)
                 .filter(samba_hkcu_preg.sid == row.sid)
                 .filter(samba_hkcu_preg.hive_key == row.hive_key)
                 .update(row.update_fields()))
@@ -309,14 +309,14 @@ class sqlite_registry(registry):
     def get_hkcu_entry(self, sid, hive_key):
         res = (self
             .db_session
-            .query(samba_preg)
+            .query(samba_hkcu_preg)
             .filter(samba_hkcu_preg.sid == sid)
             .filter(samba_hkcu_preg.hive_key == hive_key)
             .first())
         # Try to get the value from machine SID as a default if no option is set.
         if not res:
             machine_sid = self.get_info('machine_sid')
-            res = self.db_session.query(samba_preg).filter(samba_hkcu_preg.sid == machine_sid).filter(samba_hkcu_preg.hive_key == hive_key).first()
+            res = self.db_session.query(samba_hkcu_preg).filter(samba_hkcu_preg.sid == machine_sid).filter(samba_hkcu_preg.hive_key == hive_key).first()
         return res
 
     def filter_hkcu_entries(self, sid, startswith):
