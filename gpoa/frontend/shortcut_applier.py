@@ -109,7 +109,10 @@ class shortcut_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Shortcut applier for machine'))
             self.run()
+        else:
+            logging.debug(slogm('Shortcut applier for machine will not be started'))
 
 class shortcut_applier_user(applier_frontend):
     __module_name = 'ShortcutsApplierUser'
@@ -133,9 +136,15 @@ class shortcut_applier_user(applier_frontend):
 
     def user_context_apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Shortcut applier for user in user context'))
             self.run()
+        else:
+            logging.debug(slogm('Shortcut applier for user in user context will not be started'))
 
     def admin_context_apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Shortcut applier for user in administrator context'))
             self.run()
+        else:
+            logging.debug(slogm('Shortcut applier for user in administrator context will not be started'))
 
