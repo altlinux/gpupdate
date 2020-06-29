@@ -24,7 +24,7 @@ from pathlib import Path
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from gpt.drives import json2drive
 from util.util import get_homedir
@@ -56,7 +56,7 @@ class cifs_applier(applier_frontend):
         pass
 
 class cifs_applier_user(applier_frontend):
-    __module_name = 'cifs_applier_user'
+    __module_name = 'CIFSApplierUser'
     __module_enabled = False
     __module_experimental = True
     __auto_file = '/etc/auto.master'
@@ -96,7 +96,11 @@ class cifs_applier_user(applier_frontend):
         self.template_indentity = self.template_env.get_template(self.__template_identity)
         self.template_auto = self.template_env.get_template(self.__template_auto)
 
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
 
     def user_context_apply(self):

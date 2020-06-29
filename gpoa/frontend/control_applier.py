@@ -18,7 +18,7 @@
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from .appliers.control import control
 from util.logging import slogm
@@ -26,7 +26,7 @@ from util.logging import slogm
 import logging
 
 class control_applier(applier_frontend):
-    __module_name = 'control_applier'
+    __module_name = 'ControlApplier'
     __module_experimental = False
     __module_enabled = True
     _registry_branch = 'Software\\BaseALT\\Policies\\Control'
@@ -35,7 +35,11 @@ class control_applier(applier_frontend):
         self.storage = storage
         self.control_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Control%')
         self.controls = list()
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def run(self):
         for setting in self.control_settings:

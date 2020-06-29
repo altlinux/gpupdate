@@ -18,7 +18,7 @@
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 
 import logging
@@ -29,8 +29,8 @@ from util.logging import slogm
 from util.util import is_machine_name
 
 class chromium_applier(applier_frontend):
-    __module_name = 'chromium_applier'
-    __module_enabled = True
+    __module_name = 'ChromiumApplier'
+    __module_enabled = False
     __module_experimental = True
     __registry_branch = 'Software\\Policies\\Google\\Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
@@ -45,7 +45,11 @@ class chromium_applier(applier_frontend):
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def get_hklm_string_entry(self, hive_subkey):
         query_str = '{}\\{}'.format(self.__registry_branch, hive_subkey)

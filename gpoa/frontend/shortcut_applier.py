@@ -21,7 +21,7 @@ import subprocess
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
@@ -82,13 +82,17 @@ def write_shortcut(shortcut, username=None):
     shortcut.write_desktop(dest_abspath)
 
 class shortcut_applier(applier_frontend):
-    __module_name = 'shortcut_applier'
+    __module_name = 'ShortcutsApplier'
     __module_experimental = False
     __module_enabled = True
 
     def __init__(self, storage):
         self.storage = storage
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def run(self):
         shortcuts = storage_get_shortcuts(self.storage, self.storage.get_info('machine_sid'))
@@ -108,7 +112,7 @@ class shortcut_applier(applier_frontend):
             self.run()
 
 class shortcut_applier_user(applier_frontend):
-    __module_name = 'shortcut_applier_user'
+    __module_name = 'ShortcutsApplierUser'
     __module_experimental = False
     __module_enabled = True
 

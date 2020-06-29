@@ -18,7 +18,7 @@
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from .appliers.systemd import systemd_unit
 from util.logging import slogm
@@ -26,7 +26,7 @@ from util.logging import slogm
 import logging
 
 class systemd_applier(applier_frontend):
-    __module_name = 'systemd_applier'
+    __module_name = 'SystemdApplier'
     __module_experimental = False
     __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'
@@ -35,7 +35,11 @@ class systemd_applier(applier_frontend):
         self.storage = storage
         self.systemd_unit_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\SystemdUnits%')
         self.units = []
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def run(self):
         for setting in self.systemd_unit_settings:
@@ -59,7 +63,7 @@ class systemd_applier(applier_frontend):
             self.run()
 
 class systemd_applier_user(applier_frontend):
-    __module_name = 'systemd_applier_user'
+    __module_name = 'SystemdApplierUser'
     __module_experimental = False
     __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'

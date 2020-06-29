@@ -20,7 +20,7 @@ from abc import ABC
 
 
 def check_experimental_enabled(storage):
-    experimental_enable_flag = 'Software\\BaseALT\\Policies\\gpupdate\\global_experimental_enable'
+    experimental_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\GlobalExperimental'
     flag = storage.get_hklm_entry(experimental_enable_flag)
 
     if '1' == flag:
@@ -28,8 +28,8 @@ def check_experimental_enabled(storage):
 
     return False
 
-def check_module_enabled(storage, module_name, default):
-    gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\gpupdate'
+def check_module_enabled(storage, module_name):
+    gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\GPUpdate'
     gpupdate_module_flag = '{}\\{}_enable'.format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_hklm_entry(gpupdate_module_flag)
 
@@ -38,7 +38,21 @@ def check_module_enabled(storage, module_name, default):
     if '0' == flag:
         return True
 
-    return default
+    return None
+
+def check_enabled(storage, module_name, is_experimental):
+    module_enabled = check_module_enabled(storage, module_name)
+    exp_enabled = check_experimental_enabled(storage)
+
+    result = False
+
+    if None == module_enabled:
+        if is_experimental and exp_enabled:
+            result = True
+        if not is_experimental:
+            result = True
+    else:
+        result = module_enabled
 
 class applier_frontend(ABC):
     @classmethod

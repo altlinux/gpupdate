@@ -32,15 +32,15 @@ import configparser
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from util.logging import slogm
 from util.util import is_machine_name
 
 class firefox_applier(applier_frontend):
-    __module_name = 'firefox_applier'
+    __module_name = 'FirefoxApplier'
     __module_experimental = True
-    __module_enabled = True
+    __module_enabled = False
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
     __firefox_installdir = '/usr/lib64/firefox/distribution'
     __user_settings_dir = '.mozilla/firefox'
@@ -52,7 +52,11 @@ class firefox_applier(applier_frontend):
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def get_profiles(self):
         '''

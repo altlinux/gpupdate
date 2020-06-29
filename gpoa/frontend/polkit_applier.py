@@ -18,7 +18,7 @@
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from .appliers.polkit import polkit
 from util.logging import slogm
@@ -26,7 +26,7 @@ from util.logging import slogm
 import logging
 
 class polkit_applier(applier_frontend):
-    __module_name = 'polkit_applier'
+    __module_name = 'PolkitApplier'
     __module_experimental = False
     __module_enabled = True
     __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
@@ -47,7 +47,11 @@ class polkit_applier(applier_frontend):
             logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars))
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def apply(self):
         '''
@@ -58,7 +62,7 @@ class polkit_applier(applier_frontend):
                 policy.generate()
 
 class polkit_applier_user(applier_frontend):
-    __module_name = 'polkit_applier_user'
+    __module_name = 'PolkitApplierUser'
     __module_experimental = False
     __module_enabled = True
     __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'

@@ -22,7 +22,7 @@ import subprocess
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from .appliers.gsettings import (
     system_gsetting,
@@ -31,7 +31,7 @@ from .appliers.gsettings import (
 from util.logging import slogm
 
 class gsettings_applier(applier_frontend):
-    __module_name = 'gsettings_applier'
+    __module_name = 'GSettingsApplier'
     __module_experimental = True
     __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
@@ -43,7 +43,11 @@ class gsettings_applier(applier_frontend):
         self.gsettings_keys = self.storage.filter_hklm_entries(gsettings_filter)
         self.gsettings = list()
         self.override_file = os.path.join(self.__global_schema, '0_policy.gschema.override')
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def apply(self):
         # Cleanup settings from previous run
@@ -70,7 +74,7 @@ class gsettings_applier(applier_frontend):
             logging.debug(slogm('Error recompiling global GSettings schemas'))
 
 class gsettings_applier_user(applier_frontend):
-    __module_name = 'gsettings_applier_user'
+    __module_name = 'GSettingsApplierUser'
     __module_experimental = True
     __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'

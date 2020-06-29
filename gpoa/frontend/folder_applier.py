@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .applier_frontend import (
       applier_frontend
-    , check_module_enabled
+    , check_enabled
 )
 from .appliers.folder import Folder
 from util.logging import slogm
@@ -28,7 +28,7 @@ from util.logging import slogm
 import logging
 
 class folder_applier(applier_frontend):
-    __module_name = 'folder_applier'
+    __module_name = 'FoldersApplier'
     __module_experimental = False
     __module_enabled = True
 
@@ -44,7 +44,7 @@ class folder_applier(applier_frontend):
             fld.action()
 
 class folder_applier_user(applier_frontend):
-    __module_name = 'folder_applier_user'
+    __module_name = 'FoldersApplierUser'
     __module_experimental = False
     __module_enabled = True
 
@@ -53,7 +53,11 @@ class folder_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
         self.folders = self.storage.get_folders(self.sid)
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def run(self):
         for directory_obj in self.folders:
