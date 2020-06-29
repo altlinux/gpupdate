@@ -62,5 +62,8 @@ class control_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running Control applier for machine'))
             self.run()
+        else:
+            logging.debug(slogm('Control applier for machine will not be started'))
 
