@@ -94,7 +94,10 @@ class cups_applier(applier_frontend):
         Perform configuration of printer which is assigned to computer.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running CUPS applier for machine'))
             self.run()
+        else:
+            logging.debug(slogm('CUPS applier for machine will not be started'))
 
 class cups_applier_user(applier_frontend):
     __module_name = 'CUPSApplierUser'
@@ -135,5 +138,8 @@ class cups_applier_user(applier_frontend):
         Perform printer configuration assigned for user.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running CUPS applier for user in administrator context'))
             self.run()
+        else:
+            logging.debug(slogm('CUPS applier for user in administrator context will not be started'))
 
