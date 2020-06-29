@@ -86,7 +86,7 @@ class gsettings_applier_user(applier_frontend):
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
         self.gsettings = list()
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def run(self):
         for setting in self.gsettings_keys:

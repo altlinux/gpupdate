@@ -36,7 +36,7 @@ class folder_applier(applier_frontend):
         self.storage = storage
         self.sid = sid
         self.folders = self.storage.get_folders(self.sid)
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
         for directory_obj in self.folders:

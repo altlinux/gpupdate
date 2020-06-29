@@ -123,30 +123,35 @@ class frontend_manager:
         logging.debug(slogm('Applying computer part of settings'))
         for applier_name, applier_object in self.machine_appliers.items():
             logging.debug('Running machine applier {}'.format(applier_name))
-            applier_object.apply()
+            try:
+                applier_object.apply()
+            except Exception as exc:
+                logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
 
     def user_apply(self):
         '''
         Run appliers for users.
         '''
         if is_root():
-            logging.debug(slogm('Running user appliers from administrator context'))
-            self.user_appliers['shortcuts'].admin_context_apply()
-            self.user_appliers['folders'].admin_context_apply()
-            self.user_appliers['gsettings'].admin_context_apply()
-            self.user_appliers['cifs'].admin_context_apply()
-            self.user_appliers['package'].admin_context_apply()
-            self.user_appliers['polkit'].admin_context_apply()
+            for applier_name, applier_object in self.user_appliers.items():
+                try:
+                    logging.debug(slogm('Running user applier from administrator context: {}'.format(applier_name)))
+                    applier_object.admin_context_apply()
+                except Exception as exc:
+                    logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
 
-            logging.debug(slogm('Running user appliers for user context'))
-            with_privileges(self.username, self.user_appliers['shortcuts'].user_context_apply)
-            with_privileges(self.username, self.user_appliers['folders'].user_context_apply)
-            with_privileges(self.username, self.user_appliers['gsettings'].user_context_apply)
+                try:
+                    logging.debug(slogm('Running user applier from user context: {}'.format(applier_name)))
+                    with_privileges(self.username, applier_object.user_context_apply)
+                except Exception as exc:
+                    logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
         else:
-            logging.debug(slogm('Running user appliers from user context'))
-            self.user_appliers['shortcuts'].user_context_apply()
-            self.user_appliers['folders'].user_context_apply()
-            self.user_appliers['gsettings'].user_context_apply()
+            for applier_name, applier_object in self.user_appliers.items():
+                try:
+                    logging.debug(slogm('Running user applier from user context: {}'.format(applier_name)))
+                    applier_object.user_context_apply()
+                except Exception as exc:
+                    logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
 
     def apply_parameters(self):
         '''

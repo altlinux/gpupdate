@@ -87,7 +87,7 @@ class polkit_applier_user(applier_frontend):
             logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars, self.username))
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def user_context_apply(self):
         pass

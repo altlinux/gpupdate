@@ -91,7 +91,7 @@ class package_applier_user(applier_frontend):
         self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
         self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
 
-        self.__module_enabled = check_module_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def user_context_apply(self):
         '''

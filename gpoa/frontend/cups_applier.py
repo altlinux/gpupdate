@@ -66,7 +66,7 @@ def connect_printer(connection, prn):
 
 class cups_applier(applier_frontend):
     __module_name = 'CUPSApplier'
-    __module_experimantal = True
+    __module_experimental = True
     __module_enabled = False
 
     def __init__(self, storage):
