@@ -18,27 +18,34 @@
 
 from abc import ABC
 
+import logging
+from util.logging import slogm
 
 def check_experimental_enabled(storage):
     experimental_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\GlobalExperimental'
     flag = storage.get_hklm_entry(experimental_enable_flag)
 
-    if '1' == flag:
-        return True
+    result = False
 
-    return False
+    if flag and '1' == flag.data:
+        result = True
+
+    return result
 
 def check_module_enabled(storage, module_name):
     gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\GPUpdate'
     gpupdate_module_flag = '{}\\{}_enable'.format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_hklm_entry(gpupdate_module_flag)
 
-    if '1' == flag:
-        return True
-    if '0' == flag:
-        return True
+    result = None
 
-    return None
+    if flag:
+        if '1' == flag.data:
+            result =  True
+        if '0' == flag.data:
+            result = False
+
+    return result
 
 def check_enabled(storage, module_name, is_experimental):
     module_enabled = check_module_enabled(storage, module_name)
