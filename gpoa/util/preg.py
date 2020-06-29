@@ -59,10 +59,12 @@ def load_pol_preg(polfile):
 
     with open(polfile, 'rb') as f:
         data = f.read()
+        logging.debug('PReg length: {}'.format(len(data)))
         gpparser.parse(data)
 
     #print(gpparser.pol_file.__ndr_print__())
-    return gpparser.pol_file
+    pentries = preg2entries(gpparser.pol_file)
+    return pentries
 
 
 def preg_keymap(preg):
@@ -89,16 +91,24 @@ def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_nam
 
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
+        logging.info(slogm('Entry init e_keyname {}'.format(e_keyname)))
+        logging.info(slogm('Entry init e_valuename {}'.format(e_valuename)))
+        logging.info(slogm('Entry init e_type {}'.format(e_type)))
+        logging.info(slogm('Entry init e_data {}'.format(e_data)))
         self.keyname = e_keyname
         self.valuename = e_valuename
         self.type = e_type
         self.data = e_data
 
+class pentries:
+    def __init__(self):
+        self.entries = list()
+
 
 def preg2entries(preg_obj):
-    entries = []
-    for elem in prej_obj.entries:
+    entries = pentries()
+    for elem in preg_obj.entries:
         entry_obj = entry(elem.keyname, elem.valuename, elem.type, elem.data)
-        entries.append(entry_obj)
+        entries.entries.append(entry_obj)
     return entries
 
