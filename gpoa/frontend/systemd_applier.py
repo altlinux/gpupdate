@@ -60,7 +60,10 @@ class systemd_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running systemd applier for machine'))
             self.run()
+        else:
+            logging.debug(slogm('systemd applier for machine will not be started'))
 
 class systemd_applier_user(applier_frontend):
     __module_name = 'SystemdApplierUser'
