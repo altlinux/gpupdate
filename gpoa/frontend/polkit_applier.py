@@ -58,8 +58,11 @@ class polkit_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running Polkit applier for machine'))
             for policy in self.policies:
                 policy.generate()
+        else:
+            logging.debug(slogm('Polkit applier for machine will not be started'))
 
 class polkit_applier_user(applier_frontend):
     __module_name = 'PolkitApplierUser'
@@ -97,6 +100,9 @@ class polkit_applier_user(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            logging.debug(slogm('Running Polkit applier for user in administrator context'))
             for policy in self.policies:
                 policy.generate()
+        else:
+            logging.debug(slogm('Polkit applier for user in administrator context will not be started'))
 
