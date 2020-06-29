@@ -149,7 +149,10 @@ class firefox_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Firefox applier for machine'))
             self.machine_apply()
+        else:
+            logging.debug(slogm('Firefox applier for machine will not be started'))
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Firefox')
         #    self.user_apply()
