@@ -39,9 +39,13 @@ class folder_applier(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
-        for directory_obj in self.folders:
-            fld = Folder(directory_obj)
-            fld.action()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Folder applier for machine'))
+            for directory_obj in self.folders:
+                fld = Folder(directory_obj)
+                fld.action()
+        else:
+            logging.debug(slogm('Folder applier for machine will not be started'))
 
 class folder_applier_user(applier_frontend):
     __module_name = 'FoldersApplierUser'
@@ -66,9 +70,15 @@ class folder_applier_user(applier_frontend):
 
     def admin_context_apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Folder applier for user in administrator context'))
             self.run()
+        else:
+            logging.debug(slogm('Folder applier for user in administrator context will not be started'))
 
     def user_context_apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Folder applier for user in user context'))
             self.run()
+        else:
+            logging.debug(slogm('Folder applier for user administrator context will not be started'))
 
