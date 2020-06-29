@@ -122,7 +122,6 @@ class frontend_manager:
             return
         logging.debug(slogm('Applying computer part of settings'))
         for applier_name, applier_object in self.machine_appliers.items():
-            logging.debug('Running machine applier {}'.format(applier_name))
             try:
                 applier_object.apply()
             except Exception as exc:
@@ -135,20 +134,17 @@ class frontend_manager:
         if is_root():
             for applier_name, applier_object in self.user_appliers.items():
                 try:
-                    logging.debug(slogm('Running user applier from administrator context: {}'.format(applier_name)))
                     applier_object.admin_context_apply()
                 except Exception as exc:
                     logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
 
                 try:
-                    logging.debug(slogm('Running user applier from user context: {}'.format(applier_name)))
                     with_privileges(self.username, applier_object.user_context_apply)
                 except Exception as exc:
                     logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
         else:
             for applier_name, applier_object in self.user_appliers.items():
                 try:
-                    logging.debug(slogm('Running user applier from user context: {}'.format(applier_name)))
                     applier_object.user_context_apply()
                 except Exception as exc:
                     logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
