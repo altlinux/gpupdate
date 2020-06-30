@@ -16,7 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import logging
+from util.logging import slogm
 from .applier_frontend import (
       applier_frontend
     , check_enabled
@@ -45,5 +46,8 @@ class firewall_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            logging.debug(slogm('Running Firewall applier for machine'))
             self.run()
+        else:
+            logging.debug(slogm('Firewall applier will not be started'))
 
