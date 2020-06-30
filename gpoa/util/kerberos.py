@@ -56,7 +56,7 @@ def machine_kdestroy(cache_name=None):
     if cache_name:
         kdestroy_cmd.extend(['-c', cache_name])
 
-    proc = subprocess.Popen(kdestroy_cmd)
+    proc = subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL)
     proc.wait()
 
     if cache_name and os.path.exists(cache_name):
