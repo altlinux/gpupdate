@@ -29,6 +29,7 @@ def machine_kinit(cache_name=None):
     Perform kinit with machine credentials
     '''
     host = get_machine_name()
+    os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_name)
     kinit_cmd = ['kinit', '-k', host]
     if cache_name:
         kinit_cmd.extend(['-c', cache_name])
