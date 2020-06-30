@@ -39,6 +39,7 @@ from .gsettings_applier import (
     gsettings_applier,
     gsettings_applier_user
 )
+from .firewall_applier import firewall_applier
 from .folder_applier import (
       folder_applier
     , folder_applier_user
@@ -98,6 +99,7 @@ class frontend_manager:
             , 'shortcuts': shortcut_applier(self.storage)
             , 'gsettings': gsettings_applier(self.storage)
             , 'cups': cups_applier(self.storage)
+            , 'firewall': firewall_applier(self.storage)
             , 'folders': folder_applier(self.storage, self.sid)
             , 'package': package_applier(self.storage)
         })
