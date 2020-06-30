@@ -91,10 +91,10 @@ def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_nam
 
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
-        logging.info(slogm('Entry init e_keyname {}'.format(e_keyname)))
-        logging.info(slogm('Entry init e_valuename {}'.format(e_valuename)))
-        logging.info(slogm('Entry init e_type {}'.format(e_type)))
-        logging.info(slogm('Entry init e_data {}'.format(e_data)))
+        logging.debug(slogm('Entry init e_keyname {}'.format(e_keyname)))
+        logging.debug(slogm('Entry init e_valuename {}'.format(e_valuename)))
+        logging.debug(slogm('Entry init e_type {}'.format(e_type)))
+        logging.debug(slogm('Entry init e_data {}'.format(e_data)))
         self.keyname = e_keyname
         self.valuename = e_valuename
         self.type = e_type
