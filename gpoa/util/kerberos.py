@@ -32,8 +32,18 @@ def machine_kinit(cache_name=None):
     kinit_cmd = ['kinit', '-k', host]
     if cache_name:
         kinit_cmd.extend(['-c', cache_name])
-    subprocess.call(kinit_cmd)
-    return check_krb_ticket()
+    proc = subprocess.Popen(kinit_cmd)
+    proc.wait()
+
+    result = False
+
+    if 0 == proc.returncode:
+        result = True
+
+    if result:
+        result = check_krb_ticket()
+
+    return result
 
 
 def machine_kdestroy(cache_name=None):
@@ -44,7 +54,9 @@ def machine_kdestroy(cache_name=None):
     kdestroy_cmd = ['kdestroy']
     if cache_name:
         kdestroy_cmd.extend(['-c', cache_name])
-    subprocess.call(kdestroy_cmd)
+
+    proc = subprocess.Popen(kdestroy_cmd)
+    proc.wait()
 
     if cache_name and os.path.exists(cache_name):
         os.unlink(cache_name)
