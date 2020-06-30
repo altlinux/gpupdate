@@ -16,13 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from .appliers.polkit import polkit
 from util.logging import slogm
 
 import logging
 
 class polkit_applier(applier_frontend):
+    __module_name = 'PolkitApplier'
+    __module_experimental = False
+    __module_enabled = True
     __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
     __polkit_map = {
         __deny_all: ['49-gpoa_disk_permissions', { 'Deny_All': 0 }]
@@ -41,15 +47,27 @@ class polkit_applier(applier_frontend):
             logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars))
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def apply(self):
         '''
         Trigger control facility invocation.
         '''
-        for policy in self.policies:
-            policy.generate()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Polkit applier for machine'))
+            for policy in self.policies:
+                policy.generate()
+        else:
+            logging.debug(slogm('Polkit applier for machine will not be started'))
 
 class polkit_applier_user(applier_frontend):
+    __module_name = 'PolkitApplierUser'
+    __module_experimental = False
+    __module_enabled = True
     __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
     __polkit_map = {
             __deny_all: ['48-gpoa_disk_permissions_user', { 'Deny_All': 0, 'User': '' }]
@@ -72,6 +90,7 @@ class polkit_applier_user(applier_frontend):
             logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars, self.username))
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def user_context_apply(self):
         pass
@@ -80,6 +99,10 @@ class polkit_applier_user(applier_frontend):
         '''
         Trigger control facility invocation.
         '''
-        for policy in self.policies:
-            policy.generate()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Polkit applier for user in administrator context'))
+            for policy in self.policies:
+                policy.generate()
+        else:
+            logging.debug(slogm('Polkit applier for user in administrator context will not be started'))
 

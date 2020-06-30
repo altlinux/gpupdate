@@ -16,7 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 
 import logging
 import json
@@ -26,6 +29,9 @@ from util.logging import slogm
 from util.util import is_machine_name
 
 class chromium_applier(applier_frontend):
+    __module_name = 'ChromiumApplier'
+    __module_enabled = False
+    __module_experimental = True
     __registry_branch = 'Software\\Policies\\Google\\Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
     __recommended_policies_path = '/etc/chromium/policies/recommended'
@@ -39,6 +45,11 @@ class chromium_applier(applier_frontend):
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def get_hklm_string_entry(self, hive_subkey):
         query_str = '{}\\{}'.format(self.__registry_branch, hive_subkey)
@@ -131,7 +142,12 @@ class chromium_applier(applier_frontend):
         '''
         All actual job done here.
         '''
-        self.machine_apply()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Chromium applier for machine'))
+            self.machine_apply()
+        else:
+            logging.debug(slogm('Chromium applier for machine will not be started'))
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Chromium')
         #    self.user_apply()
+

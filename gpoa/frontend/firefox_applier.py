@@ -30,11 +30,17 @@ import json
 import os
 import configparser
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from util.logging import slogm
 from util.util import is_machine_name
 
 class firefox_applier(applier_frontend):
+    __module_name = 'FirefoxApplier'
+    __module_experimental = True
+    __module_enabled = False
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
     __firefox_installdir = '/usr/lib64/firefox/distribution'
     __user_settings_dir = '.mozilla/firefox'
@@ -46,6 +52,11 @@ class firefox_applier(applier_frontend):
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def get_profiles(self):
         '''
@@ -137,7 +148,11 @@ class firefox_applier(applier_frontend):
             logging.debug(slogm('Found Firefox profile in {}/{}'.format(profiledir, profile)))
 
     def apply(self):
-        self.machine_apply()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Firefox applier for machine'))
+            self.machine_apply()
+        else:
+            logging.debug(slogm('Firefox applier for machine will not be started'))
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Firefox')
         #    self.user_apply()

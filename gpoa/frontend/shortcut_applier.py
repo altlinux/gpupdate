@@ -19,7 +19,10 @@
 import logging
 import subprocess
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
 from util.logging import slogm
@@ -79,10 +82,19 @@ def write_shortcut(shortcut, username=None):
     shortcut.write_desktop(dest_abspath)
 
 class shortcut_applier(applier_frontend):
+    __module_name = 'ShortcutsApplier'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage):
         self.storage = storage
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
-    def apply(self):
+    def run(self):
         shortcuts = storage_get_shortcuts(self.storage, self.storage.get_info('machine_sid'))
         if shortcuts:
             for sc in shortcuts:
@@ -95,13 +107,24 @@ class shortcut_applier(applier_frontend):
         # /usr/local/share/applications
         subprocess.check_call(['/usr/bin/update-desktop-database'])
 
+    def apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running Shortcut applier for machine'))
+            self.run()
+        else:
+            logging.debug(slogm('Shortcut applier for machine will not be started'))
+
 class shortcut_applier_user(applier_frontend):
+    __module_name = 'ShortcutsApplierUser'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
 
-    def user_context_apply(self):
+    def run(self):
         shortcuts = storage_get_shortcuts(self.storage, self.sid)
 
         if shortcuts:
@@ -111,13 +134,17 @@ class shortcut_applier_user(applier_frontend):
         else:
             logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
 
-    def admin_context_apply(self):
-        shortcuts = storage_get_shortcuts(self.storage, self.sid)
-
-        if shortcuts:
-            for sc in shortcuts:
-                if not sc.is_usercontext():
-                    write_shortcut(sc, self.username)
+    def user_context_apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running Shortcut applier for user in user context'))
+            self.run()
         else:
-            logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
+            logging.debug(slogm('Shortcut applier for user in user context will not be started'))
+
+    def admin_context_apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running Shortcut applier for user in administrator context'))
+            self.run()
+        else:
+            logging.debug(slogm('Shortcut applier for user in administrator context will not be started'))
 

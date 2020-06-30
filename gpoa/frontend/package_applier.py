@@ -24,9 +24,15 @@ from util.rpm import (
     , remove_rpm
 )
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 
 class package_applier(applier_frontend):
+    __module_name = 'PackagesApplier'
+    __module_experimental = True
+    __module_enabled = False
     __install_key_name = 'Install'
     __remove_key_name = 'Remove'
     __hklm_branch = 'Software\\BaseALT\\Policies\\Packages'
@@ -40,22 +46,39 @@ class package_applier(applier_frontend):
         self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
         self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
 
-    def apply(self):
-        update()
-        for package in self.install_packages_setting:
-            try:
-                install_rpm(package.data)
-            except Exception as exc:
-                logging.error(exc)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
-        for package in self.remove_packages_setting:
-            try:
-                remove_rpm(package.data)
-            except Exception as exc:
-                logging.error(exc)
+    def run(self):
+        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
+            update()
+            for package in self.install_packages_setting:
+                try:
+                    install_rpm(package.data)
+                except Exception as exc:
+                    logging.error(exc)
+
+            for package in self.remove_packages_setting:
+                try:
+                    remove_rpm(package.data)
+                except Exception as exc:
+                    logging.error(exc)
+
+    def apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running Package applier for machine'))
+            self.run()
+        else:
+            logging.debug(slogm('Package applier for machine will not be started'))
 
 
 class package_applier_user(applier_frontend):
+    __module_name = 'PackagesApplierUser'
+    __module_experimental = True
+    __module_enabled = False
     __install_key_name = 'Install'
     __remove_key_name = 'Remove'
     __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
@@ -71,27 +94,37 @@ class package_applier_user(applier_frontend):
         self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
         self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
 
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
+
     def user_context_apply(self):
         '''
         There is no point to implement this behavior.
         '''
         pass
 
+    def run(self):
+        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
+            update()
+            for package in self.install_packages_setting:
+                try:
+                    install_rpm(package.data)
+                except Exception as exc:
+                    logging.debug(exc)
+
+            for package in self.remove_packages_setting:
+                try:
+                    remove_rpm(package.data)
+                except Exception as exc:
+                    logging.debug(exc)
+
     def admin_context_apply(self):
         '''
         Install software assigned to specified username regardless
         which computer he uses to log into system.
         '''
-        update()
-        for package in self.install_packages_setting:
-            try:
-                install_rpm(package.data)
-            except Exception as exc:
-                logging.debug(exc)
-
-        for package in self.remove_packages_setting:
-            try:
-                remove_rpm(package.data)
-            except Exception as exc:
-                logging.debug(exc)
+        if self.__module_enabled:
+            logging.debug(slogm('Running Package applier for user in administrator context'))
+            self.run()
+        else:
+            logging.debug(slogm('Package applier for user in administrator context will not be started'))
 

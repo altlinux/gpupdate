@@ -18,38 +18,67 @@
 
 from pathlib import Path
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from .appliers.folder import Folder
 from util.logging import slogm
 
 import logging
 
 class folder_applier(applier_frontend):
+    __module_name = 'FoldersApplier'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage, sid):
         self.storage = storage
         self.sid = sid
         self.folders = self.storage.get_folders(self.sid)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
     def apply(self):
-        for directory_obj in self.folders:
-            fld = Folder(directory_obj)
-            fld.action()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Folder applier for machine'))
+            for directory_obj in self.folders:
+                fld = Folder(directory_obj)
+                fld.action()
+        else:
+            logging.debug(slogm('Folder applier for machine will not be started'))
 
 class folder_applier_user(applier_frontend):
+    __module_name = 'FoldersApplierUser'
+    __module_experimental = False
+    __module_enabled = True
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
         self.folders = self.storage.get_folders(self.sid)
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
+
+    def run(self):
+        for directory_obj in self.folders:
+            fld = Folder(directory_obj)
+            fld.action()
 
     def admin_context_apply(self):
-        for directory_obj in self.folders:
-            fld = Folder(directory_obj)
-            fld.action()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Folder applier for user in administrator context'))
+            self.run()
+        else:
+            logging.debug(slogm('Folder applier for user in administrator context will not be started'))
 
     def user_context_apply(self):
-        print('folder:user:user')
-        for directory_obj in self.folders:
-            fld = Folder(directory_obj)
-            fld.action()
+        if self.__module_enabled:
+            logging.debug(slogm('Running Folder applier for user in user context'))
+            self.run()
+        else:
+            logging.debug(slogm('Folder applier for user administrator context will not be started'))
 

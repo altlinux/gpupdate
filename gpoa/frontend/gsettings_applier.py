@@ -20,7 +20,10 @@ import logging
 import os
 import subprocess
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from .appliers.gsettings import (
     system_gsetting,
     user_gsetting
@@ -28,6 +31,9 @@ from .appliers.gsettings import (
 from util.logging import slogm
 
 class gsettings_applier(applier_frontend):
+    __module_name = 'GSettingsApplier'
+    __module_experimental = True
+    __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
     __global_schema = '/usr/share/glib-2.0/schemas'
 
@@ -37,8 +43,13 @@ class gsettings_applier(applier_frontend):
         self.gsettings_keys = self.storage.filter_hklm_entries(gsettings_filter)
         self.gsettings = list()
         self.override_file = os.path.join(self.__global_schema, '0_policy.gschema.override')
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
-    def apply(self):
+    def run(self):
         # Cleanup settings from previous run
         if os.path.exists(self.override_file):
             logging.debug(slogm('Removing GSettings policy file from previous run'))
@@ -62,7 +73,17 @@ class gsettings_applier(applier_frontend):
         except Exception as exc:
             logging.debug(slogm('Error recompiling global GSettings schemas'))
 
+    def apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running GSettings applier for machine'))
+        else:
+            logging.debug(slogm('GSettings applier for machine will not be started'))
+
+
 class gsettings_applier_user(applier_frontend):
+    __module_name = 'GSettingsApplierUser'
+    __module_experimental = True
+    __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
 
     def __init__(self, storage, sid, username):
@@ -72,8 +93,9 @@ class gsettings_applier_user(applier_frontend):
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
         self.gsettings = list()
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
-    def user_context_apply(self):
+    def run(self):
         for setting in self.gsettings_keys:
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
@@ -83,6 +105,13 @@ class gsettings_applier_user(applier_frontend):
 
         for gsetting in self.gsettings:
             gsetting.apply()
+
+    def user_context_apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running GSettings applier for user in user context'))
+            self.run()
+        else:
+            logging.debug(slogm('GSettings applier for user in user context will not be started'))
 
     def admin_context_apply(self):
         '''

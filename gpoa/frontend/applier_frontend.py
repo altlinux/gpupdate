@@ -18,6 +18,51 @@
 
 from abc import ABC
 
+import logging
+from util.logging import slogm
+
+def check_experimental_enabled(storage):
+    experimental_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\GlobalExperimental'
+    flag = storage.get_hklm_entry(experimental_enable_flag)
+
+    result = False
+
+    if flag and '1' == flag.data:
+        result = True
+
+    return result
+
+def check_module_enabled(storage, module_name):
+    gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\GPUpdate'
+    gpupdate_module_flag = '{}\\{}_enable'.format(gpupdate_module_enable_branch, module_name)
+    flag = storage.get_hklm_entry(gpupdate_module_flag)
+
+    result = None
+
+    if flag:
+        if '1' == flag.data:
+            result =  True
+        if '0' == flag.data:
+            result = False
+
+    return result
+
+def check_enabled(storage, module_name, is_experimental):
+    module_enabled = check_module_enabled(storage, module_name)
+    exp_enabled = check_experimental_enabled(storage)
+
+    result = False
+
+    if None == module_enabled:
+        if is_experimental and exp_enabled:
+            result = True
+        if not is_experimental:
+            result = True
+    else:
+        result = module_enabled
+
+    return result
+
 class applier_frontend(ABC):
     @classmethod
     def __init__(self, regobj):

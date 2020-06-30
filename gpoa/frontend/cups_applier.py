@@ -22,7 +22,10 @@ import json
 
 import cups
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from gpt.printers import json2printer
 from util.rpm import is_rpm_installed
 from util.logging import slogm
@@ -62,13 +65,19 @@ def connect_printer(connection, prn):
     )
 
 class cups_applier(applier_frontend):
+    __module_name = 'CUPSApplier'
+    __module_experimental = True
+    __module_enabled = False
+
     def __init__(self, storage):
         self.storage = storage
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
-    def apply(self):
-        '''
-        Perform configuration of printer which is assigned to computer.
-        '''
+    def run(self):
         if not is_rpm_installed('cups'):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
@@ -80,11 +89,30 @@ class cups_applier(applier_frontend):
             for prn in self.printers:
                 connect_printer(self.cups_connection, prn)
 
+    def apply(self):
+        '''
+        Perform configuration of printer which is assigned to computer.
+        '''
+        if self.__module_enabled:
+            logging.debug(slogm('Running CUPS applier for machine'))
+            self.run()
+        else:
+            logging.debug(slogm('CUPS applier for machine will not be started'))
+
 class cups_applier_user(applier_frontend):
+    __module_name = 'CUPSApplierUser'
+    __module_experimental = True
+    __module_enabled = False
+
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_enabled
+        )
 
     def user_context_apply(self):
         '''
@@ -93,10 +121,7 @@ class cups_applier_user(applier_frontend):
         '''
         pass
 
-    def admin_context_apply(self):
-        '''
-        Perform printer configuration assigned for user.
-        '''
+    def run(self):
         if not is_rpm_installed('cups'):
             logging.warning(slogm('CUPS is not installed: no printer settings will be deployed'))
             return
@@ -107,4 +132,14 @@ class cups_applier_user(applier_frontend):
         if self.printers:
             for prn in self.printers:
                 connect_printer(self.cups_connection, prn)
+
+    def admin_context_apply(self):
+        '''
+        Perform printer configuration assigned for user.
+        '''
+        if self.__module_enabled:
+            logging.debug(slogm('Running CUPS applier for user in administrator context'))
+            self.run()
+        else:
+            logging.debug(slogm('CUPS applier for user in administrator context will not be started'))
 

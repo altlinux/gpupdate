@@ -16,24 +16,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from .appliers.control import control
 from util.logging import slogm
 
 import logging
 
 class control_applier(applier_frontend):
+    __module_name = 'ControlApplier'
+    __module_experimental = False
+    __module_enabled = True
     _registry_branch = 'Software\\BaseALT\\Policies\\Control'
 
     def __init__(self, storage):
         self.storage = storage
         self.control_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Control%')
         self.controls = list()
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
-    def apply(self):
-        '''
-        Trigger control facility invocation.
-        '''
+    def run(self):
         for setting in self.control_settings:
             valuename = setting.hive_key.rpartition('\\')[2]
             try:
@@ -48,4 +56,14 @@ class control_applier(applier_frontend):
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
         for cont in self.controls:
             cont.set_control_status()
+
+    def apply(self):
+        '''
+        Trigger control facility invocation.
+        '''
+        if self.__module_enabled:
+            logging.debug(slogm('Running Control applier for machine'))
+            self.run()
+        else:
+            logging.debug(slogm('Control applier for machine will not be started'))
 

@@ -20,11 +20,16 @@ import fileinput
 import jinja2
 import os
 import subprocess
+import logging
 from pathlib import Path
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import (
+      applier_frontend
+    , check_enabled
+)
 from gpt.drives import json2drive
 from util.util import get_homedir
+from util.logging import slogm
 
 def storage_get_drives(storage, sid):
     drives = storage.get_drives(sid)
@@ -53,6 +58,9 @@ class cifs_applier(applier_frontend):
         pass
 
 class cifs_applier_user(applier_frontend):
+    __module_name = 'CIFSApplierUser'
+    __module_enabled = False
+    __module_experimental = True
     __auto_file = '/etc/auto.master'
     __auto_dir = '/etc/auto.master.gpupdate.d'
     __template_path = '/usr/share/gpupdate/templates'
@@ -90,6 +98,12 @@ class cifs_applier_user(applier_frontend):
         self.template_indentity = self.template_env.get_template(self.__template_identity)
         self.template_auto = self.template_env.get_template(self.__template_auto)
 
+        self.__module_enabled = check_enabled(
+              self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
+
 
     def user_context_apply(self):
         '''
@@ -97,7 +111,7 @@ class cifs_applier_user(applier_frontend):
         '''
         pass
 
-    def admin_context_apply(self):
+    def __admin_context_apply(self):
         # Create /etc/auto.master.gpupdate.d directory
         self.auto_master_d.mkdir(parents=True, exist_ok=True)
         # Create user's destination mount directory
@@ -139,4 +153,12 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
+
+
+    def admin_context_apply(self):
+        if self.__module_enabled:
+            logging.debug(slogm('Running CIFS applier for user in administrator context'))
+            self.__admin_context_apply()
+        else:
+            logging.debug(slogm('CIFS applier for user in administrator context will not be started'))
 
