@@ -43,7 +43,6 @@ def set_loglevel(loglevel_num=None):
 
     log_level = 10 * log_num
 
-    print('Setting log level to {}'.format(loglevels[log_num]))
     logging.basicConfig(format=format_message)
     logger = logging.getLogger()
     logger.setLevel(log_level)
