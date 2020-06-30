@@ -1,8 +1,8 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.6.0
-Release: alt2
+Version: 0.7.0
+Release: alt1
 
 Summary: GPT applier
 License: GPLv3+
@@ -17,7 +17,7 @@ Requires: python3-module-rpm
 Requires: python3-module-dbus
 Requires: oddjob-%name >= 0.2.0
 Requires: libnss-role >= 0.5.0
-Requires: local-policy >= 0.3.0
+Requires: local-policy >= 0.4.0
 Requires: pam-config >= 1.9.0
 Requires: autofs
 # This is needed by shortcuts_applier
@@ -93,6 +93,9 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Wed Jul 01 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.7.0-alt1
+- Add multiple appliers, part of which marks as experimental yet
+
 * Wed May 20 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.6.0-alt2
 - Update system-policy PAM-rules (clean system-auth-common, add pam_env support)
 - Add dependency to pam-config later than 1.9.0 release
