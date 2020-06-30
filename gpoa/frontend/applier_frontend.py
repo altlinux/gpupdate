@@ -34,7 +34,7 @@ def check_experimental_enabled(storage):
 
 def check_module_enabled(storage, module_name):
     gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\GPUpdate'
-    gpupdate_module_flag = '{}\\{}_enable'.format(gpupdate_module_enable_branch, module_name)
+    gpupdate_module_flag = '{}\\{}'.format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_hklm_entry(gpupdate_module_flag)
 
     result = None
