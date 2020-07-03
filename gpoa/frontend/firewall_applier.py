@@ -53,13 +53,13 @@ class firewall_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running Firewall applier for machine'))
-            if '0' == self.firewall_enabled:
+            if '1' == self.firewall_enabled:
+                logging.debug(slogm('Firewall is enabled'))
+                self.run()
+            else:
                 logging.debug(slogm('Firewall is disabled, settings will be reset'))
                 proc = subprocess.Popen(self.__firewall_reset_cmd)
                 proc.wait()
-            else:
-                logging.debug(slogm('Firewall is enabled'))
-                self.run()
         else:
             logging.debug(slogm('Firewall applier will not be started'))
 
