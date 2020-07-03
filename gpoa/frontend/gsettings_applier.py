@@ -36,6 +36,7 @@ class gsettings_applier(applier_frontend):
     __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
     __global_schema = '/usr/share/glib-2.0/schemas'
+    __windows_settings = dict()
 
     def __init__(self, storage):
         self.storage = storage
@@ -85,6 +86,16 @@ class gsettings_applier_user(applier_frontend):
     __module_experimental = True
     __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
+    __windows_settings = {
+          # Disable or enable screen saver
+          'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveActive': ['org.mate.screensaver', 'idle-activation-enabled']
+          # Timeout in seconds for screen saver activation. The value of zero effectively disables screensaver start
+        , 'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveTimeOut': ['org.mate.screensaver', '']
+          # Enable or disable password protection for screen saver
+        , 'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaverIsSecure': ['org.mate.screensaver', 'lock-enabled']
+          # Specify image which will be used as a wallpaper
+        , 'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper': ['org.mate.background', 'picture-filename']
+    }
 
     def __init__(self, storage, sid, username):
         self.storage = storage
