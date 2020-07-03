@@ -44,6 +44,7 @@ from .folder_applier import (
       folder_applier
     , folder_applier_user
 )
+from .quota_applier import quota_applier
 from .cifs_applier import cifs_applier_user
 from util.windows import get_sid
 from util.users import (
@@ -101,6 +102,7 @@ class frontend_manager:
             , 'cups': cups_applier(self.storage)
             , 'firewall': firewall_applier(self.storage)
             , 'folders': folder_applier(self.storage, self.sid)
+            , 'quota': quota_applier(self.storage)
             , 'package': package_applier(self.storage)
         })
 
