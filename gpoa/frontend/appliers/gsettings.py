@@ -46,6 +46,16 @@ class system_gsetting:
         with open(self.file_path, 'w') as f:
             config.write(f)
 
+def glib_map(value, glib_type):
+    result_value = value
+
+    if glib_type == 'i':
+        result_value = GLib.Variant(glib_type, int(value))
+    else:
+        result_value = GLib.Variant(glib_type, value)
+
+    return result_value
+
 class user_gsetting:
     def __init__(self, schema, path, value):
         self.schema = schema
