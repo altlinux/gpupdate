@@ -18,7 +18,13 @@
 
 import logging
 import os
+import pwd
 import subprocess
+
+from gi.repository import (
+      Gio
+    , GLib
+)
 
 from .applier_frontend import (
       applier_frontend
@@ -80,6 +86,32 @@ class gsettings_applier(applier_frontend):
         else:
             logging.debug(slogm('GSettings applier for machine will not be started'))
 
+class GSettingsMapping:
+    def __init__(self, hive_key, gsettings_schema, gsettings_key):
+        self.hive_key = hive_key
+        self.gsettings_schema = gsettings_schema
+        self.gsettings_key = gsettings_key
+
+        try:
+            self.schema_source = Gio.SettingsSchemaSource.get_default()
+            self.schema = self.schema_source.lookup(self.gsettings_schema, True)
+            self.gsettings_schema_key = self.schema.get_key(self.gsettings_key)
+            self.gsettings_type = self.gsettings_schema_key.get_value_type()
+        except Exception as exc:
+            print(exc)
+
+    def preg2gsettings(self):
+        '''
+        Transform PReg key variant into GLib.Variant. This function
+        performs mapping of PReg type system into GLib type system.
+        '''
+        pass
+
+    def gsettings2preg(self):
+        '''
+        Transform GLib.Variant key type into PReg key type.
+        '''
+        pass
 
 class gsettings_applier_user(applier_frontend):
     __module_name = 'GSettingsApplierUser'
