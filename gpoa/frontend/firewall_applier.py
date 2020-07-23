@@ -16,7 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import logging
+import subprocess
+
 from util.logging import slogm
 from .applier_frontend import (
       applier_frontend
@@ -29,10 +32,13 @@ class firewall_applier(applier_frontend):
     __module_experimental = True
     __module_enabled = False
     __firewall_branch = 'SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\FirewallRules'
+    __firewall_switch = 'SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\DomainProfile\\EnableFirewall'
+    __firewall_reset_cmd = ['/usr/bin/alterator-net-iptables', 'reset']
 
     def __init__(self, storage):
         self.storage = storage
         self.firewall_settings = self.storage.filter_hklm_entries('{}%'.format(self.__firewall_branch))
+        self.firewall_enabled = self.storage.get_hklm_entry(self.__firewall_switch)
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -47,7 +53,13 @@ class firewall_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running Firewall applier for machine'))
-            self.run()
+            if '1' == self.firewall_enabled:
+                logging.debug(slogm('Firewall is enabled'))
+                self.run()
+            else:
+                logging.debug(slogm('Firewall is disabled, settings will be reset'))
+                proc = subprocess.Popen(self.__firewall_reset_cmd)
+                proc.wait()
         else:
             logging.debug(slogm('Firewall applier will not be started'))
 
