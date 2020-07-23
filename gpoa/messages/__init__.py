@@ -21,6 +21,9 @@ def info_code(code):
     info_ids[1] = 'Starting GPOA via command invocation'
     info_ids[2] = 'Starting GPOA via D-Bus'
     info_ids[3] = 'Group Policy target set for update'
+    info_ids[4] = 'Initializing Samba backend for domain'
+    info_ids[5] = 'Initializing local backend without domain'
+    info_ids[6] = 'Cache directory determined'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -32,6 +35,8 @@ def error_code(code):
     error_ids[4] = 'Error occurred while running frontend manager'
     error_ids[5] = 'Error running GPOA for computer'
     error_ids[6] = 'Error running GPOA for user'
+    error_ids[7] = 'Unable to initialize Samba backend'
+    error_ids[8] = 'Unable to initialize no-domain backend'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -53,6 +58,7 @@ def warning_code(code):
         'designted user. Will update current user settings'
     )
     warning_ids[3] = 'oddjobd is inaccessible'
+    warning_ids[4] = 'No SYSVOL entry assigned to GPO'
 
     return warning_ids.get(code, 'Unknown warning code')
 
