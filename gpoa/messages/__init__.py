@@ -18,8 +18,9 @@
 
 def info_code(code):
     info_ids = dict()
-    info_ids[1] = ''
-    info_ids[2] = ''
+    info_ids[1] = 'Starting GPOA via command invocation'
+    info_ids[2] = 'Starting GPOA via D-Bus'
+    info_ids[3] = 'Group Policy target set for update'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -27,20 +28,31 @@ def error_code(code):
     error_ids = dict()
     error_ids[1] = 'Insufficient permissions to run gpupdate'
     error_ids[2] = 'gpupdate will not be started'
+    error_ids[3] = 'Backend execution error'
+    error_ids[4] = 'Error occured while running frontend manager'
+    error_ids[5] = 'Error running GPOA for computer'
+    error_ids[6] = 'Error running GPOA for user'
 
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
     debug_ids = dict()
-    debug_ids[1] = ''
+    debug_ids[1] = 'The GPOA process was started for user'
     debug_ids[2] = ''
 
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
     warning_ids = dict()
-    warning_ids[1] = ''
-    warning_ids[2] = ''
+    warning_ids[1] = (
+        'Unable to perform gpupdate for non-existent user,'
+        'will update machine settings'
+    )
+    warning_ids[2] = (
+        'Current permissions does not allow to perform gpupdate for'
+        'designted user. Will update current user settings'
+    )
+    warning_ids[3] = 'oddjobd is inaccessible'
 
     return warning_ids.get(code, 'Unknown warning code')
 
