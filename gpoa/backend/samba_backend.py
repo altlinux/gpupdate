@@ -31,6 +31,7 @@ from util.util import (
 from util.windows import get_sid
 import util.preg
 from util.logging import slogm
+from messages import message_with_code
 
 class samba_backend(applier_backend):
 
@@ -57,7 +58,8 @@ class samba_backend(applier_backend):
         self.sambacreds = sambacreds
 
         self.cache_dir = self.sambacreds.get_cache_dir()
-        logging.debug(slogm('Cache directory is: {}'.format(self.cache_dir)))
+        logdata = dict({'cachedir': self.cache_dir})
+        logging.debug(slogm(message_with_code('I6'), logdata))
 
     def retrieve_and_store(self):
         '''
@@ -86,7 +88,8 @@ class samba_backend(applier_backend):
             # GPO named "Local Policy" has no entry by its nature so
             # no reason to print warning.
             if 'Local Policy' != gpo.name:
-                logging.warning(slogm('No SYSVOL entry assigned to GPO {}'.format(gpo.name)))
+                logdata = dict({'gponame': gpo.name})
+                logging.warning(slogm(message_with_code('W4'), logdata))
             return False
         return True
 

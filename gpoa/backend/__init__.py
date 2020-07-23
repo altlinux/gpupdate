@@ -21,6 +21,8 @@ import logging
 from util.windows import smbcreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
+from util.logging import slogm
+from messages import message_with_code
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''
@@ -36,17 +38,20 @@ def backend_factory(dc, username, is_machine, no_domain = False):
         domain = sc.get_domain()
 
     if domain:
-        logging.debug('Initialize Samba backend for domain: {}'.format(domain))
+        ldata = dict({'domain': domain})
+        logging.debug(slogm(message_with_code('I4'), ldata))
         try:
             back = samba_backend(sc, username, domain, is_machine)
         except Exception as exc:
-            logging.error('Unable to initialize Samba backend: {}'.format(exc))
+            logdata = dict({'error': str(exc)})
+            logging.error(slogm(message_with_code('E7'), logdata))
     else:
-        logging.debug('Initialize local backend with no domain')
+        logging.debug(slogm(message_with_code('I5')))
         try:
             back = nodomain_backend()
         except Exception as exc:
-            logging.error('Unable to initialize no-domain backend: {}'.format(exc))
+            logdata = dict({'error': str(exc)})
+            logging.error(slogm(message_with_code('E8'), logdata))
 
     return back
 
