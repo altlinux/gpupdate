@@ -25,6 +25,7 @@ import signal
 from backend import backend_factory
 from frontend.frontend_manager import frontend_manager, determine_username
 from plugin import plugin_manager
+from messages import message_with_code
 
 from util.util import get_machine_name
 from util.kerberos import (
@@ -80,7 +81,10 @@ class gpoa_controller:
 
         uname = get_process_user()
         uid = os.getuid()
-        logging.debug(slogm('The process was started for user {} with UID {}'.format(uname, uid), uid=uid))
+        logdata = dict()
+        logdata['username'] = uname
+        logdata['uid'] = uid
+        logging.debug(slogm(message_with_code('D1'), logdata))
 
         if not is_root():
             self.username = uname
@@ -114,7 +118,8 @@ class gpoa_controller:
                     try:
                         back.retrieve_and_store()
                     except Exception as exc:
-                        logging.error(slogm('Backend execution error: {}'.format(str(exc))))
+                        logdata = dict({'message': str(exc)})
+                        logging.error(slogm(message_with_code('E3'), logdata))
 
     def start_frontend(self):
         '''
@@ -124,7 +129,8 @@ class gpoa_controller:
             appl = frontend_manager(self.username, self.is_machine)
             appl.apply_parameters()
         except Exception as exc:
-            logging.error(slogm('Error occured while running applier: {}'.format(exc)))
+            logdata = dict({'message': str(exc)})
+            logging.error(slogm(message_with_code('E4')))
 
     def start_plugins(self):
         '''

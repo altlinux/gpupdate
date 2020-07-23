@@ -31,6 +31,7 @@ from util.users import (
 )
 from util.arguments import (
     process_target,
+    set_loglevel,
     ExitCodeUpdater
 )
 from util.dbus import (
@@ -39,9 +40,10 @@ from util.dbus import (
 )
 from util.signals import signal_handler
 
+from util.logging import slogm
 from messages import message_with_code
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 class file_runner:
     _gpoa_exe = '/usr/sbin/gpoa'
@@ -91,24 +93,18 @@ def runner_factory(args, target):
                 target = 'Computer'
         except:
             username = None
-            logstring = (
-                'Unable to perform gpupdate for non-existent user {},'
-                ' will update machine settings'
-            )
-            logging.error(logstring.format(args.user))
+            logdata = dict({'username': args.user})
+            logging.error(slogm(message_with_code('W1'), logdata))
     else:
         # User may only perform gpupdate for machine (None) or
         # itself (os.getusername()).
         username = pwd.getpwuid(os.getuid()).pw_name
         if args.user != username:
-            logstring = (
-                'Unable to perform gpupdate for {} with current'
-                ' permissions, will update current user settings'
-            )
-            logging.error(logstring.format(args.user))
+            logdata = dict({'username': args.user})
+            logging.error(slogm(message_with_code('W2'), logdata))
 
     if is_oddjobd_gpupdate_accessible():
-        logging.debug('Starting gpupdate via D-Bus')
+        logging.debug(slogm(message_with_code('I2')))
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
@@ -118,10 +114,10 @@ def runner_factory(args, target):
                 user_runner = dbus_runner(username)
         return (computer_runner, user_runner)
     else:
-        logging.warning('oddjobd is inaccessible')
+        logging.warning(slogm(message_with_code('W3')))
 
     if is_root():
-        logging.debug('Starting gpupdate by command invocation')
+        logging.debug(slogm(message_with_code('I1')))
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
@@ -130,12 +126,13 @@ def runner_factory(args, target):
             user_runner = file_runner(username)
         return (computer_runner, user_runner)
     else:
-        logging.error(message_with_code('E1'))
+        logging.error(slogm(message_with_code('E1')))
 
     return None
 
 def main():
     args = parse_cli_arguments()
+    set_loglevel(0)
     gpo_appliers = runner_factory(args, process_target(args.target))
 
     if gpo_appliers:
@@ -143,17 +140,19 @@ def main():
             try:
                 gpo_appliers[0].run()
             except Exception as exc:
-                logging.error('Error running GPOA for computer: {}'.format(exc))
+                logdata = dict({'error': str(exc)})
+                logging.error(slogm(message_with_code('E5'), logdata))
                 return int(ExitCodeUpdater.FAIL_GPUPDATE_COMPUTER_NOREPLY)
 
         if gpo_appliers[1]:
             try:
                 gpo_appliers[1].run()
             except Exception as exc:
-                logging.error('Error running GPOA for user: {}'.format(exc))
+                logdata = dict({'error': str(exc)})
+                logging.error(slogm(message_with_code('E6'), logdata))
                 return int(ExitCodeUpdater.FAIL_GPUPDATE_USER_NOREPLY)
     else:
-        logging.error(message_with_code('E2'))
+        logging.error(slogm(message_with_code('E2')))
         return int(ExitCodeUpdater.FAIL_NO_RUNNER)
 
     return int(ExitCodeUpdater.EXIT_SUCCESS)
