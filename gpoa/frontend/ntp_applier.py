@@ -22,7 +22,7 @@ import subprocess
 from enum import Enum
 
 
-from applier_frontend import (
+from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
@@ -49,10 +49,8 @@ class ntp_applier(applier_frontend):
 
     __chrony_config = '/etc/chrony.conf'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage):
         self.storage = storage
-        self.sid = sid
-        self.username = username
 
         self.ntp_server_address_key = '{}\\{}'.format(self.__ntp_branch, self.__ntp_key_address)
         self.ntp_server_type = '{}\\{}'.format(self.__ntp_branch, self.__ntp_key_type)
@@ -65,51 +63,34 @@ class ntp_applier(applier_frontend):
             , self.__module_experimental
         )
 
-    def _start_ntpd_server(self, server=None):
-        start_command = ['systemctl', 'start', 'ntpd']
-
-        logging.debug(slogm('Starting ntpd as a server'))
-
-        proc = subprocess.Popen(start_command)
+    def _chrony_as_client(self):
+        command = ['/usr/sbin/control', 'chrony', 'client']
+        proc = subprocess.Popen(command)
         proc.wait()
 
-    def _stop_ntpd_server(self):
-        stop_command = ['systemctl', 'stop', 'ntpd']
-
-        logging.debug(slogm('Stopping ntpd server'))
-
-        proc = subprocess.Popen(stop_command)
-        proc.wait()
-
-    def _start_ntpd_client(self, server=None):
-        start_command = ['systemctl', 'start', 'ntpd']
-
-        logging.debug(slogm('Starting ntpd as a client'))
-
-        proc = subprocess.Popen(start_command)
-        proc.wait()
-
-    def _stop_ntpd_client(self):
-        stop_command = ['systemctl', 'stop', 'ntpd']
-
-        logging.debug(slogm('Stopping ntpd client'))
-
-        proc = subprocess.Popen(stop_command)
+    def _chrony_as_server(self):
+        command = ['/usr/sbin/control', 'chrony', 'server']
+        proc = subprocess.Popen(command)
         proc.wait()
 
     def _start_chrony_client(self, server=None):
-        start_command = ['systemctl', 'start', 'chronyd']
-        chrony_set_server = ['chronyc', 'add', 'server', server]
-        chrony_disconnect_all = ['chronyc', 'offline']
-        chrony_connect = ['chronyc', 'online', server]
+        srv = None
+        if server:
+            srv = server.data.rpartition(',')[0]
+            logging.debug(slogm('NTP server is configured to {}'.format(srv)))
+
+        start_command = ['/usr/bin/systemctl', 'start', 'chronyd']
+        chrony_set_server = ['/usr/bin/chronyc', 'add', 'server', srv]
+        chrony_disconnect_all = ['/usr/bin/chronyc', 'offline']
+        chrony_connect = ['/usr/bin/chronyc', 'online', srv]
 
         logging.debug(slogm('Starting Chrony daemon'))
 
         proc = subprocess.Popen(start_command)
         proc.wait()
 
-        if server:
-            logging.debug(slogm('Setting reference NTP server to {}'.format(server)))
+        if srv:
+            logging.debug(slogm('Setting reference NTP server to {}'.format(srv)))
 
             proc = subprocess.Popen(chrony_disconnect_all)
             proc.wait()
@@ -121,7 +102,7 @@ class ntp_applier(applier_frontend):
             proc.wait()
 
     def _stop_chrony_client(self):
-        stop_command = ['systemctl', 'stop', 'chronyd']
+        stop_command = ['/usr/bin/systemctl', 'stop', 'chronyd']
 
         logging.debug(slogm('Stopping Chrony daemon'))
 
@@ -129,29 +110,33 @@ class ntp_applier(applier_frontend):
         proc.wait()
 
     def run(self):
-        server_type = self.storage.get_hklm_key(self.ntp_server_type)
-        server_address = self.storage.get_hklm_key(self.ntp_server_address_key)
-        ntp_server_enabled = self.storage.get_hklm_key(self.ntp_server_enabled)
-        ntp_client_enabled = self.storage.get_hklm_key(self.ntp_client_enabled)
+        server_type = self.storage.get_hklm_entry(self.ntp_server_type)
+        server_address = self.storage.get_hklm_entry(self.ntp_server_address_key)
+        ntp_server_enabled = self.storage.get_hklm_entry(self.ntp_server_enabled)
+        ntp_client_enabled = self.storage.get_hklm_entry(self.ntp_client_enabled)
 
-        if NTPServerType.NTP.value != server_type:
+        if NTPServerType.NTP.value != server_type.data:
             logging.warning(slogm('Unsupported NTP server type: {}'.format(server_type)))
         else:
             logging.debug(slogm('Configuring NTP server...'))
-            if '1' == ntp_server_enabled:
+            if '1' == ntp_server_enabled.data:
+                logging.debug(slogm('NTP server is enabled'))
+                self._start_chrony_client(server_address)
+                self._chrony_as_server()
+            elif '0' == ntp_server_enabled.data:
+                logging.debug(slogm('NTP server is disabled'))
+                self._chrony_as_client()
+            else:
+                logging.debug(slogm('NTP server is not configured'))
+
+            if '1' == ntp_client_enabled.data:
+                logging.debug(slogm('NTP client is enabled'))
+                self._start_chrony_client()
+            elif '0' == ntp_client_enabled.data:
+                logging.debug(slogm('NTP client is disabled'))
                 self._stop_chrony_client()
-                self._start_ntpd_server(server_address)
-                if '1' == ntp_client_enabled:
-                    self._stop_chrony_client()
-                    self._start_ntpd_client(server_address)
-            elif '0' == ntp_server_enabled:
-                self._stop_ntpd_server()
-                if '1' == ntp_client_enabled:
-                    self._stop_ntpd_client()
-                    self._start_chrony_client(server_address)
-                elif '0' == ntp_client_enabled:
-                    self._stop_ntpd_client()
-                    self._stop_chrony_client()
+            else:
+                logging.debug(slogm('NTP client is not configured'))
 
     def apply(self):
         if self.__module_enabled:
