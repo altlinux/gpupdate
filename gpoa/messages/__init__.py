@@ -29,7 +29,7 @@ def error_code(code):
     error_ids[1] = 'Insufficient permissions to run gpupdate'
     error_ids[2] = 'gpupdate will not be started'
     error_ids[3] = 'Backend execution error'
-    error_ids[4] = 'Error occured while running frontend manager'
+    error_ids[4] = 'Error occurred while running frontend manager'
     error_ids[5] = 'Error running GPOA for computer'
     error_ids[6] = 'Error running GPOA for user'
 
@@ -45,11 +45,11 @@ def debug_code(code):
 def warning_code(code):
     warning_ids = dict()
     warning_ids[1] = (
-        'Unable to perform gpupdate for non-existent user,'
+        'Unable to perform gpupdate for non-existent user, '
         'will update machine settings'
     )
     warning_ids[2] = (
-        'Current permissions does not allow to perform gpupdate for'
+        'Current permissions does not allow to perform gpupdate for '
         'designted user. Will update current user settings'
     )
     warning_ids[3] = 'oddjobd is inaccessible'
