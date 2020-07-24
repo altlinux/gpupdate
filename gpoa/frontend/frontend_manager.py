@@ -45,6 +45,7 @@ from .folder_applier import (
     , folder_applier_user
 )
 from .cifs_applier import cifs_applier_user
+from .ntp_applier import ntp_applier
 from util.windows import get_sid
 from util.users import (
     is_root,
@@ -102,6 +103,7 @@ class frontend_manager:
             , 'firewall': firewall_applier(self.storage)
             , 'folders': folder_applier(self.storage, self.sid)
             , 'package': package_applier(self.storage)
+            , 'ntp': ntp_applier(self.storage)
         })
 
         # User appliers are expected to work with user-writable
