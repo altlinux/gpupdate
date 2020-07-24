@@ -24,6 +24,9 @@ def info_code(code):
     info_ids[4] = 'Initializing Samba backend for domain'
     info_ids[5] = 'Initializing local backend without domain'
     info_ids[6] = 'Cache directory determined'
+    info_ids[7] = 'Initializing plugin manager'
+    info_ids[8] = 'ADP plugin initialized'
+    info_ids[9] = 'Running ADP plugin'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -37,6 +40,7 @@ def error_code(code):
     error_ids[6] = 'Error running GPOA for user'
     error_ids[7] = 'Unable to initialize Samba backend'
     error_ids[8] = 'Unable to initialize no-domain backend'
+    error_ids[9] = 'Error running ADP'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -59,6 +63,7 @@ def warning_code(code):
     )
     warning_ids[3] = 'oddjobd is inaccessible'
     warning_ids[4] = 'No SYSVOL entry assigned to GPO'
+    warning_ids[5] = 'ADP package is not installed - plugin will not be initialized'
 
     return warning_ids.get(code, 'Unknown warning code')
 

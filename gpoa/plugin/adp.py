@@ -22,19 +22,20 @@ import subprocess
 from util.rpm import is_rpm_installed
 from .exceptions import PluginInitError
 from util.logging import slogm
+from messages import message_with_code
 
 class adp:
     def __init__(self):
         if not is_rpm_installed('adp'):
-            raise PluginInitError('adp is not installed - plugin cannot be initialized')
-        logging.info(slogm('ADP plugin initialized'))
+            raise PluginInitError(message_with_code('W5'))
+        logging.info(slogm(message_with_code('I8')))
 
     def run(self):
         try:
-            logging.info('Running ADP plugin')
+            logging.info(slogm(message_with_code('I9')))
             subprocess.call(['/usr/bin/adp', 'fetch'])
             subprocess.call(['/usr/bin/adp', 'apply'])
         except Exception as exc:
-            logging.error(slogm('Error running ADP'))
+            logging.error(slogm(message_with_code('E9')))
             raise exc
 
