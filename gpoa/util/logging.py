@@ -48,7 +48,7 @@ class slogm(object):
 
         kwa = encoder().encode(args)
 
-        result = '{}:{}:{}'.format(now.rpartition('.')[0], self.message, kwa)
+        result = '{}|{}|{}'.format(now.rpartition('.')[0], self.message, kwa)
 
         return result
 
