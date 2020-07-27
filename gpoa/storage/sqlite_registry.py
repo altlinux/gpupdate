@@ -45,6 +45,7 @@ from .record_types import (
     , drive_entry
     , folder_entry
 )
+from messages import message_with_code
 
 class sqlite_registry(registry):
     def __init__(self, db_name, registry_cache_dir=None):
@@ -221,7 +222,8 @@ class sqlite_registry(registry):
 
     def set_info(self, name, value):
         ientry = info_entry(name, value)
-        logging.debug(slogm('Setting info {}:{}'.format(name, value)))
+        logdata = dict({'varname': name, 'value': value})
+        logging.debug(slogm(message_with_code('D19'), logdata))
         self._info_upsert(ientry)
 
     def add_hklm_entry(self, preg_entry, policy_name):
@@ -239,11 +241,12 @@ class sqlite_registry(registry):
         Write PReg entry to HKEY_CURRENT_USER
         '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry, policy_name)
+        logdata = dict({'sid': sid, 'policy': policy_name, 'key': hkcu_pentry.hive_key})
         if not hkcu_pentry.hive_key.rpartition('\\')[2].startswith('**'):
-            logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
+            logging.debug(slogm(message_with_code('D26'), logdata))
             self._hkcu_upsert(hkcu_pentry)
         else:
-            logging.warning(slogm('Skipping branch deletion key: {}'.format(hkcu_pentry.hive_key)))
+            logging.debug(slogm(message_with_code('D27'), logdata))
 
     def add_shortcut(self, sid, sc_obj, policy_name):
         '''
