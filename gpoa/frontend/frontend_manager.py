@@ -54,6 +54,7 @@ from util.users import (
     with_privileges
 )
 from util.logging import slogm
+from messages import message_with_code
 
 import logging
 
@@ -68,13 +69,15 @@ def determine_username(username=None):
     # of process owner.
     if not username:
         name = get_process_user()
-        logging.debug(slogm('Username is not specified - will use username of current process'))
+        logdata = dict({'username': name})
+        logging.debug(slogm(message_with_code('D2'), logdata))
 
     if not username_match_uid(name):
         if not is_root():
             raise Exception('Current process UID does not match specified username')
 
-    logging.debug(slogm('Username for frontend is set to {}'.format(name)))
+    logdata = dict({'username': name})
+    logging.debug(slogm(message_with_code('D15'), logdata))
 
     return name
 
@@ -122,9 +125,9 @@ class frontend_manager:
         Run global appliers with administrator privileges.
         '''
         if not is_root():
-            logging.error('Not sufficient privileges to run machine appliers')
+            logging.error(slogm(message_with_code('E13')))
             return
-        logging.debug(slogm('Applying computer part of settings'))
+        logging.debug(slogm(message_with_code('D16')))
         for applier_name, applier_object in self.machine_appliers.items():
             try:
                 applier_object.apply()
@@ -151,7 +154,8 @@ class frontend_manager:
                 try:
                     applier_object.user_context_apply()
                 except Exception as exc:
-                    logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
+                    logdata = dict({'applier_name': applier_name, 'message': str(exc)})
+                    logging.error(slogm(message_with_code('E11'), logdata))
 
     def apply_parameters(self):
         '''
