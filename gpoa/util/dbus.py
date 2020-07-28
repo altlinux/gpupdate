@@ -21,6 +21,7 @@ import dbus
 
 from .logging import slogm
 from .users import is_root
+from messages import message_with_code
 
 
 class dbus_runner:
@@ -41,7 +42,8 @@ class dbus_runner:
     def run(self):
         #print(obj.Introspect()[0])
         if self.username:
-            logging.info(slogm('Starting GPO applier for user {} via D-Bus'.format(self.username)))
+            logdata = dict({'username': self.username})
+            logging.debug(slogm(message_with_code('D6'), logdata))
             if is_root():
                 try:
                     result = self.interface.gpupdatefor(dbus.String(self.username))
@@ -57,7 +59,7 @@ class dbus_runner:
                     logging.error(slogm('No reply from oddjobd gpoa runner for current user'))
                     raise exc
         else:
-            logging.info(slogm('Starting GPO applier for computer via D-Bus'))
+            logging.info(slogm(message_with_code('D11')))
             try:
                 result = self.interface.gpupdate_computer()
                 print_dbus_result(result)
@@ -130,7 +132,8 @@ def print_dbus_result(result):
     '''
     exitcode = result[0]
     message = result[1:]
-    logging.debug(slogm('Exit code is {}'.format(exitcode)))
+    logdata = dict({'retcode': exitcode})
+    logging.debug(slogm(message_with_code('D12'), logdata))
 
     for line in message:
         print(str(line))
