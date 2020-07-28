@@ -29,6 +29,7 @@ import samba.gpo
 import pysss_nss_idmap
 
 from storage import cache_factory
+from messages import message_with_code
 from .xdg import (
       xdg_get_desktop
 )
@@ -67,7 +68,7 @@ class smbcreds (smbopts):
             else:
                 self.selected_dc = samba_dc
         except Exception as exc:
-            logging.error(slogm('Unable to determine DC hostname'))
+            logging.error(slogm(message_with_code('E10')))
             raise exc
 
         return self.selected_dc
@@ -82,9 +83,10 @@ class smbcreds (smbopts):
             # Look and python/samba/netcmd/domain.py for more examples
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
-            logging.info(slogm('Found domain via CLDAP: {}'.format(dns_domainname)))
+            logdata = dict({'domain': dns_domainname})
+            logging.debug(slogm(message_with_code('D18'), logdata))
         except Exception as exc:
-            logging.error(slogm('Unable to retrieve domain name via CLDAP query'))
+            logging.error(slogm(message_with_code('E15')))
             raise exc
 
         return dns_domainname
@@ -100,16 +102,17 @@ class smbcreds (smbopts):
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
             if ads.connect():
                 gpos = ads.get_gpo_list(username)
-                logging.info(slogm('Got GPO list for {}:'.format(username)))
+                logdata = dict({'username': username})
+                logging.info(slogm(message_with_code('I1'), logdata))
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
-                    logging.info(slogm('GPO: {} ({})'.format(gpo.display_name, gpo.name)))
+                    ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name})
+                    logging.info(slogm(message_with_code('I2'), ldata))
 
         except Exception as exc:
-            logging.error(
-                slogm('Unable to get GPO list for {} from {}'.format(
-                    username, self.selected_dc)))
+            logdata = dict({'username': username, 'dc': self.selected_dc})
+            logging.error(slogm(message_with_code('E17'), logdata))
 
         return gpos
 
@@ -166,10 +169,11 @@ def get_sid(domain, username, is_machine = False):
     try:
         sid = wbinfo_getsid(domain, username)
     except:
-        logging.warning(
-            slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
+        logdata = dict({'sid': sid})
+        logging.error(slogm(message_with_code('E16'), logdata))
 
-    logging.debug(slogm('Working with SID: {}'.format(sid)))
+    logdata = dict({'sid': sid})
+    logging.debug(slogm(message_with_code('D21'), logdata))
 
     return sid
 
