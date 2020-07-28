@@ -73,7 +73,7 @@ def process_target(target_name=None):
         target = 'User'
 
     logdata = dict({'target': target})
-    logging.debug(slogm(message_with_code('I3'), logdata))
+    logging.debug(slogm(message_with_code('D10'), logdata))
 
     return target
 
