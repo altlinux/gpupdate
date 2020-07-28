@@ -32,7 +32,7 @@ def geterr():
         , 'line': etrace.tb_lineno
         , 'name': etrace.tb_frame.f_code.co_name
         , 'type': etype.__name__
-        , 'message': evalue.message
+        , 'message': evalue
     })
 
     del(etype, evalue, etrace)
