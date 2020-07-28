@@ -36,6 +36,7 @@ from sqlalchemy.orm import (
 
 from util.logging import slogm
 from util.paths import cache_dir
+from messages import message_with_code
 
 def mapping_factory(mapper_suffix):
     exec(
@@ -53,7 +54,8 @@ class sqlite_cache(cache):
         self.cache_name = cache_name
         self.mapper_obj = mapping_factory(self.cache_name)
         self.storage_uri = os.path.join('sqlite:///{}/{}.sqlite'.format(cache_dir(), self.cache_name))
-        logging.debug(slogm('Initializing cache {}'.format(self.storage_uri)))
+        logdata = dict({'cache_file': self.storage_uri})
+        logging.debug(slogm(message_with_code('D20'), logdata))
         self.db_cnt = create_engine(self.storage_uri, echo=False)
         self.__metadata = MetaData(self.db_cnt)
         self.cache_table = Table(
