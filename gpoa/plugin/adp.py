@@ -28,11 +28,11 @@ class adp:
     def __init__(self):
         if not is_rpm_installed('adp'):
             raise PluginInitError(message_with_code('W5'))
-        logging.info(slogm(message_with_code('I8')))
+        logging.info(slogm(message_with_code('D4')))
 
     def run(self):
         try:
-            logging.info(slogm(message_with_code('I9')))
+            logging.info(slogm(message_with_code('D5')))
             subprocess.call(['/usr/bin/adp', 'fetch'])
             subprocess.call(['/usr/bin/adp', 'apply'])
         except Exception as exc:
