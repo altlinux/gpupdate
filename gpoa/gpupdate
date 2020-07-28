@@ -104,7 +104,7 @@ def runner_factory(args, target):
             logging.error(slogm(message_with_code('W2'), logdata))
 
     if is_oddjobd_gpupdate_accessible():
-        logging.debug(slogm(message_with_code('I2')))
+        logging.debug(slogm(message_with_code('D13')))
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
@@ -117,7 +117,7 @@ def runner_factory(args, target):
         logging.warning(slogm(message_with_code('W3')))
 
     if is_root():
-        logging.debug(slogm(message_with_code('I1')))
+        logging.debug(slogm(message_with_code('D14')))
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
