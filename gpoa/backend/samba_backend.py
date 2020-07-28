@@ -59,7 +59,7 @@ class samba_backend(applier_backend):
 
         self.cache_dir = self.sambacreds.get_cache_dir()
         logdata = dict({'cachedir': self.cache_dir})
-        logging.debug(slogm(message_with_code('I6'), logdata))
+        logging.debug(slogm(message_with_code('D7'), logdata))
 
     def retrieve_and_store(self):
         '''
@@ -99,9 +99,9 @@ class samba_backend(applier_backend):
         gpos = self.sambacreds.update_gpos(username)
         for gpo in gpos:
             if self._check_sysvol_present(gpo):
-                logging.debug(slogm('Found SYSVOL entry "{}" for GPO "{}"'.format(gpo.file_sys_path, gpo.display_name)))
                 path = check_safe_path(gpo.file_sys_path).upper()
-                logging.debug(slogm('Path: {}'.format(path)))
+                slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
+                logging.debug(slogm(message_with_code('D30'), slogdata))
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
                 obj = gpt(gpt_abspath, sid)
                 obj.set_name(gpo.display_name)
