@@ -22,6 +22,7 @@ import subprocess
 
 from .util import get_machine_name
 from .logging import slogm
+from messages import message_with_code
 
 
 def machine_kinit(cache_name=None):
@@ -78,8 +79,8 @@ def check_krb_ticket():
         logging.info(output)
         result = True
     except:
-        logging.error(slogm('Kerberos ticket check unsuccessful'))
+        logging.error(slogm(message_with_code('E14')))
 
-    logging.debug(slogm('Ticket check succeed'))
+    logging.debug(slogm(message_with_code('D17')))
 
     return result
