@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import os
 from pathlib import Path
 from enum import Enum, unique
@@ -73,8 +72,7 @@ from util.paths import (
     cache_dir,
     local_policy_cache
 )
-from util.logging import slogm
-from messages import message_with_code
+from util.logging import log
 
 
 @unique
@@ -177,10 +175,10 @@ class gpt:
             machine_preffile = find_preffile(self._machine_path, setting)
             user_preffile = find_preffile(self._user_path, setting)
             mlogdata = dict({'setting': setting, 'prefpath': machine_preffile})
-            logging.debug(slogm(message_with_code('D24'), mlogdata))
+            log('D24', mlogdata)
             self.settings['machine'][setting] = machine_preffile
             ulogdata = dict({'setting': setting, 'prefpath': user_preffile})
-            logging.debug(slogm(message_with_code('D23'), ulogdata))
+            log('D23', ulogdata)
             self.settings['user'][setting] = user_preffile
 
     def set_name(self, name):
@@ -214,18 +212,18 @@ class gpt:
                 if preference_path:
                     preference_type = get_preftype(preference_path)
                     logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                    logging.debug(slogm(message_with_code('D28'), logdata))
+                    log('D28', logdata)
                     preference_parser = get_parser(preference_type)
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
                     preference_merger(self.storage, self.sid, preference_objects, self.name)
             if self.settings['user']['regpol']:
                 mulogdata = dict({'polfile': self.settings['machine']['regpol']})
-                logging.debug(slogm(message_with_code('D35'), mulogdata))
+                log('D35', mulogdata)
                 util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
             if self.settings['machine']['regpol']:
                 mlogdata = dict({'polfile': self.settings['machine']['regpol']})
-                logging.debug(slogm(message_with_code('D34'), mlogdata))
+                log('D34', mlogdata)
                 util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
         else:
             # Merge user settings if UserPolicyMode set accordingly
@@ -236,7 +234,7 @@ class gpt:
                     if preference_path:
                         preference_type = get_preftype(preference_path)
                         logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                        logging.debug(slogm(message_with_code('D29'), logdata))
+                        log('D29', logdata)
                         preference_parser = get_parser(preference_type)
                         preference_merger = get_merger(preference_type)
                         preference_objects = preference_parser(preference_path)
@@ -334,7 +332,7 @@ def get_local_gpt(sid):
     '''
     Convert default policy to GPT and create object out of it.
     '''
-    logging.debug(slogm(message_with_code('D25')))
+    log('D25')
     lp2gpt()
     local_policy = gpt(str(local_policy_cache()), sid)
     local_policy.set_name('Local Policy')
