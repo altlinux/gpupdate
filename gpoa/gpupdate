@@ -22,7 +22,6 @@ import argparse
 import subprocess
 import os
 import sys
-import logging
 import pwd
 import signal
 
@@ -40,8 +39,7 @@ from util.dbus import (
 )
 from util.signals import signal_handler
 
-from util.logging import slogm
-from messages import message_with_code
+from util.logging import log
 
 #logging.basicConfig(level=logging.DEBUG)
 
@@ -94,17 +92,17 @@ def runner_factory(args, target):
         except:
             username = None
             logdata = dict({'username': args.user})
-            logging.error(slogm(message_with_code('W1'), logdata))
+            log('W1', logdata)
     else:
         # User may only perform gpupdate for machine (None) or
         # itself (os.getusername()).
         username = pwd.getpwuid(os.getuid()).pw_name
         if args.user != username:
             logdata = dict({'username': args.user})
-            logging.error(slogm(message_with_code('W2'), logdata))
+            log('W2', logdata)
 
     if is_oddjobd_gpupdate_accessible():
-        logging.debug(slogm(message_with_code('D13')))
+        log('D13')
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
@@ -114,10 +112,10 @@ def runner_factory(args, target):
                 user_runner = dbus_runner(username)
         return (computer_runner, user_runner)
     else:
-        logging.warning(slogm(message_with_code('W3')))
+        log('W3')
 
     if is_root():
-        logging.debug(slogm(message_with_code('D14')))
+        log('D14')
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
@@ -126,7 +124,7 @@ def runner_factory(args, target):
             user_runner = file_runner(username)
         return (computer_runner, user_runner)
     else:
-        logging.error(slogm(message_with_code('E1')))
+        log('E1')
 
     return None
 
@@ -141,7 +139,7 @@ def main():
                 gpo_appliers[0].run()
             except Exception as exc:
                 logdata = dict({'error': str(exc)})
-                logging.error(slogm(message_with_code('E5'), logdata))
+                log('E5')
                 return int(ExitCodeUpdater.FAIL_GPUPDATE_COMPUTER_NOREPLY)
 
         if gpo_appliers[1]:
@@ -149,10 +147,10 @@ def main():
                 gpo_appliers[1].run()
             except Exception as exc:
                 logdata = dict({'error': str(exc)})
-                logging.error(slogm(message_with_code('E6'), logdata))
+                log('E6', logdata)
                 return int(ExitCodeUpdater.FAIL_GPUPDATE_USER_NOREPLY)
     else:
-        logging.error(slogm(message_with_code('E2')))
+        log('E2')
         return int(ExitCodeUpdater.FAIL_NO_RUNNER)
 
     return int(ExitCodeUpdater.EXIT_SUCCESS)
