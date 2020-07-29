@@ -18,7 +18,6 @@
 
 from .cache import cache
 
-import logging
 import os
 
 from sqlalchemy import (
@@ -34,9 +33,8 @@ from sqlalchemy.orm import (
     sessionmaker
 )
 
-from util.logging import slogm
+from util.logging import log
 from util.paths import cache_dir
-from messages import message_with_code
 
 def mapping_factory(mapper_suffix):
     exec(
@@ -55,7 +53,7 @@ class sqlite_cache(cache):
         self.mapper_obj = mapping_factory(self.cache_name)
         self.storage_uri = os.path.join('sqlite:///{}/{}.sqlite'.format(cache_dir(), self.cache_name))
         logdata = dict({'cache_file': self.storage_uri})
-        logging.debug(slogm(message_with_code('D20'), logdata))
+        log('D20', logdata)
         self.db_cnt = create_engine(self.storage_uri, echo=False)
         self.__metadata = MetaData(self.db_cnt)
         self.cache_table = Table(
@@ -82,7 +80,9 @@ class sqlite_cache(cache):
     def get_default(self, obj_id, default_value):
         result = self.get(obj_id)
         if result == None:
-            logging.debug(slogm('No value cached for {}'.format(obj_id)))
+            logdata = dict()
+            logdata['object'] = obj_id
+            log('D43', logdata)
             self.store(obj_id, default_value)
             return str(default_value)
         return result.value
@@ -91,9 +91,11 @@ class sqlite_cache(cache):
         try:
             self.db_session.add(obj)
             self.db_session.commit()
-        except:
+        except Exception as exc:
             self.db_session.rollback()
-            logging.error(slogm('Error inserting value into cache, will update the value'))
+            logdata = dict()
+            logdata['msg'] = str(exc)
+            log('D44', logdata)
             self.db_session.query(self.mapper_obj).filter(self.mapper_obj.str_id == obj.str_id).update({ 'value': obj.value })
             self.db_session.commit()
 
