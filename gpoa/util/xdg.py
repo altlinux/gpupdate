@@ -20,15 +20,17 @@
 import os
 
 from .util import get_homedir
-from .logging import slogm
+from .logging import log
 
 def xdg_get_desktop(username, homedir = None):
     if username:
         homedir = get_homedir(username)
     if not homedir:
-        logging.warning(
-            slogm('Error for get XDG_DESKTOP_DIR for unknown user with unknown homedir'))
-        raise "Error for get XDG_DESKTOP_DIR for unknown user with unknown homedir"
+        msgtext = message_with_code('E18')
+        logdata = dict()
+        logdata['username'] = username
+        log('E18', logdata)
+        raise Exception(msgtext)
 
     stream = os.popen('export HOME={}; xdg-user-dir DESKTOP'.format(homedir))
     output = stream.read()[:-1]
