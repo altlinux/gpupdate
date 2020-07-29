@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
 import os
 import pwd
 
@@ -34,7 +33,7 @@ from .xdg import (
       xdg_get_desktop
 )
 from .util import get_homedir
-from .logging import slogm
+from .logging import log
 from .samba import smbopts
 
 
@@ -59,16 +58,16 @@ class smbcreds (smbopts):
             samba_dc = get_dc_hostname(self.creds, self.lp)
 
             if samba_dc != dc_fqdn and dc_fqdn is not None:
-
-                logging.debug(
-                    slogm('Samba DC setting is {} and is overwritten by user setting {}'.format(
-                        samba_dc, dc)))
+                logdata = dict()
+                logdata['dc'] = samba_dc
+                logdata['user_dc'] = dc
+                log('D38', logdata)
 
                 self.selected_dc = dc_fqdn
             else:
                 self.selected_dc = samba_dc
         except Exception as exc:
-            logging.error(slogm(message_with_code('E10')))
+            log('E10')
             raise exc
 
         return self.selected_dc
@@ -84,9 +83,9 @@ class smbcreds (smbopts):
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
             logdata = dict({'domain': dns_domainname})
-            logging.debug(slogm(message_with_code('D18'), logdata))
+            log('D18', logdata)
         except Exception as exc:
-            logging.error(slogm(message_with_code('E15')))
+            log('E15')
             raise exc
 
         return dns_domainname
@@ -103,16 +102,16 @@ class smbcreds (smbopts):
             if ads.connect():
                 gpos = ads.get_gpo_list(username)
                 logdata = dict({'username': username})
-                logging.info(slogm(message_with_code('I1'), logdata))
+                log('I1', logdata)
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
                     ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name})
-                    logging.info(slogm(message_with_code('I2'), ldata))
+                    log('I2', ldata)
 
         except Exception as exc:
             logdata = dict({'username': username, 'dc': self.selected_dc})
-            logging.error(slogm(message_with_code('E17'), logdata))
+            log('E17', logdata)
 
         return gpos
 
@@ -122,9 +121,11 @@ class smbcreds (smbopts):
         try:
             check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
         except Exception as exc:
-            logging.error(
-                slogm('Unable to refresh GPO list for {} from {}'.format(
-                    username, self.selected_dc)))
+            logdata = dict()
+            logdata['username'] = username
+            logdata['dc'] = self.selected_dc
+            logdata['err'] = str(exc)
+            log('F1')
             raise exc
         return gpos
 
@@ -170,10 +171,10 @@ def get_sid(domain, username, is_machine = False):
         sid = wbinfo_getsid(domain, username)
     except:
         logdata = dict({'sid': sid})
-        logging.error(slogm(message_with_code('E16'), logdata))
+        log('E16', logdata)
 
     logdata = dict({'sid': sid})
-    logging.debug(slogm(message_with_code('D21'), logdata))
+    log('D21', logdata)
 
     return sid
 
