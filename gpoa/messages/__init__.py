@@ -99,6 +99,12 @@ def debug_code(code):
     debug_ids[42] = 'Saving information about folder'
     debug_ids[43] = 'No value cached for object'
     debug_ids[44] = 'Key is already present in cache, will update the value'
+    debug_ids[45] = 'GPO update started'
+    debug_ids[46] = 'GPO update finished'
+    debug_ids[47] = 'Retrieving list of GPOs to replicate from AD DC'
+    debug_ids[48] = 'Establishing connection with AD DC'
+    debug_ids[49] = 'Started GPO replication from AD DC'
+    debug_ids[50] = 'Finished GPO replication from AD DC'
 
     return debug_ids.get(code, 'Unknown debug code')
 
