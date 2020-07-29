@@ -98,8 +98,10 @@ class smbcreds (smbopts):
         gpos = list()
 
         try:
+            log('D48')
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
             if ads.connect():
+                log('D47')
                 gpos = ads.get_gpo_list(username)
                 logdata = dict({'username': username})
                 log('I1', logdata)
@@ -119,7 +121,9 @@ class smbcreds (smbopts):
         gpos = self.get_gpos(username)
 
         try:
+            log('D49')
             check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
+            log('D50')
         except Exception as exc:
             logdata = dict()
             logdata['username'] = username
