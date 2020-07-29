@@ -42,6 +42,14 @@ def error_code(code):
     error_ids[15] = 'Unable to retrieve domain name via CLDAP query'
     error_ids[16] = 'Error getting SID using wbinfo, will use SID from cache'
     error_ids[17] = 'Unable to get GPO list for user from AD DC'
+    error_ids[18] = 'Error getting XDG_DESKTOP_DIR'
+    error_ids[19] = 'Error occured while running user applier in administrator context'
+    error_ids[20] = 'Error occured while running user applier in user context (with dropped privileges)'
+    error_ids[21] = 'No reply from oddjobd GPOA runner via D-Bus for current user'
+    error_ids[22] = 'No reply from oddjobd GPOA runner via D-Bus for computer'
+    error_ids[23] = 'No reply from oddjobd GPOA runner via D-Bus for user'
+    error_ids[24] = 'Error occured while running machine applier'
+    error_ids[25] = 'Error occured while initializing user applier'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -82,6 +90,15 @@ def debug_code(code):
     debug_ids[33] = 'Determined length of PReg file'
     debug_ids[34] = 'Merging machine settings from PReg file'
     debug_ids[35] = 'Merging machine (user part) settings from PReg file'
+    debug_ids[36] = 'Loading PReg from XML'
+    debug_ids[37] = 'Setting process permissions'
+    debug_ids[38] = 'Samba DC setting is overriden by user setting'
+    debug_ids[39] = 'Saving information about drive mapping'
+    debug_ids[40] = 'Saving information about printer'
+    debug_ids[41] = 'Saving information about link'
+    debug_ids[42] = 'Saving information about folder'
+    debug_ids[43] = 'No value cached for object'
+    debug_ids[44] = 'Key is already present in cache, will update the value'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -98,8 +115,15 @@ def warning_code(code):
     warning_ids[3] = 'oddjobd is inaccessible'
     warning_ids[4] = 'No SYSVOL entry assigned to GPO'
     warning_ids[5] = 'ADP package is not installed - plugin will not be initialized'
+    warning_ids[6] = 'Skipping branch deletion key'
 
     return warning_ids.get(code, 'Unknown warning code')
+
+def fatal_code(code):
+    fatal_ids = dict()
+    fatal_ids[1] = 'Unable to refresh GPO list'
+
+    return fatal_ids.get(code, 'Unknown fatal code')
 
 def get_message(code):
     retstr = 'Unknown message type, no message assigned'
@@ -112,6 +136,8 @@ def get_message(code):
         retstr = debug_code(int(code[1:]))
     if code.startswith('W'):
         retstr = warning_code(int(code[1:]))
+    if code.startswith('F'):
+        retstr = fatal_code(int(code[1:]))
 
     return retstr
 
