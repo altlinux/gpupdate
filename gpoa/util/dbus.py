@@ -16,12 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import dbus
 
-from .logging import slogm
+from .logging import log
 from .users import is_root
-from messages import message_with_code
 
 
 class dbus_runner:
@@ -43,28 +41,30 @@ class dbus_runner:
         #print(obj.Introspect()[0])
         if self.username:
             logdata = dict({'username': self.username})
-            logging.debug(slogm(message_with_code('D6'), logdata))
+            log('D6', logdata)
             if is_root():
                 try:
                     result = self.interface.gpupdatefor(dbus.String(self.username))
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
-                    logging.error(slogm('No reply from oddjobd gpoa runner for {}'.format(self.username)))
+                    logdata = dict()
+                    logdata['username'] = self.username
+                    log('E23', logdata)
                     raise exc
             else:
                 try:
                     result = self.interface.gpupdate()
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
-                    logging.error(slogm('No reply from oddjobd gpoa runner for current user'))
+                    log('E21')
                     raise exc
         else:
-            logging.info(slogm(message_with_code('D11')))
+            log('D11')
             try:
                 result = self.interface.gpupdate_computer()
                 print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
-                logging.error(slogm('No reply from oddjobd gpoa runner for computer'))
+                log('E22')
                 raise exc
         #self.interface.Quit()
 
@@ -133,7 +133,7 @@ def print_dbus_result(result):
     exitcode = result[0]
     message = result[1:]
     logdata = dict({'retcode': exitcode})
-    logging.debug(slogm(message_with_code('D12'), logdata))
+    log('D12', logdata)
 
     for line in message:
         print(str(line))
