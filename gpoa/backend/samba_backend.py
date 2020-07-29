@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import os
 # Facility to determine GPTs for user
 from samba.gpclass import check_safe_path, check_refresh_gpo_list
@@ -30,8 +29,7 @@ from util.util import (
 )
 from util.windows import get_sid
 import util.preg
-from util.logging import slogm
-from messages import message_with_code
+from util.logging import log
 
 class samba_backend(applier_backend):
 
@@ -59,7 +57,7 @@ class samba_backend(applier_backend):
 
         self.cache_dir = self.sambacreds.get_cache_dir()
         logdata = dict({'cachedir': self.cache_dir})
-        logging.debug(slogm(message_with_code('D7'), logdata))
+        log('D7', logdata)
 
     def retrieve_and_store(self):
         '''
@@ -89,7 +87,7 @@ class samba_backend(applier_backend):
             # no reason to print warning.
             if 'Local Policy' != gpo.name:
                 logdata = dict({'gponame': gpo.name})
-                logging.warning(slogm(message_with_code('W4'), logdata))
+                log('W4', logdata)
             return False
         return True
 
@@ -101,7 +99,7 @@ class samba_backend(applier_backend):
             if self._check_sysvol_present(gpo):
                 path = check_safe_path(gpo.file_sys_path).upper()
                 slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
-                logging.debug(slogm(message_with_code('D30'), slogdata))
+                log('D30', slogdata)
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
                 obj = gpt(gpt_abspath, sid)
                 obj.set_name(gpo.display_name)
