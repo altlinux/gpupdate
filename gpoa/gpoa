@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import logging
 import os
 import signal
 
@@ -39,7 +38,7 @@ from util.users import (
 from util.arguments import (
     set_loglevel
 )
-from util.logging import slogm
+from util.logging import log
 from util.exceptions import geterr
 from util.signals import signal_handler
 
@@ -85,7 +84,7 @@ class gpoa_controller:
         logdata = dict()
         logdata['username'] = uname
         logdata['uid'] = uid
-        logging.debug(slogm(message_with_code('D1'), logdata))
+        log('D1', logdata)
 
         if not is_root():
             self.username = uname
@@ -99,7 +98,6 @@ class gpoa_controller:
         self.__kinit_successful = machine_kinit(self.cache_path)
         self.start_plugins()
         self.start_backend()
-        self.start_frontend()
         if self.__kinit_successful:
             machine_kdestroy()
 
@@ -123,10 +121,12 @@ class gpoa_controller:
                     print(einfo)
                     print(type(einfo))
                     #logdata.update(einfo)
-                    logging.error(slogm(message_with_code('E12'), logdata))
+                    log('E12', logdata)
                 if back:
                     try:
                         back.retrieve_and_store()
+                        # Start frontend only on successful backend finish
+                        self.start_frontend()
                     except Exception as exc:
                         logdata = dict({'message': str(exc)})
                         # In case we're handling "E3" - it means that
@@ -136,7 +136,7 @@ class gpoa_controller:
                         # other information.
                         einfo = geterr()
                         logdata.update(einfo)
-                        logging.error(slogm(message_with_code('E3'), logdata))
+                        log('E3', logdata)
 
     def start_frontend(self):
         '''
@@ -150,7 +150,7 @@ class gpoa_controller:
             einfo = geterr()
             #print(einfo)
             logdata.update(einfo)
-            logging.error(slogm(message_with_code('E4'), logdata))
+            log('E4', logdata)
 
     def start_plugins(self):
         '''
