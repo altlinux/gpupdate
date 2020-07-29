@@ -18,9 +18,8 @@
 
 import os
 import pwd
-import logging
 
-from .logging import slogm
+from .logging import log
 
 
 def is_root():
@@ -75,9 +74,11 @@ def set_privileges(username, uid, gid, groups=list()):
     #except Exception as exc:
     #    print('setgroups')
 
-    logging.debug(
-        slogm('Set process permissions to UID {} and GID {} for user {}'.format(
-            uid, gid, username)))
+    logdata = dict()
+    logdata['uid'] = uid
+    logdata['gid'] = gid
+    logdata['username'] = username
+    log('D37', logdata)
 
 
 def with_privileges(username, func):
@@ -103,7 +104,7 @@ def with_privileges(username, func):
     try:
         out = func()
     except Exception as exc:
-        logging.debug(slogm(exc))
+        log(str(exc))
 
     # Restore privileges
     set_privileges('root', current_uid, 0, current_groups)
