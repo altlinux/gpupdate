@@ -53,10 +53,8 @@ from util.users import (
     username_match_uid,
     with_privileges
 )
-from util.logging import slogm
-from messages import message_with_code
+from util.logging import log
 
-import logging
 
 def determine_username(username=None):
     '''
@@ -70,14 +68,14 @@ def determine_username(username=None):
     if not username:
         name = get_process_user()
         logdata = dict({'username': name})
-        logging.debug(slogm(message_with_code('D2'), logdata))
+        log('D2', logdata)
 
     if not username_match_uid(name):
         if not is_root():
             raise Exception('Current process UID does not match specified username')
 
     logdata = dict({'username': name})
-    logging.debug(slogm(message_with_code('D15'), logdata))
+    log('D15', logdata)
 
     return name
 
@@ -94,45 +92,52 @@ class frontend_manager:
         self.process_uname = get_process_user()
         self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
 
-        self.machine_appliers = dict({
-              'control':  control_applier(self.storage)
-            , 'polkit':   polkit_applier(self.storage)
-            , 'systemd':  systemd_applier(self.storage)
-            , 'firefox':  firefox_applier(self.storage, self.sid, self.username)
-            , 'chromium': chromium_applier(self.storage, self.sid, self.username)
-            , 'shortcuts': shortcut_applier(self.storage)
-            , 'gsettings': gsettings_applier(self.storage)
-            , 'cups': cups_applier(self.storage)
-            , 'firewall': firewall_applier(self.storage)
-            , 'folders': folder_applier(self.storage, self.sid)
-            , 'package': package_applier(self.storage)
-            , 'ntp': ntp_applier(self.storage)
-        })
+        self.machine_appliers = dict()
+        self.machine_appliers['control'] = control_applier(self.storage)
+        self.machine_appliers['polkit'] = polkit_applier(self.storage)
+        self.machine_appliers['systemd'] = systemd_applier(self.storage)
+        self.machine_appliers['firefox'] = firefox_applier(self.storage, self.sid, self.username)
+        self.machine_appliers['chromium'] = chromium_applier(self.storage, self.sid, self.username)
+        self.machine_appliers['shortcuts'] = shortcut_applier(self.storage)
+        self.machine_appliers['gsettings'] = gsettings_applier(self.storage)
+        self.machine_appliers['cups'] = cups_applier(self.storage)
+        self.machine_appliers['firewall'] = firewall_applier(self.storage)
+        self.machine_appliers['folders'] = folder_applier(self.storage, self.sid)
+        self.machine_appliers['package'] = package_applier(self.storage)
+        self.machine_appliers['ntp'] = ntp_applier(self.storage)
 
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
-        self.user_appliers = dict({
-              'shortcuts': shortcut_applier_user(self.storage, self.sid, self.username)
-            , 'folders': folder_applier_user(self.storage, self.sid, self.username)
-            , 'gsettings': gsettings_applier_user(self.storage, self.sid, self.username)
-            , 'cifs': cifs_applier_user(self.storage, self.sid, self.username)
-            , 'package': package_applier_user(self.storage, self.sid, self.username)
-            , 'polkit': polkit_applier_user(self.storage, self.sid, self.username)
-        })
+        self.user_appliers = dict()
+        self.user_appliers['shortcuts'] = shortcut_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['folders'] = folder_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.sid, self.username)
+        try:
+            self.user_appliers['cifs'] = cifs_applier_user(self.storage, self.sid, self.username)
+        except Exception as exc:
+            logdata = dict()
+            logdata['applier_name'] = 'cifs'
+            logdata['msg'] = str(exc)
+            log('E25', logdata)
+        self.user_appliers['package'] = package_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['polkit'] = polkit_applier_user(self.storage, self.sid, self.username)
 
     def machine_apply(self):
         '''
         Run global appliers with administrator privileges.
         '''
         if not is_root():
-            logging.error(slogm(message_with_code('E13')))
+            log('E13')
             return
-        logging.debug(slogm(message_with_code('D16')))
+        log('D16')
         for applier_name, applier_object in self.machine_appliers.items():
             try:
                 applier_object.apply()
             except Exception as exc:
-                logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
+                logdata = dict()
+                logdata['applier_name'] = applier_name
+                logdata['msg'] = str(exc)
+                log('E24', logdata)
 
     def user_apply(self):
         '''
@@ -143,19 +148,25 @@ class frontend_manager:
                 try:
                     applier_object.admin_context_apply()
                 except Exception as exc:
-                    logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
+                    logdata = dict()
+                    logdata['applier'] = applier_name
+                    logdata['exception'] = str(exc)
+                    log('E19', logdata)
 
                 try:
                     with_privileges(self.username, applier_object.user_context_apply)
                 except Exception as exc:
-                    logging.error('Error occured while running applier {}: {}'.format(applier_name, exc))
+                    logdata = dict()
+                    logdata['applier'] = applier_name
+                    logdata['exception'] = str(exc)
+                    log('E20', logdata)
         else:
             for applier_name, applier_object in self.user_appliers.items():
                 try:
                     applier_object.user_context_apply()
                 except Exception as exc:
                     logdata = dict({'applier_name': applier_name, 'message': str(exc)})
-                    logging.error(slogm(message_with_code('E11'), logdata))
+                    log('E11', logdata)
 
     def apply_parameters(self):
         '''
