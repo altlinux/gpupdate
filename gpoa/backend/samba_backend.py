@@ -94,7 +94,10 @@ class samba_backend(applier_backend):
     def _get_gpts(self, username, sid):
         gpts = list()
 
+        log('D45')
+        # util.windows.smbcreds
         gpos = self.sambacreds.update_gpos(username)
+        log('D46')
         for gpo in gpos:
             if self._check_sysvol_present(gpo):
                 path = check_safe_path(gpo.file_sys_path).upper()
