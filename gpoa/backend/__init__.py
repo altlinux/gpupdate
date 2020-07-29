@@ -16,13 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 
 from util.windows import smbcreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
-from util.logging import slogm
-from messages import message_with_code
+from util.logging import log
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''
@@ -39,19 +37,19 @@ def backend_factory(dc, username, is_machine, no_domain = False):
 
     if domain:
         ldata = dict({'domain': domain})
-        logging.debug(slogm(message_with_code('I4'), ldata))
+        log('D9', ldata)
         try:
             back = samba_backend(sc, username, domain, is_machine)
         except Exception as exc:
             logdata = dict({'error': str(exc)})
-            logging.error(slogm(message_with_code('E7'), logdata))
+            log('E7', logdata)
     else:
-        logging.debug(slogm(message_with_code('I5')))
+        log('D8')
         try:
             back = nodomain_backend()
         except Exception as exc:
             logdata = dict({'error': str(exc)})
-            logging.error(slogm(message_with_code('E8'), logdata))
+            log('E8', logdata)
 
     return back
 
