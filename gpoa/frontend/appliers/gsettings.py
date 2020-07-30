@@ -46,19 +46,39 @@ class system_gsetting:
         with open(self.file_path, 'w') as f:
             config.write(f)
 
+def glib_map(value, glib_type):
+    result_value = value
+
+    if glib_type == 'i':
+        result_value = GLib.Variant(glib_type, int(value))
+    else:
+        result_value = GLib.Variant(glib_type, value)
+
+    return result_value
+
 class user_gsetting:
-    def __init__(self, schema, path, value):
+    def __init__(self, schema, path, value, helper_function=None):
+        logging.debug('Creating GSettings element {} (in {}) with value {}'.format(path, schema, value))
         self.schema = schema
         self.path = path
         self.value = value
+        self.helper_function = helper_function
 
     def apply(self):
-        source = Gio.SettingsSchemaSource.get_default()
-        schema = source.lookup(self.schema, True)
-        key = schema.get_key(self.path)
-        gvformat = key.get_value_type()
-        val = GLib.Variant(gvformat.dup_string(), self.value)
-        schema.set_value(self.path, val)
+        logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
+        if self.helper_function:
+            self.helper_function(self.schema, self.path, self.value)
+        # Access the current schema
+        settings = Gio.Settings(self.schema)
+        # Get the key to modify
+        key = settings.get_value(self.path)
+        # Query the data type for the key
+        glib_value_type = key.get_type_string()
+        # Build the new value with the determined type
+        val = glib_map(self.value, glib_value_type)
+        # Set the value
+        settings.set_value(self.path, val)
+
         #gso = Gio.Settings.new(self.schema)
         #variants = gso.get_property(self.path)
         #if (variants.has_key(self.path)):

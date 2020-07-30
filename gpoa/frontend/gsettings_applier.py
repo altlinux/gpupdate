@@ -18,7 +18,13 @@
 
 import logging
 import os
+import pwd
 import subprocess
+
+from gi.repository import (
+      Gio
+    , GLib
+)
 
 from .applier_frontend import (
       applier_frontend
@@ -36,6 +42,7 @@ class gsettings_applier(applier_frontend):
     __module_enabled = False
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
     __global_schema = '/usr/share/glib-2.0/schemas'
+    __windows_settings = dict()
 
     def __init__(self, storage):
         self.storage = storage
@@ -79,6 +86,32 @@ class gsettings_applier(applier_frontend):
         else:
             logging.debug(slogm('GSettings applier for machine will not be started'))
 
+class GSettingsMapping:
+    def __init__(self, hive_key, gsettings_schema, gsettings_key):
+        self.hive_key = hive_key
+        self.gsettings_schema = gsettings_schema
+        self.gsettings_key = gsettings_key
+
+        try:
+            self.schema_source = Gio.SettingsSchemaSource.get_default()
+            self.schema = self.schema_source.lookup(self.gsettings_schema, True)
+            self.gsettings_schema_key = self.schema.get_key(self.gsettings_key)
+            self.gsettings_type = self.gsettings_schema_key.get_value_type()
+        except Exception as exc:
+            print(exc)
+
+    def preg2gsettings(self):
+        '''
+        Transform PReg key variant into GLib.Variant. This function
+        performs mapping of PReg type system into GLib type system.
+        '''
+        pass
+
+    def gsettings2preg(self):
+        '''
+        Transform GLib.Variant key type into PReg key type.
+        '''
+        pass
 
 class gsettings_applier_user(applier_frontend):
     __module_name = 'GSettingsApplierUser'
@@ -95,16 +128,65 @@ class gsettings_applier_user(applier_frontend):
         self.gsettings = list()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
+        self.__windows_settings = dict()
+        self.windows_settings = list()
+        mapping = [
+              # Disable or enable screen saver
+              GSettingsMapping(
+                  'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveActive'
+                , 'org.mate.screensaver'
+                , 'idle-activation-enabled'
+              )
+              # Timeout in seconds for screen saver activation. The value of zero effectively disables screensaver start
+            , GSettingsMapping(
+                  'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveTimeOut'
+                , 'org.mate.session'
+                , 'idle-delay'
+              )
+              # Enable or disable password protection for screen saver
+            , GSettingsMapping(
+                  'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaverIsSecure'
+                , 'org.mate.screensaver'
+                , 'lock-enabled'
+              )
+              # Specify image which will be used as a wallpaper
+            , GSettingsMapping(
+                  'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper'
+                , 'org.mate.background'
+                , 'picture-filename'
+              )
+        ]
+        self.windows_settings.extend(mapping)
+
+        for element in self.windows_settings:
+            self.__windows_settings[element.hive_key] = element
+
+
     def run(self):
-        for setting in self.gsettings_keys:
-            valuename = setting.hive_key.rpartition('\\')[2]
-            rp = valuename.rpartition('.')
-            schema = rp[0]
-            path = rp[2]
-            self.gsettings.append(user_gsetting(schema, path, setting.data))
+        #for setting in self.gsettings_keys:
+        #    valuename = setting.hive_key.rpartition('\\')[2]
+        #    rp = valuename.rpartition('.')
+        #    schema = rp[0]
+        #    path = rp[2]
+        #    self.gsettings.append(user_gsetting(schema, path, setting.data))
+
+        os.environ['DBUS_SESSION_BUS_ADDRESS'] = 'unix:path=/run/user/{}/bus'.format(pwd.getpwnam(self.username).pw_uid)
+
+        for setting_key in self.__windows_settings.keys():
+            logging.debug('Checking for GSettings mapping {}'.format(setting_key))
+            value = self.storage.get_hkcu_entry(self.sid, setting_key)
+            if value:
+                logging.debug('Found GSettings mapping {} to {}'.format(setting_key, value.data))
+                mapping = self.__windows_settings[setting_key]
+                self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
+            else:
+                logging.debug('GSettings mapping of {} to {} not found'.format(setting_key, value.data))
 
         for gsetting in self.gsettings:
+            logging.debug('Applying setting {}/{}'.format(gsetting.schema, gsetting.path))
             gsetting.apply()
+
+        del os.environ['DBUS_SESSION_BUS_ADDRESS']
 
     def user_context_apply(self):
         if self.__module_enabled:
