@@ -43,16 +43,18 @@ class slogm(object):
     def __init__(self, message, kwargs=dict()):
         self.message = message
         self.kwargs = kwargs
+        if not self.kwargs:
+            self.kwargs = dict()
 
     def __str__(self):
-        now = str(datetime.datetime.now())
+        now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))
         args = dict()
         #args.update(dict({'timestamp': now, 'message': str(self.message)}))
         args.update(self.kwargs)
 
         kwa = encoder().encode(args)
 
-        result = '{}|{}|{}'.format(now.rpartition('.')[0], self.message, kwa)
+        result = '{}|{}|{}'.format(now, self.message, kwa)
 
         return result
 
