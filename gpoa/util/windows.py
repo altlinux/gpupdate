@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
 import os
 import pwd
 
@@ -29,11 +28,12 @@ import samba.gpo
 import pysss_nss_idmap
 
 from storage import cache_factory
+from messages import message_with_code
 from .xdg import (
       xdg_get_desktop
 )
 from .util import get_homedir
-from .logging import slogm
+from .logging import log
 from .samba import smbopts
 
 
@@ -58,16 +58,16 @@ class smbcreds (smbopts):
             samba_dc = get_dc_hostname(self.creds, self.lp)
 
             if samba_dc != dc_fqdn and dc_fqdn is not None:
-
-                logging.debug(
-                    slogm('Samba DC setting is {} and is overwritten by user setting {}'.format(
-                        samba_dc, dc)))
+                logdata = dict()
+                logdata['dc'] = samba_dc
+                logdata['user_dc'] = dc
+                log('D38', logdata)
 
                 self.selected_dc = dc_fqdn
             else:
                 self.selected_dc = samba_dc
         except Exception as exc:
-            logging.error(slogm('Unable to determine DC hostname'))
+            log('E10')
             raise exc
 
         return self.selected_dc
@@ -82,9 +82,10 @@ class smbcreds (smbopts):
             # Look and python/samba/netcmd/domain.py for more examples
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
-            logging.info(slogm('Found domain via CLDAP: {}'.format(dns_domainname)))
+            logdata = dict({'domain': dns_domainname})
+            log('D18', logdata)
         except Exception as exc:
-            logging.error(slogm('Unable to retrieve domain name via CLDAP query'))
+            log('E15')
             raise exc
 
         return dns_domainname
@@ -97,19 +98,22 @@ class smbcreds (smbopts):
         gpos = list()
 
         try:
+            log('D48')
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
             if ads.connect():
+                log('D47')
                 gpos = ads.get_gpo_list(username)
-                logging.info(slogm('Got GPO list for {}:'.format(username)))
+                logdata = dict({'username': username})
+                log('I1', logdata)
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
-                    logging.info(slogm('GPO: {} ({})'.format(gpo.display_name, gpo.name)))
+                    ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name})
+                    log('I2', ldata)
 
         except Exception as exc:
-            logging.error(
-                slogm('Unable to get GPO list for {} from {}'.format(
-                    username, self.selected_dc)))
+            logdata = dict({'username': username, 'dc': self.selected_dc})
+            log('E17', logdata)
 
         return gpos
 
@@ -117,11 +121,15 @@ class smbcreds (smbopts):
         gpos = self.get_gpos(username)
 
         try:
+            log('D49')
             check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
+            log('D50')
         except Exception as exc:
-            logging.error(
-                slogm('Unable to refresh GPO list for {} from {}'.format(
-                    username, self.selected_dc)))
+            logdata = dict()
+            logdata['username'] = username
+            logdata['dc'] = self.selected_dc
+            logdata['err'] = str(exc)
+            log('F1')
             raise exc
         return gpos
 
@@ -166,10 +174,11 @@ def get_sid(domain, username, is_machine = False):
     try:
         sid = wbinfo_getsid(domain, username)
     except:
-        logging.warning(
-            slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
+        logdata = dict({'sid': sid})
+        log('E16', logdata)
 
-    logging.debug(slogm('Working with SID: {}'.format(sid)))
+    logdata = dict({'sid': sid})
+    log('D21', logdata)
 
     return sid
 

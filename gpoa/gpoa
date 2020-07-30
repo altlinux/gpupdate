@@ -18,13 +18,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import logging
 import os
 import signal
 
 from backend import backend_factory
 from frontend.frontend_manager import frontend_manager, determine_username
 from plugin import plugin_manager
+from messages import message_with_code
 
 from util.util import get_machine_name
 from util.kerberos import (
@@ -38,7 +38,8 @@ from util.users import (
 from util.arguments import (
     set_loglevel
 )
-from util.logging import slogm
+from util.logging import log
+from util.exceptions import geterr
 from util.signals import signal_handler
 
 def parse_arguments():
@@ -80,7 +81,10 @@ class gpoa_controller:
 
         uname = get_process_user()
         uid = os.getuid()
-        logging.debug(slogm('The process was started for user {} with UID {}'.format(uname, uid), uid=uid))
+        logdata = dict()
+        logdata['username'] = uname
+        logdata['uid'] = uid
+        log('D1', logdata)
 
         if not is_root():
             self.username = uname
@@ -94,7 +98,6 @@ class gpoa_controller:
         self.__kinit_successful = machine_kinit(self.cache_path)
         self.start_plugins()
         self.start_backend()
-        self.start_frontend()
         if self.__kinit_successful:
             machine_kdestroy()
 
@@ -109,12 +112,31 @@ class gpoa_controller:
 
         if not self.__args.noupdate:
             if is_root():
-                back = backend_factory(dc, self.username, self.is_machine, nodomain)
+                back = None
+                try:
+                    back = backend_factory(dc, self.username, self.is_machine, nodomain)
+                except Exception as exc:
+                    logdata = dict({'msg': str(exc)})
+                    einfo = geterr()
+                    print(einfo)
+                    print(type(einfo))
+                    #logdata.update(einfo)
+                    log('E12', logdata)
                 if back:
                     try:
                         back.retrieve_and_store()
+                        # Start frontend only on successful backend finish
+                        self.start_frontend()
                     except Exception as exc:
-                        logging.error(slogm('Backend execution error: {}'.format(str(exc))))
+                        logdata = dict({'message': str(exc)})
+                        # In case we're handling "E3" - it means that
+                        # this is a very specific exception that was
+                        # not handled properly on lower levels of
+                        # code so we're also printing file name and
+                        # other information.
+                        einfo = geterr()
+                        logdata.update(einfo)
+                        log('E3', logdata)
 
     def start_frontend(self):
         '''
@@ -124,7 +146,11 @@ class gpoa_controller:
             appl = frontend_manager(self.username, self.is_machine)
             appl.apply_parameters()
         except Exception as exc:
-            logging.error(slogm('Error occured while running applier: {}'.format(exc)))
+            logdata = dict({'message': str(exc)})
+            einfo = geterr()
+            #print(einfo)
+            logdata.update(einfo)
+            log('E4', logdata)
 
     def start_plugins(self):
         '''

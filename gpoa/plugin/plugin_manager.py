@@ -23,15 +23,16 @@ from .roles import roles
 from .exceptions import PluginInitError
 from .plugin import plugin
 from util.logging import slogm
+from messages import message_with_code
 
 class plugin_manager:
     def __init__(self):
         self.plugins = dict()
-        logging.info(slogm('Starting plugin manager'))
+        logging.debug(slogm(message_with_code('D3')))
         try:
             self.plugins['adp'] = adp()
         except PluginInitError as exc:
-            logging.error(slogm(exc))
+            logging.warning(slogm(str(exc)))
 
     def run(self):
         self.plugins.get('adp', plugin('adp')).run()

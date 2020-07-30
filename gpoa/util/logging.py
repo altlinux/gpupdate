@@ -18,11 +18,15 @@
 
 import json
 import datetime
+import logging
+
+from messages import message_with_code
 
 
 class encoder(json.JSONEncoder):
     def default(self, obj):
-        result = super(encoder, self).default(obj)
+        result = super(encoder, self)
+        result = result.default(obj)
 
         if isinstance(obj, set):
             result = tuple(obj)
@@ -36,19 +40,42 @@ class slogm(object):
     '''
     Structured log message class
     '''
-    def __init__(self, message, **kwargs):
+    def __init__(self, message, kwargs=dict()):
         self.message = message
         self.kwargs = kwargs
+        if not self.kwargs:
+            self.kwargs = dict()
 
     def __str__(self):
-        now = str(datetime.datetime.now())
+        now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))
         args = dict()
-        args.update(dict({'timestamp': now, 'message': str(self.message)}))
+        #args.update(dict({'timestamp': now, 'message': str(self.message)}))
         args.update(self.kwargs)
 
         kwa = encoder().encode(args)
 
-        result = '{}:{}'.format(now.rpartition('.')[0], self.message)
+        result = '{}|{}|{}'.format(now, self.message, kwa)
 
         return result
+
+def log(message_code, data=None):
+    mtype = message_code[0]
+
+    if 'I' == mtype:
+        logging.info(slogm(message_with_code(message_code), data))
+        return
+    if 'W' == mtype:
+        logging.warning(slogm(message_with_code(message_code), data))
+        return
+    if 'E' == mtype:
+        logging.error(slogm(message_with_code(message_code), data))
+        return
+    if 'F' == mtype:
+        logging.fatal(slogm(message_with_code(message_code), data))
+        return
+    if 'D' == mtype:
+        logging.debug(slogm(message_with_code(message_code), data))
+        return
+
+    logging.error(slogm(message_with_code(message_code), data))
 

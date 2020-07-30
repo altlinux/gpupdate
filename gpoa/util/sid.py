@@ -243,6 +243,3 @@ def sid2descr(sid):
 
     return sids.get(sid, None)
 
-if __name__ == '__main__':
-    pass
-

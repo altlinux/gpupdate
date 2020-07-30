@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import os
 
 from sqlalchemy import (
@@ -33,7 +32,7 @@ from sqlalchemy.orm import (
     sessionmaker
 )
 
-from util.logging import slogm
+from util.logging import log
 from util.paths import cache_dir
 from .registry import registry
 from .record_types import (
@@ -221,7 +220,10 @@ class sqlite_registry(registry):
 
     def set_info(self, name, value):
         ientry = info_entry(name, value)
-        logging.debug(slogm('Setting info {}:{}'.format(name, value)))
+        logdata = dict()
+        logdata['varname'] = name
+        logdata['value'] = value
+        log('D19', logdata)
         self._info_upsert(ientry)
 
     def add_hklm_entry(self, preg_entry, policy_name):
@@ -232,25 +234,30 @@ class sqlite_registry(registry):
         if not pentry.hive_key.rpartition('\\')[2].startswith('**'):
             self._hklm_upsert(pentry)
         else:
-            logging.warning(slogm('Skipping branch deletion key: {}'.format(pentry.hive_key)))
+            logdata = dict({'key': pentry.hive_key})
+            log('W6', logdata)
 
     def add_hkcu_entry(self, preg_entry, sid, policy_name):
         '''
         Write PReg entry to HKEY_CURRENT_USER
         '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry, policy_name)
+        logdata = dict({'sid': sid, 'policy': policy_name, 'key': hkcu_pentry.hive_key})
         if not hkcu_pentry.hive_key.rpartition('\\')[2].startswith('**'):
-            logging.debug(slogm('Adding HKCU entry for {}'.format(sid)))
+            log('D26', logdata)
             self._hkcu_upsert(hkcu_pentry)
         else:
-            logging.warning(slogm('Skipping branch deletion key: {}'.format(hkcu_pentry.hive_key)))
+            log('D27', logdata)
 
     def add_shortcut(self, sid, sc_obj, policy_name):
         '''
         Store shortcut information in the database
         '''
         sc_entry = ad_shortcut(sid, sc_obj, policy_name)
-        logging.debug(slogm('Saving info about {} link for {}'.format(sc_entry.path, sid)))
+        logdata = dict()
+        logdata['link'] = sc_entry.path
+        logdata['sid'] = sid
+        log('D41', logdata)
         self._shortcut_upsert(sc_entry)
 
     def add_printer(self, sid, pobj, policy_name):
@@ -258,18 +265,26 @@ class sqlite_registry(registry):
         Store printer configuration in the database
         '''
         prn_entry = printer_entry(sid, pobj, policy_name)
-        logging.debug(slogm('Saving info about printer {} for {}'.format(prn_entry.name, sid)))
+        logdata = dict()
+        logdata['printer'] = prn_entry.name
+        logdata['sid'] = sid
+        log('D40', logdata)
         self._printer_upsert(prn_entry)
 
     def add_drive(self, sid, dobj, policy_name):
         drv_entry = drive_entry(sid, dobj, policy_name)
-        logging.debug(slogm('Saving info about drive mapping {} for {}'.format(drv_entry.path, sid)))
+        logdata = dict()
+        logdata['uri'] = drv_entry.path
+        logdata['sid'] = sid
+        log('D39', logdata)
         self._drive_upsert(drv_entry)
 
     def add_folder(self, sid, fobj, policy_name):
         fld_entry = folder_entry(sid, fobj, policy_name)
-        logstring = 'Saving info about folder {} for {}'.format(fld_entry.path, sid)
-        logging.debug(logstring)
+        logdata = dict()
+        logdata['folder'] = fld_entry.path
+        logdata['sid'] = sid
+        log('D42', logdata)
         try:
             self._add(fld_entry)
         except Exception as exc:

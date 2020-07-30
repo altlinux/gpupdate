@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import os
 # Facility to determine GPTs for user
 from samba.gpclass import check_safe_path, check_refresh_gpo_list
@@ -30,7 +29,7 @@ from util.util import (
 )
 from util.windows import get_sid
 import util.preg
-from util.logging import slogm
+from util.logging import log
 
 class samba_backend(applier_backend):
 
@@ -57,7 +56,8 @@ class samba_backend(applier_backend):
         self.sambacreds = sambacreds
 
         self.cache_dir = self.sambacreds.get_cache_dir()
-        logging.debug(slogm('Cache directory is: {}'.format(self.cache_dir)))
+        logdata = dict({'cachedir': self.cache_dir})
+        log('D7', logdata)
 
     def retrieve_and_store(self):
         '''
@@ -86,19 +86,23 @@ class samba_backend(applier_backend):
             # GPO named "Local Policy" has no entry by its nature so
             # no reason to print warning.
             if 'Local Policy' != gpo.name:
-                logging.warning(slogm('No SYSVOL entry assigned to GPO {}'.format(gpo.name)))
+                logdata = dict({'gponame': gpo.name})
+                log('W4', logdata)
             return False
         return True
 
     def _get_gpts(self, username, sid):
         gpts = list()
 
+        log('D45')
+        # util.windows.smbcreds
         gpos = self.sambacreds.update_gpos(username)
+        log('D46')
         for gpo in gpos:
             if self._check_sysvol_present(gpo):
-                logging.debug(slogm('Found SYSVOL entry "{}" for GPO "{}"'.format(gpo.file_sys_path, gpo.display_name)))
                 path = check_safe_path(gpo.file_sys_path).upper()
-                logging.debug(slogm('Path: {}'.format(path)))
+                slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
+                log('D30', slogdata)
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
                 obj = gpt(gpt_abspath, sid)
                 obj.set_name(gpo.display_name)

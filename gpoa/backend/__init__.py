@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 
 from util.windows import smbcreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
+from util.logging import log
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''
@@ -36,17 +36,20 @@ def backend_factory(dc, username, is_machine, no_domain = False):
         domain = sc.get_domain()
 
     if domain:
-        logging.debug('Initialize Samba backend for domain: {}'.format(domain))
+        ldata = dict({'domain': domain})
+        log('D9', ldata)
         try:
             back = samba_backend(sc, username, domain, is_machine)
         except Exception as exc:
-            logging.error('Unable to initialize Samba backend: {}'.format(exc))
+            logdata = dict({'error': str(exc)})
+            log('E7', logdata)
     else:
-        logging.debug('Initialize local backend with no domain')
+        log('D8')
         try:
             back = nodomain_backend()
         except Exception as exc:
-            logging.error('Unable to initialize no-domain backend: {}'.format(exc))
+            logdata = dict({'error': str(exc)})
+            log('E8', logdata)
 
     return back
 

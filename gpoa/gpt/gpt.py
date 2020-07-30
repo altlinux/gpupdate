@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import os
 from pathlib import Path
 from enum import Enum, unique
@@ -73,7 +72,7 @@ from util.paths import (
     cache_dir,
     local_policy_cache
 )
-from util.logging import slogm
+from util.logging import log
 
 
 @unique
@@ -150,7 +149,6 @@ class gpt:
         self.name = ''
 
         self.guid = self.path.rpartition('/')[2]
-        self.name = ''
         if 'default' == self.guid:
             self.guid = 'Local Policy'
 
@@ -176,9 +174,11 @@ class gpt:
         for setting in self.settings_list:
             machine_preffile = find_preffile(self._machine_path, setting)
             user_preffile = find_preffile(self._user_path, setting)
-            logging.debug('Looking for {} in machine part of GPT {}: {}'.format(setting, self.name, machine_preffile))
+            mlogdata = dict({'setting': setting, 'prefpath': machine_preffile})
+            log('D24', mlogdata)
             self.settings['machine'][setting] = machine_preffile
-            logging.debug('Looking for {} in user part of GPT {}: {}'.format(setting, self.name, user_preffile))
+            ulogdata = dict({'setting': setting, 'prefpath': user_preffile})
+            log('D23', ulogdata)
             self.settings['user'][setting] = user_preffile
 
     def set_name(self, name):
@@ -211,17 +211,19 @@ class gpt:
             for preference_name, preference_path in self.settings['machine'].items():
                 if preference_path:
                     preference_type = get_preftype(preference_path)
-                    logstring = 'Reading and merging {} for {}'.format(preference_type.value, self.sid)
-                    logging.debug(logstring)
+                    logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                    log('D28', logdata)
                     preference_parser = get_parser(preference_type)
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
                     preference_merger(self.storage, self.sid, preference_objects, self.name)
             if self.settings['user']['regpol']:
-                logging.debug(slogm('Merging machine(user) settings from {}'.format(self.settings['machine']['regpol'])))
+                mulogdata = dict({'polfile': self.settings['machine']['regpol']})
+                log('D35', mulogdata)
                 util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
             if self.settings['machine']['regpol']:
-                logging.debug(slogm('Merging machine settings from {}'.format(self.settings['machine']['regpol'])))
+                mlogdata = dict({'polfile': self.settings['machine']['regpol']})
+                log('D34', mlogdata)
                 util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
         else:
             # Merge user settings if UserPolicyMode set accordingly
@@ -231,8 +233,8 @@ class gpt:
                 for preference_name, preference_path in self.settings['user'].items():
                     if preference_path:
                         preference_type = get_preftype(preference_path)
-                        logstring = 'Reading and merging {} for {}'.format(preference_type.value, self.sid)
-                        logging.debug(logstring)
+                        logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                        log('D29', logdata)
                         preference_parser = get_parser(preference_type)
                         preference_merger = get_merger(preference_type)
                         preference_objects = preference_parser(preference_path)
@@ -330,7 +332,7 @@ def get_local_gpt(sid):
     '''
     Convert default policy to GPT and create object out of it.
     '''
-    logging.debug(slogm('Re-caching Local Policy'))
+    log('D25')
     lp2gpt()
     local_policy = gpt(str(local_policy_cache()), sid)
     local_policy.set_name('Local Policy')

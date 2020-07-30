@@ -20,6 +20,7 @@ import logging
 import logging.handlers
 from enum import IntEnum
 
+from messages import message_with_code
 from .logging import slogm
 
 
@@ -71,7 +72,8 @@ def process_target(target_name=None):
     if target_name == 'User':
         target = 'User'
 
-    logging.debug(slogm('Target is: {}'.format(target)))
+    logdata = dict({'target': target})
+    logging.debug(slogm(message_with_code('D10'), logdata))
 
     return target
 

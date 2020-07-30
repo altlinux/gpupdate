@@ -16,14 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 
 from xml.etree import ElementTree
 from storage import registry_factory
 
 from samba.gp_parse.gp_pol import GPPolParser
 
-from .logging import slogm
+from .logging import log
 
 
 def load_preg(file_path):
@@ -40,7 +39,8 @@ def load_xml_preg(xml_path):
     '''
     Parse XML/PReg file and return its preg object
     '''
-    logging.debug('Loading PReg from XML: {}'.format(xml_path))
+    logdata = dict({'polfile': xml_path})
+    log('D36', logdata)
     gpparser = GPPolParser()
     xml_root = ElementTree.parse(xml_path).getroot()
     gpparser.load_xml(xml_root)
@@ -53,13 +53,15 @@ def load_pol_preg(polfile):
     '''
     Parse PReg file and return its preg object
     '''
-    logging.debug(slogm('Loading PReg from .pol file: {}'.format(polfile)))
+    logdata = dict({'polfile': polfile})
+    log('D31', logdata)
     gpparser = GPPolParser()
     data = None
 
     with open(polfile, 'rb') as f:
         data = f.read()
-        logging.debug('PReg length: {}'.format(len(data)))
+        logdata = dict({'polfile': polfile, 'length': len(data)})
+        log('D33', logdata)
         gpparser.parse(data)
 
     #print(gpparser.pol_file.__ndr_print__())
@@ -80,7 +82,8 @@ def preg_keymap(preg):
 
 def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_name='Unknown'):
     pregfile = load_preg(preg)
-    logging.info(slogm('Loaded PReg {}'.format(preg)))
+    logdata = dict({'pregfile': preg})
+    log('D32', logdata)
     storage = registry_factory(reg_name, reg_path)
     for entry in pregfile.entries:
         if not sid:
@@ -91,14 +94,16 @@ def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_nam
 
 class entry:
     def __init__(self, e_keyname, e_valuename, e_type, e_data):
-        logging.debug(slogm('Entry init e_keyname {}'.format(e_keyname)))
-        logging.debug(slogm('Entry init e_valuename {}'.format(e_valuename)))
-        logging.debug(slogm('Entry init e_type {}'.format(e_type)))
-        logging.debug(slogm('Entry init e_data {}'.format(e_data)))
         self.keyname = e_keyname
         self.valuename = e_valuename
         self.type = e_type
         self.data = e_data
+        logdata = dict()
+        logdata['keyname'] = self.keyname
+        logdata['valuename'] = self.valuename
+        logdata['type'] = self.type
+        logdata['data'] = self.data
+        log('D22', logdata)
 
 class pentries:
     def __init__(self):

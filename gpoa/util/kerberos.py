@@ -17,11 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import logging
 import subprocess
 
 from .util import get_machine_name
-from .logging import slogm
+from .logging import log
 
 
 def machine_kinit(cache_name=None):
@@ -78,8 +77,8 @@ def check_krb_ticket():
         logging.info(output)
         result = True
     except:
-        logging.error(slogm('Kerberos ticket check unsuccessful'))
+        log('E14')
 
-    logging.debug(slogm('Ticket check succeed'))
+    log('D17')
 
     return result
