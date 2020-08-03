@@ -13,6 +13,7 @@ BuildArch: noarch
 Requires: control
 
 BuildRequires: rpm-build-python3
+BuildRequires: python-tools-i18n
 Requires: python3-module-rpm
 Requires: python3-module-dbus
 Requires: oddjob-%name >= 0.2.0
@@ -37,6 +38,11 @@ mkdir -p \
 	%buildroot%python3_sitelibdir/
 cp -r gpoa \
 	%buildroot%python3_sitelibdir/
+
+# Generate translations
+pymsgfmt \
+	%buildroot%python3_sitelibdir/locale/ru_RU/LC_MESSAGES/gpoa.po \
+	%buildroot%python3_sitelibdir/locale/ru_RU/LC_MESSAGES/gpoa.mo
 
 mkdir -p \
 	%buildroot%_bindir/ \
