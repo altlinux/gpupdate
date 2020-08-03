@@ -20,6 +20,8 @@
 import argparse
 import os
 import signal
+import gettext
+import locale
 
 from backend import backend_factory
 from frontend.frontend_manager import frontend_manager, determine_username
@@ -78,6 +80,9 @@ class gpoa_controller:
             self.is_machine = True
         set_loglevel(self.__args.loglevel)
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
+        locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+        gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+        gettext.textdomain('gpoa')
 
         uname = get_process_user()
         uid = os.getuid()
