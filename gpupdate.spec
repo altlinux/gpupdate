@@ -41,8 +41,8 @@ cp -r gpoa \
 
 # Generate translations
 pymsgfmt \
-	%buildroot%python3_sitelibdir/locale/ru_RU/LC_MESSAGES/gpoa.po \
-	%buildroot%python3_sitelibdir/locale/ru_RU/LC_MESSAGES/gpoa.mo
+	-o %buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.mo \
+	%buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.po
 
 mkdir -p \
 	%buildroot%_bindir/ \
