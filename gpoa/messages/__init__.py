@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import gettext
+
 def info_code(code):
     info_ids = dict()
     info_ids[1] = 'Got GPO list for username'
@@ -81,7 +84,7 @@ def debug_code(code):
     debug_ids[24] = 'Looking for preference in machine part of GPT'
     debug_ids[25] = 'Re-caching Local Policy'
     debug_ids[26] = 'Adding HKCU entry'
-    debug_ids[27] = 'Skipping branch deletion key'
+    debug_ids[27] = 'Skipping HKLM branch deletion key'
     debug_ids[28] = 'Reading and merging machine preference'
     debug_ids[29] = 'Reading and merging user preference'
     debug_ids[30] = 'Found SYSVOL entry'
@@ -105,6 +108,7 @@ def debug_code(code):
     debug_ids[48] = 'Establishing connection with AD DC'
     debug_ids[49] = 'Started GPO replication from AD DC'
     debug_ids[50] = 'Finished GPO replication from AD DC'
+    debug_ids[51] = 'Skipping HKCU branch deletion key'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -121,7 +125,6 @@ def warning_code(code):
     warning_ids[3] = 'oddjobd is inaccessible'
     warning_ids[4] = 'No SYSVOL entry assigned to GPO'
     warning_ids[5] = 'ADP package is not installed - plugin will not be initialized'
-    warning_ids[6] = 'Skipping branch deletion key'
 
     return warning_ids.get(code, 'Unknown warning code')
 
@@ -148,7 +151,7 @@ def get_message(code):
     return retstr
 
 def message_with_code(code):
-    retstr = '[' + code[0:1] + code[1:].rjust(5, '0') + ']| ' + get_message(code)
+    retstr = '[' + code[0:1] + code[1:].rjust(5, '0') + ']| ' + gettext.gettext(get_message(code))
 
     return retstr
 
