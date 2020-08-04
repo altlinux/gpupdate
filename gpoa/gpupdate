@@ -18,7 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-
+import locale
+import gettext
 import subprocess
 import os
 import sys
@@ -130,6 +131,9 @@ def runner_factory(args, target):
 
 def main():
     args = parse_cli_arguments()
+    locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.textdomain('gpoa')
     set_loglevel(0)
     gpo_appliers = runner_factory(args, process_target(args.target))
 

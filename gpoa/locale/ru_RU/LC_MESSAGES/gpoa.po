@@ -1,0 +1,310 @@
+#
+# GPOA - GPO Applier for Linux
+#
+# Copyright (C) 2019-2020 BaseALT Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#domain "gpoa"
+
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.8.0\n"
+"Report-Msgid-Bugs-To: samba@lists.altlinux.org\n"
+"PO-Revision-Date: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain;charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+
+msgid "Don't start plugins"
+msgstr "Не запускать модули"
+
+# Info
+msgid "Got GPO list for username"
+msgstr "Получен список GPO для пользователя"
+
+msgid "Got GPO"
+msgstr "Получен объект групповой политики"
+
+msgid "Unknown info code"
+msgstr "Неизвестный код информационного сообщения"
+
+# Error
+msgid "Insufficient permissions to run gpupdate"
+msgstr "Недостаточно прав для запуска gpupdate"
+
+msgid "gpupdate will not be started"
+msgstr "gpupdate не будет запущен"
+
+msgid "Backend execution error"
+msgstr "Ошибка бэкэнда"
+
+msgid "Error occurred while running frontend manager"
+msgstr "Ошибка фронтенда"
+
+msgid "Error running GPOA for computer"
+msgstr "Ошибка запуска GPOA для машины"
+
+msgid "Error running GPOA for user"
+msgstr "Ошибка запуска GPOA для пользователя"
+
+msgid "Unable to initialize Samba backend"
+msgstr "Невозможно инициализировать бэкэнд Samba"
+
+msgid "Unable to initialize no-domain backend"
+msgstr "Невозможно инициализировать бэкэнд-заглушку"
+
+msgid "Error running ADP"
+msgstr "Ошибка во время работы ADP"
+
+msgid "Unable to determine DC hostname"
+msgstr "Невозможно определить имя контроллера домена"
+
+msgid "Error occured while running applier with user privileges"
+msgstr "Ошибка во время работы applier в контексте пользователя"
+
+msgid "Unable to initialize backend"
+msgstr "Невозможно инициализировать бэкэнд"
+
+msgid "Not sufficient privileges to run machine appliers"
+msgstr "Недостаточно прав для запуска appliers для машины"
+
+msgid "Kerberos ticket check failed"
+msgstr "Проверка билета Kerberos закончилась неудачно"
+
+msgid "Unable to retrieve domain name via CLDAP query"
+msgstr "Не удалось определить имя домена AD через запрос к LDAP"
+
+msgid "Error getting SID using wbinfo, will use SID from cache"
+msgstr "Не удалось определить SID с использованием утилиты wbinfo, будет использоваться фиктивный/кэшированный SID"
+
+msgid "Unable to get GPO list for user from AD DC"
+msgstr "Не удалось получить список групповых политик для пользователя от контроллера домена AD"
+
+msgid "Error getting XDG_DESKTOP_DIR"
+msgstr "Не удалось получить значение XDG_DESKTOP_DIR"
+
+msgid "Error occured while running user applier in administrator context"
+msgstr "Ошибка выполнения applier в контексте администратора"
+
+msgid "Error occured while running user applier in user context (with dropped privileges)"
+msgstr "Ошибка работы пользовательского applier в пользовательском контексте (со сбросом привилегий процесса)"
+
+msgid "No reply from oddjobd GPOA runner via D-Bus for current user"
+msgstr "Не получен ответ от oddjobd для текущего пользователя"
+
+msgid "No reply from oddjobd GPOA runner via D-Bus for computer"
+msgstr "Не получен ответ от oddjobd для компьютера"
+
+msgid "No reply from oddjobd GPOA runner via D-Bus for user"
+msgstr "Не получен ответ от oddjobd для пользователя"
+
+msgid "Error occured while running machine applier"
+msgstr "Ошибка во время работы applier для машины"
+
+msgid "Error occured while initializing user applier"
+msgstr "Ошибка инициализации пользовательского applier"
+
+msgid "Unknown error code"
+msgstr "Неизвестный код ошибки"
+
+# Debug
+msgid "The GPOA process was started for user"
+msgstr "Произведён запуск GPOA для обновления политик пользователя"
+
+msgid "Username is not specified - will use username of the current process"
+msgstr "Имя пользователя не указано - будет использовано имя владельца процесса"
+
+msgid "Initializing plugin manager"
+msgstr "Инициализация плагинов"
+
+msgid "ADP plugin initialized"
+msgstr "Инициализирован плагин ADP"
+
+msgid "Running ADP plugin"
+msgstr "Запущен плагин ADP"
+
+msgid "Starting GPOA for user via D-Bus"
+msgstr "Запускается GPOA для пользователя обращением к oddjobd через D-Bus"
+
+msgid "Cache directory determined"
+msgstr "Определена директория кэша Samba"
+
+msgid "Initializing local backend without domain"
+msgstr "Инициализация бэкэнда-заглушки"
+
+msgid "Initializing Samba backend for domain"
+msgstr "Инициализация бэкэнда Samba"
+
+msgid "Group Policy target set for update"
+msgstr "Групповые политики будут обновлены для указанной цели"
+
+msgid "Starting GPOA for computer via D-Bus"
+msgstr "Запускается GPOA для компьютера обращением к oddjobd через D-Bus"
+
+msgid "Got exit code"
+msgstr "Получен код возврата из утилиты"
+
+msgid "Starting GPOA via D-Bus"
+msgstr "Запускается GPOA обращением к oddjobd через D-Bus"
+
+msgid "Starting GPOA via command invocation"
+msgstr "GPOA запускается с помощью прямого вызова приложения"
+
+msgid "Username for frontend is determined"
+msgstr "Определено имя пользователя для фронтенда"
+
+msgid "Applying computer part of settings"
+msgstr "Применение настроек для машины"
+
+msgid "Kerberos ticket check succeed"
+msgstr "Проверка билета Kerberos прошла успешно"
+
+msgid "Found AD domain via CLDAP query"
+msgstr "Имя домена Active Directory успешно определено при запросе к LDAP"
+
+msgid "Setting info"
+msgstr "Установка вспомогательной переменной"
+
+msgid "Initializing cache"
+msgstr "Инициализация кэша"
+
+msgid "Set operational SID"
+msgstr "Установка рабочего SID"
+
+msgid "Got PReg entry"
+msgstr "Получен ключ реестра"
+
+msgid "Looking for preference in user part of GPT"
+msgstr "Поиск настроек в пользовательской части GPT"
+
+msgid "Looking for preference in machine part of GPT"
+msgstr "Поиск настроек в машинной части GPT"
+
+msgid "Re-caching Local Policy"
+msgstr "Обновление кэша локальной политики"
+
+msgid "Adding HKCU entry"
+msgstr "Слияние ключа в пользовательскую (HKCU) часть реестра"
+
+msgid "Skipping HKLM branch deletion key"
+msgstr "Пропускаем специальный ключ удаления ветви реестра HKLM"
+
+msgid "Reading and merging machine preference"
+msgstr "Вычитывание и слияние машинных настроек"
+
+msgid "Reading and merging user preference"
+msgstr "Вычитывание и слияние пользовательских настроек"
+
+msgid "Found SYSVOL entry"
+msgstr "Найден путь SYSVOL"
+
+msgid "Trying to load PReg from .pol file"
+msgstr "Пробуем загрузить ключи реестра из .pol файла"
+
+msgid "Finished reading PReg from .pol file"
+msgstr "Вычитаны ключи реестра из .pol файла"
+
+msgid "Determined length of PReg file"
+msgstr "Определена длина .pol файла"
+
+msgid "Merging machine settings from PReg file"
+msgstr "Слияние машинных настроек из .pol файла"
+
+msgid "Merging machine (user part) settings from PReg file"
+msgstr "Слияние пользовательской части машинных настроек из .pol файла"
+
+msgid "Loading PReg from XML"
+msgstr "Загружаем ключи реестра из XML"
+
+msgid "Setting process permissions"
+msgstr "Установка прав процесса"
+
+msgid "Samba DC setting is overriden by user setting"
+msgstr "Используется указанный пользователем контроллер домена AD"
+
+msgid "Saving information about drive mapping"
+msgstr "Сохранение информации о привязках дисков"
+
+msgid "Saving information about printer"
+msgstr "Сохранение информации о принтерах"
+
+msgid "Saving information about link"
+msgstr "Сохранение информации о ярлычках"
+
+msgid "Saving information about folder"
+msgstr "Сохранение информации о папках"
+
+msgid "No value cached for object"
+msgstr "Отсутствует кэшированное значение для объекта"
+
+msgid "Key is already present in cache, will update the value"
+msgstr "Ключ уже существует, его значение будет обновлено"
+
+msgid "GPO update started"
+msgstr "Начато обновление GPO"
+
+msgid "GPO update finished"
+msgstr "Завершено обновление GPO"
+
+msgid "Retrieving list of GPOs to replicate from AD DC"
+msgstr "Получение списка GPO для репликации с контроллера домена AD"
+
+msgid "Establishing connection with AD DC"
+msgstr "Установка соединения с контроллером домена AD"
+
+msgid "Started GPO replication from AD DC"
+msgstr "Начата репликация GPO от контроллера домена AD"
+
+msgid "Finished GPO replication from AD DC"
+msgstr "Завершена репликация GPO от контроллера домена AD"
+
+msgid "Skipping HKCU branch deletion key"
+msgstr "Пропускаем специальный ключ удаления ветви реестра HKCU"
+
+msgid "Unknown debug code"
+msgstr "Неизвестный отладочный код"
+
+# Warning
+msgid "Unable to perform gpupdate for non-existent user, will update machine settings"
+msgstr "Невозможно запустить gpupdate для несуществующего пользователя, будут обновлены настройки машины"
+
+msgid "Current permissions does not allow to perform gpupdate for designated user. Will update current user settings"
+msgstr "Текущий уровень привилегий не позволяет выполнить gpupdate для указанного пользователя. Будут обновлены настройки текущего пользователя."
+
+msgid "oddjobd is inaccessible"
+msgstr "oddjobd недоступен"
+
+msgid "No SYSVOL entry assigned to GPO"
+msgstr "Объект групповой политики не имеет привязанного пути на SYSVOL"
+
+
+msgid "ADP package is not installed - plugin will not be initialized"
+msgstr "Пакет ADP не установлен, плагин не будет инициализирован"
+
+msgid "Unknown warning code"
+msgstr "Неизвестный код предупреждения"
+
+# Fatal
+msgid "Unable to refresh GPO list"
+msgstr "Невозможно обновить список объектов групповых политик"
+
+msgid "Unknown fatal code"
+msgstr "Неизвестный код фатальной ошибки"
+
+# get_message
+msgid "Unknown message type, no message assigned"
+msgstr "Неизвестный тип сообщения"
+

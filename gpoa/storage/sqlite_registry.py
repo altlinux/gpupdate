@@ -235,7 +235,7 @@ class sqlite_registry(registry):
             self._hklm_upsert(pentry)
         else:
             logdata = dict({'key': pentry.hive_key})
-            log('W6', logdata)
+            log('D27', logdata)
 
     def add_hkcu_entry(self, preg_entry, sid, policy_name):
         '''
@@ -247,7 +247,7 @@ class sqlite_registry(registry):
             log('D26', logdata)
             self._hkcu_upsert(hkcu_pentry)
         else:
-            log('D27', logdata)
+            log('D51', logdata)
 
     def add_shortcut(self, sid, sc_obj, policy_name):
         '''
