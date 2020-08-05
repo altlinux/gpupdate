@@ -53,6 +53,8 @@ def error_code(code):
     error_ids[23] = 'No reply from oddjobd GPOA runner via D-Bus for user'
     error_ids[24] = 'Error occured while running machine applier'
     error_ids[25] = 'Error occured while initializing user applier'
+    error_ids[26] = 'Error merging machine GPT'
+    error_ids[27] = 'Error merging user GPT'
 
     return error_ids.get(code, 'Unknown error code')
 
