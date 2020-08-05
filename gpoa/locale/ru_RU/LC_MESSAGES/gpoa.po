@@ -117,6 +117,12 @@ msgstr "Ошибка во время работы applier для машины"
 msgid "Error occured while initializing user applier"
 msgstr "Ошибка инициализации пользовательского applier"
 
+msgid "Error merging machine GPT"
+msgstr "Ошибка слияния машинной групповой политики"
+
+msgid "Error merging user GPT"
+msgstr "Ошибка слияния пользовательской групповой политики"
+
 msgid "Unknown error code"
 msgstr "Неизвестный код ошибки"
 
