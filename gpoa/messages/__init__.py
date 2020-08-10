@@ -55,6 +55,8 @@ def error_code(code):
     error_ids[25] = 'Error occured while initializing user applier'
     error_ids[26] = 'Error merging machine GPT'
     error_ids[27] = 'Error merging user GPT'
+    error_ids[28] = 'Error merging machine part of GPT'
+    error_ids[29] = 'Error merging user part of GPT'
 
     return error_ids.get(code, 'Unknown error code')
 

@@ -123,6 +123,12 @@ msgstr "Ошибка слияния машинной групповой поли
 msgid "Error merging user GPT"
 msgstr "Ошибка слияния пользовательской групповой политики"
 
+msgid "Error merging machine part of GPT"
+msgstr "Ошибка слияния машинной части групповой политики"
+
+msgid "Error merging user part of GPT"
+msgstr "Ошибка слияния пользовательской части групповой политики"
+
 msgid "Unknown error code"
 msgstr "Неизвестный код ошибки"
 
