@@ -67,7 +67,9 @@ class smbcreds (smbopts):
             else:
                 self.selected_dc = samba_dc
         except Exception as exc:
-            log('E10')
+            logdata = dict()
+            logdata['msg'] = str(exc)
+            log('E10', logdata)
             raise exc
 
         return self.selected_dc
