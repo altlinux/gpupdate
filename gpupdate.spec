@@ -54,7 +54,7 @@ ln -s %python3_sitelibdir/gpoa/gpoa \
 	%buildroot%_sbindir/gpoa
 ln -s %python3_sitelibdir/gpoa/gpupdate \
 	%buildroot%_bindir/gpupdate
-cp dist/gpupdate-setup \
+ln -s %python3_sitelibdir/gpoa/gpupdate-setup \
 	%buildroot%_sbindir/gpupdate-setup
 
 mkdir -p %buildroot%_datadir/%name
@@ -82,6 +82,7 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 %_bindir/gpupdate
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpoa
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate
+%attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate-setup
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
