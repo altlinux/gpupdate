@@ -64,6 +64,8 @@ class Folder:
     def action(self):
         if self.action == FileAction.CREATE:
             self._create_action()
+        if self.action == FileAction.UPDATE:
+            self._create_action()
         if self.action == FileAction.DELETE:
             self._delete_action()
         if self.action == FileAction.REPLACE:
