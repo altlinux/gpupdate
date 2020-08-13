@@ -62,10 +62,10 @@ def read_folders(folders_file):
     for fld in get_xml_root(folders_file):
         props = fld.find('Properties')
         fld_obj = folderentry(props.get('path'))
-        fld_obj.set_action(action_letter2enum(props.get('action')))
-        fld_obj.set_delete_folder(folder_int2bool(props.get('deleteFolder')))
-        fld_obj.set_delete_sub_folder(folder_int2bool(props.get('deleteSubFolders')))
-        fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles')))
+        fld_obj.set_action(action_letter2enum(props.get('action', default='C')))
+        fld_obj.set_delete_folder(folder_int2bool(props.get('deleteFolder', default=1)))
+        fld_obj.set_delete_sub_folders(folder_int2bool(props.get('deleteSubFolders', default=1)))
+        fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles', default=1)))
 
         folders.append(fld_obj)
 
