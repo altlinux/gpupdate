@@ -65,8 +65,8 @@ class folder_applier_user(applier_frontend):
 
     def run(self):
         for directory_obj in self.folders:
-            fld = Folder(directory_obj)
-            fld.action()
+            fld = Folder(directory_obj, self.username)
+            fld.act()
 
     def admin_context_apply(self):
         if self.__module_enabled:
