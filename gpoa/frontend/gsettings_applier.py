@@ -98,7 +98,11 @@ class GSettingsMapping:
             self.gsettings_schema_key = self.schema.get_key(self.gsettings_key)
             self.gsettings_type = self.gsettings_schema_key.get_value_type()
         except Exception as exc:
-            print(exc)
+            logdata = dict()
+            logdata['hive_key'] = self.hive_key
+            logdata['gsettings_schema'] = self.gsettings_schema
+            logdata['gsettings_key'] = self.gsettings_key
+            logging.warning(slogm('Unable to resolve GSettings parameter {}.{}'.format(self.gsettings_schema, self.gsettings_key)))
 
     def preg2gsettings(self):
         '''
