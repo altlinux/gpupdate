@@ -81,7 +81,7 @@ class folderentry:
         self.path = path
         self.action = FileAction.CREATE
         self.delete_folder = False
-        self.delete_sub_folder = False
+        self.delete_sub_folders = False
         self.delete_files = False
 
     def set_action(self, action):
@@ -90,8 +90,8 @@ class folderentry:
     def set_delete_folder(self, del_bool):
         self.delete_folder = del_bool
 
-    def set_delete_sub_folder(self, del_bool):
-        self.delete_sub_folder = del_bool
+    def set_delete_sub_folders(self, del_bool):
+        self.delete_sub_folders = del_bool
 
     def set_delete_files(self, del_bool):
         self.delete_files = del_bool
