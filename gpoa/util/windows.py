@@ -60,7 +60,7 @@ class smbcreds (smbopts):
             if samba_dc != dc_fqdn and dc_fqdn is not None:
                 logdata = dict()
                 logdata['dc'] = samba_dc
-                logdata['user_dc'] = dc
+                logdata['user_dc'] = dc_fqdn
                 log('D38', logdata)
 
                 self.selected_dc = dc_fqdn
