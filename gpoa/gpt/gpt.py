@@ -207,38 +207,50 @@ class gpt:
         Merge machine and user (if sid provided) settings to storage.
         '''
         if self.sid == self.storage.get_info('machine_sid'):
-            # Merge machine settings to registry if possible
-            for preference_name, preference_path in self.settings['machine'].items():
-                if preference_path:
-                    preference_type = get_preftype(preference_path)
-                    logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                    log('D28', logdata)
-                    preference_parser = get_parser(preference_type)
-                    preference_merger = get_merger(preference_type)
-                    preference_objects = preference_parser(preference_path)
-                    preference_merger(self.storage, self.sid, preference_objects, self.name)
-            if self.settings['user']['regpol']:
-                mulogdata = dict({'polfile': self.settings['machine']['regpol']})
-                log('D35', mulogdata)
-                util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
-            if self.settings['machine']['regpol']:
-                mlogdata = dict({'polfile': self.settings['machine']['regpol']})
-                log('D34', mlogdata)
-                util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
+            try:
+                # Merge machine settings to registry if possible
+                for preference_name, preference_path in self.settings['machine'].items():
+                    if preference_path:
+                        preference_type = get_preftype(preference_path)
+                        logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                        log('D28', logdata)
+                        preference_parser = get_parser(preference_type)
+                        preference_merger = get_merger(preference_type)
+                        preference_objects = preference_parser(preference_path)
+                        preference_merger(self.storage, self.sid, preference_objects, self.name)
+                if self.settings['user']['regpol']:
+                    mulogdata = dict({'polfile': self.settings['machine']['regpol']})
+                    log('D35', mulogdata)
+                    util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
+                if self.settings['machine']['regpol']:
+                    mlogdata = dict({'polfile': self.settings['machine']['regpol']})
+                    log('D34', mlogdata)
+                    util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
+            except Exception as exc:
+                logdata = dict()
+                logdata['gpt'] = self.name
+                logdata['msg'] = str(exc)
+                log('E28', logdata)
         else:
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
             policy_mode = upm2str(self.get_policy_mode())
             if 'Merge' == policy_mode or 'Not configured' == policy_mode:
-                for preference_name, preference_path in self.settings['user'].items():
-                    if preference_path:
-                        preference_type = get_preftype(preference_path)
-                        logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                        log('D29', logdata)
-                        preference_parser = get_parser(preference_type)
-                        preference_merger = get_merger(preference_type)
-                        preference_objects = preference_parser(preference_path)
-                        preference_merger(self.storage, self.sid, preference_objects, self.name)
+                try:
+                    for preference_name, preference_path in self.settings['user'].items():
+                        if preference_path:
+                            preference_type = get_preftype(preference_path)
+                            logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                            log('D29', logdata)
+                            preference_parser = get_parser(preference_type)
+                            preference_merger = get_merger(preference_type)
+                            preference_objects = preference_parser(preference_path)
+                            preference_merger(self.storage, self.sid, preference_objects, self.name)
+                except Exception as exc:
+                    logdata = dict()
+                    logdata['gpt'] = self.name
+                    logdata['msg'] = str(exc)
+                    log('E29', logdata)
 
 def find_dir(search_path, name):
     '''

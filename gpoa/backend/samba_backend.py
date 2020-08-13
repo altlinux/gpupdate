@@ -68,7 +68,12 @@ class samba_backend(applier_backend):
         self.storage.wipe_hklm()
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
         for gptobj in machine_gpts:
-            gptobj.merge()
+            try:
+                gptobj.merge()
+            except Exception as exc:
+                logdata = dict()
+                logdata['msg'] = str(exc)
+                log('E26', logdata)
 
         # Load user GPT values in case user's name specified
         # This is a buggy implementation and should be tested more
@@ -76,7 +81,12 @@ class samba_backend(applier_backend):
             user_gpts = self._get_gpts(self.username, self.sid)
             self.storage.wipe_user(self.sid)
             for gptobj in user_gpts:
-                gptobj.merge()
+                try:
+                    gptobj.merge()
+                except Exception as exc:
+                    logdata = dict()
+                    logdata['msg'] = str(exc)
+                    log('E27', logdata)
 
     def _check_sysvol_present(self, gpo):
         '''
