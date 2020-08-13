@@ -62,6 +62,9 @@ def parse_arguments():
     arguments.add_argument('--noplugins',
         action='store_true',
         help='Don\'t start plugins')
+    arguments.add_argument('--list-backends',
+            action='store_true',
+            help='Show list of available backends')
     arguments.add_argument('--loglevel',
         type=int,
         default=4,
@@ -100,6 +103,10 @@ class gpoa_controller:
         '''
         GPOA controller entry point
         '''
+        if self.__args.list_backends:
+            print('local')
+            print('samba')
+            return
         self.__kinit_successful = machine_kinit(self.cache_path)
         self.start_plugins()
         self.start_backend()

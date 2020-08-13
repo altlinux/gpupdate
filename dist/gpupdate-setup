@@ -67,6 +67,19 @@ def get_default_policy_name():
 
     return localpolicy
 
+def get_backends():
+    command = ['/usr/sbin/gpoa', '--list-backends']
+    backends = list()
+    out = list()
+
+    with subprocess.Popen(command, stdout=subprocess.PIPE) as proc:
+        out = proc.stdout.read().decode('utf-8')
+        proc.wait()
+    for line in out:
+        backends.append(line.replace('\n', ''))
+
+    return backends
+
 def parse_arguments():
     '''
     Parse CLI arguments.
@@ -78,9 +91,15 @@ def parse_arguments():
 
     parser_list = subparsers.add_parser('list',
         help='List avalable types of local policy')
+    parser_list = subparsers.add_parser('list-backends',
+        help='Show list of available backends')
     parser_status = subparsers.add_parser('status',
         help='Show current Group Policy status')
     parser_enable = subparsers.add_parser('enable',
+        nargs='?',
+        default='samba',
+        const='samba',
+        choices=['local', 'samba', 'freeipa'],
         help='Enable Group Policy subsystem')
     parser_disable = subparsers.add_parser('disable',
         help='Disable Group Policy subsystem')
@@ -203,30 +222,43 @@ def main():
     if arguments.action == 'list':
         for entry in get_policy_variants():
             print(entry.rpartition('/')[2])
+        return
+
+    if arguments.action == 'list-backends':
+        backends = get_backends()
+        for backend in backends:
+            print(backend)
+        return
 
     if arguments.action == 'status' or arguments.action == None:
         if get_status():
             print('enabled')
         else:
             print('disabled')
+            return
 
     if arguments.action == 'write':
         if arguments.status == 'enable' or arguments.status == '#t':
             enable_gp(arguments.localpolicy)
         if arguments.status == 'disable' or arguments.status == '#f':
             disable_gp()
+        return
 
     if arguments.action == "enable":
         enable_gp(arguments.localpolicy)
+        return
 
     if arguments.action == "disable":
         disable_gp()
+        return
 
     if arguments.action == 'active-policy':
         print(get_active_policy_name())
+        return
 
     if arguments.action == 'default-policy':
         print(get_default_policy_name())
+        return
 
 if __name__ == '__main__':
     main()
