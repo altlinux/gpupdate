@@ -72,9 +72,12 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 
 %preun
 %preun_service gpupdate
+%preun_service gpupdate-user
 
 %post
 %post_service gpupdate
+%post_service gpupdate-user
+rm -f /var/cache/gpupdate/registry.sqlite
 
 %files
 %_sbindir/gpoa
