@@ -122,7 +122,7 @@ class sqlite_registry(registry):
             , Column('policy_name', String)
             , Column('action', String)
             , Column('delete_folder', String)
-            , Column('delete_sub_folder', String)
+            , Column('delete_sub_folders', String)
             , Column('delete_files', String)
             , UniqueConstraint('sid', 'path')
         )
