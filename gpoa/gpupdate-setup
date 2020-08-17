@@ -237,49 +237,53 @@ def enable_gp(policy_name):
     # Enable gpupdate-setup.service for all users
     rollback_on_error(cmd_enable_gpupdate_user_service)
 
+def act_list():
+    for entry in get_policy_variants():
+        print(entry.rpartition('/')[2])
+
+def act_list_backends():
+    backends = get_backends()
+    for backend in backends:
+        print(backend)
+
+def act_status():
+    if get_status():
+        print('enabled')
+    else:
+        print('disabled')
+
+def act_write():
+    if arguments.status == 'enable' or arguments.status == '#t':
+        enable_gp(arguments.localpolicy)
+    if arguments.status == 'disable' or arguments.status == '#f':
+        disable_gp()
+
+def act_enable():
+    enable_gp(arguments.localpolicy)
+
+def act_active_policy():
+    print(get_active_policy_name())
+
+def act_default_policy():
+    print(get_default_policy_name())
+
 def main():
     arguments = parse_arguments()
 
-    if arguments.action == 'list':
-        for entry in get_policy_variants():
-            print(entry.rpartition('/')[2])
-        return
+    action = dict()
+    action['list'] = act_list
+    action['list-backends'] = act_list_backends
+    action['status'] = act_status
+    action['write'] = act_write
+    action['enable'] = act_enable
+    action['disable'] = disable_gp
+    action['active-policy'] = act_active_policy
+    action['default-policy'] = act_default_policy
 
-    if arguments.action == 'list-backends':
-        backends = get_backends()
-        for backend in backends:
-            print(backend)
-        return
-
-    if arguments.action == 'status' or arguments.action == None:
-        if get_status():
-            print('enabled')
-        else:
-            print('disabled')
-            return
-
-    if arguments.action == 'write':
-        if arguments.status == 'enable' or arguments.status == '#t':
-            enable_gp(arguments.localpolicy)
-        if arguments.status == 'disable' or arguments.status == '#f':
-            disable_gp()
-        return
-
-    if arguments.action == "enable":
-        enable_gp(arguments.localpolicy)
-        return
-
-    if arguments.action == "disable":
-        disable_gp()
-        return
-
-    if arguments.action == 'active-policy':
-        print(get_active_policy_name())
-        return
-
-    if arguments.action == 'default-policy':
-        print(get_default_policy_name())
-        return
+    if arguments.action == None:
+        action['status']()
+    else:
+        action[arguments.action]()
 
 if __name__ == '__main__':
     main()
