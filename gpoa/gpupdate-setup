@@ -25,7 +25,8 @@ import subprocess
 
 import re
 
-from gpoa.util.samba import smbopts
+from util.samba import smbopts
+from util.util import runcmd
 
 
 def command(args):
@@ -126,6 +127,9 @@ def parse_arguments():
     return parser.parse_args()
 
 def get_policy_entries(directory):
+    '''
+    Get list of directories representing "Local Policy" templates.
+    '''
     filtered_entries = list()
     if os.path.isdir(directory):
         entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
@@ -181,16 +185,26 @@ def get_active_policy_name():
 
 
 def disable_gp():
+    cmd_set_global_policy = ['/usr/sbin/control', 'system-policy', 'global']
+    cmd_set_local_policy = ['/usr/sbin/control', 'system-policy', 'local']
+    cmd_disable_gpupdate_service = ['/bin/systemctl', 'disable', 'gpupdate.service']
+    cmd_disable_gpupdate_user_service = ['/bin/systemctl', '--global', 'disable', 'gpupdate-user.service']
+
     if from_command('/usr/sbin/control system-auth') != 'local':
-        command('/usr/sbin/control system-policy global')
+        runcmd(cmd_set_global_policy)
     else:
-        command('/usr/sbin/control system-policy local')
-    command('systemctl disable gpupdate.service')
-    command('systemctl --global disable gpupdate-user.service')
+        runcmd(cmd_set_local_policy)
+    runcmd(cmd_disable_gpupdate_service)
+    runcmd(cmd_disable_gpupdate_user_service)
 
 def enable_gp(policy_name):
     policy_dir = '/usr/share/local-policy'
     etc_policy_dir = '/etc/local-policy'
+    cmd_set_gpupdate_policy = ['/usr/sbin/control', 'system-policy', 'gpupdate']
+    cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel 5']
+    cmd_enable_gpupdate_service = ['/bin/systemctl', 'enable', 'gpupdate.service']
+    cmd_enable_gpupdate_user_service = ['/bin/systemctl', '--global', 'enable', 'gpupdate-user.service']
+
     target_policy_name = get_default_policy_name()
     if policy_name:
         if validate_policy_name(policy_name):
@@ -210,11 +224,17 @@ def enable_gp(policy_name):
         os.symlink(default_policy_name, active_policy_name)
 
     # Enable oddjobd_gpupdate in PAM config
-    command('/usr/sbin/control system-policy gpupdate')
+    if 0 != runcmd(cmd_set_gpupdate_policy)[0]:
+        disable_gp()
     # Bootstrap the Group Policy engine
-    command('/usr/sbin/gpoa --nodomain --loglevel 5')
+    if 0 != runcmd(cmd_gpoa_nodomain)[0]:
+        disable_gp()
+    # Enable gpupdate.service
+    if 0 != runcmd(cmd_enable_gpupdate_service)[0]:
+        disable_gp()
     # Enable gpupdate-setup.service for all users
-    command('systemctl --global enable gpupdate-user.service')
+    if 0 != runcmd(cmd_enable_gpupdate_user_service)[0]:
+        disable_gp()
 
 def main():
     arguments = parse_arguments()
