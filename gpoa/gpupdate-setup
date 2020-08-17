@@ -229,17 +229,13 @@ def enable_gp(policy_name):
         os.symlink(default_policy_name, active_policy_name)
 
     # Enable oddjobd_gpupdate in PAM config
-    if 0 != runcmd(cmd_set_gpupdate_policy)[0]:
-        disable_gp()
+    rollback_on_error(cmd_set_gpupdate_policy)
     # Bootstrap the Group Policy engine
-    if 0 != runcmd(cmd_gpoa_nodomain)[0]:
-        disable_gp()
+    rollback_on_error(cmd_gpoa_nodomain):
     # Enable gpupdate.service
-    if 0 != runcmd(cmd_enable_gpupdate_service)[0]:
-        disable_gp()
+    rollback_on_error(cmd_enable_gpupdate_service)
     # Enable gpupdate-setup.service for all users
-    if 0 != runcmd(cmd_enable_gpupdate_user_service)[0]:
-        disable_gp()
+    rollback_on_error(cmd_enable_gpupdate_user_service)
 
 def main():
     arguments = parse_arguments()
