@@ -20,6 +20,7 @@
 import socket
 import os
 import pwd
+import subprocess
 from pathlib import Path
 
 
@@ -82,4 +83,17 @@ def mk_homedir_path(username, homedir_path):
         os.makedirs(longer_path, exist_ok=True)
         os.chown(homedir, uid=uid, gid=gid)
         longer_path = os.path.join(longer_path, elem)
+
+def runcmd(command_name):
+    '''
+    Run application.
+    '''
+    try:
+        with subprocess.Popen(command_name, stdout=subprocess.PIPE) as proc:
+            value = proc.stdout.read().decode('utf-8')
+            proc.wait()
+            rc = proc.returncode
+            return (rc, value)
+    except Exception as exc:
+        print(str(exc))
 
