@@ -183,6 +183,11 @@ def get_active_policy_name():
 
     return actual_policy_name
 
+def rollback_on_error(command_name):
+    if 0 != runcmd(command_name)[0]:
+        disable_gp()
+        return False
+    return True
 
 def disable_gp():
     cmd_set_global_policy = ['/usr/sbin/control', 'system-policy', 'global']
