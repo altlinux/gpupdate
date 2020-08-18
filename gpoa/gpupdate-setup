@@ -164,10 +164,25 @@ def get_policy_variants():
 def validate_policy_name(policy_name):
     return policy_name in [os.path.basename(d) for d in get_policy_variants()]
 
-def get_status():
-    systemd_unit_link = '/etc/systemd/system/multi-user.target.wants/gpupdate.service'
+def is_unit_enabled(unit_name):
+    command = ['/bin/systemctl', 'is-enabled', unit_name]
+    value = runcmd(command)
 
-    return os.path.islink(systemd_unit_link)
+    # If first line of stdout is equal to "enabled" and return code
+    # is zero then unit is considered enabled.
+    if value[1][0] == 'enabled' and value[0] == 0:
+        return True
+
+    return False
+
+def get_status():
+    is_gpupdate = is_unit_enabled('gpupdate.service')
+    is_gpupdate_user = is_unit_enabled('gpupdate-user.service')
+
+    if is_gpupdate and is_gpupdate_user:
+        return True
+
+    return False
 
 def get_active_policy_name():
     etc_policy_dir = '/etc/local-policy'
@@ -234,8 +249,12 @@ def enable_gp(policy_name):
     rollback_on_error(cmd_gpoa_nodomain):
     # Enable gpupdate.service
     rollback_on_error(cmd_enable_gpupdate_service)
+    if not is_unit_enabled('gpupdate.service'):
+        disable_gp()
     # Enable gpupdate-setup.service for all users
     rollback_on_error(cmd_enable_gpupdate_user_service)
+    if not is_unit_enabled('gpupdate-user.service'):
+        disable_gp()
 
 def act_list():
     for entry in get_policy_variants():
