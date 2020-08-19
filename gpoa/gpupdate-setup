@@ -97,13 +97,11 @@ def parse_arguments():
     parser_status = subparsers.add_parser('status',
         help='Show current Group Policy status')
     parser_enable = subparsers.add_parser('enable',
-        nargs='?',
-        default='samba',
-        const='samba',
-        choices=['local', 'samba', 'freeipa'],
         help='Enable Group Policy subsystem')
+
     parser_disable = subparsers.add_parser('disable',
         help='Disable Group Policy subsystem')
+
     parser_write = subparsers.add_parser('write',
         help='Operate on Group Policies (enable or disable)')
     parser_default = subparsers.add_parser('default-policy',
@@ -118,11 +116,25 @@ def parse_arguments():
         default=None,
         nargs='?',
         help='Name of local policy to enable')
+    parser_write.add_argument('backend',
+        default='samba',
+        type=str,
+        nargs='?',
+        const='backend',
+        choices=['local', 'samba'],
+        help='Backend (source of settings) name')
 
     parser_enable.add_argument('localpolicy',
         default=None,
         nargs='?',
         help='Name of local policy to enable')
+    parser_enable.add_argument('backend',
+        default='samba',
+        type=str,
+        nargs='?',
+        const='backend',
+        choices=['local', 'samba'],
+        help='Backend (source of settings) name')
 
     return parser.parse_args()
 
