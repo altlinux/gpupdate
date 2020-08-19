@@ -24,6 +24,7 @@ from gpt.folders import (
       FileAction
     , action_letter2enum
 )
+from util.windows import expand_windows_var
 
 def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_folders=False):
     for entry in path.iterdir():
@@ -45,8 +46,8 @@ def str2bool(boolstr):
     return False
 
 class Folder:
-    def __init__(self, folder_object):
-        self.folder_path = Path(folder_object.path)
+    def __init__(self, folder_object, username):
+        self.folder_path = Path(expand_windows_var(folder_object.path, username).replace('\\', '/'))
         self.action = action_letter2enum(folder_object.action)
         self.delete_files = str2bool(folder_object.delete_files)
         self.delete_folder = str2bool(folder_object.delete_folder)
@@ -61,8 +62,10 @@ class Folder:
             self.delete_folders,
             self.delete_sub_folders)
 
-    def action(self):
+    def act(self):
         if self.action == FileAction.CREATE:
+            self._create_action()
+        if self.action == FileAction.UPDATE:
             self._create_action()
         if self.action == FileAction.DELETE:
             self._delete_action()

@@ -62,10 +62,10 @@ def read_folders(folders_file):
     for fld in get_xml_root(folders_file):
         props = fld.find('Properties')
         fld_obj = folderentry(props.get('path'))
-        fld_obj.set_action(action_letter2enum(props.get('action')))
-        fld_obj.set_delete_folder(folder_int2bool(props.get('deleteFolder')))
-        fld_obj.set_delete_sub_folder(folder_int2bool(props.get('deleteSubFolders')))
-        fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles')))
+        fld_obj.set_action(action_letter2enum(props.get('action', default='C')))
+        fld_obj.set_delete_folder(folder_int2bool(props.get('deleteFolder', default=1)))
+        fld_obj.set_delete_sub_folders(folder_int2bool(props.get('deleteSubFolders', default=1)))
+        fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles', default=1)))
 
         folders.append(fld_obj)
 
@@ -81,7 +81,7 @@ class folderentry:
         self.path = path
         self.action = FileAction.CREATE
         self.delete_folder = False
-        self.delete_sub_folder = False
+        self.delete_sub_folders = False
         self.delete_files = False
 
     def set_action(self, action):
@@ -90,8 +90,8 @@ class folderentry:
     def set_delete_folder(self, del_bool):
         self.delete_folder = del_bool
 
-    def set_delete_sub_folder(self, del_bool):
-        self.delete_sub_folder = del_bool
+    def set_delete_sub_folders(self, del_bool):
+        self.delete_sub_folders = del_bool
 
     def set_delete_files(self, del_bool):
         self.delete_files = del_bool

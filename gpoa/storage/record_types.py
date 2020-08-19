@@ -132,7 +132,7 @@ class folder_entry(object):
         self.path = fobj.path
         self.action = fobj.action.value
         self.delete_folder = str(fobj.delete_folder)
-        self.delete_sub_folder = str(fobj.delete_sub_folder)
+        self.delete_sub_folders = str(fobj.delete_sub_folders)
         self.delete_files = str(fobj.delete_files)
 
     def update_fields(self):
@@ -143,7 +143,7 @@ class folder_entry(object):
         fields['policy_name'] = self.policy_name
         fields['action'] = self.action
         fields['delete_folder'] = self.delete_folder
-        fields['delete_sub_folder'] = self.delete_sub_folder
+        fields['delete_sub_folders'] = self.delete_sub_folders
         fields['delete_files'] = self.delete_files
 
         return fields
