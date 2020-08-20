@@ -27,21 +27,21 @@ from .util import (
 class GPConfig:
     __config_path = '/etc/gpupdate/gpupdate.ini'
 
-    def __init__(self, config_path=self.__config_path):
+    def __init__(self, config_path=None):
         if config_path:
             self.__config_path = config_path
 
         self.full_config = ConfigParser()
-        self.config.read(self.__config_path)
-        self.config = self.full_config['gpoa']
+        self.full_config.read(self.__config_path)
 
     def get_backend(self):
         '''
         Fetch the name of the backend from configuration file.
         '''
-        if 'backend' in self.config:
-            if self.config['backend'] in get_backends():
-                return self.config['backend']
+        if 'gpoa' in self.full_config:
+            if 'backend' in self.full_config['gpoa']:
+                if self.full_config['gpoa']['backend'] in get_backends():
+                    return self.full_config['gpoa']['backend']
 
         return 'local'
 
@@ -54,8 +54,9 @@ class GPConfig:
         Fetch the name of chosen Local Policy template from
         configuration file.
         '''
-        if 'local-policy' in self.config:
-            return self.config['local-policy']
+        if 'gpoa' in self.full_config:
+            if 'local-policy' in self.full_config['gpoa']:
+                return self.full_config['gpoa']['local-policy']
 
         return get_default_policy_name()
 
