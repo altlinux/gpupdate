@@ -21,6 +21,7 @@ from util.windows import smbcreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
 from util.logging import log
+from util.config import GPConfig
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''
@@ -31,11 +32,12 @@ def backend_factory(dc, username, is_machine, no_domain = False):
     '''
     back = None
     domain = None
+    config = GPConfig()
     if not no_domain:
         sc = smbcreds(dc)
         domain = sc.get_domain()
 
-    if domain:
+    if config.get_backend() == 'samba':
         ldata = dict({'domain': domain})
         log('D9', ldata)
         try:
@@ -43,7 +45,8 @@ def backend_factory(dc, username, is_machine, no_domain = False):
         except Exception as exc:
             logdata = dict({'error': str(exc)})
             log('E7', logdata)
-    else:
+
+    if config.get_backend() == 'local':
         log('D8')
         try:
             back = nodomain_backend()
