@@ -189,7 +189,7 @@ def enable_gp(policy_name, backend_type):
     policy_dir = '/usr/share/local-policy'
     etc_policy_dir = '/etc/local-policy'
     cmd_set_gpupdate_policy = ['/usr/sbin/control', 'system-policy', 'gpupdate']
-    cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel 5']
+    cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel', '5']
     cmd_enable_gpupdate_service = ['/bin/systemctl', 'enable', 'gpupdate.service']
     cmd_enable_gpupdate_user_service = ['/bin/systemctl', '--global', 'enable', 'gpupdate-user.service']
 
