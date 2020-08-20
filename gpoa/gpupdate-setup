@@ -177,6 +177,9 @@ def validate_policy_name(policy_name):
     return policy_name in [os.path.basename(d) for d in get_policy_variants()]
 
 def is_unit_enabled(unit_name):
+    '''
+    Check that designated systemd unit is enabled
+    '''
     command = ['/bin/systemctl', 'is-enabled', unit_name]
     value = runcmd(command)
 
@@ -188,6 +191,9 @@ def is_unit_enabled(unit_name):
     return False
 
 def get_status():
+    '''
+    Check that gpupdate.service and gpupdate-user.service are enabled.
+    '''
     is_gpupdate = is_unit_enabled('gpupdate.service')
     is_gpupdate_user = is_unit_enabled('gpupdate-user.service')
 
@@ -269,15 +275,24 @@ def enable_gp(policy_name):
         disable_gp()
 
 def act_list():
+    '''
+    Show list of available templates of Local Policy
+    '''
     for entry in get_policy_variants():
         print(entry.rpartition('/')[2])
 
 def act_list_backends():
+    '''
+    List backends supported by GPOA
+    '''
     backends = get_backends()
     for backend in backends:
         print(backend)
 
 def act_status():
+    '''
+    Check that group policy services are enabled
+    '''
     if get_status():
         print('enabled')
     else:
@@ -293,9 +308,15 @@ def act_enable():
     enable_gp(arguments.localpolicy)
 
 def act_active_policy():
+    '''
+    Print active Local Policy template name to stdout
+    '''
     print(get_active_policy_name())
 
 def act_default_policy():
+    '''
+    Print default Local Policy template name to stdout
+    '''
     print(get_default_policy_name())
 
 def main():
