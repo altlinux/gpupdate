@@ -120,7 +120,7 @@ def is_unit_enabled(unit_name, unit_global=False):
     rc = value[0]
     result = []
     try:
-        result = value[1][0]
+        result = value[1].replace('\n', '')
     except IndexError as exc:
         return False
 
