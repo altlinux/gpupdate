@@ -33,6 +33,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
     back = None
     domain = None
     config = GPConfig()
+    sc = None
     if not no_domain:
         sc = smbcreds(dc)
         domain = sc.get_domain()
