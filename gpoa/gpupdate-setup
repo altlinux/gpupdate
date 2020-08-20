@@ -106,11 +106,13 @@ def parse_arguments():
 def validate_policy_name(policy_name):
     return policy_name in [os.path.basename(d) for d in get_policy_variants()]
 
-def is_unit_enabled(unit_name):
+def is_unit_enabled(unit_name, unit_global=False):
     '''
     Check that designated systemd unit is enabled
     '''
     command = ['/bin/systemctl', 'is-enabled', unit_name]
+    if unit_global:
+        command = ['/bin/systemctl', '--global', 'is-enabled', unit_name]
     value = runcmd(command)
 
     # If first line of stdout is equal to "enabled" and return code
