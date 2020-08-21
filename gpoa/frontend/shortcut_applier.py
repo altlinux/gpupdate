@@ -99,7 +99,7 @@ class shortcut_applier(applier_frontend):
         if shortcuts:
             for sc in shortcuts:
                 write_shortcut(sc)
-            if len(shortcuts):
+            if len(shortcuts) > 0:
                 # According to ArchWiki - this thing is needed to rebuild MIME
                 # type cache in order file bindings to work. This rebuilds
                 # databases located in /usr/share/applications and
