@@ -99,13 +99,14 @@ class shortcut_applier(applier_frontend):
         if shortcuts:
             for sc in shortcuts:
                 write_shortcut(sc)
+            if len(shortcuts) > 0:
+                # According to ArchWiki - this thing is needed to rebuild MIME
+                # type cache in order file bindings to work. This rebuilds
+                # databases located in /usr/share/applications and
+                # /usr/local/share/applications
+                subprocess.check_call(['/usr/bin/update-desktop-database'])
         else:
             logging.debug(slogm('No shortcuts to process for {}'.format(self.storage.get_info('machine_sid'))))
-        # According to ArchWiki - this thing is needed to rebuild MIME
-        # type cache in order file bindings to work. This rebuilds
-        # databases located in /usr/share/applications and
-        # /usr/local/share/applications
-        subprocess.check_call(['/usr/bin/update-desktop-database'])
 
     def apply(self):
         if self.__module_enabled:
