@@ -76,6 +76,11 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 %post
 %post_service gpupdate
 
+# Remove storage in case we've lost compatibility between versions.
+# The storage will be regenerated on GPOA start.
+%triggerpostun -- %name > 0.7
+rm -f %_cachedir/%name/registry.sqlite
+
 %files
 %_sbindir/gpoa
 %_sbindir/gpupdate-setup
