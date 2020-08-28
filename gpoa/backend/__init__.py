@@ -31,14 +31,11 @@ def backend_factory(dc, username, is_machine, no_domain = False):
     policies enforced by domain administrators.
     '''
     back = None
-    domain = None
     config = GPConfig()
-    sc = None
-    if not no_domain:
+
+    if config.get_backend() == 'samba' and not no_domain:
         sc = smbcreds(dc)
         domain = sc.get_domain()
-
-    if config.get_backend() == 'samba':
         ldata = dict({'domain': domain})
         log('D9', ldata)
         try:
@@ -47,7 +44,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
             logdata = dict({'error': str(exc)})
             log('E7', logdata)
 
-    if config.get_backend() == 'local':
+    if config.get_backend() == 'local' or no_domain:
         log('D8')
         try:
             back = nodomain_backend()
