@@ -19,18 +19,20 @@
 import pathlib
 import os
 
+from .config import GPConfig
+
 
 def default_policy_path():
     '''
     Returns path pointing to Default Policy directory.
     '''
     local_policy_default = '/usr/share/local-policy/default'
-    etc_local_policy_default = '/etc/local-policy/active'
+    config = GPConfig()
 
     result_path = pathlib.Path(local_policy_default)
 
-    if os.path.exists(etc_local_policy_default):
-        result_path = pathlib.Path(etc_local_policy_default)
+    if os.path.exists(config.get_local_policy_template()):
+        result_path = pathlib.Path(config.get_local_policy_template())
 
     return pathlib.Path(result_path)
 

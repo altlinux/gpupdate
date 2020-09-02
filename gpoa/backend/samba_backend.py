@@ -27,6 +27,10 @@ from util.util import (
     get_machine_name,
     is_machine_name
 )
+from util.kerberos import (
+      machine_kinit
+    , machine_kdestroy
+)
 from util.windows import get_sid
 import util.preg
 from util.logging import log
@@ -34,6 +38,8 @@ from util.logging import log
 class samba_backend(applier_backend):
 
     def __init__(self, sambacreds, username, domain, is_machine):
+        self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
+        self.__kinit_successful = machine_kinit(self.cache_path)
         self.storage = registry_factory('registry')
         self.storage.set_info('domain', domain)
         machine_name = get_machine_name()
@@ -58,6 +64,10 @@ class samba_backend(applier_backend):
         self.cache_dir = self.sambacreds.get_cache_dir()
         logdata = dict({'cachedir': self.cache_dir})
         log('D7', logdata)
+
+    def __del__(self):
+        if self.__kinit_successful:
+            machine_kdestroy()
 
     def retrieve_and_store(self):
         '''

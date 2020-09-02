@@ -1,0 +1,305 @@
+#! /usr/bin/env python3
+#
+# GPOA - GPO Applier for Linux
+#
+# Copyright (C) 2019-2020 BaseALT Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import os
+import sys
+import argparse
+import subprocess
+
+import re
+
+from util.util import (
+      runcmd
+    , get_backends
+    , get_default_policy_name
+    , get_policy_entries
+    , get_policy_variants
+)
+from util.config import GPConfig
+
+
+class Runner:
+    __control_path = '/usr/sbin/control'
+    __systemctl_path = '/bin/systemctl'
+    __etc_policy_dir = '/etc/local-policy'
+    __usr_policy_dir = '/usr/share/local-policy'
+
+    def __init__(self):
+        self.etc_policies = get_policy_entries(self.__etc_policy_dir)
+        self.usr_policies = get_policy_entries(self.__usr_policy_dir)
+        self.arguments = parse_arguments()
+
+def parse_arguments():
+    '''
+    Parse CLI arguments.
+    '''
+    parser = argparse.ArgumentParser(prog='gpupdate-setup')
+    subparsers = parser.add_subparsers(dest='action',
+        metavar='action',
+        help='Group Policy management actions (default action is status)')
+
+    parser_list = subparsers.add_parser('list',
+        help='List avalable types of local policy')
+    parser_list = subparsers.add_parser('list-backends',
+        help='Show list of available backends')
+    parser_status = subparsers.add_parser('status',
+        help='Show current Group Policy status')
+    parser_enable = subparsers.add_parser('enable',
+        help='Enable Group Policy subsystem')
+
+    parser_disable = subparsers.add_parser('disable',
+        help='Disable Group Policy subsystem')
+
+    parser_write = subparsers.add_parser('write',
+        help='Operate on Group Policies (enable or disable)')
+    parser_default = subparsers.add_parser('default-policy',
+        help='Show name of default policy')
+    parser_active = subparsers.add_parser('active-policy',
+        help='Show name of policy enabled')
+
+    parser_write.add_argument('status',
+        choices=['enable', 'disable'],
+        help='Enable or disable Group Policies')
+    parser_write.add_argument('localpolicy',
+        default=None,
+        nargs='?',
+        help='Name of local policy to enable')
+    parser_write.add_argument('backend',
+        default='samba',
+        type=str,
+        nargs='?',
+        const='backend',
+        choices=['local', 'samba'],
+        help='Backend (source of settings) name')
+
+    parser_enable.add_argument('localpolicy',
+        default=None,
+        nargs='?',
+        help='Name of local policy to enable')
+    parser_enable.add_argument('backend',
+        default='samba',
+        type=str,
+        nargs='?',
+        const='backend',
+        choices=['local', 'samba'],
+        help='Backend (source of settings) name')
+
+    return parser.parse_args()
+
+def validate_policy_name(policy_name):
+    return policy_name in [os.path.basename(d) for d in get_policy_variants()]
+
+def is_unit_enabled(unit_name, unit_global=False):
+    '''
+    Check that designated systemd unit is enabled
+    '''
+    command = ['/bin/systemctl', 'is-enabled', unit_name]
+    if unit_global:
+        command = ['/bin/systemctl', '--global', 'is-enabled', unit_name]
+    value = runcmd(command)
+
+    # If first line of stdout is equal to "enabled" and return code
+    # is zero then unit is considered enabled.
+    rc = value[0]
+    result = []
+    try:
+        result = value[1].replace('\n', '')
+    except IndexError as exc:
+        return False
+
+    if result == 'enabled' and rc == 0:
+        return True
+
+    return False
+
+def get_status():
+    '''
+    Check that gpupdate.service and gpupdate-user.service are enabled.
+    '''
+    is_gpupdate = is_unit_enabled('gpupdate.service')
+    is_gpupdate_user = is_unit_enabled('gpupdate-user.service', unit_global=True)
+
+    if is_gpupdate and is_gpupdate_user:
+        return True
+
+    return False
+
+def get_active_policy_name():
+    '''
+    Show the name of an active Local Policy template
+    '''
+    config = GPConfig()
+    return os.path.basename(config.get_local_policy_template())
+
+def rollback_on_error(command_name):
+    '''
+    Disable group policy services in case command returns error code
+    '''
+    if 0 != runcmd(command_name)[0]:
+        disable_gp()
+        return False
+    return True
+
+def disable_gp():
+    '''
+    Consistently disable group policy services
+    '''
+    cmd_set_global_policy = ['/usr/sbin/control', 'system-policy', 'global']
+    cmd_set_local_policy = ['/usr/sbin/control', 'system-policy', 'local']
+    cmd_disable_gpupdate_service = ['/bin/systemctl', 'disable', 'gpupdate.service']
+    cmd_disable_gpupdate_user_service = ['/bin/systemctl', '--global', 'disable', 'gpupdate-user.service']
+    cmd_control_system_auth = ['/usr/sbin/control', 'system-auth']
+
+    config = GPConfig()
+
+    auth_result = 'local'
+    try:
+        auth_result = runcmd(cmd_control_system_auth)[1][0]
+    except Exception as exc:
+        print(str(exc))
+
+    if auth_result != 'local':
+        runcmd(cmd_set_global_policy)
+    else:
+        runcmd(cmd_set_local_policy)
+    runcmd(cmd_disable_gpupdate_service)
+    runcmd(cmd_disable_gpupdate_user_service)
+
+def enable_gp(policy_name, backend_type):
+    '''
+    Consistently enable group policy services
+    '''
+    policy_dir = '/usr/share/local-policy'
+    etc_policy_dir = '/etc/local-policy'
+    cmd_set_gpupdate_policy = ['/usr/sbin/control', 'system-policy', 'gpupdate']
+    cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel', '5']
+    cmd_enable_gpupdate_service = ['/bin/systemctl', 'enable', 'gpupdate.service']
+    cmd_enable_gpupdate_user_service = ['/bin/systemctl', '--global', 'enable', 'gpupdate-user.service']
+
+    config = GPConfig()
+
+    target_policy_name = get_default_policy_name()
+    if policy_name:
+        if validate_policy_name(policy_name):
+            target_policy_name = policy_name
+
+    print (target_policy_name)
+    default_policy_name = os.path.join(policy_dir, target_policy_name)
+
+    if not os.path.isdir(etc_policy_dir):
+        os.makedirs(etc_policy_dir)
+
+    config.set_local_policy_template(default_policy_name)
+
+    # Enable oddjobd_gpupdate in PAM config
+    if not rollback_on_error(cmd_set_gpupdate_policy):
+        return
+    # Bootstrap the Group Policy engine
+    if not rollback_on_error(cmd_gpoa_nodomain):
+        return
+    # Enable gpupdate.service
+    if not rollback_on_error(cmd_enable_gpupdate_service):
+        return
+    if not is_unit_enabled('gpupdate.service'):
+        disable_gp()
+        return
+    # Enable gpupdate-setup.service for all users
+    if not rollback_on_error(cmd_enable_gpupdate_user_service):
+        return
+    if not is_unit_enabled('gpupdate-user.service', unit_global=True):
+        disable_gp()
+        return
+
+def act_list():
+    '''
+    Show list of available templates of Local Policy
+    '''
+    for entry in get_policy_variants():
+        print(entry.rpartition('/')[2])
+
+def act_list_backends():
+    '''
+    List backends supported by GPOA
+    '''
+    backends = get_backends()
+    for backend in backends:
+        print(backend)
+
+def act_status():
+    '''
+    Check that group policy services are enabled
+    '''
+    if get_status():
+        print('enabled')
+    else:
+        print('disabled')
+
+def act_write(localpolicy, backend):
+    '''
+    Enable or disable group policy services
+    '''
+    if arguments.status == 'enable' or arguments.status == '#t':
+        enable_gp(localpolicy, backend)
+    if arguments.status == 'disable' or arguments.status == '#f':
+        disable_gp()
+
+def act_enable(localpolicy, backend):
+    '''
+    Enable group policy services
+    '''
+    enable_gp(localpolicy, backend)
+
+def act_active_policy():
+    '''
+    Print active Local Policy template name to stdout
+    '''
+    print(get_active_policy_name())
+
+def act_default_policy():
+    '''
+    Print default Local Policy template name to stdout
+    '''
+    print(get_default_policy_name())
+
+def main():
+    arguments = parse_arguments()
+
+    action = dict()
+    action['list'] = act_list
+    action['list-backends'] = act_list_backends
+    action['status'] = act_status
+    action['write'] = act_write
+    action['enable'] = act_enable
+    action['disable'] = disable_gp
+    action['active-policy'] = act_active_policy
+    action['default-policy'] = act_default_policy
+
+    if arguments.action == None:
+        action['status']()
+    elif arguments.action == 'enable':
+        action[arguments.action](arguments.localpolicy, arguments.backend)
+    elif arguments.action == 'write':
+        action[arguments.action](arguments.localpolicy)
+    else:
+        action[arguments.action]()
+
+if __name__ == '__main__':
+    main()
+

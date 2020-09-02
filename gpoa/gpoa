@@ -29,10 +29,6 @@ from plugin import plugin_manager
 from messages import message_with_code
 
 from util.util import get_machine_name
-from util.kerberos import (
-      machine_kinit
-    , machine_kdestroy
-)
 from util.users import (
     is_root,
     get_process_user
@@ -62,6 +58,9 @@ def parse_arguments():
     arguments.add_argument('--noplugins',
         action='store_true',
         help='Don\'t start plugins')
+    arguments.add_argument('--list-backends',
+            action='store_true',
+            help='Show list of available backends')
     arguments.add_argument('--loglevel',
         type=int,
         default=4,
@@ -69,7 +68,6 @@ def parse_arguments():
     return arguments.parse_args()
 
 class gpoa_controller:
-    __kinit_successful = False
     __args = None
 
     def __init__(self):
@@ -79,7 +77,6 @@ class gpoa_controller:
             user = get_machine_name()
             self.is_machine = True
         set_loglevel(self.__args.loglevel)
-        self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
         locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
         gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
         gettext.textdomain('gpoa')
@@ -100,11 +97,12 @@ class gpoa_controller:
         '''
         GPOA controller entry point
         '''
-        self.__kinit_successful = machine_kinit(self.cache_path)
+        if self.__args.list_backends:
+            print('local')
+            print('samba')
+            return
         self.start_plugins()
         self.start_backend()
-        if self.__kinit_successful:
-            machine_kdestroy()
 
     def start_backend(self):
         '''
