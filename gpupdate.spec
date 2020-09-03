@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.7.0
+Version: 0.8.0
 Release: alt1
 
 Summary: GPT applier
@@ -107,6 +107,13 @@ rm -f %_cachedir/%name/registry.sqlite
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Fri Sep 04 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.8.0-alt1
+- Improve gpo applier logging
+- Add new configuration file /etc/gpupdate/gpupdate.ini
+- Fix folders applier regression
+- kinit move to samba backend
+- Replace gpupdate-setup utility with new implementation
+
 * Wed Jul 01 2020 Evgeny Sinelnikov <sin@altlinux.org> 0.7.0-alt1
 - Add multiple appliers, part of which marks as experimental yet
 
