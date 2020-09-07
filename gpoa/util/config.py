@@ -49,6 +49,17 @@ class GPConfig:
         self.full_config['gpoa']['backend'] = backend_name
         self.write_config()
 
+    # This function is not expected corresponding "set_dc()" function
+    # because we have no way to automatically determine such kind
+    # of setting.
+    def get_dc(self):
+        '''
+        Fetch Domain Controller from configuration file.
+        '''
+        if 'samba' in self.full_config:
+            if 'dc' in self.full_config['samba']:
+                return self.full_config['samba']['dc']
+
     def get_local_policy_template(self):
         '''
         Fetch the name of chosen Local Policy template from
