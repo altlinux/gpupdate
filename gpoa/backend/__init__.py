@@ -34,6 +34,10 @@ def backend_factory(dc, username, is_machine, no_domain = False):
     config = GPConfig()
 
     if config.get_backend() == 'samba' and not no_domain:
+        if not dc:
+            dc = config.get_dc()
+            ld = dict({'dc': dc})
+            log('D52', ld)
         sc = smbcreds(dc)
         domain = sc.get_domain()
         ldata = dict({'domain': domain})

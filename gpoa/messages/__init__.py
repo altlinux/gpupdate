@@ -113,6 +113,7 @@ def debug_code(code):
     debug_ids[49] = 'Started GPO replication from AD DC'
     debug_ids[50] = 'Finished GPO replication from AD DC'
     debug_ids[51] = 'Skipping HKCU branch deletion key'
+    debug_ids[52] = 'Read domain name from configuration file'
 
     return debug_ids.get(code, 'Unknown debug code')
 
