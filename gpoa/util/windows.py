@@ -43,7 +43,7 @@ class smbcreds (smbopts):
         smbopts.__init__(self, 'GPO Applier')
         self.credopts = options.CredentialsOptions(self.parser)
         self.creds = self.credopts.get_credentials(self.lp, fallback_machine=True)
-        self.selected_dc = self.set_dc(dc_fqdn)
+        self.set_dc(dc_fqdn)
 
     def get_dc(self):
         return self.selected_dc
@@ -55,9 +55,7 @@ class smbcreds (smbopts):
         self.selected_dc = None
 
         try:
-            samba_dc = get_dc_hostname(self.creds, self.lp)
-
-            if samba_dc != dc_fqdn and dc_fqdn is not None:
+            if dc_fqdn is not None:
                 logdata = dict()
                 logdata['dc'] = samba_dc
                 logdata['user_dc'] = dc_fqdn
@@ -65,14 +63,12 @@ class smbcreds (smbopts):
 
                 self.selected_dc = dc_fqdn
             else:
-                self.selected_dc = samba_dc
+                self.selected_dc = get_dc_hostname(self.creds, self.lp)
         except Exception as exc:
             logdata = dict()
             logdata['msg'] = str(exc)
             log('E10', logdata)
             raise exc
-
-        return self.selected_dc
 
     def get_domain(self):
         '''
