@@ -57,7 +57,6 @@ class smbcreds (smbopts):
         try:
             if dc_fqdn is not None:
                 logdata = dict()
-                logdata['dc'] = samba_dc
                 logdata['user_dc'] = dc_fqdn
                 log('D38', logdata)
 
