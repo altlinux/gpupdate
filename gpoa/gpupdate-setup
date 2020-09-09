@@ -177,7 +177,7 @@ def disable_gp():
     '''
     Consistently disable group policy services
     '''
-    cmd_set_global_policy = ['/usr/sbin/control', 'system-policy', 'global']
+    cmd_set_global_policy = ['/usr/sbin/control', 'system-policy', 'remote']
     cmd_set_local_policy = ['/usr/sbin/control', 'system-policy', 'local']
     cmd_disable_gpupdate_service = ['/bin/systemctl', 'disable', 'gpupdate.service']
     cmd_disable_gpupdate_user_service = ['/bin/systemctl', '--global', 'disable', 'gpupdate-user.service']
