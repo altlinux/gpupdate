@@ -74,7 +74,12 @@ class samba_backend(applier_backend):
         Retrieve settings and strore it in a database
         '''
         # Get policies for machine at first.
-        machine_gpts = self._get_gpts(get_machine_name(), self.storage.get_info('machine_sid'))
+        machine_gpts = list()
+        try:
+            machine_gpts = self._get_gpts(get_machine_name(), self.storage.get_info('machine_sid'))
+        except Exception as exc:
+            log('F2')
+            raise exc
         self.storage.wipe_hklm()
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
         for gptobj in machine_gpts:
@@ -88,7 +93,12 @@ class samba_backend(applier_backend):
         # Load user GPT values in case user's name specified
         # This is a buggy implementation and should be tested more
         if not self._is_machine_username:
-            user_gpts = self._get_gpts(self.username, self.sid)
+            user_gpts = list()
+            try:
+                user_gpts = self._get_gpts(self.username, self.sid)
+            except Exception as exc:
+                log('F3')
+                raise exc
             self.storage.wipe_user(self.sid)
             for gptobj in user_gpts:
                 try:
