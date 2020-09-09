@@ -69,10 +69,22 @@ def parse_arguments():
 
     parser_write = subparsers.add_parser('write',
         help='Operate on Group Policies (enable or disable)')
+    parser_set_backend = subparsers.add_parser('set-backend',
+        help='Set or change currently active backend')
     parser_default = subparsers.add_parser('default-policy',
         help='Show name of default policy')
     parser_active = subparsers.add_parser('active-policy',
         help='Show name of policy enabled')
+    parser_active_backend = subparsers.add_parser('active-backend',
+        help='Show currently configured backend')
+
+    parser_set_backend.add_argument('backend',
+        default='samba',
+        type=str,
+        nargs='?',
+        const='backend',
+        choices=['local', 'samba'],
+        help='Backend (source of settings) name')
 
     parser_write.add_argument('status',
         choices=['enable', 'disable'],
@@ -148,6 +160,10 @@ def get_active_policy_name():
     config = GPConfig()
     return os.path.basename(config.get_local_policy_template())
 
+def get_active_backend():
+    config = GPConfig()
+    return config.get_backend()
+
 def rollback_on_error(command_name):
     '''
     Disable group policy services in case command returns error code
@@ -207,6 +223,7 @@ def enable_gp(policy_name, backend_type):
         os.makedirs(etc_policy_dir)
 
     config.set_local_policy_template(default_policy_name)
+    config.set_backend(backend_type)
 
     # Enable oddjobd_gpupdate in PAM config
     if not rollback_on_error(cmd_set_gpupdate_policy):
@@ -251,6 +268,10 @@ def act_status():
     else:
         print('disabled')
 
+def act_set_backend(backend_name):
+    config = GPConfig()
+    config.set_backend(backend_name)
+
 def act_write(localpolicy, backend):
     '''
     Enable or disable group policy services
@@ -272,6 +293,12 @@ def act_active_policy():
     '''
     print(get_active_policy_name())
 
+def act_active_backend():
+    '''
+    Print currently configured backend.
+    '''
+    print(get_active_backend())
+
 def act_default_policy():
     '''
     Print default Local Policy template name to stdout
@@ -285,10 +312,12 @@ def main():
     action['list'] = act_list
     action['list-backends'] = act_list_backends
     action['status'] = act_status
+    action['set-backend'] = act_set_backend
     action['write'] = act_write
     action['enable'] = act_enable
     action['disable'] = disable_gp
     action['active-policy'] = act_active_policy
+    action['active-backend'] = act_active_backend
     action['default-policy'] = act_default_policy
 
     if arguments.action == None:
@@ -297,6 +326,8 @@ def main():
         action[arguments.action](arguments.localpolicy, arguments.backend)
     elif arguments.action == 'write':
         action[arguments.action](arguments.localpolicy)
+    elif arguments.action == 'set-backend':
+        action[arguments.action](arguments.backend)
     else:
         action[arguments.action]()
 
