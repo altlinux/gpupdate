@@ -101,15 +101,12 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
-    parser_enable.add_argument('localpolicy',
+    parser_enable.add_argument('--local-policy',
         default=None,
-        nargs='?',
         help='Name of local policy to enable')
-    parser_enable.add_argument('backend',
+    parser_enable.add_argument('--backend',
         default='samba',
         type=str,
-        nargs='?',
-        const='backend',
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
@@ -323,7 +320,7 @@ def main():
     if arguments.action == None:
         action['status']()
     elif arguments.action == 'enable':
-        action[arguments.action](arguments.localpolicy, arguments.backend)
+        action[arguments.action](arguments.local_policy, arguments.backend)
     elif arguments.action == 'write':
         action[arguments.action](arguments.status, arguments.localpolicy, arguments.backend)
     elif arguments.action == 'set-backend':
