@@ -272,13 +272,13 @@ def act_set_backend(backend_name):
     config = GPConfig()
     config.set_backend(backend_name)
 
-def act_write(localpolicy, backend):
+def act_write(status, localpolicy, backend):
     '''
     Enable or disable group policy services
     '''
-    if arguments.status == 'enable' or arguments.status == '#t':
+    if status == 'enable' or status == '#t':
         enable_gp(localpolicy, backend)
-    if arguments.status == 'disable' or arguments.status == '#f':
+    if status == 'disable' or status == '#f':
         disable_gp()
 
 def act_enable(localpolicy, backend):
@@ -325,7 +325,7 @@ def main():
     elif arguments.action == 'enable':
         action[arguments.action](arguments.localpolicy, arguments.backend)
     elif arguments.action == 'write':
-        action[arguments.action](arguments.localpolicy)
+        action[arguments.action](arguments.status, arguments.localpolicy, arguments.backend)
     elif arguments.action == 'set-backend':
         action[arguments.action](arguments.backend)
     else:
