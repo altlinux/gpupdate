@@ -43,7 +43,7 @@ class GPConfig:
                 if self.full_config['gpoa']['backend'] in get_backends():
                     return self.full_config['gpoa']['backend']
 
-        return 'local'
+        return 'samba'
 
     def set_backend(self, backend_name):
         self.full_config['gpoa']['backend'] = backend_name

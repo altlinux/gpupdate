@@ -316,6 +316,12 @@ msgstr "Неизвестный код предупреждения"
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"
 
+msgid "Error getting GPTs for machine"
+msgstr "Не удалось получить GPT для машины"
+
+msgid "Error getting GPTs for user"
+msgstr "Не удалось получить GPT для пользователя"
+
 msgid "Unknown fatal code"
 msgstr "Неизвестный код фатальной ошибки"
 
