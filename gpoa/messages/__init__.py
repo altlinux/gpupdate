@@ -136,6 +136,8 @@ def warning_code(code):
 def fatal_code(code):
     fatal_ids = dict()
     fatal_ids[1] = 'Unable to refresh GPO list'
+    fatal_ids[2] = 'Error getting GPTs for machine'
+    fatal_ids[3] = 'Error getting GPTs for user'
 
     return fatal_ids.get(code, 'Unknown fatal code')
 
