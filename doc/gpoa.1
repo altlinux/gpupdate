@@ -54,12 +54,15 @@ behavioral defaults for machine in AD domain.
 All data is located in \fB/var/cache/gpupdate\fR. Also domain GPTs are
 taken from Samba's \fB/var/cache/samba\fR.
 .
+The configuration file for \fBgpoa\fP is located in
+\fB/etc/gpupdate/gpupdate.ini\fP.
+.
 The settings read from Samba are stored in
 \fB/var/cache/gpupdate/registry.sqlite\fR and "Local Policy" settings
 read from \fB/usr/local/share/local-policy/default\fR are converted
 into GPT and stored as \fB/var/cache/gpupdate/local-policy\fR.
 .SH "SEE ALSO"
-gpupdate(1)
+gpupdate(1) gpupdate-setup(1)
 .SH BUGS
-Tons of it.
+Tons of it. Report at \fBhttps://github.com/altlinux/gpupdate\fP.
 
