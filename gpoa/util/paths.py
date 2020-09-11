@@ -20,13 +20,14 @@ import pathlib
 import os
 
 from .config import GPConfig
+from .util import get_default_policy_name
 
 
 def default_policy_path():
     '''
     Returns path pointing to Default Policy directory.
     '''
-    local_policy_default = '/usr/share/local-policy/default'
+    local_policy_default = '/usr/share/local-policy/{}'.format(get_default_policy_name())
     config = GPConfig()
 
     result_path = pathlib.Path(local_policy_default)
