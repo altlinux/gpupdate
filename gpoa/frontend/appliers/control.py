@@ -21,11 +21,27 @@ import threading
 import logging
 from util.logging import slogm
 
+def control_subst(preg_name):
+    '''
+    This is a workaround for control names which can't be used in
+    PReg/ADMX files.
+    '''
+    control_triggers = dict()
+    control_triggers['dvd_rw-format'] = 'dvd+rw-format'
+    control_triggers['dvd_rw-mediainfo'] = 'dvd+rw-mediainfo'
+    control_triggers['dvd_rw-booktype'] = 'dvd+rw-booktype'
+
+    result = preg_name
+    if preg_name in control_triggers:
+        result = control_triggers[preg_name]
+
+    return result
+
 class control:
     def __init__(self, name, value):
         if type(value) != int and type(value) != str:
             raise Exception('Unknown type of value for control')
-        self.control_name = name
+        self.control_name = control_subst(name)
         self.control_value = value
         self.possible_values = self._query_control_values()
         if self.possible_values == None:
