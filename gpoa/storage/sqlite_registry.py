@@ -43,6 +43,7 @@ from .record_types import (
     , printer_entry
     , drive_entry
     , folder_entry
+    , envvar_entry
 )
 
 class sqlite_registry(registry):
@@ -126,6 +127,17 @@ class sqlite_registry(registry):
             , Column('delete_files', String)
             , UniqueConstraint('sid', 'path')
         )
+        self.__envvars = Table(
+              'Envvars'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('name', String)
+            , Column('policy_name', String)
+            , Column('action', String)
+            , Column('value', String)
+            , UniqueConstraint('sid', 'name')
+        )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
@@ -137,6 +149,7 @@ class sqlite_registry(registry):
             mapper(printer_entry, self.__printers)
             mapper(drive_entry, self.__drives)
             mapper(folder_entry, self.__folders)
+            mapper(envvar_entry, self.__envvars)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -294,6 +307,21 @@ class sqlite_registry(registry):
                 .update(fld_entry.update_fields()))
             self.db_session.commit()
 
+    def add_envvar(self, sid, evobj, policy_name):
+        ev_entry = envvar_entry(sid, evobj, policy_name)
+        logdata = dict()
+        logdata['envvar'] = ev_entry.name
+        logdata['sid'] = sid
+        log('D420', logdata)
+        try:
+            self._add(ev_entry)
+        except Exception as exc:
+            (self
+                ._filter_sid_obj(envvar_entry, sid)
+                .filter(envvar_entry.name == ev_entry.name)
+                .update(ev_entry.update_fields()))
+            self.db_session.commit()
+
     def _filter_sid_obj(self, row_object, sid):
         res = (self
             .db_session
@@ -320,6 +348,9 @@ class sqlite_registry(registry):
 
     def get_folders(self, sid):
         return self._filter_sid_list(folder_entry, sid)
+
+    def get_envvars(self, sid):
+        return self._filter_sid_list(envvar_entry, sid)
 
     def get_hkcu_entry(self, sid, hive_key):
         res = (self
