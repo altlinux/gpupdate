@@ -289,6 +289,9 @@ msgstr "Пропускаем специальный ключ удаления в
 msgid "Read domain name from configuration file"
 msgstr "Имя контроллера домена для репликации прочитано из файла конфигурации"
 
+msgid "Saving information about environment variables"
+msgstr "Сохранение информации о переменных окружения"
+
 msgid "Unknown debug code"
 msgstr "Неизвестный отладочный код"
 
