@@ -76,29 +76,39 @@ class Envvar:
             envvar_file.writelines(lines)
 
     def act(self):
-        envvar_file = self._open_envvar_file()
-        ev_create = dict()
-        ev_update = dict()
-        ev_delete = dict()
-        ev_replace = dict()
+        if isfile(self.envvar_file_path):
+            with open(self.envvar_file_path, 'r') as f:
+                lines = f.readlines()
+        else:
+            lines = list()
+
+        file_changed = False
         for envvar_object in self.envvars:
             action = action_letter2enum(envvar_object.action)
             name = envvar_object.name
             value = expand_windows_var(envvar_object.value, self.username).replace('\\', '/')
+            exist_line = None
+            for line in lines:
+                if line.startswith(name + ' '):
+                    exist_line = line
+                    break
+            if exist_line != None:
+                if action == FileAction.CREATE:
+                    pass
+                if action == FileAction.DELETE:
+                    lines.remove(exist_line)
+                    file_changed = True
+                if action == FileAction.UPDATE or action == FileAction.REPLACE:
+                    lines.remove(exist_line)
+                    lines.append(name + ' ' + 'DEFAULT=\"' + value + '\"\n')
+                    file_changed = True
+            else:
+                if action == FileAction.CREATE or action == FileAction.UPDATE or action == FileAction.REPLACE:
+                    lines.append(name + ' ' + 'DEFAULT=\"' + value + '\"\n')
+                    file_changed = True
+                if action == FileAction.DELETE:
+                    pass
 
-            if action == FileAction.CREATE:
-                ev_create[name]=value
-            if action == FileAction.UPDATE:
-                ev_update[name]=value
-            if action == FileAction.DELETE:
-                ev_delete[name]=value
-            if action == FileAction.REPLACE:
-                ev_replace[name]=value
-
-        self._create_action(ev_create, envvar_file)
-        #self._update_action(ev_update, envvar_file)
-        self._delete_action(ev_delete, envvar_file)
-        #self._replace_action(ev_replace, envvar_file)
-
-        envvar_file.close()
-
+        if file_changed:
+            with open(self.envvar_file_path, 'w') as f:
+                f.writelines(lines)
