@@ -312,7 +312,7 @@ class sqlite_registry(registry):
         logdata = dict()
         logdata['envvar'] = ev_entry.name
         logdata['sid'] = sid
-        log('D420', logdata)
+        log('D53', logdata)
         try:
             self._add(ev_entry)
         except Exception as exc:
