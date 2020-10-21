@@ -86,10 +86,12 @@ class Envvar:
         for envvar_object in self.envvars:
             action = action_letter2enum(envvar_object.action)
             name = envvar_object.name
-            value = expand_windows_var(envvar_object.value, self.username).replace('\\', '/')
+            value = expand_windows_var(envvar_object.value, self.username)
+            if value != envvar_object.value:
+                value = value.replace('\\', '/')
             exist_line = None
             for line in lines:
-                if line.startswith(name + ' '):
+                if line.split()[0] == name:
                     exist_line = line
                     break
             if exist_line != None:
