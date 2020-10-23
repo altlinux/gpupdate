@@ -88,6 +88,7 @@ class Envvar:
             name = envvar_object.name
             value = expand_windows_var(envvar_object.value, self.username)
             if value != envvar_object.value:
+                #slashes are replaced only if the change of variables was performed and we consider the variable as a path to a file or directory
                 value = value.replace('\\', '/')
             exist_line = None
             for line in lines:
@@ -101,9 +102,10 @@ class Envvar:
                     lines.remove(exist_line)
                     file_changed = True
                 if action == FileAction.UPDATE or action == FileAction.REPLACE:
-                    lines.remove(exist_line)
-                    lines.append(name + ' ' + 'DEFAULT=\"' + value + '\"\n')
-                    file_changed = True
+                    if exist_line.split()[1].split('=')[1].replace('"', '') != value: #from 'NAME DEFAULT=value' cut value and compare, don`t change if it matches
+                        lines.remove(exist_line)
+                        lines.append(name + ' ' + 'DEFAULT=\"' + value + '\"\n')
+                        file_changed = True
             else:
                 if action == FileAction.CREATE or action == FileAction.UPDATE or action == FileAction.REPLACE:
                     lines.append(name + ' ' + 'DEFAULT=\"' + value + '\"\n')
