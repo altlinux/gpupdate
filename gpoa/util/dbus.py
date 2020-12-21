@@ -59,7 +59,7 @@ class dbus_runner:
                         self._interface_name,
                         'gpupdatefor',
                         (username),
-                        (dbus.String(self.username))
+                        (dbus.String(self.username)),
                         timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
