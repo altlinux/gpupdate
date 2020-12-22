@@ -184,7 +184,7 @@ class gsettings_applier_user(applier_frontend):
                 mapping = self.__windows_settings[setting_key]
                 self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
             else:
-                logging.debug('GSettings mapping of {} to {} not found'.format(setting_key, value.data))
+                logging.debug('GSettings mapping for {} not found'.format(setting_key))
 
         for gsetting in self.gsettings:
             logging.debug('Applying setting {}/{}'.format(gsetting.schema, gsetting.path))
