@@ -104,7 +104,7 @@ def with_privileges(username, func):
     try:
         out = func()
     except Exception as exc:
-        log(str(exc))
+        raise exc
 
     # Restore privileges
     set_privileges('root', current_uid, 0, current_groups)
