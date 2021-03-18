@@ -65,7 +65,8 @@ class sqlite_registry(registry):
               'HKLM'
             , self.__metadata
             , Column('id', Integer, primary_key=True)
-            , Column('hive_key', String(65536), unique=True)
+            , Column('hive_key', String(65536, collation='NOCASE'),
+                unique=True)
             , Column('policy_name', String)
             , Column('type', Integer)
             , Column('data', String)
@@ -75,7 +76,7 @@ class sqlite_registry(registry):
             , self.__metadata
             , Column('id', Integer, primary_key=True)
             , Column('sid', String)
-            , Column('hive_key', String(65536))
+            , Column('hive_key', String(65536, collation='NOCASE'))
             , Column('policy_name', String)
             , Column('type', Integer)
             , Column('data', String)
