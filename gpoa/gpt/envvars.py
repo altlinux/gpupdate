@@ -51,8 +51,8 @@ def read_envvars(envvars_file):
     return variables
 
 def merge_envvars(storage, sid, envvar_objects, policy_name):
-    for envvar in envvar_objects:
-        storage.add_envvar(sid, envvar, policy_name)
+    for envv in envvar_objects:
+        storage.add_envvar(sid, envv, policy_name)
 
 class envvar:
     def __init__(self, name, value):

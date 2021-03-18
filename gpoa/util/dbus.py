@@ -29,22 +29,38 @@ class dbus_runner:
     '''
 
     _bus_name = 'com.redhat.oddjob_gpupdate'
+    # Interface name is equal to bus name.
+    _interface_name = 'com.redhat.oddjob_gpupdate'
     _object_path = '/'
+    # The timeout is in milliseconds. The default is -1 which is
+    # DBUS_TIMEOUT_USE_DEFAULT which is 25 seconds. There is also
+    # DBUS_TIMEOUT_INFINITE constant which is equal to INT32_MAX or
+    # 0x7ffffff (largest 32-bit integer).
+    #
+    # It was decided to set the timeout to 10 minutes which must be
+    # sufficient to replicate and apply all recognizable GPOs.
+    _synchronous_timeout = 600000
 
     def __init__(self, username=None):
         self.username = username
-        system_bus = dbus.SystemBus()
-        obj = system_bus.get_object(self._bus_name, self._object_path)
-        self.interface = dbus.Interface(obj, self._bus_name)
+        self.system_bus = dbus.SystemBus()
 
     def run(self):
-        #print(obj.Introspect()[0])
         if self.username:
             logdata = dict({'username': self.username})
             log('D6', logdata)
             if is_root():
+                # oddjobd-gpupdate's ACL allows access to this method
+                # only for superuser. This method is called via PAM
+                # when user logs in.
                 try:
-                    result = self.interface.gpupdatefor(dbus.String(self.username))
+                    result = self.system_bus.call_blocking(self._bus_name,
+                        self._object_path,
+                        self._interface_name,
+                        'gpupdatefor',
+                        (username),
+                        (dbus.String(self.username)),
+                        timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
                     logdata = dict()
@@ -53,20 +69,36 @@ class dbus_runner:
                     raise exc
             else:
                 try:
-                    result = self.interface.gpupdate()
+                    result = self.system_bus.call_blocking(self._bus_name,
+                        self._object_path,
+                        self._interface_name,
+                        'gpupdate',
+                        None,
+                        (),
+                        timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
-                    log('E21')
+                    logdata = dict({'error': str(exc)})
+                    log('E21', logdata)
                     raise exc
         else:
             log('D11')
             try:
-                result = self.interface.gpupdate_computer()
+                result = self.system_bus.call_blocking(self._bus_name,
+                    self._object_path,
+                    self._interface_name,
+                    'gpupdate_computer',
+                    None,
+                    # The following positional parameter is called "args".
+                    # There is no official documentation for it.
+                    (),
+                    timeout=self._synchronous_timeout)
                 print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
-                log('E22')
+                print(exc)
+                logdata = dict({'error': str(exc)})
+                log('E22', logdata)
                 raise exc
-        #self.interface.Quit()
 
 
 def start_gpupdate_user():

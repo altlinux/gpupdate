@@ -40,6 +40,8 @@ class samba_backend(applier_backend):
     def __init__(self, sambacreds, username, domain, is_machine):
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
         self.__kinit_successful = machine_kinit(self.cache_path)
+        if not self.__kinit_successful:
+            raise Exception('kinit is not successful')
         self.storage = registry_factory('registry')
         self.storage.set_info('domain', domain)
         machine_name = get_machine_name()
