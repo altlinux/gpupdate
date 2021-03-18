@@ -148,3 +148,25 @@ class folder_entry(object):
 
         return fields
 
+class envvar_entry(object):
+    '''
+    Object mapping representing environment variables
+    '''
+    def __init__(self, sid, evobj, policy_name):
+        self.sid = sid
+        self.policy_name = policy_name
+        self.name = evobj.name
+        self.value = evobj.value
+        self.action = evobj.action.value
+
+    def update_fields(self):
+        '''
+        Return list of fields to update
+        '''
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['action'] = self.action
+        fields['value'] = self.value
+
+        return fields
+
