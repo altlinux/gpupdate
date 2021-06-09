@@ -42,7 +42,8 @@ class firefox_applier(applier_frontend):
     __module_experimental = True
     __module_enabled = False
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
-    __firefox_installdir = '/usr/lib64/firefox/distribution'
+    __firefox_installdir1 = '/usr/lib64/firefox/distribution'
+    __firefox_installdir2 = '/etc/firefox/policies'
     __user_settings_dir = '.mozilla/firefox'
 
     def __init__(self, storage, sid, username):
@@ -133,9 +134,15 @@ class firefox_applier(applier_frontend):
         self.set_policy('Homepage', self.get_home_page())
         self.set_policy('BlockAboutConfig', self.get_block_about_config())
 
-        destfile = os.path.join(self.__firefox_installdir, 'policies.json')
+        destfile = os.path.join(self.__firefox_installdir1, 'policies.json')
 
-        os.makedirs(self.__firefox_installdir, exist_ok=True)
+        os.makedirs(self.__firefox_installdir1, exist_ok=True)
+        with open(destfile, 'w') as f:
+            json.dump(self.policies_json, f)
+            logging.debug(slogm('Wrote Firefox preferences to {}'.format(destfile)))
+
+        destfile = os.path.join(self.__firefox_installdir2, 'policies.json')
+        os.makedirs(self.__firefox_installdir2, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
             logging.debug(slogm('Wrote Firefox preferences to {}'.format(destfile)))
