@@ -17,11 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .sqlite_registry import sqlite_registry
+from .samba_registry import SambaRegistry
 from .sqlite_cache import sqlite_cache
 
 def cache_factory(cache_name):
     return sqlite_cache(cache_name)
 
 def registry_factory(registry_name='registry', registry_dir=None):
-    return sqlite_registry(registry_name, registry_dir)
-
+    #reg = sqlite_registry(registry_name, registry_dir)
+    reg = SambaRegistry()
+    return reg
