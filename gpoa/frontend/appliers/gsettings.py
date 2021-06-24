@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2021 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,15 +24,11 @@ from gi.repository import Gio, GLib
 from util.logging import slogm
 
 class system_gsetting:
-    __global_schema = '/usr/share/glib-2.0/schemas'
-
-    def __init__(self, schema, path, value, override_priority='0'):
+    def __init__(self, schema, path, value, override_priority_file):
         self.schema = schema
         self.path = path
         self.value = value
-        self.override_priority = override_priority
-        self.filename = '{}_policy.gschema.override'.format(self.override_priority)
-        self.file_path = os.path.join(self.__global_schema, self.filename)
+        self.file_path = override_priority_file
 
     def apply(self):
         config = configparser.ConfigParser()
@@ -40,8 +36,14 @@ class system_gsetting:
             config.read(self.file_path)
         except Exception as exc:
             logging.error(slogm(exc))
-        config.add_section(self.schema)
-        config.set(self.schema, self.path, self.value)
+        try:
+            config.add_section(self.schema)
+        except configparser.DuplicateSectionError:
+            pass
+
+        value = glib_value(self.schema, self.path, self.value)
+        config.set(self.schema, self.path, str(value))
+        logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, str(value)))
 
         with open(self.file_path, 'w') as f:
             config.write(f)
@@ -49,12 +51,22 @@ class system_gsetting:
 def glib_map(value, glib_type):
     result_value = value
 
-    if glib_type == 'i':
+    if glib_type == 'i' or glib_type == 'b':
         result_value = GLib.Variant(glib_type, int(value))
     else:
         result_value = GLib.Variant(glib_type, value)
 
     return result_value
+
+def glib_value(schema, path, value):
+    # Access the current schema
+    settings = Gio.Settings(schema)
+    # Get the key to modify
+    key = settings.get_value(path)
+    # Query the data type for the key
+    glib_value_type = key.get_type_string()
+    # Build the new value with the determined type
+    return glib_map(value, glib_value_type)
 
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
@@ -68,14 +80,8 @@ class user_gsetting:
         logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
         if self.helper_function:
             self.helper_function(self.schema, self.path, self.value)
-        # Access the current schema
-        settings = Gio.Settings(self.schema)
-        # Get the key to modify
-        key = settings.get_value(self.path)
-        # Query the data type for the key
-        glib_value_type = key.get_type_string()
-        # Build the new value with the determined type
-        val = glib_map(self.value, glib_value_type)
+        # Get typed value by schema
+        val = glib_value(self.schema, self.path, self.value)
         # Set the value
         settings.set_value(self.path, val)
 
