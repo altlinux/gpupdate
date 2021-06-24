@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2021 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,10 +38,12 @@ from util.logging import slogm
 
 class gsettings_applier(applier_frontend):
     __module_name = 'GSettingsApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
     __global_schema = '/usr/share/glib-2.0/schemas'
+    __override_priority_file = 'zzz_policy.gschema.override'
+    __override_old_file = '0_policy.gschema.override'
     __windows_settings = dict()
 
     def __init__(self, storage):
@@ -49,7 +51,8 @@ class gsettings_applier(applier_frontend):
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hklm_entries(gsettings_filter)
         self.gsettings = list()
-        self.override_file = os.path.join(self.__global_schema, '0_policy.gschema.override')
+        self.override_file = os.path.join(self.__global_schema, self.__override_priority_file)
+        self.override_old_file = os.path.join(self.__global_schema, self.__override_old_file)
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -57,6 +60,10 @@ class gsettings_applier(applier_frontend):
         )
 
     def run(self):
+        # Compatility cleanup of old settings
+        if os.path.exists(self.override_old_file):
+            os.remove(self.override_old_file)
+
         # Cleanup settings from previous run
         if os.path.exists(self.override_file):
             logging.debug(slogm('Removing GSettings policy file from previous run'))
@@ -68,7 +75,7 @@ class gsettings_applier(applier_frontend):
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
-            self.gsettings.append(system_gsetting(schema, path, setting.data))
+            self.gsettings.append(system_gsetting(schema, path, setting.data, self.override_file))
 
         # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
@@ -83,6 +90,7 @@ class gsettings_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running GSettings applier for machine'))
+            self.run()
         else:
             logging.debug(slogm('GSettings applier for machine will not be started'))
 
