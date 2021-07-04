@@ -127,8 +127,8 @@ class GSettingsMapping:
 
 class gsettings_applier_user(applier_frontend):
     __module_name = 'GSettingsApplierUser'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
 
     def __init__(self, storage, sid, username):

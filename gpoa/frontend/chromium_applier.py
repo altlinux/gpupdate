@@ -30,8 +30,8 @@ from util.util import is_machine_name
 
 class chromium_applier(applier_frontend):
     __module_name = 'ChromiumApplier'
-    __module_enabled = False
-    __module_experimental = True
+    __module_enabled = True
+    __module_experimental = False
     __registry_branch = 'Software\\Policies\\Google\\Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
     __recommended_policies_path = '/etc/chromium/policies/recommended'

@@ -39,8 +39,8 @@ from util.util import is_machine_name
 
 class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
     __firefox_installdir1 = '/usr/lib64/firefox/distribution'
     __firefox_installdir2 = '/etc/firefox/policies'
