@@ -57,6 +57,7 @@ def error_code(code):
     error_ids[27] = 'Error merging user GPT'
     error_ids[28] = 'Error merging machine part of GPT'
     error_ids[29] = 'Error merging user part of GPT'
+    error_ids[30] = 'Error occured while running dropped privileges process for user context appliers'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -116,6 +117,7 @@ def debug_code(code):
     debug_ids[52] = 'Read domain name from configuration file'
     debug_ids[53] = 'Saving information about environment variables'
     debug_ids[54] = 'Run forked process with droped privileges'
+    debug_ids[55] = 'Run user context applier with dropped privileges'
 
     return debug_ids.get(code, 'Unknown debug code')
 

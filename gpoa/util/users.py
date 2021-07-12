@@ -87,10 +87,7 @@ def with_privileges(username, func):
     '''
     Run supplied function with privileges for specified username.
     '''
-    current_uid = os.getuid()
-    current_groups = os.getgrouplist('root', 0)
-
-    if not current_uid == 0:
+    if not os.getuid() == 0:
         raise Exception('Not enough permissions to drop privileges')
 
     user_pw = pwd.getpwnam(username)
@@ -100,12 +97,14 @@ def with_privileges(username, func):
     user_home = user_pw.pw_dir
 
     pid = os.fork()
-    if pid < 0:
-        raise Exception('Not enough resources to fork() for drop privileges')
     if pid > 0:
-        log('D54', {'pid': pid, 'func': func.__name__})
+        log('D54', {'pid': pid})
         waitpid, status = os.waitpid(pid, 0)
-        return status
+
+        if status != 0:
+            raise Exception('Error in forked process with droped privileges')
+
+        return
 
     # Drop privileges
     set_privileges(username, user_uid, user_gid, user_groups, user_home)
@@ -120,13 +119,12 @@ def with_privileges(username, func):
         sp = var.decode('utf-8').split('=', 1)
         os.environ[sp[0]] = sp[1][:-1]
 
-    # We need to catch exception in order to be able to restore
-    # privileges later in this function
-    out = 0
+    # We need to return child error code to parent
+    result = 0
     try:
-        out = func()
+        func()
     except Exception as exc:
-        out = 127
+        result = 127;
 
-    return out
+    sys.exit(result)
 
