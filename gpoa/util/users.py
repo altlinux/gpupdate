@@ -18,6 +18,7 @@
 
 import os
 import pwd
+import subprocess
 
 from .logging import log
 
@@ -108,6 +109,16 @@ def with_privileges(username, func):
 
     # Drop privileges
     set_privileges(username, user_uid, user_gid, user_groups, user_home)
+
+    # Run the D-Bus session daemon in order D-Bus calls to work
+    proc = subprocess.Popen(
+        'dbus-launch',
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+    for var in proc.stdout:
+        sp = var.decode('utf-8').split('=', 1)
+        os.environ[sp[0]] = sp[1][:-1]
 
     # We need to catch exception in order to be able to restore
     # privileges later in this function
