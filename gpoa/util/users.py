@@ -56,7 +56,7 @@ def username_match_uid(username):
     return False
 
 
-def set_privileges(username, uid, gid, groups=list()):
+def set_privileges(username, uid, gid, groups, home):
     '''
     Set current process privileges
     '''
@@ -73,6 +73,7 @@ def set_privileges(username, uid, gid, groups=list()):
     #    os.setgroups(groups)
     #except Exception as exc:
     #    print('setgroups')
+    os.environ['HOME'] = home
 
     logdata = dict()
     logdata['uid'] = uid
@@ -91,23 +92,30 @@ def with_privileges(username, func):
     if not current_uid == 0:
         raise Exception('Not enough permissions to drop privileges')
 
-    user_uid = pwd.getpwnam(username).pw_uid
-    user_gid = pwd.getpwnam(username).pw_gid
+    user_pw = pwd.getpwnam(username)
+    user_uid = user_pw.pw_uid
+    user_gid = user_pw.pw_gid
     user_groups = os.getgrouplist(username, user_gid)
+    user_home = user_pw.pw_dir
+
+    pid = os.fork()
+    if pid < 0:
+        raise Exception('Not enough resources to fork() for drop privileges')
+    if pid > 0:
+        log('D54', {'pid': pid, 'func': func.__name__})
+        waitpid, status = os.waitpid(pid, 0)
+        return status
 
     # Drop privileges
-    set_privileges(username, user_uid, user_gid, user_groups)
+    set_privileges(username, user_uid, user_gid, user_groups, user_home)
 
     # We need to catch exception in order to be able to restore
     # privileges later in this function
-    out = None
+    out = 0
     try:
         out = func()
     except Exception as exc:
-        raise exc
-
-    # Restore privileges
-    set_privileges('root', current_uid, 0, current_groups)
+        out = 127
 
     return out
 

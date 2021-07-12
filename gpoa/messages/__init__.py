@@ -115,6 +115,7 @@ def debug_code(code):
     debug_ids[51] = 'Skipping HKCU branch deletion key'
     debug_ids[52] = 'Read domain name from configuration file'
     debug_ids[53] = 'Saving information about environment variables'
+    debug_ids[54] = 'Run forked process with droped privileges'
 
     return debug_ids.get(code, 'Unknown debug code')
 
