@@ -58,9 +58,10 @@ def glib_map(value, glib_type):
 
     return result_value
 
-def glib_value(schema, path, value):
-    # Access the current schema
-    settings = Gio.Settings(schema)
+def glib_value(schema, path, value, settings=None):
+    # Access the current schema if not initialized
+    if not settings:
+        settings = Gio.Settings(schema)
     # Get the key to modify
     key = settings.get_value(path)
     # Query the data type for the key
@@ -70,18 +71,20 @@ def glib_value(schema, path, value):
 
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
-        logging.debug('Creating GSettings element {} (in {}) with value {}'.format(path, schema, value))
+        logging.debug('Creating User GSettings element {} (in {}) with value {}'.format(path, schema, value))
         self.schema = schema
         self.path = path
         self.value = value
         self.helper_function = helper_function
 
     def apply(self):
-        logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
+        logging.debug('Setting User GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
         if self.helper_function:
             self.helper_function(self.schema, self.path, self.value)
+        # Access the current schema
+        settings = Gio.Settings(self.schema)
         # Get typed value by schema
-        val = glib_value(self.schema, self.path, self.value)
+        val = glib_value(self.schema, self.path, self.value, settings)
         # Set the value
         settings.set_value(self.path, val)
 

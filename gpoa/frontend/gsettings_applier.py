@@ -195,8 +195,7 @@ class gsettings_applier_user(applier_frontend):
         #    path = rp[2]
         #    self.gsettings.append(user_gsetting(schema, path, setting.data))
 
-        os.environ['DBUS_SESSION_BUS_ADDRESS'] = 'unix:path=/run/user/{}/bus'.format(pwd.getpwnam(self.username).pw_uid)
-
+        # Calculate all mapped gsettings
         for setting_key in self.__windows_settings.keys():
             logging.debug('Checking for GSettings mapping {}'.format(setting_key))
             value = self.storage.get_hkcu_entry(self.sid, setting_key)
@@ -207,11 +206,18 @@ class gsettings_applier_user(applier_frontend):
             else:
                 logging.debug('GSettings mapping for {} not found'.format(setting_key))
 
+        # Calculate all configured gsettings
+        for setting in self.gsettings_keys:
+            valuename = setting.hive_key.rpartition('\\')[2]
+            rp = valuename.rpartition('.')
+            schema = rp[0]
+            path = rp[2]
+            self.gsettings.append(user_gsetting(schema, path, setting.data))
+
+        # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
             logging.debug('Applying setting {}/{}'.format(gsetting.schema, gsetting.path))
             gsetting.apply()
-
-        del os.environ['DBUS_SESSION_BUS_ADDRESS']
 
     def user_context_apply(self):
         if self.__module_enabled:

@@ -83,6 +83,18 @@ def determine_username(username=None):
 
     return name
 
+def apply_user_context(user_appliers):
+    for applier_name, applier_object in user_appliers.items():
+        log('D55', {'name': applier_name})
+
+        try:
+            applier_object.user_context_apply()
+        except Exception as exc:
+            logdata = dict()
+            logdata['applier'] = applier_name
+            logdata['exception'] = str(exc)
+            log('E20', logdata)
+
 class frontend_manager:
     '''
     The frontend_manager class decides when and how to run appliers
@@ -159,13 +171,13 @@ class frontend_manager:
                     logdata['exception'] = str(exc)
                     log('E19', logdata)
 
-                try:
-                    with_privileges(self.username, applier_object.user_context_apply)
-                except Exception as exc:
-                    logdata = dict()
-                    logdata['applier'] = applier_name
-                    logdata['exception'] = str(exc)
-                    log('E20', logdata)
+            try:
+                with_privileges(self.username, lambda: apply_user_context(self.user_appliers))
+            except Exception as exc:
+                logdata = dict()
+                logdata['username'] = self.username
+                logdata['exception'] = str(exc)
+                log('E30', logdata)
         else:
             for applier_name, applier_object in self.user_appliers.items():
                 try:
