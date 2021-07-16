@@ -23,6 +23,7 @@ import signal
 import subprocess
 
 from .logging import log
+from .dbus import dbus_session
 
 
 def set_privileges(username, uid, gid, groups, home):
@@ -34,11 +35,6 @@ def set_privileges(username, uid, gid, groups, home):
     os.environ['HOME'] = home
     os.environ['USER'] = username
     os.environ['USERNAME'] = username
-#    os.environ['XDG_RUNTIME_DIR'] = os.path.join(home, '.gpupdate_runtime_dir')
-#    os.environ['TMP'] = os.path.join(home, '.gpupdate_runtime_dir')
-#    os.environ['TMPDIR'] = os.path.join(home, '.gpupdate_runtime_dir')
-#    os.environ['XDG_SESSION_CLASS'] = 'user'
-#    os.environ['XDG_SESSION_TYPE'] = 'tty'
 
     try:
         os.setgid(gid)
@@ -85,7 +81,8 @@ def with_privileges(username, func):
         log('D54', {'pid': pid})
         waitpid, status = os.waitpid(pid, 0)
 
-        if status != 0:
+        code = os.WEXITSTATUS(status)
+        if code != 0:
             raise Exception('Error in forked process ({})'.format(status))
 
         return
@@ -93,6 +90,7 @@ def with_privileges(username, func):
     # We need to return child error code to parent
     result = 0
     dbus_pid = -1
+    dconf_pid = -1
     try:
 
         # Drop privileges
@@ -108,19 +106,32 @@ def with_privileges(username, func):
             sp = var.decode('utf-8').split('=', 1)
             os.environ[sp[0]] = sp[1][:-1]
 
+        # Save pid of dbus-daemon
         dbus_pid = int(os.environ['DBUS_SESSION_BUS_PID'])
 
         # Run user appliers
         func()
 
+        # Save pid of dconf-service
+        session = dbus_session()
+        dconf_pid = session.get_connection_pid("ca.desrt.dconf")
+
     except Exception as exc:
         logdata = dict()
         logdata['msg'] = str(exc)
-        log('E99', logdata)
+        log('E33', logdata)
         result = 1;
     finally:
+        logdata = dict()
+        logdata['dbus_pid'] = dbus_pid
+        logdata['dconf_pid'] = dconf_pid
+        log('D56', logdata)
         if dbus_pid > 0:
             os.kill(dbus_pid, signal.SIGHUP)
+        if dconf_pid > 0:
+            os.kill(dconf_pid, signal.SIGTERM)
+        if dbus_pid > 0:
+            os.kill(dbus_pid, signal.SIGTERM)
 
     sys.exit(result)
 

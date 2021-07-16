@@ -170,3 +170,25 @@ def print_dbus_result(result):
     for line in message:
         print(str(line))
 
+
+class dbus_session:
+    def __init__(self):
+        try:
+            self.session_bus = dbus.SessionBus()
+            self.session_dbus = self.session_bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
+            self.session_iface = dbus.Interface(self.session_dbus, 'org.freedesktop.DBus')
+        except dbus.exceptions.DBusException as exc:
+            logdata = dict({'error': str(exc)})
+            log('E31', logdata)
+            raise exc
+
+    def get_connection_pid(self, connection):
+        pid = -1
+        try:
+            pid = self.session_iface.GetConnectionUnixProcessID(connection)
+            log('D57', {"pid": pid})
+        except dbus.exceptions.DBusException as exc:
+            logdata = dict({'error': str(exc)})
+            log('E32', logdata)
+            raise exc
+        return int(pid)
