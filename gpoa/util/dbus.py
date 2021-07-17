@@ -188,7 +188,9 @@ class dbus_session:
             pid = self.session_iface.GetConnectionUnixProcessID(connection)
             log('D57', {"pid": pid})
         except dbus.exceptions.DBusException as exc:
-            logdata = dict({'error': str(exc)})
-            log('E32', logdata)
-            raise exc
+            if exc.get_dbus_name() != 'org.freedesktop.DBus.Error.NameHasNoOwner':
+                logdata = dict({'error': str(exc)})
+                log('E32', logdata)
+                raise exc
+            log('D58', {'connection': connection})
         return int(pid)
