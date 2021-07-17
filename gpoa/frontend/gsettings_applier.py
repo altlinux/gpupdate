@@ -79,6 +79,7 @@ class gsettings_applier(applier_frontend):
 
         # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
+            logging.debug(slogm('Applying setting {}/{} to {}'.format(gsetting.schema, gsetting.path, gsetting.value)))
             gsetting.apply()
 
         # Recompile GSettings schemas with overrides
@@ -216,7 +217,7 @@ class gsettings_applier_user(applier_frontend):
 
         # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
-            logging.debug('Applying setting {}/{}'.format(gsetting.schema, gsetting.path))
+            logging.debug(slogm('Applying user setting {}/{} to {}'.format(gsetting.schema, gsetting.path, gsetting.value)))
             gsetting.apply()
 
     def user_context_apply(self):
