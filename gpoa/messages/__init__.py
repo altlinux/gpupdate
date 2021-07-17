@@ -123,6 +123,7 @@ def debug_code(code):
     debug_ids[55] = 'Run user context applier with dropped privileges'
     debug_ids[56] = 'Kill dbus-daemon and dconf-service in user context'
     debug_ids[57] = 'Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID'
+    debug_ids[58] = 'Connection search return org.freedesktop.DBus.Error.NameHasNoOwner'
 
     return debug_ids.get(code, 'Unknown debug code')
 

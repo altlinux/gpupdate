@@ -113,8 +113,12 @@ def with_privileges(username, func):
         func()
 
         # Save pid of dconf-service
-        session = dbus_session()
-        dconf_pid = session.get_connection_pid("ca.desrt.dconf")
+        dconf_connection = "ca.desrt.dconf"
+        try:
+            session = dbus_session()
+            dconf_pid = session.get_connection_pid(dconf_connection)
+        except Exception:
+            pass
 
     except Exception as exc:
         logdata = dict()
