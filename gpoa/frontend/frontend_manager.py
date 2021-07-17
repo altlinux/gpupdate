@@ -55,9 +55,9 @@ from util.users import (
     is_root,
     get_process_user,
     username_match_uid,
-    with_privileges
 )
 from util.logging import log
+from util.system import with_privileges
 
 
 def determine_username(username=None):

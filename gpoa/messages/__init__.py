@@ -58,6 +58,9 @@ def error_code(code):
     error_ids[28] = 'Error merging machine part of GPT'
     error_ids[29] = 'Error merging user part of GPT'
     error_ids[30] = 'Error occured while running dropped privileges process for user context appliers'
+    error_ids[31] = 'Error connecting to DBus Session daemon'
+    error_ids[32] = 'No reply from DBus Session'
+    error_ids[33] = 'Error occured while running forked process with dropped privileges'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -118,6 +121,8 @@ def debug_code(code):
     debug_ids[53] = 'Saving information about environment variables'
     debug_ids[54] = 'Run forked process with droped privileges'
     debug_ids[55] = 'Run user context applier with dropped privileges'
+    debug_ids[56] = 'Kill dbus-daemon and dconf-service in user context'
+    debug_ids[57] = 'Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID'
 
     return debug_ids.get(code, 'Unknown debug code')
 
