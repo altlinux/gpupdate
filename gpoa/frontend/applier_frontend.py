@@ -32,6 +32,17 @@ def check_experimental_enabled(storage):
 
     return result
 
+def check_windows_mapping_enabled(storage):
+    windows_mapping_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\WindowsPoliciesMapping'
+    flag = storage.get_hklm_entry(windows_mapping_enable_flag)
+
+    result = True
+
+    if flag and '0' == flag.data:
+        result = False
+
+    return result
+
 def check_module_enabled(storage, module_name):
     gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\GPUpdate'
     gpupdate_module_flag = '{}\\{}'.format(gpupdate_module_enable_branch, module_name)

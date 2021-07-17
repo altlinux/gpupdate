@@ -29,6 +29,7 @@ from gi.repository import (
 from .applier_frontend import (
       applier_frontend
     , check_enabled
+    , check_windows_mapping_enabled
 )
 from .appliers.gsettings import (
     system_gsetting,
@@ -140,6 +141,7 @@ class gsettings_applier_user(applier_frontend):
         self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
         self.gsettings = list()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
 
         self.__windows_settings = dict()
         self.windows_settings = list()
@@ -188,6 +190,17 @@ class gsettings_applier_user(applier_frontend):
             self.__windows_settings[element.hive_key] = element
 
 
+    def windows_mapping_append(self):
+        for setting_key in self.__windows_settings.keys():
+            #logging.debug('Checking for GSettings mapping {}'.format(setting_key))
+            value = self.storage.get_hkcu_entry(self.sid, setting_key)
+            if value:
+                logging.debug(slogm('Found GSettings windows mapping {} to {}'.format(setting_key, value.data)))
+                mapping = self.__windows_settings[setting_key]
+                self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
+            #else:
+            #    logging.debug('GSettings windows mapping for {} not found'.format(setting_key))
+
     def run(self):
         #for setting in self.gsettings_keys:
         #    valuename = setting.hive_key.rpartition('\\')[2]
@@ -196,16 +209,13 @@ class gsettings_applier_user(applier_frontend):
         #    path = rp[2]
         #    self.gsettings.append(user_gsetting(schema, path, setting.data))
 
-        # Calculate all mapped gsettings
-        for setting_key in self.__windows_settings.keys():
-            logging.debug('Checking for GSettings mapping {}'.format(setting_key))
-            value = self.storage.get_hkcu_entry(self.sid, setting_key)
-            if value:
-                logging.debug('Found GSettings mapping {} to {}'.format(setting_key, value.data))
-                mapping = self.__windows_settings[setting_key]
-                self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
-            else:
-                logging.debug('GSettings mapping for {} not found'.format(setting_key))
+
+        # Calculate all mapped gsettings if mapping enabled
+        if self.__windows_mapping_enabled:
+            logging.debug(slogm('Mapping Windows policies to GSettings policies'))
+            self.windows_mapping_append()
+        else:
+            logging.debug(slogm('GSettings windows policies mapping not enabled'))
 
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
