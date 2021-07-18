@@ -170,19 +170,6 @@ class gsettings_applier_user(applier_frontend):
                 , 'org.mate.background'
                 , 'picture-filename'
               )
-              # Sleep timeout computer when on AC
-            , GSettingsMapping(
-                  'Common\\Power\\Policy\\Settings\\Sleep\\UnattendTimeout\\UnattendTimeout'
-                , 'org.mate.power-manager'
-                , 'sleep-computer-ac'
-              )
-              # Sleep timeout display when on AC
-            , GSettingsMapping(
-                  'System\\CurrentControlSet\\Control\\Power\\Timeouts\\BattSuspendTimeout'
-                , 'org.mate.power-manager'
-                , 'sleep-display-ac'
-              )
-
         ]
         self.windows_settings.extend(mapping)
 
