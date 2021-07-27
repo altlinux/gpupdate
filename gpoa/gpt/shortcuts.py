@@ -121,6 +121,7 @@ class shortcut:
         '''
         self.dest = dest
         self.path = path
+        self.expanded_path = None
         self.arguments = arguments
         self.name = name
         self.changed = ''
@@ -166,6 +167,12 @@ class shortcut:
 
         self.is_in_user_context = ctx
 
+    def set_expanded_path(self, path):
+        '''
+        Adjust shortcut path with expanding windows variables
+        '''
+        self.expanded_path = path
+
     def is_usercontext(self):
         return self.is_in_user_context
 
@@ -205,11 +212,14 @@ class shortcut:
         self.desktop_file.set('Version', '1.0')
         self.desktop_file.set('Name', self.name)
 
+        desktop_path = self.path
+        if self.expanded_path:
+            desktop_path = self.expanded_path
         if self.type == TargetType.URL:
-            self.desktop_file.set('URL', self.path)
+            self.desktop_file.set('URL', desktop_path)
         else:
             self.desktop_file.set('Terminal', 'false')
-            self.desktop_file.set('Exec', '{} {}'.format(self.path, self.arguments))
+            self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.arguments))
 
         if self.icon:
             self.desktop_file.set('Icon', self.icon)

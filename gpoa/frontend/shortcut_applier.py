@@ -31,7 +31,7 @@ from util.util import (
         homedir_exists
 )
 
-def storage_get_shortcuts(storage, sid):
+def storage_get_shortcuts(storage, sid, username=None):
     '''
     Query storage for shortcuts' rows for specified SID.
     '''
@@ -40,6 +40,8 @@ def storage_get_shortcuts(storage, sid):
 
     for sc_obj in shortcut_objs:
         sc = json2sc(sc_obj.shortcut)
+        if username:
+            sc.set_expanded_path(expand_windows_var(sc.path, username))
         shortcuts.append(sc)
 
     return shortcuts
@@ -126,7 +128,7 @@ class shortcut_applier_user(applier_frontend):
         self.username = username
 
     def run(self, in_usercontext):
-        shortcuts = storage_get_shortcuts(self.storage, self.sid)
+        shortcuts = storage_get_shortcuts(self.storage, self.sid, self.username)
 
         if shortcuts:
             for sc in shortcuts:
