@@ -192,6 +192,7 @@ def expand_windows_var(text, username=None):
     variables['DesktopDir'] = xdg_get_desktop(username, variables['HOME'])
 
     if username:
+        variables['LogonUser'] = username
         variables['HOME'] = get_homedir(username)
 
         variables['StartMenuDir'] = os.path.join(

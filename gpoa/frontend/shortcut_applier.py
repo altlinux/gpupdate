@@ -31,7 +31,7 @@ from util.util import (
         homedir_exists
 )
 
-def storage_get_shortcuts(storage, sid):
+def storage_get_shortcuts(storage, sid, username=None):
     '''
     Query storage for shortcuts' rows for specified SID.
     '''
@@ -40,6 +40,8 @@ def storage_get_shortcuts(storage, sid):
 
     for sc_obj in shortcut_objs:
         sc = json2sc(sc_obj.shortcut)
+        if username:
+            sc.set_expanded_path(expand_windows_var(sc.path, username))
         shortcuts.append(sc)
 
     return shortcuts
@@ -125,12 +127,14 @@ class shortcut_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
 
-    def run(self):
-        shortcuts = storage_get_shortcuts(self.storage, self.sid)
+    def run(self, in_usercontext):
+        shortcuts = storage_get_shortcuts(self.storage, self.sid, self.username)
 
         if shortcuts:
             for sc in shortcuts:
-                if sc.is_usercontext():
+                if in_usercontext and sc.is_usercontext():
+                    write_shortcut(sc, self.username)
+                if not in_usercontext and not sc.is_usercontext():
                     write_shortcut(sc, self.username)
         else:
             logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
@@ -138,14 +142,14 @@ class shortcut_applier_user(applier_frontend):
     def user_context_apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running Shortcut applier for user in user context'))
-            self.run()
+            self.run(True)
         else:
             logging.debug(slogm('Shortcut applier for user in user context will not be started'))
 
     def admin_context_apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running Shortcut applier for user in administrator context'))
-            self.run()
+            self.run(False)
         else:
             logging.debug(slogm('Shortcut applier for user in administrator context will not be started'))
 
