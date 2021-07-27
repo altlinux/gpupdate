@@ -125,12 +125,14 @@ class shortcut_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
 
-    def run(self):
+    def run(self, in_usercontext):
         shortcuts = storage_get_shortcuts(self.storage, self.sid)
 
         if shortcuts:
             for sc in shortcuts:
-                if sc.is_usercontext():
+                if in_usercontext and sc.is_usercontext():
+                    write_shortcut(sc, self.username)
+                if not in_usercontext and not sc.is_usercontext():
                     write_shortcut(sc, self.username)
         else:
             logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
@@ -138,14 +140,14 @@ class shortcut_applier_user(applier_frontend):
     def user_context_apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running Shortcut applier for user in user context'))
-            self.run()
+            self.run(True)
         else:
             logging.debug(slogm('Shortcut applier for user in user context will not be started'))
 
     def admin_context_apply(self):
         if self.__module_enabled:
             logging.debug(slogm('Running Shortcut applier for user in administrator context'))
-            self.run()
+            self.run(False)
         else:
             logging.debug(slogm('Shortcut applier for user in administrator context will not be started'))
 
