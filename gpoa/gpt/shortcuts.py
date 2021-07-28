@@ -199,19 +199,29 @@ class shortcut:
 
         return json.dumps(result.content)
 
-    def desktop(self):
+    def desktop(self, dest=None):
         '''
         Returns desktop file object which may be written to disk.
         '''
-        self.desktop_file = DesktopEntry()
-        self.desktop_file.addGroup('Desktop Entry')
+        if dest:
+            self.desktop_file = DesktopEntry(dest)
+        else:
+            self.desktop_file = DesktopEntry()
+            self.desktop_file.addGroup('Desktop Entry')
+            self.desktop_file.set('Version', '1.0')
+        self._update_desktop()
 
+        return self.desktop_file
+
+    def _update_desktop(self):
+        '''
+        Update desktop file object from internal data.
+        '''
         if self.type == TargetType.URL:
             self.desktop_file.set('Type', 'Link')
         else:
             self.desktop_file.set('Type', 'Application')
 
-        self.desktop_file.set('Version', '1.0')
         self.desktop_file.set('Name', self.name)
 
         desktop_path = self.path
@@ -226,9 +236,7 @@ class shortcut:
         if self.icon:
             self.desktop_file.set('Icon', self.icon)
 
-        return self.desktop_file
-
-    def write_desktop(self, dest, create_only=False):
+    def _write_desktop(self, dest, create_only=False, read_firstly=False):
         '''
         Write .desktop file to disk using path 'dest'. Please note that
         .desktop files must have executable bit set in order to work in
@@ -238,10 +246,14 @@ class shortcut:
         if sc.exists() and create_only:
             return
 
-        self.desktop().write(dest)
+        if sc.exists() and read_firstly:
+            self.desktop(dest).write(dest)
+        else:
+            self.desktop().write(dest)
+
         sc.chmod(sc.stat().st_mode | stat.S_IEXEC)
 
-    def remove_desktop(self, dest):
+    def _remove_desktop(self, dest):
         '''
         Remove .desktop file fromo disk using path 'dest'.
         '''
@@ -254,11 +266,11 @@ class shortcut:
         Apply .desktop file by action.
         '''
         if self.action == 'U':
-            self.write_desktop(dest)
+            self._write_desktop(dest, read_firstly=True)
         elif self.action == 'D':
-            self.remove_desktop(dest)
+            self._remove_desktop(dest)
         elif self.action == 'R':
-            self.remove_desktop(dest)
-            self.write_desktop(dest)
+            self._remove_desktop(dest)
+            self._write_desktop(dest)
         elif self.action == 'C':
-            self.write_desktop(dest, True)
+            self._write_desktop(dest, create_only=True)
