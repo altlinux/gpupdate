@@ -335,6 +335,7 @@ class sqlite_registry(registry):
             .db_session
             .query(row_object)
             .filter(row_object.sid == sid)
+            .order_by(row_object.id)
             .all())
         return res
 
