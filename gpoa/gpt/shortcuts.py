@@ -79,7 +79,7 @@ def read_shortcuts(shortcuts_file):
         # URL or FILESYSTEM
         target_type = get_ttype(props.get('targetType'))
 
-        sc = shortcut(dest, path, arguments, link.get('name'), target_type)
+        sc = shortcut(dest, path, arguments, link.get('name'), props.get('action'), target_type)
         sc.set_changed(link.get('changed'))
         sc.set_clsid(link.get('clsid'))
         sc.set_guid(link.get('uid'))
@@ -100,7 +100,7 @@ def json2sc(json_str):
     json_obj = json.loads(json_str)
     link_type = get_ttype(json_obj['type'])
 
-    sc = shortcut(json_obj['dest'], json_obj['path'], json_obj['arguments'], json_obj['name'], link_type)
+    sc = shortcut(json_obj['dest'], json_obj['path'], json_obj['arguments'], json_obj['name'], json_obj['action'], link_type)
     sc.set_changed(json_obj['changed'])
     sc.set_clsid(json_obj['clsid'])
     sc.set_guid(json_obj['guid'])
@@ -111,7 +111,7 @@ def json2sc(json_str):
     return sc
 
 class shortcut:
-    def __init__(self, dest, path, arguments, name=None, ttype=TargetType.FILESYSTEM):
+    def __init__(self, dest, path, arguments, name=None, action=None, ttype=TargetType.FILESYSTEM):
         '''
         :param dest: Path to resulting file on file system
         :param path: Path where the link should point to
@@ -124,6 +124,7 @@ class shortcut:
         self.expanded_path = None
         self.arguments = arguments
         self.name = name
+        self.action = action
         self.changed = ''
         self.icon = None
         self.is_in_user_context = self.set_usercontext()
@@ -188,6 +189,7 @@ class shortcut:
         content['clsid'] = self.clsid
         content['guid'] = self.guid
         content['changed'] = self.changed
+        content['action'] = self.action
         content['is_in_user_context'] = self.is_in_user_context
         content['type'] = ttype2str(self.type)
         if self.icon:
@@ -197,19 +199,29 @@ class shortcut:
 
         return json.dumps(result.content)
 
-    def desktop(self):
+    def desktop(self, dest=None):
         '''
         Returns desktop file object which may be written to disk.
         '''
-        self.desktop_file = DesktopEntry()
-        self.desktop_file.addGroup('Desktop Entry')
+        if dest:
+            self.desktop_file = DesktopEntry(dest)
+        else:
+            self.desktop_file = DesktopEntry()
+            self.desktop_file.addGroup('Desktop Entry')
+            self.desktop_file.set('Version', '1.0')
+        self._update_desktop()
 
+        return self.desktop_file
+
+    def _update_desktop(self):
+        '''
+        Update desktop file object from internal data.
+        '''
         if self.type == TargetType.URL:
             self.desktop_file.set('Type', 'Link')
         else:
             self.desktop_file.set('Type', 'Application')
 
-        self.desktop_file.set('Version', '1.0')
         self.desktop_file.set('Name', self.name)
 
         desktop_path = self.path
@@ -224,15 +236,41 @@ class shortcut:
         if self.icon:
             self.desktop_file.set('Icon', self.icon)
 
-        return self.desktop_file
-
-    def write_desktop(self, dest):
+    def _write_desktop(self, dest, create_only=False, read_firstly=False):
         '''
         Write .desktop file to disk using path 'dest'. Please note that
         .desktop files must have executable bit set in order to work in
         GUI.
         '''
-        self.desktop().write(dest)
         sc = Path(dest)
+        if sc.exists() and create_only:
+            return
+
+        if sc.exists() and read_firstly:
+            self.desktop(dest).write(dest)
+        else:
+            self.desktop().write(dest)
+
         sc.chmod(sc.stat().st_mode | stat.S_IEXEC)
 
+    def _remove_desktop(self, dest):
+        '''
+        Remove .desktop file fromo disk using path 'dest'.
+        '''
+        sc = Path(dest)
+        if sc.exists():
+            sc.unlink()
+
+    def apply_desktop(self, dest):
+        '''
+        Apply .desktop file by action.
+        '''
+        if self.action == 'U':
+            self._write_desktop(dest, read_firstly=True)
+        elif self.action == 'D':
+            self._remove_desktop(dest)
+        elif self.action == 'R':
+            self._remove_desktop(dest)
+            self._write_desktop(dest)
+        elif self.action == 'C':
+            self._write_desktop(dest, create_only=True)

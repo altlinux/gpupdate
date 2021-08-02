@@ -46,9 +46,9 @@ def storage_get_shortcuts(storage, sid, username=None):
 
     return shortcuts
 
-def write_shortcut(shortcut, username=None):
+def apply_shortcut(shortcut, username=None):
     '''
-    Write the single shortcut file to the disk.
+    Apply the single shortcut file to the disk.
 
     :username: None means working with machine variables and paths
     '''
@@ -66,22 +66,22 @@ def write_shortcut(shortcut, username=None):
         if dest_abspath.startswith(get_homedir(username)):
             # Don't try to operate on non-existent directory
             if not homedir_exists(username):
-                logging.warning(slogm('No home directory exists for user {}: will not create link {}'.format(username, dest_abspath)))
+                logging.warning(slogm('No home directory exists for user {}: will not apply link {}'.format(username, dest_abspath)))
                 return None
         else:
             logging.warning(slogm('User\'s shortcut not placed to home directory for {}: bad path {}'.format(username, dest_abspath)))
             return None
 
     if '%' in dest_abspath:
-        logging.debug(slogm('Fail for writing shortcut to file with \'%\': {}'.format(dest_abspath)))
+        logging.debug(slogm('Fail for applying shortcut to file with \'%\': {}'.format(dest_abspath)))
         return None
 
     if not dest_abspath.startswith('/'):
-        logging.debug(slogm('Fail for writing shortcut to not absolute path \'%\': {}'.format(dest_abspath)))
+        logging.debug(slogm('Fail for applying shortcut to not absolute path \'%\': {}'.format(dest_abspath)))
         return None
 
-    logging.debug(slogm('Writing shortcut file to {}'.format(dest_abspath)))
-    shortcut.write_desktop(dest_abspath)
+    logging.debug(slogm('Applying shortcut file to {} with action {}'.format(dest_abspath, shortcut.action)))
+    shortcut.apply_desktop(dest_abspath)
 
 class shortcut_applier(applier_frontend):
     __module_name = 'ShortcutsApplier'
@@ -100,7 +100,7 @@ class shortcut_applier(applier_frontend):
         shortcuts = storage_get_shortcuts(self.storage, self.storage.get_info('machine_sid'))
         if shortcuts:
             for sc in shortcuts:
-                write_shortcut(sc)
+                apply_shortcut(sc)
             if len(shortcuts) > 0:
                 # According to ArchWiki - this thing is needed to rebuild MIME
                 # type cache in order file bindings to work. This rebuilds
@@ -133,9 +133,9 @@ class shortcut_applier_user(applier_frontend):
         if shortcuts:
             for sc in shortcuts:
                 if in_usercontext and sc.is_usercontext():
-                    write_shortcut(sc, self.username)
+                    apply_shortcut(sc, self.username)
                 if not in_usercontext and not sc.is_usercontext():
-                    write_shortcut(sc, self.username)
+                    apply_shortcut(sc, self.username)
         else:
             logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
 
