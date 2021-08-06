@@ -61,6 +61,7 @@ def error_code(code):
     error_ids[31] = 'Error connecting to DBus Session daemon'
     error_ids[32] = 'No reply from DBus Session'
     error_ids[33] = 'Error occured while running forked process with dropped privileges'
+    error_ids[34] = 'Error running GPOA directly for computer'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -124,6 +125,9 @@ def debug_code(code):
     debug_ids[56] = 'Kill dbus-daemon and dconf-service in user context'
     debug_ids[57] = 'Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID'
     debug_ids[58] = 'Connection search return org.freedesktop.DBus.Error.NameHasNoOwner'
+    debug_ids[59] = 'Running GPOA without GPT update directly for user'
+    debug_ids[60] = 'Running GPOA by root for user'
+    debug_ids[61] = 'The GPOA process was started for computer'
 
     return debug_ids.get(code, 'Unknown debug code')
 

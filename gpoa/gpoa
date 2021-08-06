@@ -73,25 +73,44 @@ class gpoa_controller:
     def __init__(self):
         self.__args = parse_arguments()
         self.is_machine = False
-        if not self.__args.user:
-            user = get_machine_name()
-            self.is_machine = True
+        self.noupdate = self.__args.noupdate
         set_loglevel(self.__args.loglevel)
+
         locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
         gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
         gettext.textdomain('gpoa')
 
+        if not self.__args.user:
+            self.username = get_machine_name()
+            self.is_machine = True
+        else:
+            self.username = self.__args.user
+
         uname = get_process_user()
         uid = os.getuid()
         logdata = dict()
-        logdata['username'] = uname
-        logdata['uid'] = uid
-        log('D1', logdata)
+        logdata['username'] = self.username
+        logdata['is_machine'] = self.is_machine
+        logdata['process_username'] = uname
+        logdata['process_uid'] = uid
+
+        if self.is_machine:
+            log('D61', logdata)
+        else:
+            log('D1', logdata)
+            self.username = determine_username(self.username)
 
         if not is_root():
-            self.username = uname
+            self.noupdate = True
+
+            if self.is_machine:
+                msgtext = message_with_code('E34')
+                log('E34', {'username': self.username})
+                raise Exception(msgtext)
+
+            log('D59', {'username': self.username})
         else:
-            self.username = determine_username(self.__args.user)
+            log('D60', {'username': self.username})
 
     def run(self):
         '''
@@ -113,7 +132,7 @@ class gpoa_controller:
         if self.__args.nodomain:
             nodomain = True
 
-        if not self.__args.noupdate:
+        if not self.noupdate:
             if is_root():
                 back = None
                 try:
