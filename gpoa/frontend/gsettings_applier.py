@@ -20,6 +20,7 @@ import logging
 import os
 import pwd
 import subprocess
+import json
 
 from gi.repository import (
       Gio
@@ -36,6 +37,26 @@ from .appliers.gsettings import (
     user_gsetting
 )
 from util.logging import slogm
+from storage.fs_file_cache import fs_file_cache
+
+def picture_fetch(schema, path, value):
+    '''
+    Function to fetch and cache wallpaper file
+    '''
+    retval = value
+    cache = fs_file_cache('file_cache')
+    logdata = dict()
+    logdata['schema'] = schema
+    logdata['path'] = path
+    logdata['src'] = value
+    try:
+        retval = cache.get(value)
+    except Exception as exc:
+        pass
+    logdata['dst'] = retval
+    logging.debug(slogm('Getting cached file for URI: {}'.format(json.dumps(logdata))))
+
+    return 'file://{}'.format(retval)
 
 class gsettings_applier(applier_frontend):
     __module_name = 'GSettingsApplier'
@@ -111,10 +132,11 @@ class gsettings_applier(applier_frontend):
             logging.debug(slogm('GSettings applier for machine will not be started'))
 
 class GSettingsMapping:
-    def __init__(self, hive_key, gsettings_schema, gsettings_key):
+    def __init__(self, hive_key, gsettings_schema, gsettings_key, mapping_function=None):
         self.hive_key = hive_key
         self.gsettings_schema = gsettings_schema
         self.gsettings_key = gsettings_key
+        self.mapping_function = mapping_function
 
         try:
             self.schema_source = Gio.SettingsSchemaSource.get_default()
@@ -126,6 +148,10 @@ class GSettingsMapping:
             logdata['hive_key'] = self.hive_key
             logdata['gsettings_schema'] = self.gsettings_schema
             logdata['gsettings_key'] = self.gsettings_key
+            if self.mapping_function:
+                logdata['mapping_function'] = self.mapping_function.__name__
+            else:
+                logdata['mapping_function'] = None
             logging.warning(slogm('Unable to resolve GSettings parameter {}.{}'.format(self.gsettings_schema, self.gsettings_key)))
 
     def preg2gsettings(self):
@@ -165,24 +191,28 @@ class gsettings_applier_user(applier_frontend):
                   'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveActive'
                 , 'org.mate.screensaver'
                 , 'idle-activation-enabled'
+                , None
               )
               # Timeout in seconds for screen saver activation. The value of zero effectively disables screensaver start
             , GSettingsMapping(
                   'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveTimeOut'
                 , 'org.mate.session'
                 , 'idle-delay'
+                , None
               )
               # Enable or disable password protection for screen saver
             , GSettingsMapping(
                   'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaverIsSecure'
                 , 'org.mate.screensaver'
                 , 'lock-enabled'
+                , None
               )
               # Specify image which will be used as a wallpaper
             , GSettingsMapping(
                   'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper'
                 , 'org.mate.background'
                 , 'picture-filename'
+                , picture_fetch
               )
         ]
         self.windows_settings.extend(mapping)
@@ -193,14 +223,17 @@ class gsettings_applier_user(applier_frontend):
 
     def windows_mapping_append(self):
         for setting_key in self.__windows_settings.keys():
-            #logging.debug('Checking for GSettings mapping {}'.format(setting_key))
+            logging.debug('Checking for GSettings mapping {}'.format(setting_key))
             value = self.storage.get_hkcu_entry(self.sid, setting_key)
             if value:
                 logging.debug(slogm('Found GSettings windows mapping {} to {}'.format(setting_key, value.data)))
                 mapping = self.__windows_settings[setting_key]
-                self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
-            #else:
-            #    logging.debug('GSettings windows mapping for {} not found'.format(setting_key))
+                try:
+                    self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data, mapping.mapping_function))
+                except Exception as exc:
+                    print(exc)
+            else:
+                logging.debug('GSettings windows mapping for {} not found'.format(setting_key))
 
     def run(self):
         #for setting in self.gsettings_keys:

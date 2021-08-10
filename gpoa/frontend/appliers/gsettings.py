@@ -38,7 +38,7 @@ class system_gsetting:
 
         value = glib_value(self.schema, self.path, self.value, settings)
         config.set(self.schema, self.path, str(value))
-        #logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, str(value)))
+        logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, str(value)))
 
         if self.lock != None:
             lock_path = dconf_path(settings, self.path)
@@ -110,20 +110,21 @@ def glib_value(schema, path, value, settings):
 
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
-        #logging.debug('Creating User GSettings element {} (in {}) with value {}'.format(path, schema, value))
+        logging.debug('Creating User GSettings element {} (in {}) with value {}'.format(path, schema, value))
         self.schema = schema
         self.path = path
         self.value = value
         self.helper_function = helper_function
 
     def apply(self):
-        #logging.debug('Setting User GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
+        logging.debug('Setting User GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
+        result = self.value
         if self.helper_function:
-            self.helper_function(self.schema, self.path, self.value)
+            result = self.helper_function(self.schema, self.path, self.value)
         # Access the current schema
         settings = Gio.Settings(schema=self.schema)
         # Get typed value by schema
-        val = glib_value(self.schema, self.path, self.value, settings)
+        val = glib_value(self.schema, self.path, result, settings)
         # Set the value
         settings.set_value(self.path, val)
         settings.sync()
