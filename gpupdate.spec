@@ -48,6 +48,7 @@ mkdir -p \
 	%buildroot%_bindir/ \
 	%buildroot%_sbindir/ \
 	%buildroot%_cachedir/%name/ \
+	%buildroot%_cachedir/%name_file_cache/ \
 	%buildroot%_cachedir/%name/creds
 
 ln -s %python3_sitelibdir/gpoa/gpoa \
@@ -105,6 +106,7 @@ fi
 %config(noreplace) %_sysconfdir/%name/%name.ini
 %config(noreplace) %_sysconfdir/pam.d/system-policy-%name
 %dir %attr(0700, root, root) %_cachedir/%name
+%dir %attr(0755, root, root) %_cachedir/%name_file_cache
 %dir %attr(0700, root, root) %_cachedir/%name/creds
 %exclude %python3_sitelibdir/gpoa/.pylintrc
 %exclude %python3_sitelibdir/gpoa/.prospector.yaml
