@@ -32,7 +32,7 @@ from .applier_frontend import (
     , check_windows_mapping_enabled
 )
 from .appliers.gsettings import (
-    system_gsetting,
+    system_gsettings,
     user_gsetting
 )
 from util.logging import slogm
@@ -41,7 +41,8 @@ class gsettings_applier(applier_frontend):
     __module_name = 'GSettingsApplier'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
+    __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
+    __registry_locks_branch = 'Software\\BaseALT\\Policies\\GSettingsLocks\\'
     __global_schema = '/usr/share/glib-2.0/schemas'
     __override_priority_file = 'zzz_policy.gschema.override'
     __override_old_file = '0_policy.gschema.override'
@@ -50,10 +51,13 @@ class gsettings_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
         gsettings_filter = '{}%'.format(self.__registry_branch)
+        gsettings_locks_filter = '{}%'.format(self.__registry_locks_branch)
         self.gsettings_keys = self.storage.filter_hklm_entries(gsettings_filter)
-        self.gsettings = list()
+        self.gsettings_locks = self.storage.filter_hklm_entries(gsettings_locks_filter)
         self.override_file = os.path.join(self.__global_schema, self.__override_priority_file)
         self.override_old_file = os.path.join(self.__global_schema, self.__override_old_file)
+        self.gsettings = system_gsettings(self.override_file)
+        self.locks = dict()
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -70,24 +74,34 @@ class gsettings_applier(applier_frontend):
             logging.debug(slogm('Removing GSettings policy file from previous run'))
             os.remove(self.override_file)
 
+        # Get all configured gsettings locks
+        for lock in self.gsettings_locks:
+            valuename = lock.hive_key.rpartition('\\')[2]
+            self.locks[valuename] = int(lock.data)
+
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
-            self.gsettings.append(system_gsetting(schema, path, setting.data, self.override_file))
+            lock = bool(self.locks[valuename]) if valuename in self.locks else None
+            self.gsettings.append(schema, path, setting.data, lock)
 
         # Create GSettings policy with highest available priority
-        for gsetting in self.gsettings:
-            logging.debug(slogm('Applying setting {}/{} to {}'.format(gsetting.schema, gsetting.path, gsetting.value)))
-            gsetting.apply()
+        self.gsettings.apply()
 
         # Recompile GSettings schemas with overrides
         try:
             proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True)
         except Exception as exc:
             logging.debug(slogm('Error recompiling global GSettings schemas'))
+
+        # Update desktop configuration system backend
+        try:
+            proc = subprocess.run(args=['/usr/bin/dconf', "update"], capture_output=True, check=True)
+        except Exception as exc:
+            logging.debug(slogm('Error update desktop configuration system backend'))
 
     def apply(self):
         if self.__module_enabled:
