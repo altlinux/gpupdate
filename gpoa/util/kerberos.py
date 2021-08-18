@@ -21,15 +21,19 @@ import subprocess
 
 from .util import get_machine_name
 from .logging import log
+from .samba import smbopts
 
 
 def machine_kinit(cache_name=None):
     '''
     Perform kinit with machine credentials
     '''
+    opts = smbopts()
     host = get_machine_name()
+    realm = opts.get_realm()
+    with_realm = '{}@{}'.format(host, realm)
     os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_name)
-    kinit_cmd = ['kinit', '-k', host]
+    kinit_cmd = ['kinit', '-k', with_realm]
     if cache_name:
         kinit_cmd.extend(['-c', cache_name])
     proc = subprocess.Popen(kinit_cmd)

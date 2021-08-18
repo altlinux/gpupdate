@@ -28,6 +28,12 @@ class smbopts:
         self.sambaopts = options.SambaOptions(self.parser)
         self.lp = self.sambaopts.get_loadparm()
 
+    def get_realm(self):
+        '''
+        Get the default realm specified in smb.conf file.
+        '''
+        return self._get_prop('realm')
+
     def get_cache_dir(self):
         return self._get_prop('cache directory')
 
