@@ -24,29 +24,68 @@ from gi.repository import Gio, GLib
 from util.logging import slogm
 
 class system_gsetting:
-    def __init__(self, schema, path, value, override_priority_file):
+    def __init__(self, schema, path, value, lock):
         self.schema = schema
         self.path = path
         self.value = value
-        self.file_path = override_priority_file
+        self.lock = lock
 
-    def apply(self):
-        config = configparser.ConfigParser()
-        try:
-            config.read(self.file_path)
-        except Exception as exc:
-            logging.error(slogm(exc))
+    def apply(self, settings, config, locks):
         try:
             config.add_section(self.schema)
         except configparser.DuplicateSectionError:
             pass
 
-        value = glib_value(self.schema, self.path, self.value)
+        value = glib_value(self.schema, self.path, self.value, settings)
         config.set(self.schema, self.path, str(value))
         #logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, str(value)))
 
-        with open(self.file_path, 'w') as f:
+        if self.lock != None:
+            lock_path = dconf_path(settings, self.path)
+            locks.append(lock_path)
+
+class system_gsettings:
+    __path_local_dir = '/etc/dconf/db/local.d'
+    __path_locks = '/etc/dconf/db/policy.d/locks/policy'
+    __path_profile = '/etc/dconf/profile/user'
+    __profile_data = 'user-db:user\nsystem-db:policy\nsystem-db:local\n'
+
+    def __init__(self, override_file_path):
+        self.gsettings = list()
+        self.locks = list()
+        self.override_file_path = override_file_path
+
+    def append(self, schema, path, data, lock):
+        self.gsettings.append(system_gsetting(schema, path, data, lock))
+
+    def apply(self):
+        config = configparser.ConfigParser()
+
+        for gsetting in self.gsettings:
+            settings = Gio.Settings(schema=gsetting.schema)
+            logging.debug(slogm('Applying setting {}.{} to {}'.format(gsetting.schema, gsetting.path, gsetting.value)))
+            gsetting.apply(settings, config, self.locks)
+
+        with open(self.override_file_path, 'w') as f:
             config.write(f)
+
+        if self.locks:
+            os.makedirs(self.__path_local_dir, mode=0o755, exist_ok=True)
+            os.makedirs(os.path.dirname(self.__path_locks), mode=0o755, exist_ok=True)
+            os.makedirs(os.path.dirname(self.__path_profile), mode=0o755, exist_ok=True)
+            try:
+                os.remove(self.__path_locks)
+            except OSError as error:
+                pass
+
+            file_locks = open(self.__path_locks,'w')
+            for lock in self.locks:
+                file_locks.write(lock +'\n')
+            file_locks.close()
+
+            profile = open(self.__path_profile ,'w')
+            profile.write(self.__profile_data)
+            profile.close()
 
 def glib_map(value, glib_type):
     result_value = value
@@ -58,10 +97,10 @@ def glib_map(value, glib_type):
 
     return result_value
 
-def glib_value(schema, path, value, settings=None):
-    # Access the current schema if not initialized
-    if not settings:
-        settings = Gio.Settings(schema=schema)
+def dconf_path(settings, path):
+    return settings.get_property("path") + path
+
+def glib_value(schema, path, value, settings):
     # Get the key to modify
     key = settings.get_value(path)
     # Query the data type for the key
