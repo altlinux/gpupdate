@@ -172,6 +172,7 @@ class gsettings_applier_user(applier_frontend):
     __module_experimental = False
     __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
+    __wallpaper_entry = 'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -180,6 +181,7 @@ class gsettings_applier_user(applier_frontend):
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
         self.gsettings = list()
+        self.file_cache = fs_file_cache('file_cache')
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
         self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
 
@@ -209,7 +211,7 @@ class gsettings_applier_user(applier_frontend):
               )
               # Specify image which will be used as a wallpaper
             , GSettingsMapping(
-                  'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper'
+                  self.__wallpaper_entry
                 , 'org.mate.background'
                 , 'picture-filename'
                 , picture_fetch
@@ -275,5 +277,14 @@ class gsettings_applier_user(applier_frontend):
         '''
         Not implemented because there is no point of doing so.
         '''
-        pass
+        # Cache files on remote locations
+        try:
+            entry = self.__wallpaper_entry
+            filter_result = self.storage.get_hkcu_entry(self.sid, entry)
+            if filter_result:
+                self.file_cache.store(filter_result.data)
+        except Exception as exc:
+            logdata = dict()
+            logdata['exception'] = str(exc)
+            logging.debug(slogm('Unable to cache specified URI: {}'.format(logdata)))
 

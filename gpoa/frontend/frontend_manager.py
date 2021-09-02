@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from storage import registry_factory
-from storage.fs_file_cache import fs_file_cache
 
 from .control_applier import control_applier
 from .polkit_applier import (
@@ -108,7 +107,6 @@ class frontend_manager:
         self.is_machine = is_machine
         self.process_uname = get_process_user()
         self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
-        self.file_cache = fs_file_cache('file_cache')
 
         self.machine_appliers = dict()
         self.machine_appliers['control'] = control_applier(self.storage)
@@ -171,17 +169,6 @@ class frontend_manager:
         Run appliers for users.
         '''
         if is_root():
-            # Cache files on remote locations
-            try:
-                entry = 'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper'
-                filter_result = self.storage.get_hkcu_entry(self.sid, entry)
-                if filter_result:
-                    self.file_cache.store(filter_result.data)
-            except Exception as exc:
-                logdata = dict()
-                logdata['exception'] = str(exc)
-                log('E37', logdata)
-
             for applier_name, applier_object in self.user_appliers.items():
                 try:
                     applier_object.admin_context_apply()
