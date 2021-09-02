@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import socket
 import os
 import pwd
 import subprocess
@@ -29,7 +28,10 @@ def get_machine_name():
     '''
     Get localhost name looking like DC0$
     '''
-    return socket.gethostname().split('.', 1)[0].upper() + "$"
+    loadparm = smbopts()
+    result = loadparm.get_machine_name()
+
+    return result
 
 
 def is_machine_name(name):

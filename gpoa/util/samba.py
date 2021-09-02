@@ -18,6 +18,7 @@
 
 
 import optparse
+import socket
 from samba import getopt as options
 
 
@@ -33,6 +34,21 @@ class smbopts:
 
     def get_server_role(self):
         return self._get_prop('server role')
+
+    def get_machine_name(self):
+        '''
+        Get localhost name looking like DC0$
+        '''
+        nb_name = self.get_netbios_name()
+        result = nb_name + "$"
+
+        if result == '':
+            result = socket.gethostname().split('.', 1)[0].upper() + "$"
+
+        return result
+
+    def get_netbios_name(self):
+        return self._get_prop('netbios name')
 
     def _get_prop(self, property_name):
         return self.lp.get(property_name)
