@@ -54,7 +54,7 @@ def picture_fetch(schema, path, value):
     except Exception as exc:
         pass
     logdata['dst'] = retval
-    logging.debug(slogm('Getting cached file for URI: {}'.format(json.dumps(logdata))))
+    logging.debug(slogm('Getting cached file for URI: {}'.format(logdata)))
 
     return 'file://{}'.format(retval)
 
@@ -225,7 +225,6 @@ class gsettings_applier_user(applier_frontend):
 
     def windows_mapping_append(self):
         for setting_key in self.__windows_settings.keys():
-            logging.debug('Checking for GSettings mapping {}'.format(setting_key))
             value = self.storage.get_hkcu_entry(self.sid, setting_key)
             if value:
                 logging.debug(slogm('Found GSettings windows mapping {} to {}'.format(setting_key, value.data)))
@@ -234,8 +233,6 @@ class gsettings_applier_user(applier_frontend):
                     self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data, mapping.mapping_function))
                 except Exception as exc:
                     print(exc)
-            else:
-                logging.debug('GSettings windows mapping for {} not found'.format(setting_key))
 
     def run(self):
         #for setting in self.gsettings_keys:

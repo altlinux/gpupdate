@@ -38,7 +38,6 @@ class system_gsetting:
 
         value = glib_value(self.schema, self.path, self.value, settings)
         config.set(self.schema, self.path, str(value))
-        logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, str(value)))
 
         if self.lock != None:
             lock_path = dconf_path(settings, self.path)
@@ -110,14 +109,12 @@ def glib_value(schema, path, value, settings):
 
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
-        logging.debug('Creating User GSettings element {} (in {}) with value {}'.format(path, schema, value))
         self.schema = schema
         self.path = path
         self.value = value
         self.helper_function = helper_function
 
     def apply(self):
-        logging.debug('Setting User GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
         result = self.value
         if self.helper_function:
             result = self.helper_function(self.schema, self.path, self.value)
@@ -128,10 +125,3 @@ class user_gsetting:
         # Set the value
         settings.set_value(self.path, val)
         settings.sync()
-
-        #gso = Gio.Settings.new(self.schema)
-        #variants = gso.get_property(self.path)
-        #if (variants.has_key(self.path)):
-        #    key = variants.get_key(self.path)
-        #    print(key.get_range())
-

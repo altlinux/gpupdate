@@ -126,7 +126,7 @@ class samba_backend(applier_backend):
     def _get_gpts(self, username, sid):
         gpts = list()
 
-        log('D45')
+        log('D45', {'username': username, 'sid': sid})
         # util.windows.smbcreds
         gpos = self.sambacreds.update_gpos(username)
         log('D46')
