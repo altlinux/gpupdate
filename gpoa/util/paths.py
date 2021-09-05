@@ -82,7 +82,6 @@ class UNCPath:
             self.type = 'uri'
         if self.path.startswith(r'\\'):
             self.type = 'unc'
-        raise Exception('Not a CIFS path')
 
     def get_uri(self):
         path = self.path
