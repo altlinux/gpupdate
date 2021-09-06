@@ -39,3 +39,10 @@ def geterr():
 
     return traceinfo
 
+class NotUNCPathError(Exception):
+    def __init__(self, path):
+        self.path = path
+
+    def __str__(self):
+        return self.path
+

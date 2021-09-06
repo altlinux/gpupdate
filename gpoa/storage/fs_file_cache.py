@@ -25,6 +25,7 @@ import smbc
 
 from util.logging import log
 from util.paths import file_cache_dir, UNCPath
+from util.exceptions import NotUNCPathError
 
 
 class fs_file_cache:
@@ -84,6 +85,9 @@ class fs_file_cache:
             destfile = Path('{}/{}/{}'.format(self.storage_uri,
                 uri_path.get_domain(),
                 uri_path.get_path()))
+        except NotUNCPathError as exc:
+            logdata = dict({'path': str(exc)})
+            log('D62', logdata)
         except Exception as exc:
             logdata = dict({'exception': str(exc)})
             log('E36', logdata)

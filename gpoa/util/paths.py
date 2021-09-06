@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 
 from .config import GPConfig
 from .util import get_default_policy_name
+from .util.exceptions import NotUNCPathError
 
 
 def default_policy_path():
@@ -78,10 +79,13 @@ def local_policy_cache():
 class UNCPath:
     def __init__(self, path):
         self.path = path
+        self.type = None
         if self.path.startswith(r'smb://'):
             self.type = 'uri'
         if self.path.startswith(r'\\'):
             self.type = 'unc'
+        if not self.type:
+            raise NotUNCPathError(path)
 
     def get_uri(self):
         path = self.path

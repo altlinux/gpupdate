@@ -132,6 +132,7 @@ def debug_code(code):
     debug_ids[59] = 'Running GPOA without GPT update directly for user'
     debug_ids[60] = 'Running GPOA by root for user'
     debug_ids[61] = 'The GPOA process was started for computer'
+    debug_ids[62] = 'Path not resolved as UNC URI'
 
     return debug_ids.get(code, 'Unknown debug code')
 

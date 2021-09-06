@@ -51,12 +51,12 @@ def picture_fetch(schema, path, value):
     logdata['src'] = value
     try:
         retval = cache.get(value)
+        logdata['dst'] = retval
+        logging.debug(slogm('Getting cached file for URI: {}'.format(logdata)))
     except Exception as exc:
         pass
-    logdata['dst'] = retval
-    logging.debug(slogm('Getting cached file for URI: {}'.format(logdata)))
 
-    return 'file://{}'.format(retval)
+    return retval
 
 class gsettings_applier(applier_frontend):
     __module_name = 'GSettingsApplier'
