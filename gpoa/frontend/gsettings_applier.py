@@ -20,7 +20,6 @@ import logging
 import os
 import pwd
 import subprocess
-import json
 
 from gi.repository import (
       Gio

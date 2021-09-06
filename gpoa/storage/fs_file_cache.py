@@ -93,5 +93,5 @@ class fs_file_cache:
             log('E36', logdata)
             raise exc
 
-        return destfile
+        return str(destfile)
 
