@@ -43,7 +43,7 @@ class system_gsetting:
         result = glib_value(self.schema, self.path, value, settings)
         config.set(self.schema, self.path, str(result))
 
-        if self.lock != None:
+        if self.lock:
             lock_path = dconf_path(settings, self.path)
             locks.append(lock_path)
 
