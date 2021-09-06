@@ -41,7 +41,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
                 log('D52', ld)
         sc = smbcreds(dc)
         domain = sc.get_domain()
-        ldata = dict({'domain': domain})
+        ldata = dict({'domain': domain, "username": username, 'is_machine': is_machine})
         log('D9', ldata)
         try:
             back = samba_backend(sc, username, domain, is_machine)

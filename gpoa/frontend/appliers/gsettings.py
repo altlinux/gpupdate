@@ -24,11 +24,12 @@ from gi.repository import Gio, GLib
 from util.logging import slogm
 
 class system_gsetting:
-    def __init__(self, schema, path, value, lock):
+    def __init__(self, schema, path, value, lock, helper_function=None):
         self.schema = schema
         self.path = path
         self.value = value
         self.lock = lock
+        self.helper_function = helper_function
 
     def apply(self, settings, config, locks):
         try:
@@ -36,11 +37,13 @@ class system_gsetting:
         except configparser.DuplicateSectionError:
             pass
 
-        value = glib_value(self.schema, self.path, self.value, settings)
-        config.set(self.schema, self.path, str(value))
-        #logging.debug('Setting GSettings key {} (in {}) to {}'.format(self.path, self.schema, str(value)))
+        value = self.value
+        if self.helper_function:
+            value = self.helper_function(self.schema, self.path, value)
+        result = glib_value(self.schema, self.path, value, settings)
+        config.set(self.schema, self.path, str(result))
 
-        if self.lock != None:
+        if self.lock:
             lock_path = dconf_path(settings, self.path)
             locks.append(lock_path)
 
@@ -55,8 +58,8 @@ class system_gsettings:
         self.locks = list()
         self.override_file_path = override_file_path
 
-    def append(self, schema, path, data, lock):
-        self.gsettings.append(system_gsetting(schema, path, data, lock))
+    def append(self, schema, path, data, lock, helper):
+        self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
 
     def apply(self):
         config = configparser.ConfigParser()
@@ -110,27 +113,20 @@ def glib_value(schema, path, value, settings):
 
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
-        #logging.debug('Creating User GSettings element {} (in {}) with value {}'.format(path, schema, value))
         self.schema = schema
         self.path = path
         self.value = value
         self.helper_function = helper_function
 
     def apply(self):
-        #logging.debug('Setting User GSettings key {} (in {}) to {}'.format(self.path, self.schema, self.value))
-        if self.helper_function:
-            self.helper_function(self.schema, self.path, self.value)
         # Access the current schema
         settings = Gio.Settings(schema=self.schema)
+        # Update result with helper function
+        value = self.value
+        if self.helper_function:
+            value = self.helper_function(self.schema, self.path, value)
         # Get typed value by schema
-        val = glib_value(self.schema, self.path, self.value, settings)
+        result = glib_value(self.schema, self.path, value, settings)
         # Set the value
-        settings.set_value(self.path, val)
+        settings.set_value(self.path, result)
         settings.sync()
-
-        #gso = Gio.Settings.new(self.schema)
-        #variants = gso.get_property(self.path)
-        #if (variants.has_key(self.path)):
-        #    key = variants.get_key(self.path)
-        #    print(key.get_range())
-

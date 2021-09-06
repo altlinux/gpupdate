@@ -1,7 +1,8 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2021 BaseALT Ltd. <org@basealt.ru>
+# Copyright (C) 2019-2021 Igor Chudov <nir@nir.org.ru>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,9 +19,12 @@
 
 import pathlib
 import os
+from pathlib import Path
+from urllib.parse import urlparse
 
 from .config import GPConfig
 from .util import get_default_policy_name
+from .exceptions import NotUNCPathError
 
 
 def default_policy_path():
@@ -49,6 +53,16 @@ def cache_dir():
 
     return cachedir
 
+def file_cache_dir():
+    '''
+    Returns path pointing to gpupdate's cache directory
+    '''
+    cachedir = pathlib.Path('/var/cache/gpupdate_file_cache')
+
+    if not cachedir.exists():
+        cachedir.mkdir(parents=True, exist_ok=True)
+
+    return cachedir
 
 def local_policy_cache():
     '''
@@ -61,4 +75,47 @@ def local_policy_cache():
         lpcache.mkdir(parents=True, exist_ok=True)
 
     return lpcache
+
+class UNCPath:
+    def __init__(self, path):
+        self.path = path
+        self.type = None
+        if self.path.startswith(r'smb://'):
+            self.type = 'uri'
+        if self.path.startswith(r'\\'):
+            self.type = 'unc'
+        if not self.type:
+            raise NotUNCPathError(path)
+
+    def get_uri(self):
+        path = self.path
+        if self.type == 'unc':
+            path = self.path.replace('\\', '/')
+            path = path.replace('//', 'smb://')
+        else:
+            pass
+
+        return path
+
+    def get_unc(self):
+        path = self.path
+        if self.type == 'uri':
+            path = self.path.replace('//', '\\\\')
+            path = path.replace('smb:\\\\', '\\\\')
+            path = path.replace('/', '\\')
+        else:
+            pass
+
+        return path
+
+    def get_domain(self):
+        schema_struct = urlparse(self.get_uri())
+        return schema_struct.netloc
+
+    def get_path(self):
+        schema_struct = urlparse(self.get_uri())
+        return schema_struct.path
+
+    def __str__(self):
+        return self.get_uri()
 

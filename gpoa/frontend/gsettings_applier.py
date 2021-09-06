@@ -37,19 +37,39 @@ from .appliers.gsettings import (
 )
 from util.logging import slogm
 
+def uri_fetch(schema, path, value, cache):
+    '''
+    Function to fetch and cache uri
+    '''
+    retval = value
+    logdata = dict()
+    logdata['schema'] = schema
+    logdata['path'] = path
+    logdata['src'] = value
+    try:
+        retval = cache.get(value)
+        logdata['dst'] = retval
+        logging.debug(slogm('Getting cached file for URI: {}'.format(logdata)))
+    except Exception as exc:
+        pass
+
+    return retval
+
 class gsettings_applier(applier_frontend):
     __module_name = 'GSettingsApplier'
     __module_experimental = False
     __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
     __registry_locks_branch = 'Software\\BaseALT\\Policies\\GSettingsLocks\\'
+    __wallpaper_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.mate.background.picture-filename'
     __global_schema = '/usr/share/glib-2.0/schemas'
     __override_priority_file = 'zzz_policy.gschema.override'
     __override_old_file = '0_policy.gschema.override'
     __windows_settings = dict()
 
-    def __init__(self, storage):
+    def __init__(self, storage, file_cache):
         self.storage = storage
+        self.file_cache = file_cache
         gsettings_filter = '{}%'.format(self.__registry_branch)
         gsettings_locks_filter = '{}%'.format(self.__registry_locks_branch)
         self.gsettings_keys = self.storage.filter_hklm_entries(gsettings_filter)
@@ -63,6 +83,17 @@ class gsettings_applier(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
+
+    def update_file_cache(self, data):
+        try:
+            self.file_cache.store(data)
+        except Exception as exc:
+            logdata = dict()
+            logdata['exception'] = str(exc)
+            logging.debug(slogm('Unable to cache specified URI for machine: {}'.format(logdata)))
+
+    def uri_fetch_helper(self, schema, path, value):
+        return uri_fetch(schema, path, value, self.file_cache)
 
     def run(self):
         # Compatility cleanup of old settings
@@ -81,12 +112,16 @@ class gsettings_applier(applier_frontend):
 
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
+            helper = None
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
             lock = bool(self.locks[valuename]) if valuename in self.locks else None
-            self.gsettings.append(schema, path, setting.data, lock)
+            if setting.hive_key.lower() == self.__wallpaper_entry.lower():
+                self.update_file_cache(setting.data)
+                helper = self.uri_fetch_helper
+            self.gsettings.append(schema, path, setting.data, lock, helper)
 
         # Create GSettings policy with highest available priority
         self.gsettings.apply()
@@ -145,10 +180,12 @@ class gsettings_applier_user(applier_frontend):
     __module_name = 'GSettingsApplierUser'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\BaseALT\\Policies\\gsettings'
+    __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
+    __wallpaper_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.mate.background.picture-filename'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, file_cache, sid, username):
         self.storage = storage
+        self.file_cache = file_cache
         self.sid = sid
         self.username = username
         gsettings_filter = '{}%'.format(self.__registry_branch)
@@ -193,14 +230,17 @@ class gsettings_applier_user(applier_frontend):
 
     def windows_mapping_append(self):
         for setting_key in self.__windows_settings.keys():
-            #logging.debug('Checking for GSettings mapping {}'.format(setting_key))
             value = self.storage.get_hkcu_entry(self.sid, setting_key)
             if value:
                 logging.debug(slogm('Found GSettings windows mapping {} to {}'.format(setting_key, value.data)))
                 mapping = self.__windows_settings[setting_key]
-                self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
-            #else:
-            #    logging.debug('GSettings windows mapping for {} not found'.format(setting_key))
+                try:
+                    self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
+                except Exception as exc:
+                    print(exc)
+
+    def uri_fetch_helper(self, schema, path, value):
+        return uri_fetch(schema, path, value, self.file_cache)
 
     def run(self):
         #for setting in self.gsettings_keys:
@@ -224,11 +264,16 @@ class gsettings_applier_user(applier_frontend):
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
-            self.gsettings.append(user_gsetting(schema, path, setting.data))
+            helper = self.uri_fetch_helper if setting.hive_key.lower() == self.__wallpaper_entry.lower() else None
+            self.gsettings.append(user_gsetting(schema, path, setting.data, helper))
 
         # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
-            logging.debug(slogm('Applying user setting {}/{} to {}'.format(gsetting.schema, gsetting.path, gsetting.value)))
+            logging.debug(slogm('Applying user setting {}.{} to {} {}'.format(gsetting.schema,
+                                                                              gsetting.path,
+                                                                              gsetting.value,
+                                                                              gsetting.value,
+                                                                              'locked' if gsetting.lock else 'unlocked')))
             gsetting.apply()
 
     def user_context_apply(self):
@@ -239,8 +284,14 @@ class gsettings_applier_user(applier_frontend):
             logging.debug(slogm('GSettings applier for user in user context will not be started'))
 
     def admin_context_apply(self):
-        '''
-        Not implemented because there is no point of doing so.
-        '''
-        pass
+        # Cache files on remote locations
+        try:
+            entry = self.__wallpaper_entry
+            filter_result = self.storage.get_hkcu_entry(self.sid, entry)
+            if filter_result:
+                self.file_cache.store(filter_result.data)
+        except Exception as exc:
+            logdata = dict()
+            logdata['exception'] = str(exc)
+            logging.debug(slogm('Unable to cache specified URI for user: {}'.format(logdata)))
 

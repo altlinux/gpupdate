@@ -62,6 +62,10 @@ def error_code(code):
     error_ids[32] = 'No reply from DBus Session'
     error_ids[33] = 'Error occured while running forked process with dropped privileges'
     error_ids[34] = 'Error running GPOA directly for computer'
+    error_ids[35] = 'Error caching URI to file'
+    error_ids[36] = 'Error getting cached file for URI'
+    error_ids[37] = 'Error caching file URIs'
+    error_ids[38] = 'Unable to cache specified URI'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -128,6 +132,7 @@ def debug_code(code):
     debug_ids[59] = 'Running GPOA without GPT update directly for user'
     debug_ids[60] = 'Running GPOA by root for user'
     debug_ids[61] = 'The GPOA process was started for computer'
+    debug_ids[62] = 'Path not resolved as UNC URI'
 
     return debug_ids.get(code, 'Unknown debug code')
 
