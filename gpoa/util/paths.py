@@ -24,7 +24,7 @@ from urllib.parse import urlparse
 
 from .config import GPConfig
 from .util import get_default_policy_name
-from .util.exceptions import NotUNCPathError
+from .exceptions import NotUNCPathError
 
 
 def default_policy_path():

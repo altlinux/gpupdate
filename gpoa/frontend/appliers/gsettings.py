@@ -24,11 +24,12 @@ from gi.repository import Gio, GLib
 from util.logging import slogm
 
 class system_gsetting:
-    def __init__(self, schema, path, value, lock):
+    def __init__(self, schema, path, value, lock, helper_function=None):
         self.schema = schema
         self.path = path
         self.value = value
         self.lock = lock
+        self.helper_function = helper_function
 
     def apply(self, settings, config, locks):
         try:
@@ -36,8 +37,11 @@ class system_gsetting:
         except configparser.DuplicateSectionError:
             pass
 
-        value = glib_value(self.schema, self.path, self.value, settings)
-        config.set(self.schema, self.path, str(value))
+        value = self.value
+        if self.helper_function:
+            value = self.helper_function(self.schema, self.path, value)
+        result = glib_value(self.schema, self.path, value, settings)
+        config.set(self.schema, self.path, str(result))
 
         if self.lock != None:
             lock_path = dconf_path(settings, self.path)
@@ -54,8 +58,8 @@ class system_gsettings:
         self.locks = list()
         self.override_file_path = override_file_path
 
-    def append(self, schema, path, data, lock):
-        self.gsettings.append(system_gsetting(schema, path, data, lock))
+    def append(self, schema, path, data, lock, helper):
+        self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
 
     def apply(self):
         config = configparser.ConfigParser()
@@ -115,13 +119,14 @@ class user_gsetting:
         self.helper_function = helper_function
 
     def apply(self):
-        result = self.value
-        if self.helper_function:
-            result = self.helper_function(self.schema, self.path, self.value)
         # Access the current schema
         settings = Gio.Settings(schema=self.schema)
+        # Update result with helper function
+        value = self.value
+        if self.helper_function:
+            value = self.helper_function(self.schema, self.path, value)
         # Get typed value by schema
-        val = glib_value(self.schema, self.path, result, settings)
+        result = glib_value(self.schema, self.path, value, settings)
         # Set the value
-        settings.set_value(self.path, val)
+        settings.set_value(self.path, result)
         settings.sync()

@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from storage import registry_factory
+from storage.fs_file_cache import fs_file_cache
 
 from .control_applier import control_applier
 from .polkit_applier import (
@@ -107,6 +108,7 @@ class frontend_manager:
         self.is_machine = is_machine
         self.process_uname = get_process_user()
         self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
+        self.file_cache = fs_file_cache('file_cache')
 
         self.machine_appliers = dict()
         self.machine_appliers['control'] = control_applier(self.storage)
@@ -115,10 +117,7 @@ class frontend_manager:
         self.machine_appliers['firefox'] = firefox_applier(self.storage, self.sid, self.username)
         self.machine_appliers['chromium'] = chromium_applier(self.storage, self.sid, self.username)
         self.machine_appliers['shortcuts'] = shortcut_applier(self.storage)
-        try:
-            self.machine_appliers['gsettings'] = gsettings_applier(self.storage)
-        except Exception as exc:
-            print(exc)
+        self.machine_appliers['gsettings'] = gsettings_applier(self.storage, self.file_cache)
         self.machine_appliers['cups'] = cups_applier(self.storage)
         self.machine_appliers['firewall'] = firewall_applier(self.storage)
         self.machine_appliers['folders'] = folder_applier(self.storage, self.sid)
@@ -131,10 +130,7 @@ class frontend_manager:
         self.user_appliers = dict()
         self.user_appliers['shortcuts'] = shortcut_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['folders'] = folder_applier_user(self.storage, self.sid, self.username)
-        try:
-            self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.sid, self.username)
-        except Exception as exc:
-            print(exc)
+        self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.file_cache, self.sid, self.username)
         try:
             self.user_appliers['cifs'] = cifs_applier_user(self.storage, self.sid, self.username)
         except Exception as exc:
