@@ -269,11 +269,9 @@ class gsettings_applier_user(applier_frontend):
 
         # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
-            logging.debug(slogm('Applying user setting {}.{} to {} {}'.format(gsetting.schema,
-                                                                              gsetting.path,
-                                                                              gsetting.value,
-                                                                              gsetting.value,
-                                                                              'locked' if gsetting.lock else 'unlocked')))
+            logging.debug(slogm('Applying user setting {}.{} to {}'.format(gsetting.schema,
+                                                                           gsetting.path,
+                                                                           gsetting.value)))
             gsetting.apply()
 
     def user_context_apply(self):
