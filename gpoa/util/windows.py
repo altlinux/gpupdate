@@ -105,7 +105,7 @@ class smbcreds (smbopts):
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
-                    ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name})
+                    ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path})
                     log('I2', ldata)
 
         except Exception as exc:
