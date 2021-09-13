@@ -1,0 +1,120 @@
+#!/usr/bin/python3
+#
+# GPOA - GPO Applier for Linux
+#
+# Copyright (C) 2019-2020 BaseALT Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import rpm
+import subprocess
+from gpoa.storage import registry_factory
+import logging
+import argparse
+
+def is_rpm_installed(rpm_name):
+    '''
+    Check if the package named 'rpm_name' is installed
+    '''
+    ts = rpm.TransactionSet()
+    pm = ts.dbMatch('name', rpm_name)
+    if pm.count() > 0:
+        return True
+
+    return False
+
+class Pkcon_applier:
+
+    def __init__(self, sid = None):
+        self.sid = sid
+        self.__install_key_name = 'Install'
+        self.__remove_key_name = 'Remove'
+        self.__hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
+        self.__hklm_branch = 'Software\\BaseALT\\Policies\\Packages'
+        self.__install_command = ['/usr/bin/pkcon', '-y', 'install']
+        self.__remove_command = ['/usr/bin/pkcon', '-y', 'remove']
+        self.__reinstall_command = ['/usr/bin/pkcon', '-y', 'reinstall']
+        self.install_packages = list()
+        self.remove_packages = list()
+        self.storage = registry_factory('registry')
+        if sid:
+            install_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
+            remove_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
+            self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch_user)
+            self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch_user)
+        else:
+            install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
+            remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
+            self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
+            self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
+        for package in self.install_packages_setting:
+            if is_rpm_installed(package.data) == False:
+                self.install_packages.append(package.data)
+        for package in self.remove_packages_setting:
+            if is_rpm_installed(package.data):
+                self.remove_packages.append(package.data)
+        self.install_packages = list(set(self.install_packages) - set(self.remove_packages))
+
+    def run(self):
+        self.update()
+        for package in self.remove_packages:
+            try:
+                self.remove_pkg(package)
+            except Exception as exc:
+                logging.debug(exc)
+
+        for package in self.install_packages:
+           try:
+               self.install_pkg(package)
+           except Exception as exc:
+               logging.debug(exc)
+
+    def apply(self):
+            self.run()
+
+    def install_pkg(self, package_name):
+        fullcmd = list(self.__install_command)
+        fullcmd.append(package_name)
+        return subprocess.check_call(fullcmd)
+
+    def reinstall_pkg(self, package_name):
+        fullcmd = list(self.__reinstall_command)
+        fullcmd.append(self.package_name)
+        return subprocess.check_call(fullcmd)
+
+    def remove_pkg(self, package_name):
+        fullcmd = self.__remove_command
+        fullcmd.append(package_name)
+        return subprocess.check_call(fullcmd)
+
+    def update(self):
+        '''
+        Update APT-RPM database.
+        '''
+        try:
+            subprocess.check_call(['/usr/bin/apt-get', 'update'])
+        except Exception as exc:
+            logging.debug(exc)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Package applier')
+    parser.add_argument('sid', type = str, help = 'sid', nargs = '?', default = None)
+
+    args = parser.parse_args()
+    if args.sid:
+        applier = Pkcon_applier(args.sid)
+    else:
+        applier = Pkcon_applier()
+    applier.apply()
+

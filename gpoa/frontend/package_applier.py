@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import subprocess
 from util.logging import slogm
 from util.rpm import (
       update
@@ -35,6 +36,7 @@ class package_applier(applier_frontend):
     __module_enabled = False
     __install_key_name = 'Install'
     __remove_key_name = 'Remove'
+    __sync_key_name = 'Sync'
     __hklm_branch = 'Software\\BaseALT\\Policies\\Packages'
 
     def __init__(self, storage):
@@ -42,30 +44,47 @@ class package_applier(applier_frontend):
  
         install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
         remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
-
+        sync_branch = '{}\\{}%'.format(self.__hklm_branch, self.__sync_key_name)
+        self.fulcmd = list()
+        self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
         self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
         self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
+        self.sync_packages_setting = self.storage.filter_hklm_entries(sync_branch)
+        self.flagSync = False
 
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
             , self.__module_experimental
         )
-
     def run(self):
-        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
-            update()
-            for package in self.install_packages_setting:
-                try:
-                    install_rpm(package.data)
-                except Exception as exc:
-                    logging.error(exc)
+        for flag in self.sync_packages_setting:
+            if flag.data:
+                self.flagSync = bool(int(flag.data))
 
-            for package in self.remove_packages_setting:
+        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
+            if not self.flagSync:
                 try:
-                    remove_rpm(package.data)
+                    subprocess.check_call(self.fulcmd)
                 except Exception as exc:
                     logging.error(exc)
+            else:
+                try:
+                    subprocess.Popen(self.fulcmd,close_fds=False)
+                except Exception as exc:
+                    logging.error(exc)
+            #update()
+            #for package in self.install_packages_setting:
+                #try:
+                #    install_rpm(package.data)
+                #except Exception as exc:
+                #    logging.error(exc)
+
+            #for package in self.remove_packages_setting:
+            #    try:
+            #        remove_rpm(package.data)
+            #    except Exception as exc:
+            #        logging.error(exc)
 
     def apply(self):
         if self.__module_enabled:
@@ -81,18 +100,25 @@ class package_applier_user(applier_frontend):
     __module_enabled = False
     __install_key_name = 'Install'
     __remove_key_name = 'Remove'
+    __sync_key_name = 'Sync'
     __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
+        self.fulcmd = list()
+        self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
+        self.fulcmd.append(self.sid)
 
         install_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
         remove_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
+        sync_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__sync_key_name)
 
         self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
         self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
+        self.sync_packages_setting = self.storage.filter_hkcu_entries(self.sid, sync_branch)
+        self.flagSync = True
 
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
@@ -103,19 +129,32 @@ class package_applier_user(applier_frontend):
         pass
 
     def run(self):
-        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
-            update()
-            for package in self.install_packages_setting:
-                try:
-                    install_rpm(package.data)
-                except Exception as exc:
-                    logging.debug(exc)
+        for flag in self.sync_packages_setting:
+            if flag.data:
+                self.flagSync = bool(int(flag.data))
 
-            for package in self.remove_packages_setting:
+        if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
+            if self.flagSync:
                 try:
-                    remove_rpm(package.data)
+                    subprocess.check_call(self.fulcmd)
                 except Exception as exc:
-                    logging.debug(exc)
+                    logging.error(exc)
+            else:
+                try:
+                    subprocess.Popen(self.fulcmd,close_fds=False)
+                except Exception as exc:
+                    logging.error(exc)
+            # update()
+            # for package in self.install_packages_setting:
+                # try:
+                    # install_rpm(package.data)
+                # except Exception as exc:
+                    # logging.debug(exc)
+            # for package in self.remove_packages_setting:
+                # try:
+                    # remove_rpm(package.data)
+                # except Exception as exc:
+                    # logging.debug(exc)
 
     def admin_context_apply(self):
         '''
