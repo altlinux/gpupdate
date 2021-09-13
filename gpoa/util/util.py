@@ -20,6 +20,7 @@
 import os
 import pwd
 import subprocess
+import re
 from pathlib import Path
 from .samba import smbopts
 

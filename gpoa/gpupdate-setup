@@ -23,8 +23,6 @@ import sys
 import argparse
 import subprocess
 
-import re
-
 from util.util import (
       runcmd
     , get_backends
