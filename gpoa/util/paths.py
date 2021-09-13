@@ -23,21 +23,22 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .config import GPConfig
-from .util import get_default_policy_name
 from .exceptions import NotUNCPathError
 
 
-def default_policy_path():
+def local_policy_path():
     '''
     Returns path pointing to Default Policy directory.
     '''
-    local_policy_default = '/usr/share/local-policy/{}'.format(get_default_policy_name())
+    local_policy_dir = '/usr/share/local-policy'
+    local_policy_default = '{}/default'.format(local_policy_dir)
+
     config = GPConfig()
+    local_policy_system = '{}/{}'.format(local_policy_dir, config.get_local_policy_template())
 
     result_path = pathlib.Path(local_policy_default)
-
-    if os.path.exists(config.get_local_policy_template()):
-        result_path = pathlib.Path(config.get_local_policy_template())
+    if os.path.exists(local_policy_system):
+        result_path = pathlib.Path(local_policy_system)
 
     return pathlib.Path(result_path)
 

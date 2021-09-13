@@ -68,7 +68,7 @@ from .tasks import (
 import util
 import util.preg
 from util.paths import (
-    default_policy_path,
+    local_policy_path,
     cache_dir,
     local_policy_cache
 )
@@ -326,7 +326,7 @@ def lp2gpt():
     '''
     Convert local-policy to full-featured GPT.
     '''
-    lppath = os.path.join(default_policy_path(), 'Machine/Registry.pol.xml')
+    lppath = os.path.join(local_policy_path(), 'Machine/Registry.pol.xml')
 
     # Load settings from XML PolFile
     polparser = GPPolParser()
