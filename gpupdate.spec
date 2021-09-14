@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.9.4
+Version: 0.9.5
 Release: alt1
 
 Summary: GPT applier
@@ -116,6 +116,10 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Tue Sep 14 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.5-alt1
+- Refix local policy path detection
+- gpupdate-setup: revert settings to default when disabled
+
 * Tue Sep 14 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.4-alt1
 - Add improvement with new local-policy system-policy control
 - Fix gpupdate-setup and user service installation regressions
