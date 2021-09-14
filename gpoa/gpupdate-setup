@@ -189,6 +189,8 @@ def disable_gp():
         runcmd(cmd_set_local_policy)
     runcmd(cmd_disable_gpupdate_service)
     runcmd(cmd_disable_gpupdate_user_service)
+    config.set_local_policy_template()
+    config.set_backend()
 
 def enable_gp(policy_name, backend_type):
     '''

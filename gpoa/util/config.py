@@ -45,7 +45,7 @@ class GPConfig:
 
         return 'samba'
 
-    def set_backend(self, backend_name):
+    def set_backend(self, backend_name='local'):
         self.full_config['gpoa']['backend'] = backend_name
         self.write_config()
 
@@ -71,7 +71,7 @@ class GPConfig:
 
         return get_default_policy_name()
 
-    def set_local_policy_template(self, template_name):
+    def set_local_policy_template(self, template_name='default'):
         self.full_config['gpoa']['local-policy'] = template_name
         self.write_config()
 
