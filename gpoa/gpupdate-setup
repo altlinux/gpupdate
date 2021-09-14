@@ -31,17 +31,14 @@ from util.util import (
     , get_policy_variants
 )
 from util.config import GPConfig
+from util.paths import get_custom_policy_dir
 
 
 class Runner:
     __control_path = '/usr/sbin/control'
     __systemctl_path = '/bin/systemctl'
-    __etc_policy_dir = '/etc/local-policy'
-    __usr_policy_dir = '/usr/share/local-policy'
 
     def __init__(self):
-        self.etc_policies = get_policy_entries(self.__etc_policy_dir)
-        self.usr_policies = get_policy_entries(self.__usr_policy_dir)
         self.arguments = parse_arguments()
 
 def parse_arguments():
@@ -197,8 +194,6 @@ def enable_gp(policy_name, backend_type):
     '''
     Consistently enable group policy services
     '''
-    policy_dir = '/usr/share/local-policy'
-    etc_policy_dir = '/etc/local-policy'
     cmd_set_gpupdate_policy = ['/usr/sbin/control', 'system-policy', 'gpupdate']
     cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel', '5']
     cmd_enable_gpupdate_service = ['/bin/systemctl', 'enable', 'gpupdate.service']
@@ -206,18 +201,17 @@ def enable_gp(policy_name, backend_type):
 
     config = GPConfig()
 
+    custom_policy_dir = get_custom_policy_dir()
+    if not os.path.isdir(custom_policy_dir):
+        os.makedirs(custom_policy_dir)
+
     target_policy_name = get_default_policy_name()
     if policy_name:
         if validate_policy_name(policy_name):
             target_policy_name = policy_name
-
     print (target_policy_name)
-    default_policy_name = os.path.join(policy_dir, target_policy_name)
 
-    if not os.path.isdir(etc_policy_dir):
-        os.makedirs(etc_policy_dir)
-
-    config.set_local_policy_template(default_policy_name)
+    config.set_local_policy_template(target_policy_name)
     config.set_backend(backend_type)
 
     # Enable oddjobd_gpupdate in PAM config
