@@ -2,7 +2,7 @@
 
 Name: gpupdate
 Version: 0.9.6
-Release: alt0.dev1
+Release: alt1
 
 Summary: GPT applier
 License: GPLv3+
@@ -116,6 +116,9 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Mon Sep 20 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.6-alt1
+- Add support changed GPO List Processing for '**DelVals.' value name
+
 * Tue Sep 14 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.5-alt1
 - Refix local policy path detection
 - gpupdate-setup: revert settings to default when disabled
