@@ -83,7 +83,7 @@ install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 # Remove storage in case we've lost compatibility between versions.
 # The storage will be regenerated on GPOA start.
 %define active_policy %_sysconfdir/local-policy/active
-%triggerpostun -- %name < 0.8.0
+%triggerpostun -- %name < 0.9.6
 rm -f %_cachedir/%name/registry.sqlite
 if test -L %active_policy; then
 	sed -i "s|^\s*local-policy\s*=.*|local-policy = $(readlink -f %active_policy)|" \

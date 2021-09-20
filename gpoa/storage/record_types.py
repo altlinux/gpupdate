@@ -22,7 +22,9 @@ class samba_preg(object):
     '''
     def __init__(self, preg_obj, policy_name):
         self.policy_name = policy_name
-        self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
+        self.keyname = preg_obj.keyname
+        self.valuename = preg_obj.valuename
+        self.hive_key = '{}\\{}'.format(self.keyname, self.valuename)
         self.type = preg_obj.type
         self.data = preg_obj.data
 
@@ -41,7 +43,9 @@ class samba_hkcu_preg(object):
     def __init__(self, sid, preg_obj, policy_name):
         self.sid = sid
         self.policy_name = policy_name
-        self.hive_key = '{}\\{}'.format(preg_obj.keyname, preg_obj.valuename)
+        self.keyname = preg_obj.keyname
+        self.valuename = preg_obj.valuename
+        self.hive_key = '{}\\{}'.format(self.keyname, self.valuename)
         self.type = preg_obj.type
         self.data = preg_obj.data
 

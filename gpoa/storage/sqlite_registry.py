@@ -68,6 +68,8 @@ class sqlite_registry(registry):
             , Column('id', Integer, primary_key=True)
             , Column('hive_key', String(65536, collation='NOCASE'),
                 unique=True)
+            , Column('keyname', String(collation='NOCASE'))
+            , Column('valuename', String(collation='NOCASE'))
             , Column('policy_name', String)
             , Column('type', Integer)
             , Column('data', String)
@@ -78,6 +80,8 @@ class sqlite_registry(registry):
             , Column('id', Integer, primary_key=True)
             , Column('sid', String)
             , Column('hive_key', String(65536, collation='NOCASE'))
+            , Column('keyname', String(collation='NOCASE'))
+            , Column('valuename', String(collation='NOCASE'))
             , Column('policy_name', String)
             , Column('type', Integer)
             , Column('data', String)
@@ -240,16 +244,52 @@ class sqlite_registry(registry):
         log('D19', logdata)
         self._info_upsert(ientry)
 
+    def _delete_hklm_keyname(self, keyname):
+        '''
+        Delete PReg hive_key from HKEY_LOCAL_MACHINE
+        '''
+        logdata = dict({'keyname': keyname})
+        try:
+            (self
+                .db_session
+                .query(samba_preg)
+                .filter(samba_preg.keyname == keyname)
+                .delete(synchronize_session=False))
+            self.db_session.commit()
+            log('D65', logdata)
+        except Exception as exc:
+            log('D63', logdata)
+
     def add_hklm_entry(self, preg_entry, policy_name):
         '''
         Write PReg entry to HKEY_LOCAL_MACHINE
         '''
         pentry = samba_preg(preg_entry, policy_name)
-        if not pentry.hive_key.rpartition('\\')[2].startswith('**'):
+        if not pentry.valuename.startswith('**'):
             self._hklm_upsert(pentry)
         else:
             logdata = dict({'key': pentry.hive_key})
-            log('D27', logdata)
+            if pentry.valuename.lower() == '**delvals.':
+                self._delete_hklm_keyname(pentry.keyname)
+            else:
+                log('D27', logdata)
+
+    def _delete_hkcu_keyname(self, keyname, sid):
+        '''
+        Delete PReg hive_key from HKEY_CURRENT_USER
+        '''
+        logdata = dict({'sid': sid, 'keyname': keyname})
+        try:
+            (self
+                .db_session
+                .query(samba_hkcu_preg)
+                .filter(samba_hkcu_preg.sid == sid)
+                .filter(samba_hkcu_preg.keyname == keyname)
+                .delete(synchronize_session=False))
+            self.db_session.commit()
+            log('D66', logdata)
+        except:
+            log('D64', logdata)
 
     def add_hkcu_entry(self, preg_entry, sid, policy_name):
         '''
@@ -257,11 +297,14 @@ class sqlite_registry(registry):
         '''
         hkcu_pentry = samba_hkcu_preg(sid, preg_entry, policy_name)
         logdata = dict({'sid': sid, 'policy': policy_name, 'key': hkcu_pentry.hive_key})
-        if not hkcu_pentry.hive_key.rpartition('\\')[2].startswith('**'):
+        if not hkcu_pentry.valuename.startswith('**'):
             log('D26', logdata)
             self._hkcu_upsert(hkcu_pentry)
         else:
-            log('D51', logdata)
+            if hkcu_pentry.valuename.lower() == '**delvals.':
+                self._delete_hkcu_keyname(hkcu_pentry.keyname, sid)
+            else:
+                log('D51', logdata)
 
     def add_shortcut(self, sid, sc_obj, policy_name):
         '''

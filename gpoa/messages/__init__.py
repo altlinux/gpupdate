@@ -133,6 +133,10 @@ def debug_code(code):
     debug_ids[60] = 'Running GPOA by root for user'
     debug_ids[61] = 'The GPOA process was started for computer'
     debug_ids[62] = 'Path not resolved as UNC URI'
+    debug_ids[63] = 'Delete HKLM branch key'
+    debug_ids[64] = 'Delete HKCU branch key'
+    debug_ids[65] = 'Delete HKLM branch key error'
+    debug_ids[66] = 'Delete HKCU branch key error'
 
     return debug_ids.get(code, 'Unknown debug code')
 
