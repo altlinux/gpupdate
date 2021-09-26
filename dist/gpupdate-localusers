@@ -1,0 +1,19 @@
+#!/bin/sh
+
+. /etc/control.d/functions
+
+CONFIG=/etc/pam.d/system-policy-gpupdate
+
+new_subst disabled \
+        '^[[:space:]]*session[[:space:]]+\[.*success=2.*\][[:space:]]+pam_localuser.so' \
+        's,^\([[:space:]]*session[[:space:]]\+\[.*\)success=[[:alnum:]]\+\(.*\)$,\1success=2\2,'
+new_subst enabled \
+        '^[[:space:]]*session[[:space:]]+\[.*success=1.*\][[:space:]]+pam_localuser.so' \
+        's,^\([[:space:]]*session[[:space:]]\+\[.*\)success=[[:alnum:]]\+\(.*\)$,\1success=1\2,'
+
+new_help disabled 'Disable group policy applying for local users'
+new_help enabled 'Enable group policy applying for local users'
+
+new_summary 'Group policy applying for local users'
+
+control_subst "$CONFIG" "$*"
