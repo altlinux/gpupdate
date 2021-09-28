@@ -59,8 +59,9 @@ def machine_kdestroy(cache_name=None):
     if cache_name:
         kdestroy_cmd.extend(['-c', cache_name])
 
-    proc = subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL)
-    proc.wait()
+    if cache_name or 'KRB5CCNAME' in os.environ:
+        proc = subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL)
+        proc.wait()
 
     if cache_name and os.path.exists(cache_name):
         os.unlink(cache_name)
