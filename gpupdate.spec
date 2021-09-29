@@ -2,7 +2,7 @@
 
 Name: gpupdate
 Version: 0.9.7
-Release: alt0.dev1
+Release: alt1
 
 Summary: GPT applier
 License: GPLv3+
@@ -125,6 +125,15 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Wed Sep 29 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.7-alt1
+- Fix regression with kestroy for user credential cache
+- Update system-policy-gpupdate PAM-rules to ignore applying group policies
+  for local users and system users with uid less than 500
+- Add control facilities to rule system-policy-gpupdate rules:
+  + gpupdate-group-users
+  + gpupdate-localusers
+  + gpupdate-system-uids
+
 * Mon Sep 20 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.6-alt1
 - Add support changed GPO List Processing for '**DelVals.' value name
 
