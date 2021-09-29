@@ -1,0 +1,19 @@
+#!/bin/sh
+
+. /etc/control.d/functions
+
+CONFIG=/etc/pam.d/system-policy-gpupdate
+
+new_subst disabled \
+        '^[[:space:]]*session[[:space:]]+\[.*default=1.*\][[:space:]]+pam_succeed_if.so user ingroup users.*' \
+        's,^\([[:space:]]*session[[:space:]]\+\[.*\)default=[[:alnum:]]\+\(.*pam_succeed_if.so user ingroup users.*\)$,\1default=1\2,'
+new_subst enabled \
+        '^[[:space:]]*session[[:space:]]+\[.*default=ignore.*\][[:space:]]+pam_succeed_if.so user ingroup users.*' \
+        's,^\([[:space:]]*session[[:space:]]\+\[.*\)default=[[:alnum:]]\+\(.*pam_succeed_if.so user ingroup users.*\)$,\1default=ignore\2,'
+
+new_help disabled "Disable group policy applying for users in 'users' group only"
+new_help enabled "Enable group policy applying for users in 'users' group only"
+
+new_summary "Group policy applying for users in 'users' group only"
+
+control_subst "$CONFIG" "$*"

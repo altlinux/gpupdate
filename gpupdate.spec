@@ -74,6 +74,14 @@ install -Dm0644 dist/%name.ini %buildroot%_sysconfdir/%name/%name.ini
 install -Dm0644 doc/gpoa.1 %buildroot/%_man1dir/gpoa.1
 install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
 
+for i in gpupdate-localusers \
+	 gpupdate-group-users \
+	 gpupdate-system-uids
+do
+	install -pD -m755 "dist/$i" \
+		"%buildroot%_sysconfdir/control.d/facilities/$i"
+done
+
 %preun
 %preun_service gpupdate
 
@@ -104,6 +112,7 @@ fi
 %_man1dir/gpupdate.1.*
 /usr/lib/systemd/user/%name-user.service
 %dir %_sysconfdir/%name
+%_sysconfdir/control.d/facilities/*
 %config(noreplace) %_sysconfdir/%name/environment
 %config(noreplace) %_sysconfdir/%name/%name.ini
 %config(noreplace) %_sysconfdir/pam.d/system-policy-%name

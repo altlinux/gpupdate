@@ -2,9 +2,11 @@
 session		[success=2 perm_denied=ignore default=die]	pam_localuser.so
 session		required	pam_mkhomedir.so silent
 session		[default=1]	pam_permit.so
+session		[default=6]	pam_permit.so
+session		[success=1 default=ignore]	pam_succeed_if.so user ingroup users quiet
 session		[default=4]	pam_permit.so
-session		[success=1 default=3]	pam_succeed_if.so user ingroup users quiet
-session		[success=ignore default=2]	pam_succeed_if.so uid >= 500 quiet
+session		[success=1 default=ignore]	pam_succeed_if.so uid >= 500 quiet
+session		[default=2]	pam_permit.so
 -session	required	pam_oddjob_gpupdate.so
 session		optional	pam_env.so user_readenv=1 conffile=/etc/gpupdate/environment user_envfile=.gpupdate_environment
 session		required	pam_permit.so

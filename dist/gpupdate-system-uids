@@ -1,0 +1,19 @@
+#!/bin/sh
+
+. /etc/control.d/functions
+
+CONFIG=/etc/pam.d/system-policy-gpupdate
+
+new_subst disabled \
+        '^[[:space:]]*session[[:space:]]+\[.*default=1.*\][[:space:]]+pam_succeed_if.so uid >= 500.*' \
+        's,^\([[:space:]]*session[[:space:]]\+\[.*\)default=[[:alnum:]]\+\(.*pam_succeed_if.so uid >= 500.*\)$,\1default=1\2,'
+new_subst enabled \
+        '^[[:space:]]*session[[:space:]]+\[.*default=ignore.*\][[:space:]]+pam_succeed_if.so uid >= 500.*' \
+        's,^\([[:space:]]*session[[:space:]]\+\[.*\)default=[[:alnum:]]\+\(.*pam_succeed_if.so uid >= 500.*\)$,\1default=ignore\2,'
+
+new_help disabled "Disable group policy applying for users with not system uids only"
+new_help enabled "Enable group policy applying for users with not system uids only"
+
+new_summary "Group policy applying for users with not system uids (greater or equal 500) only"
+
+control_subst "$CONFIG" "$*"
