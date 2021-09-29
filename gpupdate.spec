@@ -60,6 +60,12 @@ ln -s %python3_sitelibdir/gpoa/gpupdate \
 ln -s %python3_sitelibdir/gpoa/gpupdate-setup \
 	%buildroot%_sbindir/gpupdate-setup
 
+mkdir -p \
+	%buildroot%_prefix/libexec/%name
+
+ln -s %python3_sitelibdir/gpoa/pkcon_runner \
+	%buildroot%_prefix/libexec/%name/pkcon_runner
+
 mkdir -p %buildroot%_datadir/%name
 mv %buildroot%python3_sitelibdir/gpoa/templates \
 	%buildroot%_datadir/%name/
@@ -102,9 +108,11 @@ fi
 %_sbindir/gpoa
 %_sbindir/gpupdate-setup
 %_bindir/gpupdate
+%_prefix/libexec/%name/pkcon_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpoa
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate-setup
+%attr(755,root,root) %python3_sitelibdir/gpoa/pkcon_runner
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
