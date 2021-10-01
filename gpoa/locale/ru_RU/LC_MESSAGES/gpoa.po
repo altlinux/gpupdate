@@ -41,6 +41,9 @@ msgstr "Получен объект групповой политики"
 msgid "Unknown info code"
 msgstr "Неизвестный код информационного сообщения"
 
+msgid "Working with control"
+msgstr "Применение настроек control"
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
@@ -131,6 +134,21 @@ msgstr "Ошибка слияния пользовательской части 
 
 msgid "Unknown error code"
 msgstr "Неизвестный код ошибки"
+
+msgid "Unable to work with control"
+msgstr "Не удалось применить настройки control"
+
+msgid "Control applier for machine will not be started"
+msgstr "Приминение Control для машины не удалось"
+
+msgid "Error getting control"
+msgstr "Ошибка установки control"
+
+msgid "Is not in possible values for control"
+msgstr "Не входит в возможные значения для control"
+
+msgid "Unable to set"
+msgstr "Невозможно установить"
 
 # Debug
 msgid "The GPOA process was started for user"
@@ -294,6 +312,12 @@ msgstr "Сохранение информации о переменных окр
 
 msgid "Unknown debug code"
 msgstr "Неизвестный отладочный код"
+
+msgid "Running Control applier for machine"
+msgstr "Начато применение Control для машины"
+
+msgid "Setting control"
+msgstr "Установка control"
 
 # Warning
 msgid "Unable to perform gpupdate for non-existent user, will update machine settings"
