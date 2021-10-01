@@ -23,7 +23,7 @@ def info_code(code):
     info_ids = dict()
     info_ids[1] = 'Got GPO list for username'
     info_ids[2] = 'Got GPO'
-
+    info_ids[3] = 'Working with control'
     return info_ids.get(code, 'Unknown info code')
 
 def error_code(code):
@@ -66,6 +66,11 @@ def error_code(code):
     error_ids[36] = 'Error getting cached file for URI'
     error_ids[37] = 'Error caching file URIs'
     error_ids[38] = 'Unable to cache specified URI'
+    error_ids[39] = 'Unable to work with control'
+    error_ids[40] = 'Control applier for machine will not be started'
+    error_ids[41] = 'Error getting control'
+    error_ids[42] = 'Is not in possible values for control'
+    error_ids[43] = 'Unable to set'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -137,6 +142,8 @@ def debug_code(code):
     debug_ids[64] = 'Delete HKCU branch key'
     debug_ids[65] = 'Delete HKLM branch key error'
     debug_ids[66] = 'Delete HKCU branch key error'
+    debug_ids[67] = 'Running Control applier for machine'
+    debug_ids[68] = 'Setting control'
 
     return debug_ids.get(code, 'Unknown debug code')
 
