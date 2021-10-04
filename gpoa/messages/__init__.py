@@ -71,6 +71,7 @@ def error_code(code):
     error_ids[41] = 'Error getting control'
     error_ids[42] = 'Is not in possible values for control'
     error_ids[43] = 'Unable to set'
+    error_ids[44] = 'Unable to generate file'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -144,6 +145,15 @@ def debug_code(code):
     debug_ids[66] = 'Delete HKCU branch key error'
     debug_ids[67] = 'Running Control applier for machine'
     debug_ids[68] = 'Setting control'
+    debug_ids[69] = 'Deny_All setting found'
+    debug_ids[70] = 'Deny_All setting for user'
+    debug_ids[71] = 'Deny_All setting not found'
+    debug_ids[72] = 'Deny_All setting not found for user'
+    debug_ids[73] = 'Running Polkit applier for machine'
+    debug_ids[74] = 'Running Polkit applier for user in administrator context'
+    debug_ids[75] = 'Polkit applier for machine will not be started'
+    debug_ids[76] = 'Polkit applier for user in administrator context will not be started'
+    debug_ids[77] = 'Generated file'
 
     return debug_ids.get(code, 'Unknown debug code')
 

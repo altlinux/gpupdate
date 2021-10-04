@@ -150,6 +150,9 @@ msgstr "Не входит в возможные значения для control"
 msgid "Unable to set"
 msgstr "Невозможно установить"
 
+msgid "Unable to generate file"
+msgstr "Невозможно создать файл"
+
 # Debug
 msgid "The GPOA process was started for user"
 msgstr "Произведён запуск GPOA для обновления политик пользователя"
@@ -318,6 +321,34 @@ msgstr "Начато применение Control для машины"
 
 msgid "Setting control"
 msgstr "Установка control"
+
+msgid "Deny_All setting found"
+msgstr "Deny_All настройка найдена"
+
+msgid "Deny_All setting for user"
+msgstr "Deny_All настройка для пользователя"
+
+msgid "Deny_All setting not found"
+msgstr "Deny_All настройка не найдена"
+
+msgid "Deny_All setting not found for user"
+msgstr "Deny_All настройка не найдена для пользователя"
+
+msgid "Running Polkit applier for machine"
+msgstr "Начато применение настроек Polkit для машины"
+
+msgid "Running Polkit applier for user in administrator context"
+msgstr "Начато применение настроек Polkit пользователя в контексте администратора"
+
+msgid "Polkit applier for machine will not be started"
+msgstr "Polkit для машины не запускается"
+
+msgid "Polkit applier for user in administrator context will not be started"
+msgstr "Polkit для пользователя в контексте администратора не запускается"
+
+msgid "Generated file"
+msgstr "Созданный файл"
+
 
 # Warning
 msgid "Unable to perform gpupdate for non-existent user, will update machine settings"
