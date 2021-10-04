@@ -44,6 +44,15 @@ msgstr "Неизвестный код информационного сообщ�
 msgid "Working with control"
 msgstr "Применение настроек control"
 
+msgid "Working with systemd"
+msgstr "Работа с systemd"
+
+msgid "Unable to work with systemd unit"
+msgstr "Невозможно создать оъект для unit systemd"
+
+msgid "Starting systemd unit"
+msgstr "Запуск unit systemd"
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
@@ -152,6 +161,12 @@ msgstr "Невозможно установить"
 
 msgid "Unable to generate file"
 msgstr "Невозможно создать файл"
+
+msgid "Failed applying unit"
+msgstr "Не удалось применить настройки"
+
+msgid "Unable to start systemd unit"
+msgstr "Невозможно запустить systemd unit"
 
 # Debug
 msgid "The GPOA process was started for user"
@@ -348,6 +363,12 @@ msgstr "Polkit для пользователя в контексте админ�
 
 msgid "Generated file"
 msgstr "Созданный файл"
+
+msgid "Running systemd applier for machine"
+msgstr "Начато применение настроек systemd для машины"
+
+msgid "Running systemd applier for machine will not be started"
+msgstr "Применение настроек systemd для машины не удалось"
 
 
 # Warning

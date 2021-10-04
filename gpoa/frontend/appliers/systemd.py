@@ -19,7 +19,7 @@
 import dbus
 import logging
 
-from util.logging import slogm
+from util.logging import slogm, log
 
 class systemd_unit:
     def __init__(self, unit_name, state):
@@ -39,7 +39,10 @@ class systemd_unit:
             self.manager.UnmaskUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.EnableUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
             self.manager.StartUnit(self.unit_name, 'replace')
-            logging.info(slogm('Starting systemd unit: {}'.format(self.unit_name)))
+            logdata = dict()
+            logdata['unit'] = self.unit_name
+            log('I6', logdata)
+            #logging.info(slogm('Starting systemd unit: {}'.format(self.unit_name)))
 
             # In case the service has 'RestartSec' property set it
             # switches to 'activating (auto-restart)' state instead of
@@ -47,17 +50,26 @@ class systemd_unit:
             service_state = self._get_state()
 
             if not service_state in ['active', 'activating']:
-                logging.error(slogm('Unable to start systemd unit {}'.format(self.unit_name)))
+                logdata = dict()
+                logdata['unit'] = self.unit_name
+                log('E46', logdata)
+                #logging.error(slogm('Unable to start systemd unit {}'.format(self.unit_name)))
         else:
             self.manager.StopUnit(self.unit_name, 'replace')
             self.manager.DisableUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.MaskUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
-            logging.info(slogm('Stopping systemd unit: {}'.format(self.unit_name)))
+            logdata = dict()
+            logdata['unit'] = self.unit_name
+            log('I6', logdata)
+            #logging.info(slogm('Stopping systemd unit: {}'.format(self.unit_name)))
 
             service_state = self._get_state()
 
             if not service_state in ['stopped']:
-                logging.error(slogm('Unable to stop systemd unit {}'.format(self.unit_name)))
+                logdata = dict()
+                logdata['unit'] = self.unit_name
+                log('E46', logdata)
+                #logging.error(slogm('Unable to stop systemd unit {}'.format(self.unit_name)))
 
     def _get_state(self):
         '''

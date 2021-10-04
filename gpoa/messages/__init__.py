@@ -24,6 +24,10 @@ def info_code(code):
     info_ids[1] = 'Got GPO list for username'
     info_ids[2] = 'Got GPO'
     info_ids[3] = 'Working with control'
+    info_ids[4] = 'Working with systemd'
+    info_ids[5] = 'Unable to work with systemd unit'
+    info_ids[6] = 'Starting systemd unit'
+
     return info_ids.get(code, 'Unknown info code')
 
 def error_code(code):
@@ -72,6 +76,8 @@ def error_code(code):
     error_ids[42] = 'Is not in possible values for control'
     error_ids[43] = 'Unable to set'
     error_ids[44] = 'Unable to generate file'
+    error_ids[45] = 'Failed applying unit'
+    error_ids[46] = 'Unable to start systemd unit'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -154,6 +160,8 @@ def debug_code(code):
     debug_ids[75] = 'Polkit applier for machine will not be started'
     debug_ids[76] = 'Polkit applier for user in administrator context will not be started'
     debug_ids[77] = 'Generated file'
+    debug_ids[78] = 'Running systemd applier for machine'
+    debug_ids[79] = 'Running systemd applier for machine will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 
