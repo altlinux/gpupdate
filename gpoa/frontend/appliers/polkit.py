@@ -50,11 +50,9 @@ class polkit:
             logdata['file'] = self.outfile
             logdata['arguments'] = self.args
             log('D77', logdata)
-            #logging.debug(slogm('Generated file {} with arguments {}'.format(self.outfile, self.args)))
         except Exception as exc:
             logdata = dict()
             logdata['file'] = self.outfile
             logdata['arguments'] = self.args
             log('E44', logdata)
-            #logging.error(slogm('Unable to generate file {} from {}'.format(self.outfile, self.infilename)))
 

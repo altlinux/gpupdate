@@ -72,11 +72,6 @@ class system_gsettings:
             logdata['gsetting.value'] = gsetting.value
             logdata['gsetting.lock'] = gsetting.lock
             log('D89', logdata)
-            #logging.debug(slogm('Applying machine setting {}.{} to {} {}'.format(gsetting.schema,
-             #                                                                    gsetting.path,
-              #                                                                   gsetting.value,
-               #                                                                  gsetting.value,
-                #                                                                 'locked' if gsetting.lock else 'unlocked')))
             gsetting.apply(settings, config, self.locks)
 
         with open(self.override_file_path, 'w') as f:

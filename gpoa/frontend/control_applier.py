@@ -50,20 +50,17 @@ class control_applier(applier_frontend):
                 logdata['control'] = valuename
                 logdata['value'] = setting.data
                 log('I3', logdata)
-                #logging.info(slogm('Working with control {}'.format(valuename)))
             except ValueError as exc:
                 self.controls.append(control(valuename, setting.data))
                 logdata = dict()
                 logdata['control'] = valuename
                 logdata['with string value'] = setting.data
                 log('I3', logdata)
-                #logging.info(slogm('Working with control {} with string value'.format(valuename)))
             except Exception as exc:
                 logdata = dict()
                 logdata['control'] = valuename
                 logdata['exc'] = exc
                 log('E39', logdata)
-                #logging.info(slogm('Unable to work with control {}: {}'.format(valuename, exc)))
         #for e in polfile.pol_file.entries:
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
         for cont in self.controls:
@@ -75,9 +72,6 @@ class control_applier(applier_frontend):
         '''
         if self.__module_enabled:
             log('D67')
-            #logging.debug(slogm('Running Control applier for machine'))
             self.run()
         else:
             log('E40')
-            #logging.debug(slogm('Control applier for machine will not be started'))
-

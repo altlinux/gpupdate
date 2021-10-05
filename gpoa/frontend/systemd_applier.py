@@ -49,13 +49,11 @@ class systemd_applier(applier_frontend):
                 logdata = dict()
                 logdata['unit'] = format(valuename)
                 log('I4', logdata)
-                #logging.info(slogm('Working with systemd unit {}'.format(valuename)))
             except Exception as exc:
                 logdata = dict()
                 logdata['unit'] = format(valuename)
                 logdata['exc'] = exc
                 log('I5', logdata)
-                #logging.info(slogm('Unable to work with systemd unit {}: {}'.format(valuename, exc)))
         for unit in self.units:
             try:
                 unit.apply()
@@ -63,7 +61,6 @@ class systemd_applier(applier_frontend):
                 logdata = dict()
                 logdata['unit'] = unit.unit_name
                 log('E45', logdata)
-                #logging.error(slogm('Failed applying unit {}'.format(unit.unit_name)))
 
     def apply(self):
         '''
@@ -71,11 +68,9 @@ class systemd_applier(applier_frontend):
         '''
         if self.__module_enabled:
             log('D78')
-            #logging.debug(slogm('Running systemd applier for machine'))
             self.run()
         else:
             log('D79')
-            #logging.debug(slogm('systemd applier for machine will not be started'))
 
 class systemd_applier_user(applier_frontend):
     __module_name = 'SystemdApplierUser'
