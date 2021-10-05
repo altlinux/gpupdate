@@ -78,7 +78,11 @@ def error_code(code):
     error_ids[44] = 'Unable to generate file'
     error_ids[45] = 'Failed applying unit'
     error_ids[46] = 'Unable to start systemd unit'
-
+    error_ids[47] = 'Unable to cache specified URI for machine'
+    error_ids[48] = 'Error recompiling global GSettings schemas'
+    error_ids[49] = 'Error update configuration dconf'
+    error_ids[50] = 'Unable to cache specified URI for user'
+    
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -162,7 +166,18 @@ def debug_code(code):
     debug_ids[77] = 'Generated file'
     debug_ids[78] = 'Running systemd applier for machine'
     debug_ids[79] = 'Running systemd applier for machine will not be started'
-
+    debug_ids[80] = 'Running GSettings applier for machine'
+    debug_ids[81] = 'GSettings applier for machine will not be started'
+    debug_ids[82] = 'Removing GSettings policy file from previous run'
+    debug_ids[83] = 'Mapping Windows policies to GSettings policies'
+    debug_ids[84] = 'GSettings windows policies mapping not enabled'
+    debug_ids[85] = 'Applying user setting'
+    debug_ids[86] = 'Found GSettings windows mapping'
+    debug_ids[87] = 'Running GSettings applier for user in user context'
+    debug_ids[88] = 'GSettings applier for user in user context will not be started'
+    debug_ids[89] = 'Applying machine setting'
+    debug_ids[90] = 'Getting cached file for URI'
+    
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
@@ -178,6 +193,7 @@ def warning_code(code):
     warning_ids[3] = 'oddjobd is inaccessible'
     warning_ids[4] = 'No SYSVOL entry assigned to GPO'
     warning_ids[5] = 'ADP package is not installed - plugin will not be initialized'
+    warning_ids[6] = 'Unable to resolve GSettings parameter'
 
     return warning_ids.get(code, 'Unknown warning code')
 
