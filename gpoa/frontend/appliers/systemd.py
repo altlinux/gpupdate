@@ -42,7 +42,6 @@ class systemd_unit:
             logdata = dict()
             logdata['unit'] = self.unit_name
             log('I6', logdata)
-            #logging.info(slogm('Starting systemd unit: {}'.format(self.unit_name)))
 
             # In case the service has 'RestartSec' property set it
             # switches to 'activating (auto-restart)' state instead of
@@ -53,7 +52,6 @@ class systemd_unit:
                 logdata = dict()
                 logdata['unit'] = self.unit_name
                 log('E46', logdata)
-                #logging.error(slogm('Unable to start systemd unit {}'.format(self.unit_name)))
         else:
             self.manager.StopUnit(self.unit_name, 'replace')
             self.manager.DisableUnitFiles([self.unit_name], dbus.Boolean(False))
@@ -61,7 +59,6 @@ class systemd_unit:
             logdata = dict()
             logdata['unit'] = self.unit_name
             log('I6', logdata)
-            #logging.info(slogm('Stopping systemd unit: {}'.format(self.unit_name)))
 
             service_state = self._get_state()
 
@@ -69,7 +66,6 @@ class systemd_unit:
                 logdata = dict()
                 logdata['unit'] = self.unit_name
                 log('E46', logdata)
-                #logging.error(slogm('Unable to stop systemd unit {}'.format(self.unit_name)))
 
     def _get_state(self):
         '''

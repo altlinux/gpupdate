@@ -41,14 +41,12 @@ class polkit_applier(applier_frontend):
         template_file = self.__polkit_map[self.__deny_all][0]
         template_vars = self.__polkit_map[self.__deny_all][1]
         if deny_all:
-            #logging.debug(slogm('Deny_All setting found: {}'.format(deny_all.data)))
             logdata = dict()
             logdata['Deny_All'] = deny_all.data
             log('D69', logdata)
             self.__polkit_map[self.__deny_all][1]['Deny_All'] = deny_all.data
         else:
             log('D71')
-            #logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars))
         self.__module_enabled = check_enabled(
@@ -63,12 +61,10 @@ class polkit_applier(applier_frontend):
         '''
         if self.__module_enabled:
             log('D73')
-            #logging.debug(slogm('Running Polkit applier for machine'))
             for policy in self.policies:
                 policy.generate()
         else:
             log('D75')
-            #logging.debug(slogm('Polkit applier for machine will not be started'))
 
 class polkit_applier_user(applier_frontend):
     __module_name = 'PolkitApplierUser'
@@ -93,12 +89,10 @@ class polkit_applier_user(applier_frontend):
             logdata['user'] = self.username
             logdata['Deny_All'] = deny_all.data
             log('D70', logdata)
-            #logging.debug(slogm('Deny_All setting for user {} found: {}'.format(self.username, deny_all.data)))
             self.__polkit_map[self.__deny_all][1]['Deny_All'] = deny_all.data
             self.__polkit_map[self.__deny_all][1]['User'] = self.username
         else:
             log('D72')
-            #logging.debug(slogm('Deny_All setting not found'))
         self.policies = []
         self.policies.append(polkit(template_file, template_vars, self.username))
         self.__module_enabled = check_enabled(
@@ -116,10 +110,9 @@ class polkit_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D74')
-            #logging.debug(slogm('Running Polkit applier for user in administrator context'))
             for policy in self.policies:
                 policy.generate()
         else:
             log('D76')
-            #logging.debug(slogm('Polkit applier for user in administrator context will not be started'))
+
 

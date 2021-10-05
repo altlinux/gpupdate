@@ -50,7 +50,6 @@ def uri_fetch(schema, path, value, cache):
         retval = cache.get(value)
         logdata['dst'] = retval
         log('D90', logdata)
-        #logging.debug(slogm('Getting cached file for URI: {}'.format(logdata)))
     except Exception as exc:
         pass
 
@@ -92,7 +91,6 @@ class gsettings_applier(applier_frontend):
             logdata = dict()
             logdata['exception'] = str(exc)
             log('E47', logdata)
-            #logging.debug(slogm('Unable to cache specified URI for machine: {}'.format(logdata)))
 
     def uri_fetch_helper(self, schema, path, value):
         return uri_fetch(schema, path, value, self.file_cache)
@@ -105,7 +103,6 @@ class gsettings_applier(applier_frontend):
         # Cleanup settings from previous run
         if os.path.exists(self.override_file):
             log('D82')
-            #logging.debug(slogm('Removing GSettings policy file from previous run'))
             os.remove(self.override_file)
 
         # Get all configured gsettings locks
@@ -134,23 +131,19 @@ class gsettings_applier(applier_frontend):
             proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True)
         except Exception as exc:
             log('E48')
-            #logging.debug(slogm('Error recompiling global GSettings schemas'))
 
         # Update desktop configuration system backend
         try:
             proc = subprocess.run(args=['/usr/bin/dconf', "update"], capture_output=True, check=True)
         except Exception as exc:
             log('E49')
-            #logging.debug(slogm('Error update desktop configuration system backend'))
 
     def apply(self):
         if self.__module_enabled:
             log('D80')
-            #logging.debug(slogm('Running GSettings applier for machine'))
             self.run()
         else:
             log('D81')
-            #logging.debug(slogm('GSettings applier for machine will not be started'))
 
 class GSettingsMapping:
     def __init__(self, hive_key, gsettings_schema, gsettings_key):
@@ -169,7 +162,6 @@ class GSettingsMapping:
             logdata['gsettings_schema'] = self.gsettings_schema
             logdata['gsettings_key'] = self.gsettings_key
             log('W6', logdata)
-            #logging.warning(slogm('Unable to resolve GSettings parameter {}.{}'.format(self.gsettings_schema, self.gsettings_key)))
 
     def preg2gsettings(self):
         '''
@@ -244,7 +236,6 @@ class gsettings_applier_user(applier_frontend):
                 logdata['setting_key'] = setting_key
                 logdata['value.data'] = value.data
                 log('D86', logdata)
-                #logging.debug(slogm('Found GSettings windows mapping {} to {}'.format(setting_key, value.data)))
                 mapping = self.__windows_settings[setting_key]
                 try:
                     self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
@@ -266,11 +257,9 @@ class gsettings_applier_user(applier_frontend):
         # Calculate all mapped gsettings if mapping enabled
         if self.__windows_mapping_enabled:
             log('D83')
-            #logging.debug(slogm('Mapping Windows policies to GSettings policies'))
             self.windows_mapping_append()
         else:
             log('D84')
-            #logging.debug(slogm('GSettings windows policies mapping not enabled'))
 
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
@@ -288,19 +277,14 @@ class gsettings_applier_user(applier_frontend):
             logdata['gsetting.path'] = gsetting.path
             logdata['gsetting.value'] = gsetting.value
             log('D85', logdata)
-            #logging.debug(slogm('Applying user setting {}.{} to {}'.format(gsetting.schema,
-             #                                                              gsetting.path,
-              #                                                             gsetting.value)))
             gsetting.apply()
 
     def user_context_apply(self):
         if self.__module_enabled:
             log('D87')
-            #logging.debug(slogm('Running GSettings applier for user in user context'))
             self.run()
         else:
             log('D88')
-            #logging.debug(slogm('GSettings applier for user in user context will not be started'))
 
     def admin_context_apply(self):
         # Cache files on remote locations
@@ -313,5 +297,5 @@ class gsettings_applier_user(applier_frontend):
             logdata = dict()
             logdata['exception'] = str(exc)
             log('E50', logdata)
-            #logging.debug(slogm('Unable to cache specified URI for user: {}'.format(logdata)))
+
 

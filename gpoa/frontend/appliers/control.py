@@ -73,7 +73,6 @@ class control:
             logdata['value from'] = self.possible_values
             logdata['by index'] = int_status
             log('E41', )
-            #logging.error(slogm('Error getting control ({}) value from {} by index {}'.format(self.control_name, self.possible_values, int_status)))
             str_status = None
 
         return str_status
@@ -102,7 +101,6 @@ class control:
                 logdata['control'] = self.control_name
                 logdata['inpossible values'] = self.self.control_value
                 log('E42', logdata)
-                #logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
                 return
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
@@ -110,14 +108,12 @@ class control:
                 logdata['control'] = self.control_name
                 logdata['inpossible values'] = self.self.control_value
                 log('E42', logdata)
-                #logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
                 return
             status = self.control_value
         logdata = dict()
         logdata['control'] = self.control_name
         logdata['status'] = status
         log('D68', logdata)
-        #logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
 
         try:
             popen_call = ['/usr/sbin/control', self.control_name, status]
@@ -128,5 +124,3 @@ class control:
             logdata['control'] = self.control_name
             logdata['status'] = status
             log('E43', logdata)
-            #logging.error(slogm('Unable to set {} to {}'.format(self.control_name, status)))
-
