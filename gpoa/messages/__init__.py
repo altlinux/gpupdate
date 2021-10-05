@@ -28,6 +28,8 @@ def info_code(code):
     info_ids[5] = 'Unable to work with systemd unit'
     info_ids[6] = 'Starting systemd unit'
     info_ids[7] = 'Firefox policy'
+    info_ids[8] = 'Chromium policy'
+    info_ids[9] = 'Set user property to'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -83,6 +85,8 @@ def error_code(code):
     error_ids[48] = 'Error recompiling global GSettings schemas'
     error_ids[49] = 'Error update configuration dconf'
     error_ids[50] = 'Unable to cache specified URI for user'
+    error_ids[51] = 'Chromium preferences file does not exist at the moment'
+    error_ids[52] = 'Error during attempt to read Chromium preferences for user'
     
     return error_ids.get(code, 'Unknown error code')
 
@@ -182,7 +186,10 @@ def debug_code(code):
     debug_ids[92] = 'Found Firefox profile in'
     debug_ids[93] = 'Running Firefox applier for machine'
     debug_ids[94] = 'Firefox applier for machine will not be started'
-
+    debug_ids[95] = 'Running Chromium applier for machine'
+    debug_ids[96] = 'Chromium applier for machine will not be started'
+    debug_ids[97] = 'Wrote Chromium preferences to'
+    
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
