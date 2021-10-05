@@ -56,6 +56,12 @@ msgstr "Запуск unit systemd"
 msgid "Firefox policy"
 msgstr "Политика Firefox"
 
+msgid "Chromium policy"
+msgstr "Политика Chromium"
+
+msgid "Set user property to"
+msgstr "Установка свойств  для пользователя"
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
@@ -185,6 +191,12 @@ msgstr "Ошибка обновления конфигурации dconf"
 
 msgid "Unable to cache specified URI for user"
 msgstr "Невозможно кэшировать указанный URI для пользователя"
+
+msgid "Chromium preferences file does not exist at the moment"
+msgstr "Файл настроек Chromium в данный момент не существует"
+
+msgid "Error during attempt to read Chromium preferences for user"
+msgstr "Ошибка при попытке прочитать настройки Chromium для пользователя"
 
 # Error_end
 
@@ -397,7 +409,7 @@ msgid "GSettings applier for machine will not be started"
 msgstr "Применение настроек GSettings для машины не удалось"
 
 msgid "Removing GSettings policy file from previous run"
-msgstr "Удаление файла политики GSettings из предыдущего запуска"
+msgstr "Удаление файла политики GSettings от предыдущего запуска"
 
 msgid "Mapping Windows policies to GSettings policies"
 msgstr "Сопоставление политик Windows с политиками GSettings"
@@ -437,6 +449,15 @@ msgstr "Запуск применение настроек Firefox для маш
 
 msgid "Firefox applier for machine will not be started"
 msgstr "Применение настроек Firefox для компьютера не запускается"
+
+msgid "Running Chromium applier for machine"
+msgstr "Запуск применение настроек Chromium для машины"
+
+msgid "Chromium applier for machine will not be started"
+msgstr "Применение настроек Chromium для компьютера не запускается"
+
+msgid "Wrote Chromium preferences to"
+msgstr "Настройки Chromium записаны в"
 
 # Debug_end
 
