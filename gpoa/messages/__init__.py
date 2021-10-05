@@ -27,6 +27,7 @@ def info_code(code):
     info_ids[4] = 'Working with systemd'
     info_ids[5] = 'Unable to work with systemd unit'
     info_ids[6] = 'Starting systemd unit'
+    info_ids[7] = 'Firefox policy'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -177,7 +178,11 @@ def debug_code(code):
     debug_ids[88] = 'GSettings applier for user in user context will not be started'
     debug_ids[89] = 'Applying machine setting'
     debug_ids[90] = 'Getting cached file for URI'
-    
+    debug_ids[91] = 'Wrote Firefox preferences to'
+    debug_ids[92] = 'Found Firefox profile in'
+    debug_ids[93] = 'Running Firefox applier for machine'
+    debug_ids[94] = 'Firefox applier for machine will not be started'
+
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):

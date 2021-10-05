@@ -34,7 +34,7 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from util.logging import slogm
+from util.logging import slogm, log
 from util.util import is_machine_name
 
 class firefox_applier(applier_frontend):
@@ -98,7 +98,10 @@ class firefox_applier(applier_frontend):
         '''
         if obj:
             self.policies[name] = obj
-            logging.info(slogm('Firefox policy \'{}\' set to {}'.format(name, obj)))
+            logdata = dict()
+            logdata['name'] = name
+            logdata['set to'] = obj
+            log('I7', logdata)
 
     def get_home_page(self):
         '''
@@ -136,7 +139,10 @@ class firefox_applier(applier_frontend):
         obj = self.get_boolean_config(name)
         if obj is not None:
             self.policies[name] = obj
-            logging.info(slogm('Firefox policy \'{}\' set to {}'.format(name, obj)))
+            logdata = dict()
+            logdata['name'] = name
+            logdata['set to'] = obj
+            log('I7', logdata)
 
     def machine_apply(self):
         '''
@@ -183,27 +189,34 @@ class firefox_applier(applier_frontend):
         os.makedirs(self.__firefox_installdir1, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
-            logging.debug(slogm('Wrote Firefox preferences to {}'.format(destfile)))
+            logdata = dict()
+            logdata['destfile'] = destfile
+            log('D91', logdata)
 
         destfile = os.path.join(self.__firefox_installdir2, 'policies.json')
         os.makedirs(self.__firefox_installdir2, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
-            logging.debug(slogm('Wrote Firefox preferences to {}'.format(destfile)))
+            logdata = dict()
+            logdata['destfile'] = destfile
+            log('D91', logdata)
 
     def user_apply(self):
         profiles = self.get_profiles()
 
         profiledir = os.path.join(util.get_homedir(self.username), self.__user_settings_dir)
         for profile in profiles:
-            logging.debug(slogm('Found Firefox profile in {}/{}'.format(profiledir, profile)))
+            logdata = dict()
+            logdata['profiledir'] = profiledir
+            logdata['profile'] = profile
+            log('D92', logdata)
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Firefox applier for machine'))
+            log('D93')
             self.machine_apply()
         else:
-            logging.debug(slogm('Firefox applier for machine will not be started'))
+            log('D94')
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Firefox')
         #    self.user_apply()
