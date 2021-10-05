@@ -53,6 +53,9 @@ msgstr "Невозможно создать оъект для unit systemd"
 msgid "Starting systemd unit"
 msgstr "Запуск unit systemd"
 
+msgid "Firefox policy"
+msgstr "Политика Firefox"
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
@@ -423,6 +426,17 @@ msgstr "Путь не разрешен"
 msgid "Getting cached file for URI"
 msgstr "Получение кешированного файла для URI"
 
+msgid "Wrote Firefox preferences to"
+msgstr "Настройки Firefox записаны в"
+
+msgid "Found Firefox profile in"
+msgstr "Найден профиль Firefox в"
+
+msgid "Running Firefox applier for machine"
+msgstr "Запуск применение настроек Firefox для машины"
+
+msgid "Firefox applier for machine will not be started"
+msgstr "Применение настроек Firefox для компьютера не запускается"
 
 # Debug_end
 
