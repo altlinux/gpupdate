@@ -168,6 +168,9 @@ msgstr "Не удалось применить настройки"
 msgid "Unable to start systemd unit"
 msgstr "Невозможно запустить systemd unit"
 
+msgid "Unable to cache specified URI"
+msgstr "Невозможно кэшировать указанный URI"
+
 # Debug
 msgid "The GPOA process was started for user"
 msgstr "Произведён запуск GPOA для обновления политик пользователя"
