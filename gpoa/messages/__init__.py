@@ -205,7 +205,11 @@ def debug_code(code):
     debug_ids[109] = 'Running Folder applier for user in administrator context'
     debug_ids[110] = 'Folder applier for user in administrator context will not be started'
     debug_ids[111] = 'Running Folder applier for user in user context'
-    debug_ids[112] = 'Folder applier for user administrator context will not be started'
+    debug_ids[112] = 'Folder applier for user in user context will not be started'
+    debug_ids[113] = 'Running CUPS applier for machine'
+    debug_ids[114] = 'CUPS applier for machine will not be started'
+    debug_ids[115] = 'Running CUPS applier for user in administrator context'
+    debug_ids[116] = 'CUPS applier for user in administrator context will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -225,6 +229,8 @@ def warning_code(code):
     warning_ids[6] = 'Unable to resolve GSettings parameter'
     warning_ids[7] = 'No home directory exists for user'
     warning_ids[8] = 'User\'s shortcut not placed to home directory'
+    warning_ids[9] = 'CUPS is not installed: no printer settings will be deployed'
+    
 
     return warning_ids.get(code, 'Unknown warning code')
 

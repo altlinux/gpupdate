@@ -436,7 +436,7 @@ msgid "GSettings applier for user in user context will not be started"
 msgstr "GSettings в контексте пользователя не запускается"
 
 msgid "Applying machine setting"
-msgstr "Применение настройки машины"
+msgstr "Применение настроек машины"
 
 msgid "Path not resolved as UNC URI"
 msgstr "Путь не разрешен"
@@ -510,6 +510,18 @@ msgstr "Запуск применение папок в контексте по�
 msgid "Folder applier for user in user context will not be started"
 msgstr "Применение папок в контексте пользователя не запускается"
 
+msgid "Running CUPS applier for machine"
+msgstr "Запуск применение настроек CUPS для машины"
+
+msgid "CUPS applier for machine will not be started"
+msgstr "Применение настроек CUPS для машины не запускается"
+
+msgid "Running CUPS applier for user in administrator context"
+msgstr "Запуск применение настроек CUPS в контексте пользователя"
+
+msgid "CUPS applier for user in administrator context will not be started"
+msgstr "Применение настроек CUPS в контексте пользователя не запускается"
+
 # Debug_end
 
 # Warning
@@ -540,6 +552,9 @@ msgstr "Для пользователя не существует домашне
 
 msgid "User's shortcut not placed to home directory"
 msgstr "Ярлык пользователя не помещен в домашний каталог"
+
+msgid "CUPS is not installed: no printer settings will be deployed"
+msgstr "CUPS не установлен: настройки принтера не будут развернуты"
 
 # Fatal
 msgid "Unable to refresh GPO list"
