@@ -20,7 +20,7 @@
 import logging
 import subprocess
 
-from util.logging import slogm
+from util.logging import slogm, log
 from .applier_frontend import (
       applier_frontend
     , check_enabled
@@ -52,14 +52,14 @@ class firewall_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Firewall applier for machine'))
+            log('D117')
             if '1' == self.firewall_enabled:
-                logging.debug(slogm('Firewall is enabled'))
+                log('D118')
                 self.run()
             else:
-                logging.debug(slogm('Firewall is disabled, settings will be reset'))
+                log('D119')
                 proc = subprocess.Popen(self.__firewall_reset_cmd)
                 proc.wait()
         else:
-            logging.debug(slogm('Firewall applier will not be started'))
+            log('D120')
 

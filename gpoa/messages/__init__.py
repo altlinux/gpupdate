@@ -210,6 +210,10 @@ def debug_code(code):
     debug_ids[114] = 'CUPS applier for machine will not be started'
     debug_ids[115] = 'Running CUPS applier for user in administrator context'
     debug_ids[116] = 'CUPS applier for user in administrator context will not be started'
+    debug_ids[117] = 'Running Firewall applier for machine'
+    debug_ids[118] = 'Firewall is enabled'
+    debug_ids[119] = 'Firewall is disabled, settings will be reset'
+    debug_ids[120] = 'Firewall applier will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 
