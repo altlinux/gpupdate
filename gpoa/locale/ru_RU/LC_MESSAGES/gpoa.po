@@ -198,6 +198,12 @@ msgstr "Файл настроек Chromium в данный момент не с�
 msgid "Error during attempt to read Chromium preferences for user"
 msgstr "Ошибка при попытке прочитать настройки Chromium для пользователя"
 
+msgid "Fail for applying shortcut to file with %"
+msgstr "Не удалось применить ярлык к файлу с %"
+
+msgid "Fail for applying shortcut to not absolute path"
+msgstr "Не удалось применить ярлык к не абсолютному пути"
+
 # Error_end
 
 # Debug
@@ -459,6 +465,34 @@ msgstr "Применение настроек Chromium для компьютер
 msgid "Wrote Chromium preferences to"
 msgstr "Настройки Chromium записаны в"
 
+msgid "Running Shortcut applier for machine"
+msgstr "Запуск применение ярлыков для машины"
+
+msgid "Shortcut applier for machine will not be started"
+msgstr "Применение ярлыков для компьютера не запускается"
+
+msgid "No shortcuts to process for"
+msgstr "Нет ярлыков для обработки"
+
+msgid "Running Shortcut applier for user in user context"
+msgstr "Запуск применение ярлыков  в контексте пользователя"
+
+msgid "Shortcut applier for user in user context will not be started"
+msgstr "Применение ярлыков в контексте пользователя не запускается"
+
+msgid "Running Shortcut applier for user in administrator context"
+msgstr "Запуск применение ярлыков в контексте администратора"
+
+msgid "Shortcut applier for user in administrator context will not be started"
+msgstr "Применение ярлыков в контексте администратора не запускается"
+
+msgid "Try to expand path for shortcut"
+msgstr "Попытка расширить путь для ярлыка"
+
+msgid "Applying shortcut file to"
+msgstr "Применение ярлыка к файлу"
+
+
 # Debug_end
 
 # Warning
@@ -483,6 +517,12 @@ msgstr "Неизвестный код предупреждения"
 
 msgid "Unable to resolve GSettings parameter"
 msgstr "Не удалось установить параметр GSettings"
+
+msgid "No home directory exists for user"
+msgstr "Для пользователя не существует домашнего каталога"
+
+msgid "User's shortcut not placed to home directory"
+msgstr "Ярлык пользователя не помещен в домашний каталог"
 
 # Fatal
 msgid "Unable to refresh GPO list"

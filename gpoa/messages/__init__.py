@@ -87,6 +87,8 @@ def error_code(code):
     error_ids[50] = 'Unable to cache specified URI for user'
     error_ids[51] = 'Chromium preferences file does not exist at the moment'
     error_ids[52] = 'Error during attempt to read Chromium preferences for user'
+    error_ids[53] = 'Fail for applying shortcut to file with \'%\''
+    error_ids[54] = 'Fail for applying shortcut to not absolute path'
     
     return error_ids.get(code, 'Unknown error code')
 
@@ -189,7 +191,16 @@ def debug_code(code):
     debug_ids[95] = 'Running Chromium applier for machine'
     debug_ids[96] = 'Chromium applier for machine will not be started'
     debug_ids[97] = 'Wrote Chromium preferences to'
-    
+    debug_ids[98] = 'Running Shortcut applier for machine'
+    debug_ids[99] = 'Shortcut applier for machine will not be started'
+    debug_ids[100] = 'No shortcuts to process for'
+    debug_ids[101] = 'Running Shortcut applier for user in user context'
+    debug_ids[102] = 'Shortcut applier for user in user context will not be started'
+    debug_ids[103] = 'Running Shortcut applier for user in administrator context'
+    debug_ids[104] = 'Shortcut applier for user in administrator context will not be started'
+    debug_ids[105] = 'Try to expand path for shortcut'
+    debug_ids[106] = 'Applying shortcut file to'
+
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
@@ -206,6 +217,8 @@ def warning_code(code):
     warning_ids[4] = 'No SYSVOL entry assigned to GPO'
     warning_ids[5] = 'ADP package is not installed - plugin will not be initialized'
     warning_ids[6] = 'Unable to resolve GSettings parameter'
+    warning_ids[7] = 'No home directory exists for user'
+    warning_ids[8] = 'User\'s shortcut not placed to home directory'
 
     return warning_ids.get(code, 'Unknown warning code')
 
