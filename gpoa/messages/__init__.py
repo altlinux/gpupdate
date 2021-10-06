@@ -200,6 +200,12 @@ def debug_code(code):
     debug_ids[104] = 'Shortcut applier for user in administrator context will not be started'
     debug_ids[105] = 'Try to expand path for shortcut'
     debug_ids[106] = 'Applying shortcut file to'
+    debug_ids[107] = 'Running Folder applier for machine'
+    debug_ids[108] = 'Folder applier for machine will not be started'
+    debug_ids[109] = 'Running Folder applier for user in administrator context'
+    debug_ids[110] = 'Folder applier for user in administrator context will not be started'
+    debug_ids[111] = 'Running Folder applier for user in user context'
+    debug_ids[112] = 'Folder applier for user administrator context will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 

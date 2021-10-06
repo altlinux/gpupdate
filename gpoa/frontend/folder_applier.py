@@ -23,7 +23,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from .appliers.folder import Folder
-from util.logging import slogm
+from util.logging import slogm, log
 
 import logging
 
@@ -40,12 +40,12 @@ class folder_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Folder applier for machine'))
+            log('D107')
             for directory_obj in self.folders:
                 fld = Folder(directory_obj)
                 fld.action()
         else:
-            logging.debug(slogm('Folder applier for machine will not be started'))
+            log('D108')
 
 class folder_applier_user(applier_frontend):
     __module_name = 'FoldersApplierUser'
@@ -70,15 +70,15 @@ class folder_applier_user(applier_frontend):
 
     def admin_context_apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Folder applier for user in administrator context'))
+            log('D109')
             self.run()
         else:
-            logging.debug(slogm('Folder applier for user in administrator context will not be started'))
+            log('D110')
 
     def user_context_apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Folder applier for user in user context'))
+            log('D111')
             self.run()
         else:
-            logging.debug(slogm('Folder applier for user administrator context will not be started'))
+            log('D112')
 

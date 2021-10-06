@@ -492,6 +492,23 @@ msgstr "Попытка расширить путь для ярлыка"
 msgid "Applying shortcut file to"
 msgstr "Применение ярлыка к файлу"
 
+msgid "Running Folder applier for machine"
+msgstr "Запуск применение папок для машины"
+
+msgid "Folder applier for machine will not be started"
+msgstr "Применение папок для машины не запускается"
+
+msgid "Running Folder applier for user in administrator context"
+msgstr "Запуск применение папок в контексте администратора"
+
+msgid "Folder applier for user in administrator context will not be started"
+msgstr "Применение папок в контексте администратора не запускается"
+
+msgid "Running Folder applier for user in user context"
+msgstr "Запуск применение папок в контексте пользователя"
+
+msgid "Folder applier for user in user context will not be started"
+msgstr "Применение папок в контексте пользователя не запускается"
 
 # Debug_end
 
