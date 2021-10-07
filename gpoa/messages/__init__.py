@@ -214,6 +214,19 @@ def debug_code(code):
     debug_ids[118] = 'Firewall is enabled'
     debug_ids[119] = 'Firewall is disabled, settings will be reset'
     debug_ids[120] = 'Firewall applier will not be started'
+    debug_ids[121] = 'Running NTP applier for machine'
+    debug_ids[122] = 'NTP server is configured to'
+    debug_ids[123] = 'Starting Chrony daemon'
+    debug_ids[124] = 'Setting reference NTP server to'
+    debug_ids[125] = 'Stopping Chrony daemon'
+    debug_ids[126] = 'Configuring NTP server...'
+    debug_ids[127] = 'NTP server is enabled'
+    debug_ids[128] = 'NTP server is disabled'
+    debug_ids[129] = 'NTP server is not configured'
+    debug_ids[130] = 'NTP client is enabled'
+    debug_ids[131] = 'NTP client is disabled'
+    debug_ids[132] = 'NTP client is not configured'
+    debug_ids[133] = 'NTP applier for machine will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -234,7 +247,7 @@ def warning_code(code):
     warning_ids[7] = 'No home directory exists for user'
     warning_ids[8] = 'User\'s shortcut not placed to home directory'
     warning_ids[9] = 'CUPS is not installed: no printer settings will be deployed'
-    
+    warning_ids[10] = 'Unsupported NTP server type'
 
     return warning_ids.get(code, 'Unknown warning code')
 

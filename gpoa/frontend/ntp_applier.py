@@ -26,7 +26,7 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from util.logging import slogm
+from util.logging import slogm, log
 
 
 class NTPServerType(Enum):
@@ -77,20 +77,24 @@ class ntp_applier(applier_frontend):
         srv = None
         if server:
             srv = server.data.rpartition(',')[0]
-            logging.debug(slogm('NTP server is configured to {}'.format(srv)))
+            logdata = dict()
+            logdata['srv'] = srv
+            log('D122', logdata)
 
         start_command = ['/usr/bin/systemctl', 'start', 'chronyd']
         chrony_set_server = ['/usr/bin/chronyc', 'add', 'server', srv]
         chrony_disconnect_all = ['/usr/bin/chronyc', 'offline']
         chrony_connect = ['/usr/bin/chronyc', 'online', srv]
 
-        logging.debug(slogm('Starting Chrony daemon'))
+        log('D123')
 
         proc = subprocess.Popen(start_command)
         proc.wait()
 
         if srv:
-            logging.debug(slogm('Setting reference NTP server to {}'.format(srv)))
+            logdata = dict()
+            logdata['srv'] = srv
+            log('D124', logdata)
 
             proc = subprocess.Popen(chrony_disconnect_all)
             proc.wait()
@@ -103,9 +107,7 @@ class ntp_applier(applier_frontend):
 
     def _stop_chrony_client(self):
         stop_command = ['/usr/bin/systemctl', 'stop', 'chronyd']
-
-        logging.debug(slogm('Stopping Chrony daemon'))
-
+        log('D125')
         proc = subprocess.Popen(stop_command)
         proc.wait()
 
@@ -116,32 +118,34 @@ class ntp_applier(applier_frontend):
         ntp_client_enabled = self.storage.get_hklm_entry(self.ntp_client_enabled)
 
         if NTPServerType.NTP.value != server_type.data:
-            logging.warning(slogm('Unsupported NTP server type: {}'.format(server_type)))
+            logdata = dict()
+            logdata['server_type'] = server_type
+            log('W10', logdata)
         else:
-            logging.debug(slogm('Configuring NTP server...'))
+            log('D126')
             if '1' == ntp_server_enabled.data:
-                logging.debug(slogm('NTP server is enabled'))
+                log('D127')
                 self._start_chrony_client(server_address)
                 self._chrony_as_server()
             elif '0' == ntp_server_enabled.data:
-                logging.debug(slogm('NTP server is disabled'))
+                log('D128')
                 self._chrony_as_client()
             else:
-                logging.debug(slogm('NTP server is not configured'))
+                log('D129')
 
             if '1' == ntp_client_enabled.data:
-                logging.debug(slogm('NTP client is enabled'))
+                log('D130')
                 self._start_chrony_client()
             elif '0' == ntp_client_enabled.data:
-                logging.debug(slogm('NTP client is disabled'))
+                log('D131')
                 self._stop_chrony_client()
             else:
-                logging.debug(slogm('NTP client is not configured'))
+                log('D132')
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running NTP applier for machine'))
+            log('D121')
             self.run()
         else:
-            logging.debug(slogm('NTP applier for machine will not be started'))
+            log('D133')
 

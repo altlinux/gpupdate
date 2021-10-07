@@ -534,6 +534,45 @@ msgstr "Firewall отключен, настройки будут сброшен�
 msgid "Firewall applier will not be started"
 msgstr "Применение настроек Firewall не запускается"
 
+msgid "Running NTP applier for machine"
+msgstr "Запуск применение настроек NTP для машины"
+
+msgid "NTP server is configured to"
+msgstr "Сервер NTP настроен на"
+
+msgid "Starting Chrony daemon"
+msgstr "Запуск демона Chrony"
+
+msgid "Setting reference NTP server to"
+msgstr "Установка эталонного сервера NTP на"
+
+msgid "Stopping Chrony daemon"
+msgstr "Остановка демона Chrony"
+
+msgid "Configuring NTP server..."
+msgstr "Настройка NTP-сервера ..."
+
+msgid "NTP server is enabled"
+msgstr "Сервер NTP включен"
+
+msgid "NTP server is disabled"
+msgstr "NTP сервер отключен"
+
+msgid "NTP server is not configured"
+msgstr "NTP сервер не настроен"
+
+msgid "NTP client is enabled"
+msgstr "Клиент NTP включен"
+
+msgid "NTP client is disabled"
+msgstr "Клиент NTP отключен"
+
+msgid "NTP client is not configured"
+msgstr "NTP клиент не настроен"
+
+msgid "NTP applier for machine will not be started"
+msgstr "Применение настроек NTP для машины не запускается"
+
 # Debug_end
 
 # Warning
@@ -567,6 +606,9 @@ msgstr "Ярлык пользователя не помещен в домашн�
 
 msgid "CUPS is not installed: no printer settings will be deployed"
 msgstr "CUPS не установлен: настройки принтера не будут развернуты"
+
+msgid "Unsupported NTP server type"
+msgstr "Неподдерживаемый тип сервера NTP"
 
 # Fatal
 msgid "Unable to refresh GPO list"
