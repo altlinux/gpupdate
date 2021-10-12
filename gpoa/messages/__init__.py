@@ -227,6 +227,10 @@ def debug_code(code):
     debug_ids[131] = 'NTP client is disabled'
     debug_ids[132] = 'NTP client is not configured'
     debug_ids[133] = 'NTP applier for machine will not be started'
+    debug_ids[134] = 'Running Envvar applier for machine'
+    debug_ids[135] = 'Envvar applier for machine will not be started'
+    debug_ids[136] = 'Running Envvar applier for user in user context'
+    debug_ids[137] = 'Envvar applier for user in user context will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 

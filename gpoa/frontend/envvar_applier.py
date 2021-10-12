@@ -21,7 +21,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from .appliers.envvar import Envvar
-from util.logging import slogm
+from util.logging import slogm, log
 
 import logging
 
@@ -38,11 +38,11 @@ class envvar_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Envvar applier for machine'))
+            log('D134')
             ev = Envvar(self.envvars, 'root')
             ev.act()
         else:
-            logging.debug(slogm('Envvar applier for machine will not be started'))
+            log('D135')
 
 class envvar_applier_user(applier_frontend):
     __module_name = 'EnvvarsApplierUser'
@@ -61,9 +61,9 @@ class envvar_applier_user(applier_frontend):
 
     def user_context_apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Envvar applier for user in user context'))
+            log('D136')
             ev = Envvar(self.envvars, self.username)
             ev.act()
         else:
-            logging.debug(slogm('Envvar applier for user in user context will not be started'))
+            log('D137')
 

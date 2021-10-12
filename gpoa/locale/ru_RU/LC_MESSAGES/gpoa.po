@@ -573,6 +573,18 @@ msgstr "NTP клиент не настроен"
 msgid "NTP applier for machine will not be started"
 msgstr "Применение настроек NTP для машины не запускается"
 
+msgid "Running Envvar applier for machine"
+msgstr "Запуск применение настроек Envvar для машины"
+
+msgid "Envvar applier for machine will not be started"
+msgstr "Применение настроек Envvar не запускается"
+
+msgid "Running Envvar applier for user in user context"
+msgstr "Запуск применение настроек Envvar в контексте пользователя"
+
+msgid "Envvar applier for user in user context will not be started"
+msgstr "Применение настроек Envvar в контексте пользователя не запускается"
+
 # Debug_end
 
 # Warning
