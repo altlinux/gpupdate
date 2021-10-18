@@ -18,7 +18,7 @@
 
 import logging
 import subprocess
-from util.logging import slogm
+from util.logging import slogm, log
 from util.rpm import (
       update
     , install_rpm
@@ -67,31 +67,23 @@ class package_applier(applier_frontend):
                 try:
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
-                    logging.error(exc)
+                    logdata = dict()
+                    logdata['msg'] = str(exc)
+                    log('E55', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
-                    logging.error(exc)
-            #update()
-            #for package in self.install_packages_setting:
-                #try:
-                #    install_rpm(package.data)
-                #except Exception as exc:
-                #    logging.error(exc)
-
-            #for package in self.remove_packages_setting:
-            #    try:
-            #        remove_rpm(package.data)
-            #    except Exception as exc:
-            #        logging.error(exc)
+                    logdata = dict()
+                    logdata['msg'] = str(exc)
+                    log('E55', logdata)
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Package applier for machine'))
+            log('D138')
             self.run()
         else:
-            logging.debug(slogm('Package applier for machine will not be started'))
+            log('D139')
 
 
 class package_applier_user(applier_frontend):
@@ -144,17 +136,6 @@ class package_applier_user(applier_frontend):
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
                     logging.error(exc)
-            # update()
-            # for package in self.install_packages_setting:
-                # try:
-                    # install_rpm(package.data)
-                # except Exception as exc:
-                    # logging.debug(exc)
-            # for package in self.remove_packages_setting:
-                # try:
-                    # remove_rpm(package.data)
-                # except Exception as exc:
-                    # logging.debug(exc)
 
     def admin_context_apply(self):
         '''
@@ -162,8 +143,8 @@ class package_applier_user(applier_frontend):
         which computer he uses to log into system.
         '''
         if self.__module_enabled:
-            logging.debug(slogm('Running Package applier for user in administrator context'))
+            log('D140')
             self.run()
         else:
-            logging.debug(slogm('Package applier for user in administrator context will not be started'))
+            log('D141')
 

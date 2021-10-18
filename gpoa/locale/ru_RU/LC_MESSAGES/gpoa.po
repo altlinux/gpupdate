@@ -204,6 +204,9 @@ msgstr "Не удалось применить ярлык к файлу с %"
 msgid "Fail for applying shortcut to not absolute path"
 msgstr "Не удалось применить ярлык к не абсолютному пути"
 
+msgid "Error running pkcon_runner"
+msgstr "Ошибка при запуске pkcon_runner"
+
 # Error_end
 
 # Debug
@@ -577,13 +580,25 @@ msgid "Running Envvar applier for machine"
 msgstr "Запуск применение настроек Envvar для машины"
 
 msgid "Envvar applier for machine will not be started"
-msgstr "Применение настроек Envvar не запускается"
+msgstr "Применение настроек Envvar для машины не запускается"
 
 msgid "Running Envvar applier for user in user context"
 msgstr "Запуск применение настроек Envvar в контексте пользователя"
 
 msgid "Envvar applier for user in user context will not be started"
 msgstr "Применение настроек Envvar в контексте пользователя не запускается"
+
+msgid "Running Package applier for machine"
+msgstr "Запуск установки пакетов для машины"
+
+msgid "Package applier for machine will not be started"
+msgstr "Применение установки пакетов для машины не запускается"
+
+msgid "Running Package applier for user in administrator context"
+msgstr "Запуск установки пакетов в контексте пользователя"
+
+msgid "Package applier for user in administrator context will not be started"
+msgstr "Применение установки пакетов в контексте пользователя не запускается"
 
 # Debug_end
 

@@ -89,6 +89,7 @@ def error_code(code):
     error_ids[52] = 'Error during attempt to read Chromium preferences for user'
     error_ids[53] = 'Fail for applying shortcut to file with \'%\''
     error_ids[54] = 'Fail for applying shortcut to not absolute path'
+    error_ids[55] = 'Error running pkcon_runner'
     
     return error_ids.get(code, 'Unknown error code')
 
@@ -231,6 +232,10 @@ def debug_code(code):
     debug_ids[135] = 'Envvar applier for machine will not be started'
     debug_ids[136] = 'Running Envvar applier for user in user context'
     debug_ids[137] = 'Envvar applier for user in user context will not be started'
+    debug_ids[138] = 'Running Package applier for machine'
+    debug_ids[139] = 'Package applier for machine will not be started'
+    debug_ids[140] = 'Running Package applier for user in administrator context'
+    debug_ids[141] = 'Package applier for user in administrator context will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 
