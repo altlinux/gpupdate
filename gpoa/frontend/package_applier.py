@@ -47,6 +47,9 @@ class package_applier(applier_frontend):
         sync_branch = '{}\\{}%'.format(self.__hklm_branch, self.__sync_key_name)
         self.fulcmd = list()
         self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
+        self.fulcmd.append('--loglevel')
+        logger = logging.getLogger()
+        self.fulcmd.append(str(logger.level))
         self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
         self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
         self.sync_packages_setting = self.storage.filter_hklm_entries(sync_branch)
@@ -101,7 +104,11 @@ class package_applier_user(applier_frontend):
         self.username = username
         self.fulcmd = list()
         self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
+        self.fulcmd.append('--sid')
         self.fulcmd.append(self.sid)
+        self.fulcmd.append('--loglevel')
+        logger = logging.getLogger()
+        self.fulcmd.append(str(logger.level))
 
         install_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
         remove_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
@@ -130,12 +137,16 @@ class package_applier_user(applier_frontend):
                 try:
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
-                    logging.error(exc)
+                    logdata = dict()
+                    logdata['msg'] = str(exc)
+                    log('E55', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
-                    logging.error(exc)
+                    logdata = dict()
+                    logdata['msg'] = str(exc)
+                    log('E55', logdata)
 
     def admin_context_apply(self):
         '''

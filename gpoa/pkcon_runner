@@ -21,7 +21,15 @@ import rpm
 import subprocess
 from gpoa.storage import registry_factory
 import logging
+from util.logging import log
 import argparse
+import gettext
+import locale
+from messages import message_with_code
+from util.arguments import (
+    set_loglevel
+)
+
 
 def is_rpm_installed(rpm_name):
     '''
@@ -108,10 +116,16 @@ class Pkcon_applier:
             logging.debug(exc)
 
 if __name__ == '__main__':
+    locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.textdomain('gpoa')
+    logger = logging.getLogger()
     parser = argparse.ArgumentParser(description='Package applier')
-    parser.add_argument('sid', type = str, help = 'sid', nargs = '?', default = None)
+    parser.add_argument('--sid', type = str, help = 'sid', nargs = '?', default = None)
+    parser.add_argument('--loglevel', type = int, help = 'loglevel', nargs = '?', default = 30)
 
     args = parser.parse_args()
+    logger.setLevel(args.loglevel)
     if args.sid:
         applier = Pkcon_applier(args.sid)
     else:
