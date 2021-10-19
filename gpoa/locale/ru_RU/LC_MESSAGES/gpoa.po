@@ -502,16 +502,16 @@ msgid "Folder applier for machine will not be started"
 msgstr "Применение папок для машины не запускается"
 
 msgid "Running Folder applier for user in administrator context"
-msgstr "Запуск применение папок в контексте администратора"
+msgstr "Запуск применение папок для пользователя в контексте администратора"
 
 msgid "Folder applier for user in administrator context will not be started"
-msgstr "Применение папок в контексте администратора не запускается"
+msgstr "Применение папок для пользователя в контексте администратора не запускается"
 
 msgid "Running Folder applier for user in user context"
-msgstr "Запуск применение папок в контексте пользователя"
+msgstr "Запуск применение папок для пользователя в контексте пользователя"
 
 msgid "Folder applier for user in user context will not be started"
-msgstr "Применение папок в контексте пользователя не запускается"
+msgstr "Применение папок для пользователя в контексте пользователя не запускается"
 
 msgid "Running CUPS applier for machine"
 msgstr "Запуск применение настроек CUPS для машины"
@@ -520,10 +520,10 @@ msgid "CUPS applier for machine will not be started"
 msgstr "Применение настроек CUPS для машины не запускается"
 
 msgid "Running CUPS applier for user in administrator context"
-msgstr "Запуск применение настроек CUPS в контексте пользователя"
+msgstr "Запуск применение настроек CUPS для пользователя в контексте администратора"
 
 msgid "CUPS applier for user in administrator context will not be started"
-msgstr "Применение настроек CUPS в контексте пользователя не запускается"
+msgstr "Применение настроек CUPS для пользователя в контексте администратора не запускается"
 
 msgid "Running Firewall applier for machine"
 msgstr "Запуск применение настроек Firewall для машины"
@@ -583,10 +583,10 @@ msgid "Envvar applier for machine will not be started"
 msgstr "Применение настроек Envvar для машины не запускается"
 
 msgid "Running Envvar applier for user in user context"
-msgstr "Запуск применение настроек Envvar в контексте пользователя"
+msgstr "Запуск применение настроек Envvar для пользователя в контексте пользователя"
 
 msgid "Envvar applier for user in user context will not be started"
-msgstr "Применение настроек Envvar в контексте пользователя не запускается"
+msgstr "Применение настроек Envvar для пользователя в контексте пользователя не запускается"
 
 msgid "Running Package applier for machine"
 msgstr "Запуск установки пакетов для машины"
@@ -595,10 +595,20 @@ msgid "Package applier for machine will not be started"
 msgstr "Применение установки пакетов для машины не запускается"
 
 msgid "Running Package applier for user in administrator context"
-msgstr "Запуск установки пакетов в контексте пользователя"
+msgstr "Запуск установки пакетов для пользователя в контексте администратора"
 
 msgid "Package applier for user in administrator context will not be started"
-msgstr "Применение установки пакетов в контексте пользователя не запускается"
+msgstr "Применение установки пакетов для пользователя в контексте администратора не запускается"
+
+msgid "Running pkcon_runner to install and remove packages"
+msgstr "Запуск pkcon_runner для установки и удаления пакетов"
+
+msgid "Run apt-get update"
+msgstr "Запускаем apt-get update"
+
+msgid "Error run apt-get update"
+msgstr "Ошибка запуска apt-get update"
+
 
 # Debug_end
 

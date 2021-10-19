@@ -89,7 +89,8 @@ class Pkcon_applier:
                logging.debug(exc)
 
     def apply(self):
-            self.run()
+        log('D142')
+        self.run()
 
     def install_pkg(self, package_name):
         fullcmd = list(self.__install_command)
@@ -97,9 +98,7 @@ class Pkcon_applier:
         return subprocess.check_call(fullcmd)
 
     def reinstall_pkg(self, package_name):
-        fullcmd = list(self.__reinstall_command)
-        fullcmd.append(self.package_name)
-        return subprocess.check_call(fullcmd)
+        pass
 
     def remove_pkg(self, package_name):
         fullcmd = self.__remove_command
@@ -111,9 +110,17 @@ class Pkcon_applier:
         Update APT-RPM database.
         '''
         try:
-            subprocess.check_call(['/usr/bin/apt-get', 'update'])
+            res =  subprocess.check_output(['/usr/bin/apt-get', 'update'], encoding='utf-8')
+            msg =  str(res).split('\n')
+            logdata = dict()
+            for mslog in msg:
+                ms =  str(mslog).split(' ')
+                logdata = {lst[i]: lst[i + 1:-1] for i in range(0, len(lst), 2)}
+                log('D143', logdata)
         except Exception as exc:
-            logging.debug(exc)
+            logdata = dict()
+            logdata['msg'] = exc
+            log('E56',logdata)
 
 if __name__ == '__main__':
     locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
