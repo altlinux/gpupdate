@@ -96,7 +96,7 @@ class system_gsettings:
 def glib_map(value, glib_type):
     result_value = value
 
-    if glib_type == 'i' or glib_type == 'b':
+    if glib_type == 'i' or glib_type == 'b' or glib_type == 'q':
         result_value = GLib.Variant(glib_type, int(value))
     else:
         result_value = GLib.Variant(glib_type, value)
