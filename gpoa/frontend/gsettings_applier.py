@@ -115,6 +115,13 @@ class gsettings_applier(applier_frontend):
             helper = None
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
+            if not rp[0]:
+                valuenameArr = setting.keyname.rpartition('\\')[2]
+                rpArr = valuenameArr.rpartition('.')
+                schema = rpArr[0]
+                path = rpArr[2]
+                self.gsettings.append(schema, path, setting.data, lock, helper)
+                continue
             schema = rp[0]
             path = rp[2]
             lock = bool(self.locks[valuename]) if valuename in self.locks else None
