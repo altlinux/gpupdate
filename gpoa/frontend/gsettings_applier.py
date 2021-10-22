@@ -78,6 +78,7 @@ class gsettings_applier(applier_frontend):
         self.override_old_file = os.path.join(self.__global_schema, self.__override_old_file)
         self.gsettings = system_gsettings(self.override_file)
         self.locks = dict()
+        self.dictArr = dict()
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -115,21 +116,27 @@ class gsettings_applier(applier_frontend):
             helper = None
             valuename = setting.hive_key.rpartition('\\')[2]
             rp = valuename.rpartition('.')
-            if not rp[0]:
-                valuenameArr = setting.keyname.rpartition('\\')[2]
-                rpArr = valuenameArr.rpartition('.')
-                schema = rpArr[0]
-                path = rpArr[2]
-                self.gsettings.append(schema, path, setting.data, lock, helper)
-                continue
             schema = rp[0]
             path = rp[2]
             lock = bool(self.locks[valuename]) if valuename in self.locks else None
             if setting.hive_key.lower() == self.__wallpaper_entry.lower():
                 self.update_file_cache(setting.data)
                 helper = self.uri_fetch_helper
-            self.gsettings.append(schema, path, setting.data, lock, helper)
 
+            if valuename == setting.data:
+                valuenameArr = setting.keyname.rpartition('\\')[2]
+                rpArr = valuenameArr.rpartition('.')
+                schema = rpArr[0]
+                path = rpArr[2]
+                if self.dictArr and path in self.dictArr.keys():
+                    self.dictArr[path].append(setting.data)
+                    self.gsettings.pop()
+                else:
+                    self.dictArr[path] = [setting.data,]
+                lock = bool(self.locks[valuenameArr]) if valuenameArr in self.locks else None
+                self.gsettings.append(schema, path, self.dictArr[path], lock, helper)
+                continue
+            self.gsettings.append(schema, path, setting.data, lock, helper)
         # Create GSettings policy with highest available priority
         self.gsettings.apply()
 
@@ -200,7 +207,7 @@ class gsettings_applier_user(applier_frontend):
         self.gsettings = list()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
         self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
-
+        self.dictArr = dict()
         self.__windows_settings = dict()
         self.windows_settings = list()
         mapping = [
@@ -272,6 +279,18 @@ class gsettings_applier_user(applier_frontend):
             schema = rp[0]
             path = rp[2]
             helper = self.uri_fetch_helper if setting.hive_key.lower() == self.__wallpaper_entry.lower() else None
+            if valuename == setting.data:
+                valuenameArr = setting.keyname.rpartition('\\')[2]
+                rpArr = valuenameArr.rpartition('.')
+                schema = rpArr[0]
+                path = rpArr[2]
+                if self.dictArr and path in self.dictArr.keys():
+                    self.dictArr[path].append(setting.data)
+                    self.gsettings.pop()
+                else:
+                    self.dictArr[path] = [setting.data,]
+                self.gsettings.append(user_gsetting(schema, path, self.dictArr[path], helper))
+                continue
             self.gsettings.append(user_gsetting(schema, path, setting.data, helper))
 
         # Create GSettings policy with highest available priority

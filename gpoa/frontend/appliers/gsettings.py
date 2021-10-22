@@ -61,6 +61,9 @@ class system_gsettings:
     def append(self, schema, path, data, lock, helper):
         self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
 
+    def pop(self):
+        self.gsettings.pop()
+
     def apply(self):
         config = configparser.ConfigParser()
 
@@ -98,9 +101,6 @@ def glib_map(value, glib_type):
 
     if glib_type == 'i' or glib_type == 'b' or glib_type == 'q':
         result_value = GLib.Variant(glib_type, int(value))
-    elif glib_type == 'as':
-        glist = [value]
-        result_value = GLib.Variant(glib_type, glist)
     else:
         result_value = GLib.Variant(glib_type, value)
 
