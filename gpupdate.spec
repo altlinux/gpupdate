@@ -1,8 +1,8 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.9.8
-Release: alt1
+Version: 0.9.9
+Release: alt0.dev1
 
 Summary: GPT applier
 License: GPLv3+
