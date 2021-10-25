@@ -62,6 +62,7 @@ class gsettings_applier(applier_frontend):
     __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
     __registry_locks_branch = 'Software\\BaseALT\\Policies\\GSettingsLocks\\'
     __wallpaper_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.mate.background.picture-filename'
+    __vino_authentication_methods_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.gnome.Vino.authentication-methods'
     __global_schema = '/usr/share/glib-2.0/schemas'
     __override_priority_file = 'zzz_policy.gschema.override'
     __override_old_file = '0_policy.gschema.override'
@@ -117,11 +118,14 @@ class gsettings_applier(applier_frontend):
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
+            data = setting.data
             lock = bool(self.locks[valuename]) if valuename in self.locks else None
             if setting.hive_key.lower() == self.__wallpaper_entry.lower():
                 self.update_file_cache(setting.data)
                 helper = self.uri_fetch_helper
-            self.gsettings.append(schema, path, setting.data, lock, helper)
+            elif setting.hive_key.lower() == self.__vino_authentication_methods_entry.lower():
+                data = [setting.data]
+            self.gsettings.append(schema, path, data, lock, helper)
 
         # Create GSettings policy with highest available priority
         self.gsettings.apply()
@@ -182,6 +186,7 @@ class gsettings_applier_user(applier_frontend):
     __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
     __wallpaper_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.mate.background.picture-filename'
+    __vino_authentication_methods_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.gnome.Vino.authentication-methods'
 
     def __init__(self, storage, file_cache, sid, username):
         self.storage = storage
@@ -264,8 +269,11 @@ class gsettings_applier_user(applier_frontend):
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
+            data = setting.data
             helper = self.uri_fetch_helper if setting.hive_key.lower() == self.__wallpaper_entry.lower() else None
-            self.gsettings.append(user_gsetting(schema, path, setting.data, helper))
+            if setting.hive_key.lower() == self.__vino_authentication_methods_entry.lower():
+                data = [setting.data]
+            self.gsettings.append(user_gsetting(schema, path, data, helper))
 
         # Create GSettings policy with highest available priority
         for gsetting in self.gsettings:
