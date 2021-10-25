@@ -114,29 +114,33 @@ class gsettings_applier(applier_frontend):
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
             helper = None
-            valuename = setting.hive_key.rpartition('\\')[2]
+            valuename = setting.valuename
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
-            lock = bool(self.locks[valuename]) if valuename in self.locks else None
+            data = setting.data
+
             if setting.hive_key.lower() == self.__wallpaper_entry.lower():
                 self.update_file_cache(setting.data)
                 helper = self.uri_fetch_helper
-
-            if valuename == setting.data:
+            # Registry branch ends with back slash.
+            # If keyname starts with same prefix, it would be array
+            elif setting.keyname.lower().startswith(self.__registry_branch.lower()):
                 valuenameArr = setting.keyname.rpartition('\\')[2]
-                rpArr = valuenameArr.rpartition('.')
-                schema = rpArr[0]
-                path = rpArr[2]
-                if self.dictArr and path in self.dictArr.keys():
-                    self.dictArr[path].append(setting.data)
-                    self.gsettings.pop()
-                else:
-                    self.dictArr[path] = [setting.data,]
-                lock = bool(self.locks[valuenameArr]) if valuenameArr in self.locks else None
-                self.gsettings.append(schema, path, self.dictArr[path], lock, helper)
-                continue
-            self.gsettings.append(schema, path, setting.data, lock, helper)
+                if valuenameArr:
+                    valuename = valuenameArr
+                    rpArr = valuename.rpartition('.')
+                    schema = rpArr[0]
+                    path = rpArr[2]
+                    if self.dictArr and path in self.dictArr.keys():
+                        self.dictArr[path].append(setting.data)
+                        self.gsettings.pop()
+                    else:
+                        self.dictArr[path] = [setting.data,]
+                    data = self.dictArr[path]
+
+            lock = bool(self.locks[valuename]) if valuename in self.locks else None
+            self.gsettings.append(schema, path, data, lock, helper)
         # Create GSettings policy with highest available priority
         self.gsettings.apply()
 
