@@ -2,7 +2,7 @@
 
 Name: gpupdate
 Version: 0.9.8
-Release: alt0.dev1
+Release: alt1
 
 Summary: GPT applier
 License: GPLv3+
@@ -125,6 +125,10 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Mon Oct 25 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.8-alt1
+- Added exception for org.gnome.Vino authentication-methods
+- Fixed bug for alternative-port in org.gnome.Vino
+
 * Wed Sep 29 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.7-alt1
 - Fix regression with kestroy for user credential cache
 - Update system-policy-gpupdate PAM-rules to ignore applying group policies
