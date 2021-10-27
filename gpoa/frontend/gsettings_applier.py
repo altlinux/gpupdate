@@ -20,6 +20,7 @@ import logging
 import os
 import pwd
 import subprocess
+import urllib.parse
 
 from gi.repository import (
       Gio
@@ -121,8 +122,10 @@ class gsettings_applier(applier_frontend):
             data = setting.data
             lock = bool(self.locks[valuename]) if valuename in self.locks else None
             if setting.hive_key.lower() == self.__wallpaper_entry.lower():
-                self.update_file_cache(setting.data)
-                helper = self.uri_fetch_helper
+                check = urllib.parse.urlparse(setting.data)
+                if check.scheme:
+                    self.update_file_cache(setting.data)
+                    helper = self.uri_fetch_helper
             elif setting.hive_key.lower() == self.__vino_authentication_methods_entry.lower():
                 data = [setting.data]
             self.gsettings.append(schema, path, data, lock, helper)
