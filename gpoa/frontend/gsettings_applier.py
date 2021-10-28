@@ -91,7 +91,7 @@ class gsettings_applier(applier_frontend):
         except Exception as exc:
             logdata = dict()
             logdata['exception'] = str(exc)
-            log('E47', logdata)
+            log('D145', logdata)
 
     def uri_fetch_helper(self, schema, path, value):
         return uri_fetch(schema, path, value, self.file_cache)

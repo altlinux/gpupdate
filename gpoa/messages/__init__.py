@@ -239,6 +239,8 @@ def debug_code(code):
     debug_ids[141] = 'Package applier for user in administrator context will not be started'
     debug_ids[142] = 'Running pkcon_runner to install and remove packages'
     debug_ids[143] = 'Run apt-get update'
+    debug_ids[144] = 'Unable to cache specified URI'
+    debug_ids[145] = 'Unable to cache specified URI for machine'
 
 
     return debug_ids.get(code, 'Unknown debug code')
