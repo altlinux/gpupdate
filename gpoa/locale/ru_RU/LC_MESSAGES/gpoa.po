@@ -609,6 +609,17 @@ msgstr "Запускаем apt-get update"
 msgid "Error run apt-get update"
 msgstr "Ошибка запуска apt-get update"
 
+msgid "Run user context applier with dropped privileges"
+msgstr "Запуск из контекста пользователя с удаленными привилегиями"
+
+msgid "Run forked process with droped privileges"
+msgstr "Запустить разветвленный процесс с удаленными привилегиями"
+
+msgid "Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID"
+msgstr "Найдено соединение org.freedesktop.DBus.GetConnectionUnixProcessID"
+
+msgid "Kill dbus-daemon and dconf-service in user context"
+msgstr "Остановка dbus-daemon и dconf-service в контексте пользователя"
 
 # Debug_end
 
