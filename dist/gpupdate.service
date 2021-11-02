@@ -4,6 +4,7 @@ After=syslog.target network-online.target sssd.service
 
 [Service]
 Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
+Environment="LANG=en_US.UTF-8"
 Type=simple
 RestartSec=3600
 TimeoutSec=3000
