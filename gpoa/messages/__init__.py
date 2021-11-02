@@ -241,6 +241,8 @@ def debug_code(code):
     debug_ids[143] = 'Run apt-get update'
     debug_ids[144] = 'Unable to cache specified URI'
     debug_ids[145] = 'Unable to cache specified URI for machine'
+    debug_ids[146] = 'Running CIFS applier for user in administrator context'
+    debug_ids[147] = 'CIFS applier for user in administrator context will not be started'
 
 
     return debug_ids.get(code, 'Unknown debug code')

@@ -621,6 +621,12 @@ msgstr "Найдено соединение org.freedesktop.DBus.GetConnectionUn
 msgid "Kill dbus-daemon and dconf-service in user context"
 msgstr "Остановка dbus-daemon и dconf-service в контексте пользователя"
 
+msgid "Running CIFS applier for user in administrator context"
+msgstr "Запуск применение настроек CIFS для пользователя в контексте администратора"
+
+msgid "CIFS applier for user in administrator context will not be started"
+msgstr "Применение настроек CIFS для пользователя в контексте администратора не запускается"
+
 # Debug_end
 
 # Warning

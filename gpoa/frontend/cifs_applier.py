@@ -29,7 +29,7 @@ from .applier_frontend import (
 )
 from gpt.drives import json2drive
 from util.util import get_homedir
-from util.logging import slogm
+from util.logging import slogm, log
 
 def storage_get_drives(storage, sid):
     drives = storage.get_drives(sid)
@@ -157,8 +157,8 @@ class cifs_applier_user(applier_frontend):
 
     def admin_context_apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running CIFS applier for user in administrator context'))
+            log('D146')
             self.__admin_context_apply()
         else:
-            logging.debug(slogm('CIFS applier for user in administrator context will not be started'))
+            log('D147')
 
