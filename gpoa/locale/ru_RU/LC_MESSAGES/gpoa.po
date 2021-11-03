@@ -207,6 +207,12 @@ msgstr "Не удалось применить ярлык к не абсолют
 msgid "Error running pkcon_runner"
 msgstr "Ошибка при запуске pkcon_runner"
 
+msgid "Package install error"
+msgstr "Ошибка установки пакета"
+
+msgid "Package remove error"
+msgstr "Ошибка удаления пакета"
+
 # Error_end
 
 # Debug
@@ -626,6 +632,12 @@ msgstr "Запуск применение настроек CIFS для поль�
 
 msgid "CIFS applier for user in administrator context will not be started"
 msgstr "Применение настроек CIFS для пользователя в контексте администратора не запускается"
+
+msgid "Installing the package"
+msgstr "Установка пакета"
+
+msgid "Removing a package"
+msgstr "Удаление пакета"
 
 # Debug_end
 

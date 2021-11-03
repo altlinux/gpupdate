@@ -78,15 +78,25 @@ class Pkcon_applier:
         self.update()
         for package in self.remove_packages:
             try:
+                logdata = dict()
+                logdata['name'] = package
+                log('D149', logdata)
                 self.remove_pkg(package)
             except Exception as exc:
-                logging.debug(exc)
+                logdata = dict()
+                logdata['exc'] = exc
+                log('E58', logdata)
 
         for package in self.install_packages:
            try:
-               self.install_pkg(package)
+                logdata = dict()
+                logdata['name'] = package
+                log('D148', logdata)
+                self.install_pkg(package)
            except Exception as exc:
-               logging.debug(exc)
+                logdata = dict()
+                logdata['exc'] = exc
+                log('E57', logdata)
 
     def apply(self):
         log('D142')

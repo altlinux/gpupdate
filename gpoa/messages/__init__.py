@@ -91,7 +91,9 @@ def error_code(code):
     error_ids[54] = 'Fail for applying shortcut to not absolute path'
     error_ids[55] = 'Error running pkcon_runner'
     error_ids[56] = 'Error run apt-get update'
-    
+    error_ids[57] = 'Package installation error'
+    error_ids[58] = 'Package uninstall error'
+
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -243,6 +245,8 @@ def debug_code(code):
     debug_ids[145] = 'Unable to cache specified URI for machine'
     debug_ids[146] = 'Running CIFS applier for user in administrator context'
     debug_ids[147] = 'CIFS applier for user in administrator context will not be started'
+    debug_ids[148] = 'Installing the package'
+    debug_ids[149] = 'Removing a package'
 
 
     return debug_ids.get(code, 'Unknown debug code')
