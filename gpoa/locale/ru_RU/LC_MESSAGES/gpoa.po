@@ -204,14 +204,23 @@ msgstr "Не удалось применить ярлык к файлу с %"
 msgid "Fail for applying shortcut to not absolute path"
 msgstr "Не удалось применить ярлык к не абсолютному пути"
 
-msgid "Error running pkcon_runner"
-msgstr "Ошибка при запуске pkcon_runner"
+msgid "Error running pkcon_runner sync for machine"
+msgstr "Ошибка при запуске pkcon_runner синхронно для компьютера"
 
 msgid "Package install error"
 msgstr "Ошибка установки пакета"
 
 msgid "Package remove error"
 msgstr "Ошибка удаления пакета"
+
+msgid "Error running pkcon_runner sync for user"
+msgstr "Ошибка при запуске pkcon_runner синхронно для пользователя"
+
+msgid "Error running pkcon_runner async for machine"
+msgstr "Ошибка при запуске pkcon_runner асинхронно для компьютера"
+
+msgid "Error running pkcon_runner async for user"
+msgstr "Ошибка при запуске pkcon_runner асинхронно для пользователя"
 
 # Error_end
 

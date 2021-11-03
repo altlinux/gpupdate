@@ -107,7 +107,7 @@ class control:
                 logdata = dict()
                 logdata['control'] = self.control_name
                 logdata['inpossible values'] = self.self.control_value
-                log('E42', logdata)
+                log('E59', logdata)
                 return
             status = self.control_value
         logdata = dict()

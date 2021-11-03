@@ -79,7 +79,7 @@ class package_applier(applier_frontend):
                 except Exception as exc:
                     logdata = dict()
                     logdata['msg'] = str(exc)
-                    log('E55', logdata)
+                    log('E61', logdata)
 
     def apply(self):
         if self.__module_enabled:
@@ -139,14 +139,14 @@ class package_applier_user(applier_frontend):
                 except Exception as exc:
                     logdata = dict()
                     logdata['msg'] = str(exc)
-                    log('E55', logdata)
+                    log('E60', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
                     logdata = dict()
                     logdata['msg'] = str(exc)
-                    log('E55', logdata)
+                    log('E62', logdata)
 
     def admin_context_apply(self):
         '''

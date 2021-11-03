@@ -89,10 +89,15 @@ def error_code(code):
     error_ids[52] = 'Error during attempt to read Chromium preferences for user'
     error_ids[53] = 'Fail for applying shortcut to file with \'%\''
     error_ids[54] = 'Fail for applying shortcut to not absolute path'
-    error_ids[55] = 'Error running pkcon_runner'
+    error_ids[55] = 'Error running pkcon_runner sync for machine'
     error_ids[56] = 'Error run apt-get update'
     error_ids[57] = 'Package installation error'
     error_ids[58] = 'Package uninstall error'
+    error_ids[59] = 'Is not in possible values for control'
+    error_ids[60] = 'Error running pkcon_runner sync for user'
+    error_ids[61] = 'Error running pkcon_runner async for machine'
+    error_ids[62] = 'Error running pkcon_runner async for user'
+
 
     return error_ids.get(code, 'Unknown error code')
 
