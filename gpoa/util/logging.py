@@ -49,15 +49,7 @@ class slogm(object):
     def __str__(self):
         now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))
         args = dict()
-        #args.update(dict({'timestamp': now, 'message': str(self.message)}))
         args.update(self.kwargs)
-
-        #kwa = dict()
-        #try:
-        #    kwa = encoder().encode(args)
-        #except Exception as exc:
-        #    pass
-
         result = '{}|{}|{}'.format(now, self.message, args)
 
         return result
