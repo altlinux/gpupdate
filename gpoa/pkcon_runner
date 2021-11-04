@@ -105,7 +105,7 @@ class Pkcon_applier:
     def install_pkg(self, package_name):
         fullcmd = list(self.__install_command)
         fullcmd.append(package_name)
-        return subprocess.check_call(fullcmd)
+        return subprocess.check_output(fullcmd)
 
     def reinstall_pkg(self, package_name):
         pass
@@ -113,7 +113,7 @@ class Pkcon_applier:
     def remove_pkg(self, package_name):
         fullcmd = self.__remove_command
         fullcmd.append(package_name)
-        return subprocess.check_call(fullcmd)
+        return subprocess.check_output(fullcmd)
 
     def update(self):
         '''
