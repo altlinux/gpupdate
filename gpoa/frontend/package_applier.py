@@ -53,7 +53,7 @@ class package_applier(applier_frontend):
         self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
         self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
         self.sync_packages_setting = self.storage.filter_hklm_entries(sync_branch)
-        self.flagSync = False
+        self.flagSync = True
 
         self.__module_enabled = check_enabled(
               self.storage
@@ -66,7 +66,7 @@ class package_applier(applier_frontend):
                 self.flagSync = bool(int(flag.data))
 
         if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
-            if not self.flagSync:
+            if self.flagSync:
                 try:
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
@@ -117,7 +117,7 @@ class package_applier_user(applier_frontend):
         self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
         self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
         self.sync_packages_setting = self.storage.filter_hkcu_entries(self.sid, sync_branch)
-        self.flagSync = True
+        self.flagSync = False
 
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
 
