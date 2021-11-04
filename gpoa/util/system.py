@@ -21,7 +21,7 @@ import sys
 import pwd
 import signal
 import subprocess
-
+import locale
 from .logging import log
 from .dbus import dbus_session
 
