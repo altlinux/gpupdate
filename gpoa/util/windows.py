@@ -62,7 +62,9 @@ class smbcreds (smbopts):
 
                 self.selected_dc = dc_fqdn
             else:
+                self.ls_selected_dc = set()
                 self.selected_dc = get_dc_hostname(self.creds, self.lp)
+                self.ls_selected_dc.add(self.selected_dc)
         except Exception as exc:
             logdata = dict()
             logdata['msg'] = str(exc)
@@ -116,20 +118,26 @@ class smbcreds (smbopts):
 
     def update_gpos(self, username):
         gpos = self.get_gpos(username)
-
-        try:
-            log('D49')
-            check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
-            log('D50')
-        except Exception as exc:
+        while self.ls_selected_dc:
             logdata = dict()
             logdata['username'] = username
             logdata['dc'] = self.selected_dc
-            logdata['err'] = str(exc)
-            log('F1')
-            raise exc
+            try:
+                log('D49', logdata)
+                check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
+                log('D50', logdata)
+                self.ls_selected_dc.clear()
+            except Exception as exc:
+                logdata['err'] = str(exc)
+                self.selected_dc = get_dc_hostname(self.creds, self.lp)
+                if self.selected_dc not in self.ls_selected_dc:
+                    logdata['try'] = 'Search another dc'
+                    log('F1', logdata)
+                    self.ls_selected_dc.add(self.selected_dc)
+                else:
+                    log('F1', logdata)
+                    raise exc
         return gpos
-
 
 def wbinfo_getsid(domain, user):
     '''
