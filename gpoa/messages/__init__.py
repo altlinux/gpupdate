@@ -274,6 +274,7 @@ def warning_code(code):
     warning_ids[8] = 'User\'s shortcut not placed to home directory'
     warning_ids[9] = 'CUPS is not installed: no printer settings will be deployed'
     warning_ids[10] = 'Unsupported NTP server type'
+    warning_ids[11] = 'Unable to refresh GPO list'
 
     return warning_ids.get(code, 'Unknown warning code')
 
