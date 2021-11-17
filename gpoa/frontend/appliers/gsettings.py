@@ -65,14 +65,20 @@ class system_gsettings:
         config = configparser.ConfigParser()
 
         for gsetting in self.gsettings:
-            settings = Gio.Settings(schema=gsetting.schema)
             logdata = dict()
             logdata['gsetting.schema'] = gsetting.schema
             logdata['gsetting.path'] = gsetting.path
             logdata['gsetting.value'] = gsetting.value
             logdata['gsetting.lock'] = gsetting.lock
-            log('D89', logdata)
-            gsetting.apply(settings, config, self.locks)
+            source = Gio.SettingsSchemaSource.get_default()
+            sourceSchema = (source.lookup(gsetting.schema, False))
+            list_keys = sourceSchema.list_keys()
+            if bool(sourceSchema) and gsetting.path in list_keys:
+                settings = Gio.Settings(schema=gsetting.schema)
+                log('D89', logdata)
+                gsetting.apply(settings, config, self.locks)
+            else:
+                log('D150', logdata)
 
         with open(self.override_file_path, 'w') as f:
             config.write(f)
@@ -123,14 +129,24 @@ class user_gsetting:
         self.helper_function = helper_function
 
     def apply(self):
-        # Access the current schema
-        settings = Gio.Settings(schema=self.schema)
-        # Update result with helper function
-        value = self.value
-        if self.helper_function:
-            value = self.helper_function(self.schema, self.path, value)
-        # Get typed value by schema
-        result = glib_value(self.schema, self.path, value, settings)
-        # Set the value
-        settings.set_value(self.path, result)
-        settings.sync()
+        logdata = dict()
+        logdata['gsetting.schema'] = self.schema
+        logdata['gsetting.path'] = self.path
+        logdata['gsetting.value'] = self.value
+        source = Gio.SettingsSchemaSource.get_default()
+        sourceSchema = (source.lookup(self.schema, False))
+        list_keys = sourceSchema.list_keys()
+        if bool(sourceSchema) and self.path in list_keys:
+            # Access the current schema
+            settings = Gio.Settings(schema=self.schema)
+            # Update result with helper function
+            value = self.value
+            if self.helper_function:
+                value = self.helper_function(self.schema, self.path, value)
+            # Get typed value by schema
+            result = glib_value(self.schema, self.path, value, settings)
+            # Set the value
+            settings.set_value(self.path, result)
+            settings.sync()
+        else:
+            log('D151', logdata)

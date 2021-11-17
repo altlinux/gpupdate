@@ -252,7 +252,8 @@ def debug_code(code):
     debug_ids[147] = 'CIFS applier for user in administrator context will not be started'
     debug_ids[148] = 'Installing the package'
     debug_ids[149] = 'Removing a package'
-
+    debug_ids[150] = 'Failed to apply machine gsettings'
+    debug_ids[151] = 'Failed to apply user gsettings'
 
     return debug_ids.get(code, 'Unknown debug code')
 
