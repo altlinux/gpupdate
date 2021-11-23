@@ -52,8 +52,8 @@ class Pkcon_applier:
         self.__install_command = ['/usr/bin/pkcon', '-y', 'install']
         self.__remove_command = ['/usr/bin/pkcon', '-y', 'remove']
         self.__reinstall_command = ['/usr/bin/pkcon', '-y', 'reinstall']
-        self.install_packages = list()
-        self.remove_packages = list()
+        self.install_packages = set()
+        self.remove_packages = set()
         self.storage = registry_factory('registry')
         if sid:
             install_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
@@ -66,12 +66,13 @@ class Pkcon_applier:
             self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
             self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
         for package in self.install_packages_setting:
-            if is_rpm_installed(package.data) == False:
-                self.install_packages.append(package.data)
+            if not is_rpm_installed(package.data):
+                self.install_packages.add(package.data)
         for package in self.remove_packages_setting:
+            if package.data in self.install_packages:
+                self.install_packages.remove(package.data)
             if is_rpm_installed(package.data):
-                self.remove_packages.append(package.data)
-        self.install_packages = list(set(self.install_packages) - set(self.remove_packages))
+                self.remove_packages.add(package.data)
 
     def apply(self):
         log('D142')
