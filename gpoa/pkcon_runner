@@ -45,7 +45,6 @@ def is_rpm_installed(rpm_name):
 class Pkcon_applier:
 
     def __init__(self, sid = None):
-        self.sid = sid
         self.__install_key_name = 'Install'
         self.__remove_key_name = 'Remove'
         self.__hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
@@ -59,8 +58,8 @@ class Pkcon_applier:
         if sid:
             install_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
             remove_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
-            self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch_user)
-            self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch_user)
+            self.install_packages_setting = self.storage.filter_hkcu_entries(sid, install_branch_user)
+            self.remove_packages_setting = self.storage.filter_hkcu_entries(sid, remove_branch_user)
         else:
             install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
             remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
