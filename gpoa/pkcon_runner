@@ -73,7 +73,8 @@ class Pkcon_applier:
                 self.remove_packages.append(package.data)
         self.install_packages = list(set(self.install_packages) - set(self.remove_packages))
 
-    def run(self):
+    def apply(self):
+        log('D142')
         self.update()
         for package in self.remove_packages:
             try:
@@ -97,9 +98,6 @@ class Pkcon_applier:
                 logdata['exc'] = exc
                 log('E57', logdata)
 
-    def apply(self):
-        log('D142')
-        self.run()
 
     def install_pkg(self, package_name):
         fullcmd = list(self.__install_command)
