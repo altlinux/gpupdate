@@ -3,8 +3,8 @@ Description=Group policy update for machine
 After=syslog.target network-online.target sssd.service
 
 [Service]
-Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin"
-Environment="LANG=en_US.UTF-8"
+Environment=PATH=/bin:/sbin:/usr/bin:/usr/sbin
+UnsetEnvironment=LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION
 Type=simple
 RestartSec=3600
 TimeoutSec=3000

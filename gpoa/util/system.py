@@ -30,12 +30,13 @@ def set_privileges(username, uid, gid, groups, home):
     '''
     Set current process privileges
     '''
-    defaultlocale = '.'.join(locale.getdefaultlocale())
+    defaultlocale = locale.getdefaultlocale()
     os.environ.clear()
     os.environ['HOME'] = home
     os.environ['USER'] = username
     os.environ['USERNAME'] = username
-    os.environ["LANG"] = defaultlocale
+    if defaultlocale[0] and defaultlocale[1]:
+        os.environ["LANG"] = '.'.join(defaultlocale)
 
     try:
         os.setgid(gid)
