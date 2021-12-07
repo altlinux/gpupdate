@@ -21,7 +21,7 @@ import sys
 import pwd
 import signal
 import subprocess
-
+import locale
 from .logging import log
 from .dbus import dbus_session
 
@@ -30,11 +30,13 @@ def set_privileges(username, uid, gid, groups, home):
     '''
     Set current process privileges
     '''
-
+    defaultlocale = locale.getdefaultlocale()
     os.environ.clear()
     os.environ['HOME'] = home
     os.environ['USER'] = username
     os.environ['USERNAME'] = username
+    if defaultlocale[0] and defaultlocale[1]:
+        os.environ["LANG"] = '.'.join(defaultlocale)
 
     try:
         os.setgid(gid)

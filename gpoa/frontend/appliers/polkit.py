@@ -20,7 +20,7 @@ import os
 import jinja2
 import logging
 
-from util.logging import slogm
+from util.logging import slogm, log
 
 class polkit:
     __template_path = '/usr/share/gpupdate/templates'
@@ -46,7 +46,13 @@ class polkit:
             with open(self.outfile, 'w') as f:
                 f.write(text)
 
-            logging.debug(slogm('Generated file {} with arguments {}'.format(self.outfile, self.args)))
+            logdata = dict()
+            logdata['file'] = self.outfile
+            logdata['arguments'] = self.args
+            log('D77', logdata)
         except Exception as exc:
-            logging.error(slogm('Unable to generate file {} from {}'.format(self.outfile, self.infilename)))
+            logdata = dict()
+            logdata['file'] = self.outfile
+            logdata['arguments'] = self.args
+            log('E44', logdata)
 

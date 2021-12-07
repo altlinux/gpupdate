@@ -50,7 +50,7 @@ class fs_file_cache:
                 file_path))
         except Exception as exc:
             logdata = dict({'exception': str(exc)})
-            log('E38', logdata)
+            log('D144', logdata)
             raise exc
 
         if not destdir.exists():

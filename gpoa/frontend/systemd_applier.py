@@ -21,7 +21,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from .appliers.systemd import systemd_unit
-from util.logging import slogm
+from util.logging import slogm, log
 
 import logging
 
@@ -46,24 +46,31 @@ class systemd_applier(applier_frontend):
             valuename = setting.hive_key.rpartition('\\')[2]
             try:
                 self.units.append(systemd_unit(valuename, int(setting.data)))
-                logging.info(slogm('Working with systemd unit {}'.format(valuename)))
+                logdata = dict()
+                logdata['unit'] = format(valuename)
+                log('I4', logdata)
             except Exception as exc:
-                logging.info(slogm('Unable to work with systemd unit {}: {}'.format(valuename, exc)))
+                logdata = dict()
+                logdata['unit'] = format(valuename)
+                logdata['exc'] = exc
+                log('I5', logdata)
         for unit in self.units:
             try:
                 unit.apply()
             except:
-                logging.error(slogm('Failed applying unit {}'.format(unit.unit_name)))
+                logdata = dict()
+                logdata['unit'] = unit.unit_name
+                log('E45', logdata)
 
     def apply(self):
         '''
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
-            logging.debug(slogm('Running systemd applier for machine'))
+            log('D78')
             self.run()
         else:
-            logging.debug(slogm('systemd applier for machine will not be started'))
+            log('D79')
 
 class systemd_applier_user(applier_frontend):
     __module_name = 'SystemdApplierUser'

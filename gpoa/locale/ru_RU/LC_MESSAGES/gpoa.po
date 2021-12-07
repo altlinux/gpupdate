@@ -41,6 +41,27 @@ msgstr "Получен объект групповой политики"
 msgid "Unknown info code"
 msgstr "Неизвестный код информационного сообщения"
 
+msgid "Working with control"
+msgstr "Применение настроек control"
+
+msgid "Working with systemd"
+msgstr "Работа с systemd"
+
+msgid "Unable to work with systemd unit"
+msgstr "Невозможно создать оъект для unit systemd"
+
+msgid "Starting systemd unit"
+msgstr "Запуск unit systemd"
+
+msgid "Firefox policy"
+msgstr "Политика Firefox"
+
+msgid "Chromium policy"
+msgstr "Политика Chromium"
+
+msgid "Set user property to"
+msgstr "Установка свойств  для пользователя"
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
@@ -131,6 +152,77 @@ msgstr "Ошибка слияния пользовательской части 
 
 msgid "Unknown error code"
 msgstr "Неизвестный код ошибки"
+
+msgid "Unable to work with control"
+msgstr "Не удалось применить настройки control"
+
+msgid "Control applier for machine will not be started"
+msgstr "Приминение Control для машины не удалось"
+
+msgid "Error getting control"
+msgstr "Ошибка установки control"
+
+msgid "Is not in possible values for control"
+msgstr "Не входит в возможные значения для control"
+
+msgid "Unable to set"
+msgstr "Невозможно установить"
+
+msgid "Unable to generate file"
+msgstr "Невозможно создать файл"
+
+msgid "Failed applying unit"
+msgstr "Не удалось применить настройки"
+
+msgid "Unable to start systemd unit"
+msgstr "Невозможно запустить systemd unit"
+
+msgid "Unable to cache specified URI"
+msgstr "Невозможно кэшировать указанный URI"
+
+msgid "Unable to cache specified URI for machine"
+msgstr "Невозможно кэшировать указанный URI для компьютера"
+
+msgid "Error recompiling global GSettings schemas"
+msgstr "Ошибка перекомпиляции глобальных GSettings schemas"
+
+msgid "Error update configuration dconf"
+msgstr "Ошибка обновления конфигурации dconf"
+
+msgid "Unable to cache specified URI for user"
+msgstr "Невозможно кэшировать указанный URI для пользователя"
+
+msgid "Chromium preferences file does not exist at the moment"
+msgstr "Файл настроек Chromium в данный момент не существует"
+
+msgid "Error during attempt to read Chromium preferences for user"
+msgstr "Ошибка при попытке прочитать настройки Chromium для пользователя"
+
+msgid "Fail for applying shortcut to file with %"
+msgstr "Не удалось применить ярлык к файлу с %"
+
+msgid "Fail for applying shortcut to not absolute path"
+msgstr "Не удалось применить ярлык к не абсолютному пути"
+
+msgid "Error running pkcon_runner sync for machine"
+msgstr "Ошибка при запуске pkcon_runner синхронно для компьютера"
+
+msgid "Package install error"
+msgstr "Ошибка установки пакета"
+
+msgid "Package remove error"
+msgstr "Ошибка удаления пакета"
+
+msgid "Error running pkcon_runner sync for user"
+msgstr "Ошибка при запуске pkcon_runner синхронно для пользователя"
+
+msgid "Error running pkcon_runner async for machine"
+msgstr "Ошибка при запуске pkcon_runner асинхронно для компьютера"
+
+msgid "Error running pkcon_runner async for user"
+msgstr "Ошибка при запуске pkcon_runner асинхронно для пользователя"
+
+# Error_end
 
 # Debug
 msgid "The GPOA process was started for user"
@@ -295,6 +387,269 @@ msgstr "Сохранение информации о переменных окр
 msgid "Unknown debug code"
 msgstr "Неизвестный отладочный код"
 
+msgid "Running Control applier for machine"
+msgstr "Начато применение Control для машины"
+
+msgid "Setting control"
+msgstr "Установка control"
+
+msgid "Deny_All setting found"
+msgstr "Deny_All настройка найдена"
+
+msgid "Deny_All setting for user"
+msgstr "Deny_All настройка для пользователя"
+
+msgid "Deny_All setting not found"
+msgstr "Deny_All настройка не найдена"
+
+msgid "Deny_All setting not found for user"
+msgstr "Deny_All настройка не найдена для пользователя"
+
+msgid "Running Polkit applier for machine"
+msgstr "Начато применение настроек Polkit для машины"
+
+msgid "Running Polkit applier for user in administrator context"
+msgstr "Начато применение настроек Polkit пользователя в контексте администратора"
+
+msgid "Polkit applier for machine will not be started"
+msgstr "Polkit для машины не запускается"
+
+msgid "Polkit applier for user in administrator context will not be started"
+msgstr "Polkit для пользователя в контексте администратора не запускается"
+
+msgid "Generated file"
+msgstr "Созданный файл"
+
+msgid "Running systemd applier for machine"
+msgstr "Начато применение настроек systemd для машины"
+
+msgid "Running systemd applier for machine will not be started"
+msgstr "Применение настроек systemd для машины не удалось"
+
+msgid "Running GSettings applier for machine"
+msgstr "Запуск применение настроек GSettings для машины"
+
+msgid "GSettings applier for machine will not be started"
+msgstr "Применение настроек GSettings для машины не удалось"
+
+msgid "Removing GSettings policy file from previous run"
+msgstr "Удаление файла политики GSettings от предыдущего запуска"
+
+msgid "Mapping Windows policies to GSettings policies"
+msgstr "Сопоставление политик Windows с политиками GSettings"
+
+msgid "GSettings windows policies mapping not enabled"
+msgstr "Сопоставление политик Windows GSettings не включено"
+
+msgid "Applying user setting"
+msgstr "Применение пользовательских настроек"
+
+msgid "Found GSettings windows mapping"
+msgstr "Найдены соответствия настроек windows-GSettings"
+
+msgid "Running GSettings applier for user in user context"
+msgstr "Запуск применение настроек GSettings в контексте пользователя"
+
+msgid "GSettings applier for user in user context will not be started"
+msgstr "GSettings в контексте пользователя не запускается"
+
+msgid "Applying machine setting"
+msgstr "Применение настроек машины"
+
+msgid "Path not resolved as UNC URI"
+msgstr "Путь не разрешен"
+
+msgid "Getting cached file for URI"
+msgstr "Получение кешированного файла для URI"
+
+msgid "Wrote Firefox preferences to"
+msgstr "Настройки Firefox записаны в"
+
+msgid "Found Firefox profile in"
+msgstr "Найден профиль Firefox в"
+
+msgid "Running Firefox applier for machine"
+msgstr "Запуск применение настроек Firefox для машины"
+
+msgid "Firefox applier for machine will not be started"
+msgstr "Применение настроек Firefox для компьютера не запускается"
+
+msgid "Running Chromium applier for machine"
+msgstr "Запуск применение настроек Chromium для машины"
+
+msgid "Chromium applier for machine will not be started"
+msgstr "Применение настроек Chromium для компьютера не запускается"
+
+msgid "Wrote Chromium preferences to"
+msgstr "Настройки Chromium записаны в"
+
+msgid "Running Shortcut applier for machine"
+msgstr "Запуск применение ярлыков для машины"
+
+msgid "Shortcut applier for machine will not be started"
+msgstr "Применение ярлыков для компьютера не запускается"
+
+msgid "No shortcuts to process for"
+msgstr "Нет ярлыков для обработки"
+
+msgid "Running Shortcut applier for user in user context"
+msgstr "Запуск применение ярлыков  в контексте пользователя"
+
+msgid "Shortcut applier for user in user context will not be started"
+msgstr "Применение ярлыков в контексте пользователя не запускается"
+
+msgid "Running Shortcut applier for user in administrator context"
+msgstr "Запуск применение ярлыков в контексте администратора"
+
+msgid "Shortcut applier for user in administrator context will not be started"
+msgstr "Применение ярлыков в контексте администратора не запускается"
+
+msgid "Try to expand path for shortcut"
+msgstr "Попытка расширить путь для ярлыка"
+
+msgid "Applying shortcut file to"
+msgstr "Применение ярлыка к файлу"
+
+msgid "Running Folder applier for machine"
+msgstr "Запуск применение папок для машины"
+
+msgid "Folder applier for machine will not be started"
+msgstr "Применение папок для машины не запускается"
+
+msgid "Running Folder applier for user in administrator context"
+msgstr "Запуск применение папок для пользователя в контексте администратора"
+
+msgid "Folder applier for user in administrator context will not be started"
+msgstr "Применение папок для пользователя в контексте администратора не запускается"
+
+msgid "Running Folder applier for user in user context"
+msgstr "Запуск применение папок для пользователя в контексте пользователя"
+
+msgid "Folder applier for user in user context will not be started"
+msgstr "Применение папок для пользователя в контексте пользователя не запускается"
+
+msgid "Running CUPS applier for machine"
+msgstr "Запуск применение настроек CUPS для машины"
+
+msgid "CUPS applier for machine will not be started"
+msgstr "Применение настроек CUPS для машины не запускается"
+
+msgid "Running CUPS applier for user in administrator context"
+msgstr "Запуск применение настроек CUPS для пользователя в контексте администратора"
+
+msgid "CUPS applier for user in administrator context will not be started"
+msgstr "Применение настроек CUPS для пользователя в контексте администратора не запускается"
+
+msgid "Running Firewall applier for machine"
+msgstr "Запуск применение настроек Firewall для машины"
+
+msgid "Firewall is enabled"
+msgstr "Firewall включен"
+
+msgid "Firewall is disabled, settings will be reset"
+msgstr "Firewall отключен, настройки будут сброшены"
+
+msgid "Firewall applier will not be started"
+msgstr "Применение настроек Firewall не запускается"
+
+msgid "Running NTP applier for machine"
+msgstr "Запуск применение настроек NTP для машины"
+
+msgid "NTP server is configured to"
+msgstr "Сервер NTP настроен на"
+
+msgid "Starting Chrony daemon"
+msgstr "Запуск демона Chrony"
+
+msgid "Setting reference NTP server to"
+msgstr "Установка эталонного сервера NTP на"
+
+msgid "Stopping Chrony daemon"
+msgstr "Остановка демона Chrony"
+
+msgid "Configuring NTP server..."
+msgstr "Настройка NTP-сервера ..."
+
+msgid "NTP server is enabled"
+msgstr "Сервер NTP включен"
+
+msgid "NTP server is disabled"
+msgstr "NTP сервер отключен"
+
+msgid "NTP server is not configured"
+msgstr "NTP сервер не настроен"
+
+msgid "NTP client is enabled"
+msgstr "Клиент NTP включен"
+
+msgid "NTP client is disabled"
+msgstr "Клиент NTP отключен"
+
+msgid "NTP client is not configured"
+msgstr "NTP клиент не настроен"
+
+msgid "NTP applier for machine will not be started"
+msgstr "Применение настроек NTP для машины не запускается"
+
+msgid "Running Envvar applier for machine"
+msgstr "Запуск применение настроек Envvar для машины"
+
+msgid "Envvar applier for machine will not be started"
+msgstr "Применение настроек Envvar для машины не запускается"
+
+msgid "Running Envvar applier for user in user context"
+msgstr "Запуск применение настроек Envvar для пользователя в контексте пользователя"
+
+msgid "Envvar applier for user in user context will not be started"
+msgstr "Применение настроек Envvar для пользователя в контексте пользователя не запускается"
+
+msgid "Running Package applier for machine"
+msgstr "Запуск установки пакетов для машины"
+
+msgid "Package applier for machine will not be started"
+msgstr "Применение установки пакетов для машины не запускается"
+
+msgid "Running Package applier for user in administrator context"
+msgstr "Запуск установки пакетов для пользователя в контексте администратора"
+
+msgid "Package applier for user in administrator context will not be started"
+msgstr "Применение установки пакетов для пользователя в контексте администратора не запускается"
+
+msgid "Running pkcon_runner to install and remove packages"
+msgstr "Запуск pkcon_runner для установки и удаления пакетов"
+
+msgid "Run apt-get update"
+msgstr "Запускаем apt-get update"
+
+msgid "Error run apt-get update"
+msgstr "Ошибка запуска apt-get update"
+
+msgid "Run user context applier with dropped privileges"
+msgstr "Запуск из контекста пользователя с удаленными привилегиями"
+
+msgid "Run forked process with droped privileges"
+msgstr "Запустить разветвленный процесс с удаленными привилегиями"
+
+msgid "Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID"
+msgstr "Найдено соединение org.freedesktop.DBus.GetConnectionUnixProcessID"
+
+msgid "Kill dbus-daemon and dconf-service in user context"
+msgstr "Остановка dbus-daemon и dconf-service в контексте пользователя"
+
+msgid "Running CIFS applier for user in administrator context"
+msgstr "Запуск применение настроек CIFS для пользователя в контексте администратора"
+
+msgid "CIFS applier for user in administrator context will not be started"
+msgstr "Применение настроек CIFS для пользователя в контексте администратора не запускается"
+
+msgid "Installing the package"
+msgstr "Установка пакета"
+
+msgid "Removing a package"
+msgstr "Удаление пакета"
+
+# Debug_end
+
 # Warning
 msgid "Unable to perform gpupdate for non-existent user, will update machine settings"
 msgstr "Невозможно запустить gpupdate для несуществующего пользователя, будут обновлены настройки машины"
@@ -314,6 +669,21 @@ msgstr "Пакет ADP не установлен, плагин не будет �
 
 msgid "Unknown warning code"
 msgstr "Неизвестный код предупреждения"
+
+msgid "Unable to resolve GSettings parameter"
+msgstr "Не удалось установить параметр GSettings"
+
+msgid "No home directory exists for user"
+msgstr "Для пользователя не существует домашнего каталога"
+
+msgid "User's shortcut not placed to home directory"
+msgstr "Ярлык пользователя не помещен в домашний каталог"
+
+msgid "CUPS is not installed: no printer settings will be deployed"
+msgstr "CUPS не установлен: настройки принтера не будут развернуты"
+
+msgid "Unsupported NTP server type"
+msgstr "Неподдерживаемый тип сервера NTP"
 
 # Fatal
 msgid "Unable to refresh GPO list"

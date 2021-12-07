@@ -25,7 +25,7 @@ from .applier_frontend import (
 )
 from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
-from util.logging import slogm
+from util.logging import slogm, log
 from util.util import (
         get_homedir,
         homedir_exists
@@ -55,8 +55,10 @@ def apply_shortcut(shortcut, username=None):
     dest_abspath = shortcut.dest
     if not dest_abspath.startswith('/') and not dest_abspath.startswith('%'):
         dest_abspath = '%HOME%/' + dest_abspath
-
-    logging.debug(slogm('Try to expand path for shortcut: {} for {}'.format(dest_abspath, username)))
+    logdata = dict()
+    logdata['shortcut'] = dest_abspath
+    logdata['for'] = username
+    log('D105', logdata)
     dest_abspath = expand_windows_var(dest_abspath, username).replace('\\', '/') + '.desktop'
 
     # Check that we're working for user, not on global system level
@@ -66,21 +68,33 @@ def apply_shortcut(shortcut, username=None):
         if dest_abspath.startswith(get_homedir(username)):
             # Don't try to operate on non-existent directory
             if not homedir_exists(username):
-                logging.warning(slogm('No home directory exists for user {}: will not apply link {}'.format(username, dest_abspath)))
+                logdata = dict()
+                logdata['user'] = username
+                logdata['dest_abspath'] = dest_abspath
+                log('W7', logdata)
                 return None
         else:
-            logging.warning(slogm('User\'s shortcut not placed to home directory for {}: bad path {}'.format(username, dest_abspath)))
+            logdata = dict()
+            logdata['user'] = username
+            logdata['bad path'] = dest_abspath
+            log('W8', logdata)
             return None
 
     if '%' in dest_abspath:
-        logging.debug(slogm('Fail for applying shortcut to file with \'%\': {}'.format(dest_abspath)))
+        logdata = dict()
+        logdata['dest_abspath'] = dest_abspath
+        log('E53', logdata)
         return None
 
     if not dest_abspath.startswith('/'):
-        logging.debug(slogm('Fail for applying shortcut to not absolute path \'%\': {}'.format(dest_abspath)))
+        logdata = dict()
+        logdata['dest_abspath'] = dest_abspath
+        log('E54', logdata)
         return None
-
-    logging.debug(slogm('Applying shortcut file to {} with action {}'.format(dest_abspath, shortcut.action)))
+    logdata = dict()
+    logdata['file'] = dest_abspath
+    logdata['with_action'] = shortcut.action
+    log('D106', logdata)
     shortcut.apply_desktop(dest_abspath)
 
 class shortcut_applier(applier_frontend):
@@ -108,14 +122,16 @@ class shortcut_applier(applier_frontend):
                 # /usr/local/share/applications
                 subprocess.check_call(['/usr/bin/update-desktop-database'])
         else:
-            logging.debug(slogm('No shortcuts to process for {}'.format(self.storage.get_info('machine_sid'))))
+            logdata = dict()
+            logdata['machine_sid'] = self.storage.get_info('machine_sid')
+            log('D100', logdata)
 
     def apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Shortcut applier for machine'))
+            log('D98')
             self.run()
         else:
-            logging.debug(slogm('Shortcut applier for machine will not be started'))
+            log('D99')
 
 class shortcut_applier_user(applier_frontend):
     __module_name = 'ShortcutsApplierUser'
@@ -137,19 +153,21 @@ class shortcut_applier_user(applier_frontend):
                 if not in_usercontext and not sc.is_usercontext():
                     apply_shortcut(sc, self.username)
         else:
-            logging.debug(slogm('No shortcuts to process for {}'.format(self.sid)))
+            logdata = dict()
+            logdata['sid'] = self.sid
+            log('D100', logdata)
 
     def user_context_apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Shortcut applier for user in user context'))
+            log('D101')
             self.run(True)
         else:
-            logging.debug(slogm('Shortcut applier for user in user context will not be started'))
+            log('D102')
 
     def admin_context_apply(self):
         if self.__module_enabled:
-            logging.debug(slogm('Running Shortcut applier for user in administrator context'))
+            log('D103')
             self.run(False)
         else:
-            logging.debug(slogm('Shortcut applier for user in administrator context will not be started'))
+            log('D104')
 

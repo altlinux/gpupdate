@@ -21,7 +21,7 @@ import os
 import logging
 from gi.repository import Gio, GLib
 
-from util.logging import slogm
+from util.logging import slogm, log
 
 class system_gsetting:
     def __init__(self, schema, path, value, lock, helper_function=None):
@@ -66,11 +66,12 @@ class system_gsettings:
 
         for gsetting in self.gsettings:
             settings = Gio.Settings(schema=gsetting.schema)
-            logging.debug(slogm('Applying machine setting {}.{} to {} {}'.format(gsetting.schema,
-                                                                                 gsetting.path,
-                                                                                 gsetting.value,
-                                                                                 gsetting.value,
-                                                                                 'locked' if gsetting.lock else 'unlocked')))
+            logdata = dict()
+            logdata['gsetting.schema'] = gsetting.schema
+            logdata['gsetting.path'] = gsetting.path
+            logdata['gsetting.value'] = gsetting.value
+            logdata['gsetting.lock'] = gsetting.lock
+            log('D89', logdata)
             gsetting.apply(settings, config, self.locks)
 
         with open(self.override_file_path, 'w') as f:

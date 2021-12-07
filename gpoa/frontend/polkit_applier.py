@@ -21,7 +21,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from .appliers.polkit import polkit
-from util.logging import slogm
+from util.logging import slogm, log
 
 import logging
 
@@ -41,10 +41,12 @@ class polkit_applier(applier_frontend):
         template_file = self.__polkit_map[self.__deny_all][0]
         template_vars = self.__polkit_map[self.__deny_all][1]
         if deny_all:
-            logging.debug(slogm('Deny_All setting found: {}'.format(deny_all.data)))
+            logdata = dict()
+            logdata['Deny_All'] = deny_all.data
+            log('D69', logdata)
             self.__polkit_map[self.__deny_all][1]['Deny_All'] = deny_all.data
         else:
-            logging.debug(slogm('Deny_All setting not found'))
+            log('D71')
         self.policies = []
         self.policies.append(polkit(template_file, template_vars))
         self.__module_enabled = check_enabled(
@@ -58,11 +60,11 @@ class polkit_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
-            logging.debug(slogm('Running Polkit applier for machine'))
+            log('D73')
             for policy in self.policies:
                 policy.generate()
         else:
-            logging.debug(slogm('Polkit applier for machine will not be started'))
+            log('D75')
 
 class polkit_applier_user(applier_frontend):
     __module_name = 'PolkitApplierUser'
@@ -83,11 +85,14 @@ class polkit_applier_user(applier_frontend):
         template_file = self.__polkit_map[self.__deny_all][0]
         template_vars = self.__polkit_map[self.__deny_all][1]
         if deny_all:
-            logging.debug(slogm('Deny_All setting for user {} found: {}'.format(self.username, deny_all.data)))
+            logdata = dict()
+            logdata['user'] = self.username
+            logdata['Deny_All'] = deny_all.data
+            log('D70', logdata)
             self.__polkit_map[self.__deny_all][1]['Deny_All'] = deny_all.data
             self.__polkit_map[self.__deny_all][1]['User'] = self.username
         else:
-            logging.debug(slogm('Deny_All setting not found'))
+            log('D72')
         self.policies = []
         self.policies.append(polkit(template_file, template_vars, self.username))
         self.__module_enabled = check_enabled(
@@ -104,9 +109,10 @@ class polkit_applier_user(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
-            logging.debug(slogm('Running Polkit applier for user in administrator context'))
+            log('D74')
             for policy in self.policies:
                 policy.generate()
         else:
-            logging.debug(slogm('Polkit applier for user in administrator context will not be started'))
+            log('D76')
+
 

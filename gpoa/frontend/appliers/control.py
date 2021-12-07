@@ -19,7 +19,7 @@
 import subprocess
 import threading
 import logging
-from util.logging import slogm
+from util.logging import slogm, log
 
 def control_subst(preg_name):
     '''
@@ -68,7 +68,11 @@ class control:
         try:
             str_status = self.possible_values[int_status]
         except IndexError as exc:
-            logging.error(slogm('Error getting control ({}) value from {} by index {}'.format(self.control_name, self.possible_values, int_status)))
+            logdata = dict()
+            logdata['control'] = self.control_name
+            logdata['value from'] = self.possible_values
+            logdata['by index'] = int_status
+            log('E41', )
             str_status = None
 
         return str_status
@@ -93,20 +97,30 @@ class control:
         if type(self.control_value) == int:
             status = self._map_control_status(self.control_value)
             if status == None:
-                logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
+                logdata = dict()
+                logdata['control'] = self.control_name
+                logdata['inpossible values'] = self.self.control_value
+                log('E42', logdata)
                 return
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
-                logging.error(slogm('\'{}\' is not in possible values for control {}'.format(self.control_value, self.control_name)))
+                logdata = dict()
+                logdata['control'] = self.control_name
+                logdata['inpossible values'] = self.self.control_value
+                log('E59', logdata)
                 return
             status = self.control_value
-
-        logging.debug(slogm('Setting control {} to {}'.format(self.control_name, status)))
+        logdata = dict()
+        logdata['control'] = self.control_name
+        logdata['status'] = status
+        log('D68', logdata)
 
         try:
             popen_call = ['/usr/sbin/control', self.control_name, status]
             with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
                 proc.wait()
         except:
-            logging.error(slogm('Unable to set {} to {}'.format(self.control_name, status)))
-
+            logdata = dict()
+            logdata['control'] = self.control_name
+            logdata['status'] = status
+            log('E43', logdata)
