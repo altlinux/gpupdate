@@ -33,7 +33,7 @@ from .applier_frontend import (
 )
 from .appliers.gsettings import (
     system_gsettings,
-    user_gsetting
+    user_gsettings
 )
 from util.logging import slogm ,log
 
@@ -195,7 +195,7 @@ class gsettings_applier_user(applier_frontend):
         self.username = username
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
-        self.gsettings = list()
+        self.gsettings = user_gsettings()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
         self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
 
@@ -243,7 +243,7 @@ class gsettings_applier_user(applier_frontend):
                 log('D86', logdata)
                 mapping = self.__windows_settings[setting_key]
                 try:
-                    self.gsettings.append(user_gsetting(mapping.gsettings_schema, mapping.gsettings_key, value.data))
+                    self.gsettings.append(mapping.gsettings_schema, mapping.gsettings_key, value.data)
                 except Exception as exc:
                     print(exc)
 
@@ -276,16 +276,10 @@ class gsettings_applier_user(applier_frontend):
             helper = self.uri_fetch_helper if setting.hive_key.lower() == self.__wallpaper_entry.lower() else None
             if setting.hive_key.lower() == self.__vino_authentication_methods_entry.lower():
                 data = [setting.data]
-            self.gsettings.append(user_gsetting(schema, path, data, helper))
+            self.gsettings.append(schema, path, data, helper)
 
         # Create GSettings policy with highest available priority
-        for gsetting in self.gsettings:
-            logdata = dict()
-            logdata['gsetting.schema'] = gsetting.schema
-            logdata['gsetting.path'] = gsetting.path
-            logdata['gsetting.value'] = gsetting.value
-            log('D85', logdata)
-            gsetting.apply()
+        self.gsettings.apply()
 
     def user_context_apply(self):
         if self.__module_enabled:

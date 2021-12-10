@@ -648,11 +648,11 @@ msgstr "Установка пакета"
 msgid "Removing a package"
 msgstr "Удаление пакета"
 
-msgid "Failed to apply machine gsettings"
-msgstr "Не удалось применить настройки gsettings машины"
+msgid "Failed to found gsettings for machine"
+msgstr "Не удалось найти настройки gsettings для машины"
 
-msgid "Failed to apply user gsettings"
-msgstr "Не удалось применить настройки gsettings пользователя"
+msgid "Failed to found user gsettings"
+msgstr "Не удалось найти настройки gsettings пользователя"
 
 # Debug_end
 

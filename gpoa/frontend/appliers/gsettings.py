@@ -59,7 +59,15 @@ class system_gsettings:
         self.override_file_path = override_file_path
 
     def append(self, schema, path, data, lock, helper):
-        self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
+        if check_existing_gsettings(schema, path):
+            self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
+        else:
+            logdata = dict()
+            logdata['schema'] = schema
+            logdata['path'] = path
+            logdata['data'] = data
+            logdata['lock'] = lock
+            log('D150', logdata)
 
     def apply(self):
         config = configparser.ConfigParser()
@@ -70,15 +78,9 @@ class system_gsettings:
             logdata['gsetting.path'] = gsetting.path
             logdata['gsetting.value'] = gsetting.value
             logdata['gsetting.lock'] = gsetting.lock
-            source = Gio.SettingsSchemaSource.get_default()
-            sourceSchema = (source.lookup(gsetting.schema, False))
-            list_keys = sourceSchema.list_keys()
-            if bool(sourceSchema) and gsetting.path in list_keys:
-                settings = Gio.Settings(schema=gsetting.schema)
-                log('D89', logdata)
-                gsetting.apply(settings, config, self.locks)
-            else:
-                log('D150', logdata)
+            settings = Gio.Settings(schema=gsetting.schema)
+            log('D89', logdata)
+            gsetting.apply(settings, config, self.locks)
 
         with open(self.override_file_path, 'w') as f:
             config.write(f)
@@ -121,6 +123,38 @@ def glib_value(schema, path, value, settings):
     # Build the new value with the determined type
     return glib_map(value, glib_value_type)
 
+def check_existing_gsettings (schema, path):
+    source = Gio.SettingsSchemaSource.get_default()
+    sourceSchema = (source.lookup(schema, False))
+    if bool(sourceSchema) and sourceSchema.has_key(path):
+        return True
+    else:
+        return False
+
+class user_gsettings:
+    def __init__(self):
+        self.gsettings = list()
+
+    def append(self, schema, path, value, helper=None):
+        if check_existing_gsettings(schema, path):
+            self.gsettings.append(user_gsetting(schema, path, value, helper))
+        else:
+            logdata = dict()
+            logdata['schema'] = schema
+            logdata['path'] = path
+            logdata['data'] = value
+            log('D151', logdata)
+
+    def apply(self):
+        for gsetting in self.gsettings:
+            logdata = dict()
+            logdata['gsetting.schema'] = gsetting.schema
+            logdata['gsetting.path'] = gsetting.path
+            logdata['gsetting.value'] = gsetting.value
+            log('D85', logdata)
+            gsetting.apply()
+
+
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
         self.schema = schema
@@ -129,24 +163,14 @@ class user_gsetting:
         self.helper_function = helper_function
 
     def apply(self):
-        logdata = dict()
-        logdata['gsetting.schema'] = self.schema
-        logdata['gsetting.path'] = self.path
-        logdata['gsetting.value'] = self.value
-        source = Gio.SettingsSchemaSource.get_default()
-        sourceSchema = (source.lookup(self.schema, False))
-        list_keys = sourceSchema.list_keys()
-        if bool(sourceSchema) and self.path in list_keys:
-            # Access the current schema
-            settings = Gio.Settings(schema=self.schema)
-            # Update result with helper function
-            value = self.value
-            if self.helper_function:
-                value = self.helper_function(self.schema, self.path, value)
-            # Get typed value by schema
-            result = glib_value(self.schema, self.path, value, settings)
-            # Set the value
-            settings.set_value(self.path, result)
-            settings.sync()
-        else:
-            log('D151', logdata)
+        # Access the current schema
+        settings = Gio.Settings(schema=self.schema)
+        # Update result with helper function
+        value = self.value
+        if self.helper_function:
+            value = self.helper_function(self.schema, self.path, value)
+        # Get typed value by schema
+        result = glib_value(self.schema, self.path, value, settings)
+        # Set the value
+        settings.set_value(self.path, result)
+        settings.sync()
