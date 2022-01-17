@@ -59,7 +59,7 @@ class Folder:
     def _delete_action(self):
         remove_dir_tree(self.folder_path,
             self.delete_files,
-            self.delete_folders,
+            self.delete_folder,
             self.delete_sub_folders)
 
     def act(self):
