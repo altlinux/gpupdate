@@ -41,7 +41,7 @@ def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_fo
         path.rmdir()
 
 def str2bool(boolstr):
-    if boolstr.lower in ['true', 'yes', '1']:
+    if boolstr.lower() in ['true', 'yes', '1']:
         return True
     return False
 
