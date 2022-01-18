@@ -50,7 +50,7 @@ def folder_int2bool(val):
     if type(value) == str:
         value = int(value)
 
-    if value == 0:
+    if value == 1:
         return True
 
     return False
