@@ -27,23 +27,24 @@ from gpt.folders import (
 from util.windows import expand_windows_var
 
 def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_folders=False):
+    content = list()
     for entry in path.iterdir():
-        if entry.is_file():
+        content.append(entry)
+        if entry.is_file() and delete_files:
             entry.unlink()
-        if entry.is_dir():
-            if delete_sub_folders:
-                remove_dir_tree(entry,
-                    delete_files,
-                    delete_folder,
-                    delete_sub_folders)
-
-    if delete_folder:
+            content.remove(entry)
+        if entry.is_dir() and delete_sub_folders:
+            content.remove(entry)
+            remove_dir_tree(entry, delete_files, delete_folder, delete_sub_folders)
+    if delete_folder and not content:
         path.rmdir()
+
 
 def str2bool(boolstr):
     if boolstr.lower() in ['true', 'yes', '1']:
         return True
     return False
+
 
 class Folder:
     def __init__(self, folder_object, username):
@@ -57,10 +58,11 @@ class Folder:
         self.folder_path.mkdir(parents=True, exist_ok=True)
 
     def _delete_action(self):
-        remove_dir_tree(self.folder_path,
-            self.delete_files,
-            self.delete_folder,
-            self.delete_sub_folders)
+        if self.folder_path.exists():
+            remove_dir_tree(self.folder_path,
+                self.delete_files,
+                self.delete_folder,
+                self.delete_sub_folders)
 
     def act(self):
         if self.action == FileAction.CREATE:
