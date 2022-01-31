@@ -51,7 +51,13 @@ class control_applier(applier_frontend):
                 logdata['value'] = setting.data
                 log('I3', logdata)
             except ValueError as exc:
-                self.controls.append(control(valuename, setting.data))
+                try:
+                    ctl = control(valuename, setting.data)
+                except Exception as exc:
+                    logdata = {'Exception': exc}
+                    log('I3', logdata)
+                    continue
+                self.controls.append(ctl)
                 logdata = dict()
                 logdata['control'] = valuename
                 logdata['with string value'] = setting.data

@@ -55,10 +55,12 @@ class control:
         values = list()
 
         popen_call = ['/usr/sbin/control', self.control_name, 'list']
-        with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
+        with subprocess.Popen(popen_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             values = proc.stdout.readline().decode('utf-8').split()
+            valErr = proc.stderr.readline().decode('utf-8')
+            if valErr:
+                raise ValueError(valErr)
             proc.wait()
-
         return values
 
     def _map_control_status(self, int_status):
