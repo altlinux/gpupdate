@@ -59,18 +59,26 @@ class system_gsettings:
         self.override_file_path = override_file_path
 
     def append(self, schema, path, data, lock, helper):
-        self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
+        if check_existing_gsettings(schema, path):
+            self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
+        else:
+            logdata = dict()
+            logdata['schema'] = schema
+            logdata['path'] = path
+            logdata['data'] = data
+            logdata['lock'] = lock
+            log('D150', logdata)
 
     def apply(self):
         config = configparser.ConfigParser()
 
         for gsetting in self.gsettings:
-            settings = Gio.Settings(schema=gsetting.schema)
             logdata = dict()
             logdata['gsetting.schema'] = gsetting.schema
             logdata['gsetting.path'] = gsetting.path
             logdata['gsetting.value'] = gsetting.value
             logdata['gsetting.lock'] = gsetting.lock
+            settings = Gio.Settings(schema=gsetting.schema)
             log('D89', logdata)
             gsetting.apply(settings, config, self.locks)
 
@@ -114,6 +122,38 @@ def glib_value(schema, path, value, settings):
     glib_value_type = key.get_type_string()
     # Build the new value with the determined type
     return glib_map(value, glib_value_type)
+
+def check_existing_gsettings (schema, path):
+    source = Gio.SettingsSchemaSource.get_default()
+    sourceSchema = (source.lookup(schema, False))
+    if bool(sourceSchema) and sourceSchema.has_key(path):
+        return True
+    else:
+        return False
+
+class user_gsettings:
+    def __init__(self):
+        self.gsettings = list()
+
+    def append(self, schema, path, value, helper=None):
+        if check_existing_gsettings(schema, path):
+            self.gsettings.append(user_gsetting(schema, path, value, helper))
+        else:
+            logdata = dict()
+            logdata['schema'] = schema
+            logdata['path'] = path
+            logdata['data'] = value
+            log('D151', logdata)
+
+    def apply(self):
+        for gsetting in self.gsettings:
+            logdata = dict()
+            logdata['gsetting.schema'] = gsetting.schema
+            logdata['gsetting.path'] = gsetting.path
+            logdata['gsetting.value'] = gsetting.value
+            log('D85', logdata)
+            gsetting.apply()
+
 
 class user_gsetting:
     def __init__(self, schema, path, value, helper_function=None):
