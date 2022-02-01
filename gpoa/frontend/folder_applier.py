@@ -24,7 +24,8 @@ from .applier_frontend import (
 )
 from .appliers.folder import Folder
 from util.logging import slogm, log
-
+from util.windows import expand_windows_var
+import re
 import logging
 
 class folder_applier(applier_frontend):
@@ -42,6 +43,11 @@ class folder_applier(applier_frontend):
         if self.__module_enabled:
             log('D107')
             for directory_obj in self.folders:
+                check = expand_windows_var(directory_obj.path).replace('\\', '/')
+                win_var = re.findall(r'%.+?%', check)
+                drive = re.findall(r'^[a-z A-Z]\:',check)
+                if drive or win_var:
+                    continue
                 fld = Folder(directory_obj)
                 fld.action()
         else:
@@ -65,6 +71,11 @@ class folder_applier_user(applier_frontend):
 
     def run(self):
         for directory_obj in self.folders:
+            check = expand_windows_var(directory_obj.path, self.username).replace('\\', '/')
+            win_var = re.findall(r'%.+?%', check)
+            drive = re.findall(r'^[a-z A-Z]\:',check)
+            if drive or win_var:
+                continue
             fld = Folder(directory_obj, self.username)
             fld.act()
 
