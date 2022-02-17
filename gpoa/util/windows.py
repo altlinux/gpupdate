@@ -198,6 +198,8 @@ def expand_windows_var(text, username=None):
     '''
     variables = dict()
     variables['HOME'] = '/etc/skel'
+    variables['HOMEPATH'] = '/etc/skel'
+    variables['HOMEDRIVE'] = '/'
     variables['SystemRoot'] = '/'
     variables['StartMenuDir'] = '/usr/share/applications'
     variables['SystemDrive'] = '/'
@@ -206,13 +208,14 @@ def expand_windows_var(text, username=None):
     if username:
         variables['LogonUser'] = username
         variables['HOME'] = get_homedir(username)
+        variables['HOMEPATH'] = get_homedir(username)
 
         variables['StartMenuDir'] = os.path.join(
             variables['HOME'], '.local', 'share', 'applications')
 
     result = text
     for var in variables.keys():
-        result = result.replace('%{}%'.format(var), variables[var])
+        result = result.replace('%{}%'.format(var), variables[var]).replace('/', '//')
 
     return result
 

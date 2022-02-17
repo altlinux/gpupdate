@@ -196,7 +196,7 @@ class gsettings_applier_user(applier_frontend):
         gsettings_filter = '{}%'.format(self.__registry_branch)
         self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
         self.gsettings = user_gsettings()
-        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
 
         self.__windows_settings = dict()
