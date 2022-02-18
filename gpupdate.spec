@@ -76,6 +76,7 @@ touch %buildroot%_sysconfdir/%name/environment
 install -Dm0644 dist/%name.service %buildroot%_unitdir/%name.service
 install -Dm0644 dist/%name-user.service %buildroot/usr/lib/systemd/user/%name-user.service
 install -Dm0644 dist/system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%name
+install -Dm0644 dist/%name-remote-policy %buildroot%_sysconfdir/pam.d/%name-remote-policy
 install -Dm0644 dist/%name.ini %buildroot%_sysconfdir/%name/%name.ini
 install -Dm0644 doc/gpoa.1 %buildroot/%_man1dir/gpoa.1
 install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
@@ -124,6 +125,7 @@ fi
 %config(noreplace) %_sysconfdir/%name/environment
 %config(noreplace) %_sysconfdir/%name/%name.ini
 %config(noreplace) %_sysconfdir/pam.d/system-policy-%name
+%config(noreplace) %_sysconfdir/pam.d/%name-remote-policy
 %dir %attr(0700, root, root) %_cachedir/%name
 %dir %attr(0755, root, root) %_cachedir/%{name}_file_cache
 %dir %attr(0700, root, root) %_cachedir/%name/creds

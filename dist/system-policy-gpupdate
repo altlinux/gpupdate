@@ -1,6 +1,6 @@
 #%PAM-1.0
 session		[success=2 perm_denied=ignore default=die]	pam_localuser.so
-session		required	pam_mkhomedir.so silent
+session		substack	gpupdate-remote-policy
 session		[default=1]	pam_permit.so
 session		[default=6]	pam_permit.so
 session		[success=1 default=ignore]	pam_succeed_if.so user ingroup users quiet

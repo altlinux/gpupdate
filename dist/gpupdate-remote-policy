@@ -1,0 +1,4 @@
+#%PAM-1.0
+#auth		optional	pam_mount.so
+session		required	pam_mkhomedir.so silent
+#session		optional	pam_mount.so
