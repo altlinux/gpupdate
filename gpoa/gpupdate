@@ -99,7 +99,7 @@ def runner_factory(args, target):
         # itself (os.getusername()).
         username = pwd.getpwuid(os.getuid()).pw_name
         if args.user != username:
-            logdata = dict({'username': args.user})
+            logdata = dict({'username': username})
             log('W2', logdata)
 
     if is_oddjobd_gpupdate_accessible():
