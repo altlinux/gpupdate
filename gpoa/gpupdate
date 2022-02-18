@@ -74,6 +74,10 @@ def parse_cli_arguments():
         default=None,
         type=str,
         help='Specify if it is needed to update user\'s or computer\'s policies')
+    argparser.add_argument('--loglevel',
+        type=int,
+        default=5,
+        help='Set logging verbosity level')
 
     return argparser.parse_args()
 
@@ -134,7 +138,7 @@ def main():
     locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
     gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
     gettext.textdomain('gpoa')
-    set_loglevel(0)
+    set_loglevel(args.loglevel)
     gpo_appliers = runner_factory(args, process_target(args.target))
 
     if gpo_appliers:
