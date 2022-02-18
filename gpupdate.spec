@@ -2,7 +2,7 @@
 
 Name: gpupdate
 Version: 0.9.9
-Release: alt0.dev1
+Release: alt1
 
 Summary: GPT applier
 License: GPLv3+
@@ -135,6 +135,15 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Fri Feb 18 2022 Evgeny Sinelnikov <sin@altlinux.org> 0.9.9-alt1
+- Add gpupdate-remote-policy PAM substack (for pam_mount support)
+- Added lookup for possible dc if first found is unreadable
+- Correct folder applier (still experimental)
+- Update logging and translations
+- Fix error when control facilites not exists
+- Add check for the presence of Gsettings schema and keys exists
+- Add support of package applier via pkcon (still experimental)
+
 * Mon Oct 25 2021 Evgeny Sinelnikov <sin@altlinux.org> 0.9.8-alt1
 - Added exception for org.gnome.Vino authentication-methods
 - Fixed bug for alternative-port in org.gnome.Vino
