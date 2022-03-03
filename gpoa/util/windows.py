@@ -215,7 +215,7 @@ def expand_windows_var(text, username=None):
 
     result = text
     for var in variables.keys():
-        result = result.replace('%{}%'.format(var), variables[var]).replace('/', '//')
+        result = result.replace('%{}%'.format(var), variables[var])
 
     return result
 
