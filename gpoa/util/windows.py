@@ -62,9 +62,7 @@ class smbcreds (smbopts):
 
                 self.selected_dc = dc_fqdn
             else:
-                self.list_selected_dc = set()
                 self.selected_dc = get_dc_hostname(self.creds, self.lp)
-                self.list_selected_dc.add(self.selected_dc)
         except Exception as exc:
             logdata = dict()
             logdata['msg'] = str(exc)
@@ -118,7 +116,11 @@ class smbcreds (smbopts):
 
     def update_gpos(self, username):
         gpos = self.get_gpos(username)
-        while self.list_selected_dc:
+
+        list_selected_dc = set()
+        list_selected_dc.add(self.selected_dc)
+
+        while list_selected_dc:
             logdata = dict()
             logdata['username'] = username
             logdata['dc'] = self.selected_dc
@@ -126,14 +128,14 @@ class smbcreds (smbopts):
                 log('D49', logdata)
                 check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
                 log('D50', logdata)
-                self.list_selected_dc.clear()
+                list_selected_dc.clear()
             except NTSTATUSError as smb_exc:
                 logdata['smb_exc'] = str(smb_exc)
                 self.selected_dc = get_dc_hostname(self.creds, self.lp)
-                if self.selected_dc not in self.list_selected_dc:
+                if self.selected_dc not in list_selected_dc:
                     logdata['action'] = 'Search another dc'
                     log('W11', logdata)
-                    self.list_selected_dc.add(self.selected_dc)
+                    list_selected_dc.add(self.selected_dc)
                 else:
                     log('F1', logdata)
                     raise smb_exc
