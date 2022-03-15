@@ -58,8 +58,8 @@ class dbus_runner:
                         self._object_path,
                         self._interface_name,
                         'gpupdatefor',
-                        (username),
-                        (dbus.String(self.username)),
+                        's',
+                        [self.username],
                         timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
@@ -74,7 +74,7 @@ class dbus_runner:
                         self._interface_name,
                         'gpupdate',
                         None,
-                        (),
+                        [],
                         timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
@@ -91,7 +91,7 @@ class dbus_runner:
                     None,
                     # The following positional parameter is called "args".
                     # There is no official documentation for it.
-                    (),
+                    [],
                     timeout=self._synchronous_timeout)
                 print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
