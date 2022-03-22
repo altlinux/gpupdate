@@ -44,6 +44,7 @@ from .record_types import (
     , drive_entry
     , folder_entry
     , envvar_entry
+    , script_entry
 )
 
 class sqlite_registry(registry):
@@ -143,6 +144,18 @@ class sqlite_registry(registry):
             , Column('value', String)
             , UniqueConstraint('sid', 'name')
         )
+        self.__scripts = Table(
+              'Scripts'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('policy_name', String)
+            , Column('queue', String)
+            , Column('action', String)
+            , Column('path', String)
+            , Column('arg', String)
+            , UniqueConstraint('sid', 'path', 'arg')
+        )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
@@ -155,6 +168,7 @@ class sqlite_registry(registry):
             mapper(drive_entry, self.__drives)
             mapper(folder_entry, self.__folders)
             mapper(envvar_entry, self.__envvars)
+            mapper(script_entry, self.__scripts)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -365,6 +379,21 @@ class sqlite_registry(registry):
                 .filter(envvar_entry.name == ev_entry.name)
                 .update(ev_entry.update_fields()))
             self.db_session.commit()
+    def add_script(self, sid, scrobj, policy_name):
+        scr_entry = script_entry(sid, scrobj, policy_name)
+        logdata = dict()
+        logdata['script path'] = scrobj.path
+        logdata['sid'] = sid
+        print(logdata)
+        try:
+            self._add(scr_entry)
+        except Exception as exc:
+            (self
+                ._filter_sid_obj(script_entry, sid)
+                .filter(script_entry.path == scr_entry.path)
+                .update(scr_entry.update_fields()))
+            self.db_session.commit()
+
 
     def _filter_sid_obj(self, row_object, sid):
         res = (self
@@ -396,6 +425,10 @@ class sqlite_registry(registry):
 
     def get_envvars(self, sid):
         return self._filter_sid_list(envvar_entry, sid)
+
+    def get_scripts(self, sid):
+        return self._filter_sid_list(script_entry, sid)
+
 
     def get_hkcu_entry(self, sid, hive_key):
         res = (self
