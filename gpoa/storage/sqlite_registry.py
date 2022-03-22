@@ -384,7 +384,7 @@ class sqlite_registry(registry):
         logdata = dict()
         logdata['script path'] = scrobj.path
         logdata['sid'] = sid
-        print(logdata)
+        log('D152', logdata)
         try:
             self._add(scr_entry)
         except Exception as exc:

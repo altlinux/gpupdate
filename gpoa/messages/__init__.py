@@ -254,6 +254,7 @@ def debug_code(code):
     debug_ids[149] = 'Removing a package'
     debug_ids[150] = 'Failed to found gsettings for machine'
     debug_ids[151] = 'Failed to found user gsettings'
+    debug_ids[152] = 'Saving information about script'
 
     return debug_ids.get(code, 'Unknown debug code')
 

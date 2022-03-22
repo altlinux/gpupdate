@@ -654,6 +654,9 @@ msgstr "Не удалось найти настройки gsettings для ма�
 msgid "Failed to found user gsettings"
 msgstr "Не удалось найти настройки gsettings пользователя"
 
+msgid "Saving information about script"
+msgstr "Сохранение информации о скрипте"
+
 # Debug_end
 
 # Warning
