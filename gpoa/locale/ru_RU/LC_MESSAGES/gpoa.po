@@ -660,6 +660,9 @@ msgstr "Не удалось найти настройки gsettings пользо
 msgid "Configure user Group Policy loopback processing mode"
 msgstr "Настройка режима обработки замыкания пользовательской групповой политики"
 
+msgid "Saving information about script"
+msgstr "Сохранение информации о скрипте"
+
 # Debug_end
 
 # Warning

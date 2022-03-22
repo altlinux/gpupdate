@@ -256,6 +256,7 @@ def debug_code(code):
     debug_ids[150] = 'Failed to found gsettings for machine'
     debug_ids[151] = 'Failed to found user gsettings'
     debug_ids[152] = 'Configure user Group Policy loopback processing mode'
+    debug_ids[153] = 'Saving information about script'
 
     return debug_ids.get(code, 'Unknown debug code')
 
