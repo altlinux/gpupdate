@@ -50,7 +50,7 @@ class service:
         self.serviceaction = None
 
     def set_clsid(self, clsid):
-        self.guid = uid
+        self.guid = clsid
 
     def set_usercontext(self, usercontext=False):
         ctx = False

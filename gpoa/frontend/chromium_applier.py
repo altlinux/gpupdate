@@ -24,7 +24,7 @@ from .applier_frontend import (
 import logging
 import json
 import os
-
+import util.util as util
 from util.logging import slogm, log
 from util.util import is_machine_name
 
@@ -57,7 +57,7 @@ class chromium_applier(applier_frontend):
 
     def get_hkcu_string_entry(self, hive_subkey):
         query_str = '{}\\{}'.format(self.__registry_branch, hive_subkey)
-        return self.storage.get_hkcu_entry(sid, query_str)
+        return self.storage.get_hkcu_entry(self.sid, query_str)
 
     def get_hklm_string_entry_default(self, hive_subkey, default):
         '''

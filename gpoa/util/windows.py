@@ -19,7 +19,7 @@
 
 import os
 import pwd
-
+import subprocess
 from samba import getopt as options
 from samba import NTSTATUSError
 from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
