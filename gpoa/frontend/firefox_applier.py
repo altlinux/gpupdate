@@ -36,6 +36,7 @@ from .applier_frontend import (
 )
 from util.logging import slogm, log
 from util.util import is_machine_name
+import util.util as util
 
 class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'

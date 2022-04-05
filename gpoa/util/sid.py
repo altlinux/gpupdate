@@ -18,7 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from enum import Enum
+import logging
+import subprocess
 
+from .logging import slogm
 
 def wbinfo_getsid(domain, user):
     '''
