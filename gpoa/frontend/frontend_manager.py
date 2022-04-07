@@ -51,6 +51,11 @@ from .envvar_applier import (
       envvar_applier
     , envvar_applier_user
 )
+from .scripts_applier import (
+      scripts_applier
+    , scripts_applier_user
+)
+
 from util.windows import get_sid
 from util.users import (
     is_root,
@@ -124,6 +129,7 @@ class frontend_manager:
         self.machine_appliers['package'] = package_applier(self.storage)
         self.machine_appliers['ntp'] = ntp_applier(self.storage)
         self.machine_appliers['envvar'] = envvar_applier(self.storage, self.sid)
+        self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
 
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
@@ -131,6 +137,7 @@ class frontend_manager:
         self.user_appliers['shortcuts'] = shortcut_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['folders'] = folder_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.file_cache, self.sid, self.username)
+        self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
         try:
             self.user_appliers['cifs'] = cifs_applier_user(self.storage, self.sid, self.username)
         except Exception as exc:
