@@ -479,6 +479,7 @@ class sqlite_registry(registry):
         self._wipe_sid(ad_shortcut, sid)
         self._wipe_sid(printer_entry, sid)
         self._wipe_sid(drive_entry, sid)
+        self._wipe_sid(script_entry, sid)
 
     def _wipe_sid(self, row_object, sid):
         (self
