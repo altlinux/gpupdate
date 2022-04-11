@@ -74,7 +74,9 @@ mkdir -p %buildroot%_sysconfdir/%name
 touch %buildroot%_sysconfdir/%name/environment
 
 install -Dm0644 dist/%name.service %buildroot%_unitdir/%name.service
+install -Dm0644 dist/%name.service %buildroot%_unitdir/%name.timer
 install -Dm0644 dist/%name-user.service %buildroot/usr/lib/systemd/user/%name-user.service
+install -Dm0644 dist/%name-user.service %buildroot/usr/lib/systemd/user/%name-user.timer
 install -Dm0644 dist/system-policy-%name %buildroot%_sysconfdir/pam.d/system-policy-%name
 install -Dm0644 dist/%name-remote-policy %buildroot%_sysconfdir/pam.d/%name-remote-policy
 install -Dm0644 dist/%name.ini %buildroot%_sysconfdir/%name/%name.ini
@@ -117,9 +119,11 @@ fi
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service
+%_unitdir/%name.timer
 %_man1dir/gpoa.1.*
 %_man1dir/gpupdate.1.*
 /usr/lib/systemd/user/%name-user.service
+/usr/lib/systemd/user/%name-user.timer
 %dir %_sysconfdir/%name
 %_sysconfdir/control.d/facilities/*
 %config(noreplace) %_sysconfdir/%name/environment

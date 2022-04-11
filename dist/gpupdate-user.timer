@@ -1,0 +1,9 @@
+[Unit]
+Description=Run gpupdate-user every hour
+
+[Timer]
+OnStartupSec=1
+OnUnitActiveSec=60min
+
+[Install]
+WantedBy=timers.target

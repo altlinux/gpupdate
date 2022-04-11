@@ -6,12 +6,8 @@ Description=gpupdate in userspace
 [Service]
 Environment=PATH=/bin:/sbin:/usr/bin:/usr/sbin
 UnsetEnvironment=LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION
-Type=simple
-RestartSec=3600
-TimeoutSec=3000
-Restart=always
-ExecStart=/usr/sbin/gpoa
+Type=oneshot
+ExecStart=/usr/bin/gpupdate --target USER
 
 [Install]
 WantedBy=default.target
-
