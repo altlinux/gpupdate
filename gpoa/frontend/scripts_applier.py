@@ -17,6 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess
+import os
+
+from django.template import base
 from util.logging import log
 
 from .applier_frontend import (
@@ -34,7 +37,8 @@ class scripts_applier(applier_frontend):
         self.sid = sid
         self.scripts = self.storage.get_scripts(self.sid)
         for ts in self.scripts:
-            pass
+            access_permissions = '700'
+            os.chmod(ts.path, int(access_permissions, base = 8))
 
     def run(self):
         pass
@@ -57,7 +61,8 @@ class scripts_applier_user(applier_frontend):
         self.username = username
         self.scripts = self.storage.get_scripts(self.sid)
         for ts in self.scripts:
-            pass
+            access_permissions = '755'
+            os.chmod(ts.path, int(access_permissions, base = 8))
 
 
     def user_context_apply(self):
