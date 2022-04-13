@@ -96,6 +96,7 @@ done
 
 %post
 %post_service gpupdate
+gpupdate-setup update
 
 # Remove storage in case we've lost compatibility between versions.
 # The storage will be regenerated on GPOA start.
