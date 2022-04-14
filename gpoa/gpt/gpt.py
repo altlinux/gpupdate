@@ -147,12 +147,22 @@ def get_merger(preference_type):
 
 class gpt:
     __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
+    __policy_num = 0
+    __sid_gpt = str()
 
     def __init__(self, gpt_path, sid):
         self.path = gpt_path
         self.sid = sid
         self.storage = registry_factory('registry')
         self.name = ''
+        if not gpt.__sid_gpt:
+            gpt.__sid_gpt = self.sid
+        else:
+            if gpt.__sid_gpt == self.sid:
+                gpt.__policy_num += 1
+            else:
+                gpt.__sid_gpt = self.sid
+                gpt.__policy_num = 0
 
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:
@@ -223,7 +233,7 @@ class gpt:
             try:
                 # Merge machine settings to registry if possible
                 for preference_name, preference_path in self.settings['machine'].items():
-                    if preference_path:
+                    if preference_path and preference_name != 'scripts':
                         preference_type = get_preftype(preference_path)
                         logdata = dict({'pref': preference_type.value, 'sid': self.sid})
                         log('D28', logdata)
@@ -231,6 +241,12 @@ class gpt:
                         preference_merger = get_merger(preference_type)
                         preference_objects = preference_parser(preference_path)
                         preference_merger(self.storage, self.sid, preference_objects, self.name)
+                    if preference_path and preference_name == 'scripts':
+                        logdata = dict({'pref': preference_path, 'sid': self.sid})
+                        log('D28', logdata)
+                        preference_objects = read_scripts(preference_path)
+                        merge_scripts(self.storage, self.sid, preference_objects, self.name, gpt.__policy_num)
+
                 if self.settings['user']['regpol']:
                     mulogdata = dict({'polfile': self.settings['machine']['regpol']})
                     log('D35', mulogdata)
@@ -251,7 +267,7 @@ class gpt:
             if 'Merge' == policy_mode or 'Not configured' == policy_mode:
                 try:
                     for preference_name, preference_path in self.settings['user'].items():
-                        if preference_path:
+                        if preference_path and preference_name != 'scripts':
                             preference_type = get_preftype(preference_path)
                             logdata = dict({'pref': preference_type.value, 'sid': self.sid})
                             log('D29', logdata)
@@ -259,6 +275,12 @@ class gpt:
                             preference_merger = get_merger(preference_type)
                             preference_objects = preference_parser(preference_path)
                             preference_merger(self.storage, self.sid, preference_objects, self.name)
+                        if preference_path and preference_name == 'scripts':
+                            logdata = dict({'pref': preference_path, 'sid': self.sid})
+                            log('D29', logdata)
+                            preference_objects = read_scripts(preference_path)
+                            merge_scripts(self.storage, self.sid, preference_objects, self.name, gpt.__policy_num)
+
                 except Exception as exc:
                     logdata = dict()
                     logdata['gpt'] = self.name
