@@ -45,7 +45,7 @@ def read_scripts(scripts_file):
 
     return list(scripts)
 
-def merge_scripts(storage, sid, scripts_objects, policy_name):
+def merge_scripts(storage, sid, scripts_objects, policy_name, policy_num):
     for script in scripts_objects:
         storage.add_script(sid, script, policy_name)
 
