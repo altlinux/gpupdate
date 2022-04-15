@@ -18,10 +18,13 @@
 
 import subprocess
 import os
+import shutil
+from pathlib import Path
+import pysss_nss_idmap
 
 from django.template import base
 from util.logging import log
-
+from .appliers.folder import remove_dir_tree
 from .applier_frontend import (
       applier_frontend
     , check_enabled
@@ -31,14 +34,30 @@ class scripts_applier(applier_frontend):
     __module_name = 'ScriptsApplier'
     __module_experimental = False
     __module_enabled = True
+    __cache_scripts = '/var/cache/gpupdate/cache_scripts_machine/'
 
     def __init__(self, storage, sid):
         self.storage = storage
         self.sid = sid
         self.scripts = self.storage.get_scripts(self.sid)
-        for ts in self.scripts:
-            access_permissions = '700'
-            os.chmod(ts.path, int(access_permissions, base = 8))
+        self.folder_path = Path(self.__cache_scripts)
+        machine_name = os.uname()[1] + '$'
+        check_sid =  pysss_nss_idmap.getsidbyname(machine_name)
+        if sid in check_sid[machine_name]['sid']:
+            try:
+                remove_dir_tree(self.folder_path, True, True, True,)
+            except Exception as exc:
+                print('FAILED {}'.format(exc))
+            self.folder_path.mkdir(parents=True, exist_ok=True)
+
+            for ts in self.scripts:
+                if ts.path.split('/')[-4] == 'MACHINE':
+                    script_path = (self.__cache_scripts +
+                                   ts.policy_num + '/' +
+                                   '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
+                    dir_cr = Path(script_path)
+                    dir_cr.mkdir(parents=True, exist_ok=True)
+
 
     def run(self):
         pass
@@ -54,15 +73,29 @@ class scripts_applier_user(applier_frontend):
     __module_name = 'ScriptsApplierUser'
     __module_experimental = False
     __module_enabled = True
+    __cache_scripts = '/var/cache/gpupdate/cache_scripts_user/'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
         self.scripts = self.storage.get_scripts(self.sid)
-        for ts in self.scripts:
-            access_permissions = '755'
-            os.chmod(ts.path, int(access_permissions, base = 8))
+        self.folder_path = Path(self.__cache_scripts + self.username)
+
+        if self.username[:-1] != os.uname()[1].upper():
+            try:
+                remove_dir_tree(self.folder_path, True, True, True,)
+            except Exception as exc:
+                print('FAILED {}'.format(exc))
+            self.folder_path.mkdir(parents=True, exist_ok=True)
+            for ts in self.scripts:
+                if ts.path.split('/')[-4] == 'USER':
+                    script_path = (self.__cache_scripts +
+                                   self.username + '/' +
+                                   ts.policy_num + '/' +
+                                   '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
+                    dir_cr = Path(script_path)
+                    dir_cr.mkdir(parents=True, exist_ok=True)
 
 
     def user_context_apply(self):
