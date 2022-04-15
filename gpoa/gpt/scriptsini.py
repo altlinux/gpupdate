@@ -47,6 +47,7 @@ def read_scripts(scripts_file):
 
 def merge_scripts(storage, sid, scripts_objects, policy_name, policy_num):
     for script in scripts_objects:
+        script.policy_num = policy_num
         storage.add_script(sid, script, policy_name)
 
 
@@ -54,6 +55,7 @@ class script:
     def __init__(self, action):
         self.action = action
         self.queue = str()
+        self.policy_num = str()
         self.path = str()
         self.arg = str()
 

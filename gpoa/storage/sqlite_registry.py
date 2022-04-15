@@ -151,6 +151,7 @@ class sqlite_registry(registry):
             , Column('sid', String)
             , Column('policy_name', String)
             , Column('queue', String)
+            , Column('policy_num', String)
             , Column('action', String)
             , Column('path', String)
             , Column('arg', String)
