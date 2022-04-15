@@ -163,7 +163,7 @@ class gpt:
             else:
                 gpt.__sid_gpt = self.sid
                 gpt.__policy_num = 0
-
+        self.policy_num = gpt.__policy_num
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:
             self.guid = 'Local Policy'
@@ -245,7 +245,7 @@ class gpt:
                         logdata = dict({'pref': preference_path, 'sid': self.sid})
                         log('D28', logdata)
                         preference_objects = read_scripts(preference_path)
-                        merge_scripts(self.storage, self.sid, preference_objects, self.name, gpt.__policy_num)
+                        merge_scripts(self.storage, self.sid, preference_objects, self.name, str(self.policy_num).zfill(5))
 
                 if self.settings['user']['regpol']:
                     mulogdata = dict({'polfile': self.settings['machine']['regpol']})
@@ -279,7 +279,7 @@ class gpt:
                             logdata = dict({'pref': preference_path, 'sid': self.sid})
                             log('D29', logdata)
                             preference_objects = read_scripts(preference_path)
-                            merge_scripts(self.storage, self.sid, preference_objects, self.name, gpt.__policy_num)
+                            merge_scripts(self.storage, self.sid, preference_objects, self.name, str(self.policy_num).zfill(5))
 
                 except Exception as exc:
                     logdata = dict()

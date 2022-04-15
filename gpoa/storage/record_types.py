@@ -183,6 +183,7 @@ class script_entry(object):
         self.policy_name = policy_name
         self.action = scrobj.action
         self.queue = scrobj.queue
+        self.policy_num = scrobj.policy_num
         self.path = scrobj.path
         self.arg = scrobj.arg
 
@@ -195,6 +196,7 @@ class script_entry(object):
         fields['policy_name'] = self.policy_name
         fields['action'] = self.action
         fields['queue'] = self.queue
+        fields['policy_num'] = self.policy_num
         fields['path'] = self.path
         fields['arg'] = self.arg
 
