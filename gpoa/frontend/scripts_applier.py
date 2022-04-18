@@ -55,9 +55,7 @@ class scripts_applier(applier_frontend):
                     script_path = (self.__cache_scripts +
                                    ts.policy_num + '/' +
                                    '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
-                    dir_cr = Path(script_path)
-                    dir_cr.mkdir(parents=True, exist_ok=True)
-
+                    install_script(ts, script_path, '700')
 
     def run(self):
         pass
@@ -94,8 +92,7 @@ class scripts_applier_user(applier_frontend):
                                    self.username + '/' +
                                    ts.policy_num + '/' +
                                    '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
-                    dir_cr = Path(script_path)
-                    dir_cr.mkdir(parents=True, exist_ok=True)
+                    install_script(ts, script_path, '755')
 
 
     def user_context_apply(self):
@@ -115,3 +112,18 @@ class scripts_applier_user(applier_frontend):
             #log('D??')
         pass
 
+def install_script(storage_script_entry, script_path, access_permissions):
+    dir_cr = Path(script_path)
+    dir_cr.mkdir(parents=True, exist_ok=True)
+    script_file = (script_path + '/' +
+                   str(int(storage_script_entry.queue)).zfill(5) +
+                   '_' + storage_script_entry.path.split('/')[-1])
+    shutil.copyfile(storage_script_entry.path, script_file)
+    os.chmod(script_file, int(access_permissions, base = 8))
+    if storage_script_entry.arg:
+        dir_path = script_path + '/' + script_file.split('/')[-1] + '.arg'
+        dir_arg = Path(dir_path)
+        dir_arg.mkdir(parents=True, exist_ok=True)
+        file_arg = open(dir_path + '/agr', 'w')
+        file_arg.write(storage_script_entry.arg)
+        file_arg.close()
