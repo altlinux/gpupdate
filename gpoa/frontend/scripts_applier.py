@@ -43,19 +43,23 @@ class scripts_applier(applier_frontend):
         self.folder_path = Path(self.__cache_scripts)
         machine_name = os.uname()[1] + '$'
         check_sid =  pysss_nss_idmap.getsidbyname(machine_name)
+        self.__module_enabled = check_enabled(self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
         if sid in check_sid[machine_name]['sid']:
             try:
                 remove_dir_tree(self.folder_path, True, True, True,)
             except Exception as exc:
                 print('FAILED {}'.format(exc))
             self.folder_path.mkdir(parents=True, exist_ok=True)
-
-            for ts in self.scripts:
-                if ts.path.split('/')[-4] == 'MACHINE':
-                    script_path = (self.__cache_scripts +
-                                   ts.policy_num + '/' +
-                                   '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
-                    install_script(ts, script_path, '700')
+            if self.__module_enabled:
+                for ts in self.scripts:
+                    if ts.path.split('/')[-4] == 'MACHINE':
+                        script_path = (self.__cache_scripts +
+                                       ts.policy_num + '/' +
+                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
+                        install_script(ts, script_path, '700')
 
     def run(self):
         pass
@@ -79,20 +83,24 @@ class scripts_applier_user(applier_frontend):
         self.username = username
         self.scripts = self.storage.get_scripts(self.sid)
         self.folder_path = Path(self.__cache_scripts + self.username)
-
+        self.__module_enabled = check_enabled(self.storage
+            , self.__module_name
+            , self.__module_experimental
+        )
         if self.username[:-1] != os.uname()[1].upper():
             try:
                 remove_dir_tree(self.folder_path, True, True, True,)
             except Exception as exc:
                 print('FAILED {}'.format(exc))
             self.folder_path.mkdir(parents=True, exist_ok=True)
-            for ts in self.scripts:
-                if ts.path.split('/')[-4] == 'USER':
-                    script_path = (self.__cache_scripts +
-                                   self.username + '/' +
-                                   ts.policy_num + '/' +
-                                   '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
-                    install_script(ts, script_path, '755')
+            if self.__module_enabled:
+                for ts in self.scripts:
+                    if ts.path.split('/')[-4] == 'USER':
+                        script_path = (self.__cache_scripts +
+                                       self.username + '/' +
+                                       ts.policy_num + '/' +
+                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
+                        install_script(ts, script_path, '755')
 
 
     def user_context_apply(self):
