@@ -225,6 +225,12 @@ msgstr "Ошибка при запуске pkcon_runner асинхронно д�
 msgid "Error merging user GPT (from machine GPO)"
 msgstr "Ошибка слияния пользовательской групповой политики (машинная часть)"
 
+msgid "Error cleaning directory for machine"
+msgstr "Ошибка очистки каталога для машины"
+
+msgid "Error cleaning directory for user"
+msgstr "Ошибка очистки каталога для пользователя"
+
 # Error_end
 
 # Debug
@@ -662,6 +668,13 @@ msgstr "Настройка режима обработки замыкания п
 
 msgid "Saving information about script"
 msgstr "Сохранение информации о скрипте"
+
+msgid "No machine scripts directory to clean up"
+msgstr "Нет каталога машинных скриптов для очистки"
+
+msgid "No user scripts directory to clean up"
+msgstr "Нет каталога пользовательских скриптов для очистки"
+
 
 # Debug_end
 
