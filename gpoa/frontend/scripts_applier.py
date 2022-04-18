@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import subprocess
 import os
 import shutil
 from pathlib import Path
@@ -50,8 +49,12 @@ class scripts_applier(applier_frontend):
         if sid in check_sid[machine_name]['sid']:
             try:
                 remove_dir_tree(self.folder_path, True, True, True,)
+            except FileNotFoundError as exc:
+                log('D153')
             except Exception as exc:
-                print('FAILED {}'.format(exc))
+                logdata = dict()
+                logdata['exc'] = exc
+                log('E63', logdata)
             self.folder_path.mkdir(parents=True, exist_ok=True)
             if self.__module_enabled:
                 for ts in self.scripts:
@@ -64,12 +67,7 @@ class scripts_applier(applier_frontend):
     def run(self):
         pass
     def apply(self):
-        self.run()
-        #if self.__module_enabled:
-            #log('D??')
-            #self.run()
-        #else:
-            #log('D??')
+        pass
 
 class scripts_applier_user(applier_frontend):
     __module_name = 'ScriptsApplierUser'
@@ -90,8 +88,12 @@ class scripts_applier_user(applier_frontend):
         if self.username[:-1] != os.uname()[1].upper():
             try:
                 remove_dir_tree(self.folder_path, True, True, True,)
+            except FileNotFoundError as exc:
+                log('D154')
             except Exception as exc:
-                print('FAILED {}'.format(exc))
+                logdata = dict()
+                logdata['exc'] = exc
+                log('E64', logdata)
             self.folder_path.mkdir(parents=True, exist_ok=True)
             if self.__module_enabled:
                 for ts in self.scripts:
@@ -113,11 +115,6 @@ class scripts_applier_user(applier_frontend):
         Install software assigned to specified username regardless
         which computer he uses to log into system.
         '''
-        #if self.__module_enabled:
-            #log('D??')
-            #self.run()
-        #else:
-            #log('D??')
         pass
 
 def install_script(storage_script_entry, script_path, access_permissions):

@@ -97,7 +97,8 @@ def error_code(code):
     error_ids[60] = 'Error running pkcon_runner sync for user'
     error_ids[61] = 'Error running pkcon_runner async for machine'
     error_ids[62] = 'Error running pkcon_runner async for user'
-
+    error_ids[63] = 'Error to cleanup directory for machine'
+    error_ids[64] = 'Error to cleanup directory for user'
 
     return error_ids.get(code, 'Unknown error code')
 
@@ -255,6 +256,8 @@ def debug_code(code):
     debug_ids[150] = 'Failed to found gsettings for machine'
     debug_ids[151] = 'Failed to found user gsettings'
     debug_ids[152] = 'Saving information about script'
+    debug_ids[153] = 'No machine scripts directory to clean up'
+    debug_ids[154] = 'No user scripts directory to clean up'
 
     return debug_ids.get(code, 'Unknown debug code')
 
