@@ -19,6 +19,15 @@
 
 import subprocess
 import rpm
+import distro
+
+def getDistributiveVenor ():
+    distr = list()
+    try:
+        distr=distro.linux_distribution(full_distribution_name=False)
+    except:
+        distr=('unknown','unknown','unknown')
+    return distr
 
 
 def is_rpm_installed(rpm_name):
@@ -36,9 +45,19 @@ def is_rpm_installed(rpm_name):
 class Package:
 
     def __init__(self, package_name):
-        self.__install_command = ['/usr/bin/apt-get', '-y', 'install']
-        self.__remove_command = ['/usr/bin/apt-get', '-y', 'remove']
-        self.__reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
+        distrobutive=getDistributiveVenor
+        if distrobutive[0]=="altlinux":
+            self.__install_command = ['/usr/bin/apt-get', '-y', 'install']
+            self.__remove_command = ['/usr/bin/apt-get', '-y', 'remove']
+            self.__reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
+        elif distrobutive[0]=="rosa":
+            self.__install_command = ['/usr/bin/dnf', '-y', 'install']
+            self.__remove_command = ['/usr/bin/dnf', '-y', 'remove']
+            self.__reinstall_command = ['/usr/bin/dnf', '-y', 'reinstall']
+        else:
+            self.__install_command = ['/usr/bin/apt-get', '-y', 'install']
+            self.__remove_command = ['/usr/bin/apt-get', '-y', 'remove']
+            self.__reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
         self.package_name = package_name
         self.for_install = True
 
