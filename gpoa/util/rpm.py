@@ -45,7 +45,7 @@ def is_rpm_installed(rpm_name):
 class Package:
 
     def __init__(self, package_name):
-        distributive=getDistributiveVendor
+        distributive=getDistributiveVendor()
         if distributive[0]=="altlinux":
             self.__install_command = ['/usr/bin/apt-get', '-y', 'install']
             self.__remove_command = ['/usr/bin/apt-get', '-y', 'remove']
