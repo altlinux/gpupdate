@@ -21,7 +21,7 @@ import subprocess
 import rpm
 import distro
 
-def getDistributiveVenor ():
+def getDistributiveVendor ():
     distr = list()
     try:
         distr=distro.linux_distribution(full_distribution_name=False)
@@ -45,12 +45,12 @@ def is_rpm_installed(rpm_name):
 class Package:
 
     def __init__(self, package_name):
-        distrobutive=getDistributiveVenor
-        if distrobutive[0]=="altlinux":
+        distributive=getDistributiveVendor
+        if distributive[0]=="altlinux":
             self.__install_command = ['/usr/bin/apt-get', '-y', 'install']
             self.__remove_command = ['/usr/bin/apt-get', '-y', 'remove']
             self.__reinstall_command = ['/usr/bin/apt-get', '-y', 'reinstall']
-        elif distrobutive[0]=="rosa":
+        elif distributive[0]=="rosa":
             self.__install_command = ['/usr/bin/dnf', '-y', 'install']
             self.__remove_command = ['/usr/bin/dnf', '-y', 'remove']
             self.__reinstall_command = ['/usr/bin/dnf', '-y', 'reinstall']
