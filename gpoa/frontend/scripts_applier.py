@@ -61,7 +61,7 @@ class scripts_applier(applier_frontend):
                     if ts.path.split('/')[-4] == 'MACHINE':
                         script_path = (self.__cache_scripts +
                                        ts.policy_num + '/' +
-                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
+                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
                         install_script(ts, script_path, '700')
 
     def run(self):
@@ -101,7 +101,7 @@ class scripts_applier_user(applier_frontend):
                         script_path = (self.__cache_scripts +
                                        self.username + '/' +
                                        ts.policy_num + '/' +
-                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+3:-1]))
+                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
                         install_script(ts, script_path, '755')
 
 
