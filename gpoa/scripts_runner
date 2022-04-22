@@ -1,0 +1,96 @@
+#!/usr/bin/python3
+#
+# GPOA - GPO Applier for Linux
+#
+# Copyright (C) 2019-2020 BaseALT Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import subprocess
+import argparse
+from pathlib import Path
+
+
+class Scripts_runner:
+
+    def __init__(self, work_mode = None,  user_name = None, action = None):
+        self.dir_scripts_machine = '/var/cache/gpupdate_scripts_cache/machine/'
+        self.dir_scripts_users = '/var/cache/gpupdate_scripts_cache/users/'
+        self.user_name = user_name
+        self.sort_path_scripts = dict()
+        if action:
+            self.action = action.upper()
+        else:
+            print('Action needed')
+            return
+        self.stack_dir = list()
+
+        if work_mode and work_mode.upper() == 'MACHINE':
+            self.machine_runner_fill()
+        elif work_mode and work_mode.upper() == 'USER':
+            self.user_runner_fill()
+
+        self.find_action()
+        self.sort_path_scripts = sorted(self.sort_path_scripts.items(), reverse = True)
+        for key in self.sort_path_scripts:
+            self.search_scripts_in_dir(key[1])
+
+    def user_runner_fill(self):
+        if self.dir_scripts_users and self.user_name:
+            self.get_stack_dir(self.dir_scripts_users + self.user_name, self.stack_dir)
+
+    def machine_runner_fill(self):
+        if self.dir_scripts_machine:
+            self.get_stack_dir(self.dir_scripts_machine, self.stack_dir)
+
+    def get_stack_dir(self, path_dir, stack = None):
+        if stack == True:
+            stack = list()
+        try:
+            dir_script = Path(path_dir)
+            for it_dir in dir_script.iterdir():
+                stack.append(str(it_dir))
+            return stack
+        except Exception as exc:
+            print(exc)
+            return None
+
+    def find_action(self):
+        self.stack_dir.sort()
+        dict_scr = dict()
+        while self.stack_dir:
+            path_turn = self.stack_dir.pop()
+            key_dict = str(path_turn).split('/')[-1]
+            list_tmp = self.get_stack_dir(path_turn, True)
+            for action in list_tmp:
+                if action.find(self.action) != -1:
+                    self.sort_path_scripts[key_dict] = action
+    def search_scripts_in_dir(self, path_to_action):
+        pass
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Scripts runner')
+    parser.add_argument('--mode', type = str, help = 'MACHINE or USER', nargs = '?', default = None)
+    parser.add_argument('--user', type = str, help = 'User name ', nargs = '?', default = None)
+    parser.add_argument('--action', type = str, help = 'MACHINE : [STARTUP or SHUTDOWN], USER : [LOGON or LOGOFF]', nargs = '?', default = None)
+
+
+    args = parser.parse_args()
+    try:
+        Scripts_runner(args.mode, args.user, args.action)
+    except Exception as exc:
+        print(exc)
+
