@@ -5,8 +5,8 @@ After=gpupdate-user.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/usr/bin/scripts_runner --mode USER --action LOGON --user %u
-ExecStop=/usr/bin/scripts_runner --mode USER --action LOGOFF --user %u
+ExecStart=/usr/libexec/gpupdate/scripts_runner --mode USER --action LOGON --user %u
+ExecStop=/usr/libexec/gpupdate/scripts_runner --mode USER --action LOGOFF --user %u
 
 [Install]
 WantedBy=default.target
