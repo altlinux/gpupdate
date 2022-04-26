@@ -22,25 +22,30 @@ import argparse
 from pathlib import Path
 
 class Scripts_runner:
-
+    '''
+    A class for an object that iterates over directories with scripts
+    in the desired sequence and launches them
+    '''
     def __init__(self, work_mode = None,  user_name = None, action = None):
         self.dir_scripts_machine = '/var/cache/gpupdate_scripts_cache/machine/'
         self.dir_scripts_users = '/var/cache/gpupdate_scripts_cache/users/'
         self.user_name = user_name
         self.sort_path_scripts = dict()
         self.list_with_all_commands = list()
-        if action:
-            self.action = action.upper()
-        else:
-            print('Action needed')
-            return
-
         self.stack_dir = list()
 
         if work_mode and work_mode.upper() == 'MACHINE':
             self.machine_runner_fill()
         elif work_mode and work_mode.upper() == 'USER':
             self.user_runner_fill()
+        else:
+            print('Invalid arguments entered')
+            return
+        if action:
+            self.action = action.upper()
+        else:
+            print('Action needed')
+            return
 
         self.find_action()
         self.sort_path_scripts = sorted(self.sort_path_scripts.items(), reverse = True)

@@ -46,7 +46,15 @@ class scripts_applier(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
-        if sid in check_sid[machine_name]['sid']:
+        self.filling_cache()
+
+    def filling_cache(self):
+        '''
+        Creating and updating folder directories for scripts and copying them
+        '''
+        machine_name = os.uname()[1] + '$'
+        check_sid =  pysss_nss_idmap.getsidbyname(machine_name)
+        if self.sid in check_sid[machine_name]['sid']:
             try:
                 remove_dir_tree(self.folder_path, True, True, True,)
             except FileNotFoundError as exc:
@@ -56,6 +64,7 @@ class scripts_applier(applier_frontend):
                 logdata['exc'] = exc
                 log('E64', logdata)
             self.folder_path.mkdir(parents=True, exist_ok=True)
+            print(self.__module_enabled)
             if self.__module_enabled:
                 for ts in self.scripts:
                     if ts.path.split('/')[-4] == 'MACHINE':
@@ -63,6 +72,8 @@ class scripts_applier(applier_frontend):
                                        ts.policy_num + '/' +
                                        '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
                         install_script(ts, script_path, '700')
+
+
 
     def run(self):
         pass
@@ -85,6 +96,12 @@ class scripts_applier_user(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
+        self.filling_cache()
+
+    def filling_cache(self):
+        '''
+        Creating and updating folder directories for scripts and copying them
+        '''
         if self.username[:-1] != os.uname()[1].upper():
             try:
                 remove_dir_tree(self.folder_path, True, True, True,)
@@ -99,9 +116,9 @@ class scripts_applier_user(applier_frontend):
                 for ts in self.scripts:
                     if ts.path.split('/')[-4] == 'USER':
                         script_path = (self.__cache_scripts +
-                                       self.username + '/' +
-                                       ts.policy_num + '/' +
-                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
+                                    self.username + '/' +
+                                    ts.policy_num + '/' +
+                                    '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
                         install_script(ts, script_path, '755')
 
 
@@ -118,6 +135,11 @@ class scripts_applier_user(applier_frontend):
         pass
 
 def install_script(storage_script_entry, script_path, access_permissions):
+    '''
+    Copy scripts to specific directories and
+    if given arguments
+    create directories for them and copy them there
+    '''
     dir_cr = Path(script_path)
     dir_cr.mkdir(parents=True, exist_ok=True)
     script_file = (script_path + '/' +
