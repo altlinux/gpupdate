@@ -64,7 +64,6 @@ class scripts_applier(applier_frontend):
                 logdata['exc'] = exc
                 log('E64', logdata)
             self.folder_path.mkdir(parents=True, exist_ok=True)
-            print(self.__module_enabled)
             if self.__module_enabled:
                 for ts in self.scripts:
                     if ts.path.split('/')[-4] == 'MACHINE':
