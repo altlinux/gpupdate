@@ -24,9 +24,8 @@ from .applier_frontend import (
 import logging
 import json
 import os
-import util.util as util
 from util.logging import slogm, log
-from util.util import is_machine_name
+from util.util import is_machine_name, get_homedir, mk_homedir_path
 
 class chromium_applier(applier_frontend):
     __module_name = 'ChromiumApplier'
@@ -94,11 +93,11 @@ class chromium_applier(applier_frontend):
         a good practice and used mostly by various malware.
         '''
         if not self._is_machine_name:
-            prefdir = os.path.join(util.get_homedir(self.username), self.__user_settings)
+            prefdir = os.path.join(get_homedir(self.username), self.__user_settings)
             os.makedirs(prefdir, exist_ok=True)
 
             prefpath = os.path.join(prefdir, 'Preferences')
-            util.mk_homedir_path(self.username, self.__user_settings)
+            mk_homedir_path(self.username, self.__user_settings)
             settings = dict()
             try:
                 with open(prefpath, 'r') as f:
