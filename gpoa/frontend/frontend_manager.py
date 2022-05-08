@@ -56,7 +56,7 @@ from .scripts_applier import (
     , scripts_applier_user
 )
 
-from util.windows import get_sid
+from util.sid import get_sid
 from util.users import (
     is_root,
     get_process_user,

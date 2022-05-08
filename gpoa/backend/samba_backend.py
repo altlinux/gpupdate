@@ -31,7 +31,7 @@ from util.kerberos import (
       machine_kinit
     , machine_kdestroy
 )
-from util.windows import get_sid
+from util.sid import get_sid
 import util.preg
 from util.logging import log
 
