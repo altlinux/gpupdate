@@ -46,6 +46,7 @@ class scripts_applier(applier_frontend):
         )
 
     def cleaning_cache(self):
+        log('D159')
         try:
             remove_dir_tree(self.folder_path, True, True, True,)
         except FileNotFoundError as exc:
@@ -97,6 +98,7 @@ class scripts_applier_user(applier_frontend):
         self.filling_cache()
 
     def cleaning_cache(self):
+        log('D160')
         try:
             remove_dir_tree(self.folder_path, True, True, True,)
         except FileNotFoundError as exc:

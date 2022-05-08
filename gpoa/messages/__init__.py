@@ -260,8 +260,10 @@ def debug_code(code):
     debug_ids[154] = 'No user scripts directory to clean up'
     debug_ids[155] = 'Prepare Scripts applier for machine'
     debug_ids[156] = 'Scripts applier for machine will not be started'
-    debug_ids[157] = 'Prepare Scripts applier for user in user context'
-    debug_ids[158] = 'Scripts applier for user in user context will not be started'
+    debug_ids[157] = 'Prepare Scripts applier for user in admin context'
+    debug_ids[158] = 'Scripts applier for user in admin context will not be started'
+    debug_ids[159] = 'Clean machine scripts directory'
+    debug_ids[160] = 'Clean user scripts directory'
 
     return debug_ids.get(code, 'Unknown debug code')
 
