@@ -25,7 +25,7 @@ from gpt.gpt import gpt, get_local_gpt
 from util.util import (
     get_machine_name
 )
-from util.windows import get_sid
+from util.sid import get_sid
 import util.preg
 from util.logging import slogm
 
