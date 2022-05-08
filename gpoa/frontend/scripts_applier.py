@@ -40,44 +40,43 @@ class scripts_applier(applier_frontend):
         self.sid = sid
         self.scripts = self.storage.get_scripts(self.sid)
         self.folder_path = Path(self.__cache_scripts)
-        machine_name = os.uname()[1] + '$'
-        check_sid =  pysss_nss_idmap.getsidbyname(machine_name)
         self.__module_enabled = check_enabled(self.storage
             , self.__module_name
             , self.__module_experimental
         )
-        self.filling_cache()
+
+    def cleaning_cache(self):
+        try:
+            remove_dir_tree(self.folder_path, True, True, True,)
+        except FileNotFoundError as exc:
+            log('D153')
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
+            log('E63', logdata)
 
     def filling_cache(self):
         '''
         Creating and updating folder directories for scripts and copying them
         '''
-        machine_name = os.uname()[1] + '$'
-        check_sid =  pysss_nss_idmap.getsidbyname(machine_name)
-        if self.sid in check_sid[machine_name]['sid']:
-            try:
-                remove_dir_tree(self.folder_path, True, True, True,)
-            except FileNotFoundError as exc:
-                log('D153')
-            except Exception as exc:
-                logdata = dict()
-                logdata['exc'] = exc
-                log('E63', logdata)
-            self.folder_path.mkdir(parents=True, exist_ok=True)
-            if self.__module_enabled:
-                for ts in self.scripts:
-                    if ts.path.split('/')[-4] == 'MACHINE':
-                        script_path = (self.__cache_scripts +
-                                       ts.policy_num + '/' +
-                                       '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
-                        install_script(ts, script_path, '700')
-
-
+        self.folder_path.mkdir(parents=True, exist_ok=True)
+        for ts in self.scripts:
+            if ts.path.split('/')[-4] == 'MACHINE':
+                script_path = (self.__cache_scripts +
+                               ts.policy_num + '/' +
+                               '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
+                install_script(ts, script_path, '700')
 
     def run(self):
-        pass
+        self.filling_cache()
+
     def apply(self):
-        pass
+        self.cleaning_cache()
+        if self.__module_enabled:
+            log('D155')
+            self.run()
+        else:
+            log('D156')
 
 class scripts_applier_user(applier_frontend):
     __module_name = 'ScriptsApplierUser'
@@ -97,41 +96,43 @@ class scripts_applier_user(applier_frontend):
         )
         self.filling_cache()
 
+    def cleaning_cache(self):
+        try:
+            remove_dir_tree(self.folder_path, True, True, True,)
+        except FileNotFoundError as exc:
+            log('D154')
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
+            log('E64', logdata)
+
     def filling_cache(self):
         '''
         Creating and updating folder directories for scripts and copying them
         '''
-        if self.username[:-1] != os.uname()[1].upper():
-            try:
-                remove_dir_tree(self.folder_path, True, True, True,)
-            except FileNotFoundError as exc:
-                log('D154')
-            except Exception as exc:
-                logdata = dict()
-                logdata['exc'] = exc
-                log('E64', logdata)
-            self.folder_path.mkdir(parents=True, exist_ok=True)
-            if self.__module_enabled:
-                for ts in self.scripts:
-                    if ts.path.split('/')[-4] == 'USER':
-                        script_path = (self.__cache_scripts +
-                                    self.username + '/' +
-                                    ts.policy_num + '/' +
-                                    '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
-                        install_script(ts, script_path, '755')
-
+        self.folder_path.mkdir(parents=True, exist_ok=True)
+        if self.__module_enabled:
+            for ts in self.scripts:
+                if ts.path.split('/')[-4] == 'USER':
+                    script_path = (self.__cache_scripts +
+                                self.username + '/' +
+                                ts.policy_num + '/' +
+                                '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
+                    install_script(ts, script_path, '755')
 
     def user_context_apply(self):
         pass
+
     def run(self):
-        pass
+        self.filling_cache()
 
     def admin_context_apply(self):
-        '''
-        Install software assigned to specified username regardless
-        which computer he uses to log into system.
-        '''
-        pass
+        self.cleaning_cache()
+        if self.__module_enabled:
+            log('D157')
+            self.run()
+        else:
+            log('D158')
 
 def install_script(storage_script_entry, script_path, access_permissions):
     '''
