@@ -36,12 +36,13 @@ from .applier_frontend import (
 )
 from util.logging import slogm, log
 from util.util import is_machine_name, get_homedir
+import util.util as util
 
 class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\Policies\\Mozilla\\Firefox'
+    __registry_branch = 'Software\\Policies\\Mozilla\\Firefox\\'
     __firefox_installdir1 = '/usr/lib64/firefox/distribution'
     __firefox_installdir2 = '/etc/firefox/policies'
     __user_settings_dir = '.mozilla/firefox'
@@ -53,6 +54,9 @@ class firefox_applier(applier_frontend):
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
+        firefox_filter = '{}%'.format(self.__registry_branch)
+        self.firefox_keys = self.storage.filter_hklm_entries(firefox_filter)
+        self.policies_gen = dict()
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -71,119 +75,62 @@ class firefox_applier(applier_frontend):
         for section in config.keys():
             if section.startswith('Profile'):
                 profile_paths.append(config[section]['Path'])
-
         return profile_paths
 
-    def get_hklm_string_entry(self, hive_subkey):
-        '''
-        Get HKEY_LOCAL_MACHINE hive subkey of
-        'Software\Policies\Mozilla\Firefox'.
-        '''
-        query_str = '{}\\{}'.format(self.__registry_branch, hive_subkey)
-        return self.storage.get_hklm_entry(query_str)
+    def get_boolean(self,data):
+        if data in ['0', 'false', None, 'none', 0]:
+            return False
+        if data in ['1', 'true', 1]:
+            return True
 
-    def get_hklm_string_entry_default(self, hive_subkey, default):
+    def get_parts(self, hivekeyname):
         '''
-        Get Firefox's subkey or return the default value.
+        Parse registry path string and leave key parameters
         '''
-        defval = str(default)
-        response = self.get_hklm_string_entry(hive_subkey)
-        if response:
-            return response.data
-        return defval
+        parts = hivekeyname.replace(self.__registry_branch, '').split('\\')
+        return parts
 
-    def set_policy(self, name, obj):
+    def create_dict(self, firefox_keys):
         '''
-        Add entry to policy set.
+        Collect dictionaries from registry keys into a general dictionary
         '''
-        if obj:
-            self.policies[name] = obj
-            logdata = dict()
-            logdata['name'] = name
-            logdata['set to'] = obj
-            log('I7', logdata)
+        counts = dict()
+        for it_data in firefox_keys:
+            branch = counts
+            try:
+                if type(it_data.data) is bytes:
+                    it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
+                if it_data.valuename != it_data.data:
+                    parts = self.get_parts(it_data.hive_key)
+                    for part in parts[:-1]:
+                        branch = branch.setdefault(part, {})
+                    if it_data.type == 4:
+                        branch[parts[-1]] = self.get_boolean(it_data.data)
+                    else:
+                        branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+                else:
+                    parts = self.get_parts(it_data.keyname)
+                    for part in parts[:-1]:
+                            branch = branch.setdefault(part, {})
+                    if branch.get(parts[-1]) is None:
+                        branch[parts[-1]] = list()
+                    if it_data.type == 4:
+                        branch[parts[-1]].append(self.get_boolean(it_data.data))
+                    else:
+                        branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
+            except Exception as exc:
+                logdata = dict()
+                logdata['Exception'] = exc
+                logdata['keyname'] = it_data.keyname
+                log('W14', logdata)
 
-    def get_home_page(self):
-        '''
-        Query the Homepage property from the storage.
-        '''
-        homepage = dict({
-            'URL': 'about:blank',
-            'Locked': False,
-            'StartPage': 'homepage'
-        })
-        response = self.get_hklm_string_entry('Homepage\\URL')
-        if response:
-            homepage['URL'] = response.data
-            return homepage
-        return None
-
-    def get_boolean_config(self, name):
-        '''
-        Query boolean property from the storage.
-        '''
-        response = self.get_hklm_string_entry(name)
-        if response:
-            data = response.data if isinstance(response.data, int) else str(response.data).lower()
-            if data in ['0', 'false', None, 'none', 0]:
-                return False
-            if data in ['1', 'true', 1]:
-                return True
-
-        return None
-
-    def set_boolean_policy(self, name):
-        '''
-        Add boolean entry to policy set.
-        '''
-        obj = self.get_boolean_config(name)
-        if obj is not None:
-            self.policies[name] = obj
-            logdata = dict()
-            logdata['name'] = name
-            logdata['set to'] = obj
-            log('I7', logdata)
+        self.policies_json = {'policies': counts}
 
     def machine_apply(self):
         '''
         Write policies.json to Firefox installdir.
         '''
-        self.set_policy('Homepage', self.get_home_page())
-        self.set_boolean_policy('BlockAboutConfig')
-        self.set_boolean_policy('BlockAboutProfiles')
-        self.set_boolean_policy('BlockAboutSupport')
-        self.set_boolean_policy('CaptivePortal')
-        self.set_boolean_policy('DisableSetDesktopBackground')
-        self.set_boolean_policy('DisableMasterPasswordCreation')
-        self.set_boolean_policy('DisableBuiltinPDFViewer')
-        self.set_boolean_policy('DisableDeveloperTools')
-        self.set_boolean_policy('DisableFeedbackCommands')
-        self.set_boolean_policy('DisableFirefoxScreenshots')
-        self.set_boolean_policy('DisableFirefoxAccounts')
-        self.set_boolean_policy('DisableFirefoxStudies')
-        self.set_boolean_policy('DisableForgetButton')
-        self.set_boolean_policy('DisableFormHistory')
-        self.set_boolean_policy('DisablePasswordReveal')
-        self.set_boolean_policy('DisablePocket')
-        self.set_boolean_policy('DisablePrivateBrowsing')
-        self.set_boolean_policy('DisableProfileImport')
-        self.set_boolean_policy('DisableProfileRefresh')
-        self.set_boolean_policy('DisableSafeMode')
-        self.set_boolean_policy('DisableSystemAddonUpdate')
-        self.set_boolean_policy('DisableTelemetry')
-        self.set_boolean_policy('DontCheckDefaultBrowser')
-        self.set_boolean_policy('ExtensionUpdate')
-        self.set_boolean_policy('HardwareAcceleration')
-        self.set_boolean_policy('PrimaryPassword')
-        self.set_boolean_policy('NetworkPrediction')
-        self.set_boolean_policy('NewTabPage')
-        self.set_boolean_policy('NoDefaultBookmarks')
-        self.set_boolean_policy('OfferToSaveLogins')
-        self.set_boolean_policy('PasswordManagerEnabled')
-        self.set_boolean_policy('PromptForDownloadLocation')
-        self.set_boolean_policy('SanitizeOnShutdown')
-        self.set_boolean_policy('SearchSuggestEnabled')
-
+        self.create_dict(self.firefox_keys)
         destfile = os.path.join(self.__firefox_installdir1, 'policies.json')
 
         os.makedirs(self.__firefox_installdir1, exist_ok=True)
@@ -217,7 +164,3 @@ class firefox_applier(applier_frontend):
             self.machine_apply()
         else:
             log('D94')
-        #if not self._is_machine_name:
-        #    logging.debug('Running user applier for Firefox')
-        #    self.user_apply()
-

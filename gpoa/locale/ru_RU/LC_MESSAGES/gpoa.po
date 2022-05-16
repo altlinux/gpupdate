@@ -784,6 +784,9 @@ msgstr "Не удалось прочитать список файлов"
 msgid "Failed to caching the file"
 msgstr "Не удалось кэшировать файл"
 
+msgid "Could not create a valid list of keys"
+msgstr "Не удалось создать допустимый список ключей"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"

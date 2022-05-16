@@ -307,6 +307,7 @@ def warning_code(code):
     warning_ids[11] = 'Unable to refresh GPO list'
     warning_ids[12] = 'Failed to read the list of files'
     warning_ids[13] = 'Failed to caching the file'
+    warning_ids[14] = 'Could not create a valid list of keys'
 
     return warning_ids.get(code, 'Unknown warning code')
 
