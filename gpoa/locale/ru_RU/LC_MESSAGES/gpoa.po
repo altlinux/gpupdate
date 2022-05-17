@@ -691,6 +691,9 @@ msgstr "CUPS не установлен: настройки принтера не
 msgid "Unsupported NTP server type"
 msgstr "Неподдерживаемый тип сервера NTP"
 
+msgid "Could not create a valid list of keys"
+msgstr "Не удалось создать допустимый список ключей"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"

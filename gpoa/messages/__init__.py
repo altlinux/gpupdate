@@ -276,6 +276,7 @@ def warning_code(code):
     warning_ids[9] = 'CUPS is not installed: no printer settings will be deployed'
     warning_ids[10] = 'Unsupported NTP server type'
     warning_ids[11] = 'Unable to refresh GPO list'
+    warning_ids[12] = 'Could not create a valid list of keys'
 
     return warning_ids.get(code, 'Unknown warning code')
 
