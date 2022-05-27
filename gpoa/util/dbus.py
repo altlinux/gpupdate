@@ -168,7 +168,7 @@ def print_dbus_result(result):
     log('D12', logdata)
 
     for line in message:
-        print(str(line))
+        if line: print(str(line))
 
 
 class dbus_session:
