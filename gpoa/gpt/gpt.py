@@ -194,10 +194,9 @@ class gpt:
         checked only if working for user's SID.
         '''
         upm = self.storage.get_hklm_entry(self.__user_policy_mode_key)
-        if not upm:
-            upm = 0
-        upm = int(upm)
-        if 0 > upm or 2 > upm:
+        if upm.data:
+            upm = int(upm)
+        else:
             upm = 0
 
         return upm
@@ -234,8 +233,8 @@ class gpt:
         else:
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
-            policy_mode = upm2str(self.get_policy_mode())
-            if 'Merge' == policy_mode or 'Not configured' == policy_mode:
+            policy_mode = self.get_policy_mode()
+            if policy_mode < 2:
                 try:
                     for preference_name, preference_path in self.settings['user'].items():
                         if preference_path:
@@ -251,6 +250,24 @@ class gpt:
                     logdata['gpt'] = self.name
                     logdata['msg'] = str(exc)
                     log('E29', logdata)
+            if policy_mode > 0:
+                try:
+                    for preference_name, preference_path in self.settings['machine'].items():
+                        if preference_path:
+                            preference_type = get_preftype(preference_path)
+                            logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                            log('D29', logdata)
+                            preference_parser = get_parser(preference_type)
+                            preference_merger = get_merger(preference_type)
+                            preference_objects = preference_parser(preference_path)
+                            preference_merger(self.storage, self.sid, preference_objects, self.name)
+                except Exception as exc:
+                    logdata = dict()
+                    logdata['gpt'] = self.name
+                    logdata['msg'] = str(exc)
+                    log('E29', logdata)
+
+
 
 def find_dir(search_path, name):
     '''
@@ -350,18 +367,3 @@ def get_local_gpt(sid):
     local_policy.set_name('Local Policy')
 
     return local_policy
-
-def upm2str(upm_num):
-    '''
-    Translate UserPolicyMode to string.
-    '''
-    result = 'Not configured'
-
-    if upm_num in [1, '1']:
-        result = 'Replace'
-
-    if upm_num in [2, '2']:
-        result = 'Merge'
-
-    return result
-
