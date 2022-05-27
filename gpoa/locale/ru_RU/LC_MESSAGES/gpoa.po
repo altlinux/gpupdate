@@ -222,6 +222,9 @@ msgstr "Ошибка при запуске pkcon_runner асинхронно д�
 msgid "Error running pkcon_runner async for user"
 msgstr "Ошибка при запуске pkcon_runner асинхронно для пользователя"
 
+msgid "Error merging user GPT (from machine GPO)"
+msgstr "Ошибка слияния пользовательской групповой политики (машинная часть)"
+
 # Error_end
 
 # Debug
@@ -653,6 +656,9 @@ msgstr "Не удалось найти настройки gsettings для ма�
 
 msgid "Failed to found user gsettings"
 msgstr "Не удалось найти настройки gsettings пользователя"
+
+msgid "Configure user Group Policy loopback processing mode"
+msgstr "Настройка режима обработки замыкания пользовательской групповой политики"
 
 # Debug_end
 

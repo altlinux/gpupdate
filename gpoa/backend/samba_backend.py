@@ -36,6 +36,7 @@ import util.preg
 from util.logging import log
 
 class samba_backend(applier_backend):
+    __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
 
     def __init__(self, sambacreds, username, domain, is_machine):
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
@@ -71,6 +72,22 @@ class samba_backend(applier_backend):
         if self.__kinit_successful:
             machine_kdestroy()
 
+    def get_policy_mode(self):
+        '''
+        Get UserPolicyMode parameter value in order to determine if it
+        is possible to work with user's part of GPT. This value is
+        checked only if working for user's SID.
+        '''
+        upm = self.storage.get_hklm_entry(self.__user_policy_mode_key)
+        if upm and upm.data:
+            upm = int(upm.data)
+            if upm < 0 or upm > 2:
+                upm = 0
+        else:
+            upm = 0
+
+        return upm
+
     def retrieve_and_store(self):
         '''
         Retrieve settings and strore it in a database
@@ -86,7 +103,7 @@ class samba_backend(applier_backend):
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
         for gptobj in machine_gpts:
             try:
-                gptobj.merge()
+                gptobj.merge_machine()
             except Exception as exc:
                 logdata = dict()
                 logdata['msg'] = str(exc)
@@ -102,13 +119,30 @@ class samba_backend(applier_backend):
                 log('F3')
                 raise exc
             self.storage.wipe_user(self.sid)
-            for gptobj in user_gpts:
-                try:
-                    gptobj.merge()
-                except Exception as exc:
-                    logdata = dict()
-                    logdata['msg'] = str(exc)
-                    log('E27', logdata)
+
+            # Merge user settings if UserPolicyMode set accordingly
+            # and user settings (for HKCU) are exist.
+            policy_mode = self.get_policy_mode()
+            logdata = dict({'mode': upm2str(policy_mode), 'sid': self.sid})
+            log('D152', logdata)
+
+            if policy_mode < 2:
+                for gptobj in user_gpts:
+                    try:
+                        gptobj.merge_user()
+                    except Exception as exc:
+                        logdata = dict()
+                        logdata['msg'] = str(exc)
+                        log('E27', logdata)
+
+            if policy_mode > 0:
+                for gptobj in machine_gpts:
+                    try:
+                        gptobj.merge_user()
+                    except Exception as exc:
+                        logdata = dict()
+                        logdata['msg'] = str(exc)
+                        log('E63', logdata)
 
     def _check_sysvol_present(self, gpo):
         '''
@@ -145,3 +179,16 @@ class samba_backend(applier_backend):
 
         return gpts
 
+def upm2str(upm_num):
+    '''
+    Translate UserPolicyMode to string.
+    '''
+    result = 'Not configured'
+
+    if upm_num in [1, '1']:
+        result = 'Replace'
+
+    if upm_num in [2, '2']:
+        result = 'Merge'
+
+    return result

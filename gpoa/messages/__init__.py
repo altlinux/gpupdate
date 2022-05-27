@@ -97,6 +97,7 @@ def error_code(code):
     error_ids[60] = 'Error running pkcon_runner sync for user'
     error_ids[61] = 'Error running pkcon_runner async for machine'
     error_ids[62] = 'Error running pkcon_runner async for user'
+    error_ids[63] = 'Error merging user GPT (from machine GPO)'
 
 
     return error_ids.get(code, 'Unknown error code')
@@ -254,6 +255,7 @@ def debug_code(code):
     debug_ids[149] = 'Removing a package'
     debug_ids[150] = 'Failed to found gsettings for machine'
     debug_ids[151] = 'Failed to found user gsettings'
+    debug_ids[152] = 'Configure user Group Policy loopback processing mode'
 
     return debug_ids.get(code, 'Unknown debug code')
 

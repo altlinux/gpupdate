@@ -140,8 +140,6 @@ def get_merger(preference_type):
     return mergers[preference_type]
 
 class gpt:
-    __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
-
     def __init__(self, gpt_path, sid):
         self.path = gpt_path
         self.sid = sid
@@ -187,87 +185,57 @@ class gpt:
         '''
         self.name = name
 
-    def get_policy_mode(self):
+    def merge_machine(self):
         '''
-        Get UserPolicyMode parameter value in order to determine if it
-        is possible to work with user's part of GPT. This value is
-        checked only if working for user's SID.
+        Merge machine settings to storage.
         '''
-        upm = self.storage.get_hklm_entry(self.__user_policy_mode_key)
-        if upm.data:
-            upm = int(upm)
-        else:
-            upm = 0
+        try:
+            # Merge machine policies to registry if possible
+            if self.settings['machine']['regpol']:
+                mlogdata = dict({'polfile': self.settings['machine']['regpol']})
+                log('D34', mlogdata)
+                util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
+            # Merge machine preferences to registry if possible
+            for preference_name, preference_path in self.settings['machine'].items():
+                if preference_path:
+                    preference_type = get_preftype(preference_path)
+                    logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                    log('D28', logdata)
+                    preference_parser = get_parser(preference_type)
+                    preference_merger = get_merger(preference_type)
+                    preference_objects = preference_parser(preference_path)
+                    preference_merger(self.storage, self.sid, preference_objects, self.name)
+        except Exception as exc:
+            logdata = dict()
+            logdata['gpt'] = self.name
+            logdata['msg'] = str(exc)
+            log('E28', logdata)
 
-        return upm
-
-    def merge(self):
+    def merge_user(self):
         '''
-        Merge machine and user (if sid provided) settings to storage.
+        Merge user settings to storage.
         '''
-        if self.sid == self.storage.get_info('machine_sid'):
-            try:
-                # Merge machine settings to registry if possible
-                for preference_name, preference_path in self.settings['machine'].items():
-                    if preference_path:
-                        preference_type = get_preftype(preference_path)
-                        logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                        log('D28', logdata)
-                        preference_parser = get_parser(preference_type)
-                        preference_merger = get_merger(preference_type)
-                        preference_objects = preference_parser(preference_path)
-                        preference_merger(self.storage, self.sid, preference_objects, self.name)
-                if self.settings['user']['regpol']:
-                    mulogdata = dict({'polfile': self.settings['machine']['regpol']})
-                    log('D35', mulogdata)
-                    util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
-                if self.settings['machine']['regpol']:
-                    mlogdata = dict({'polfile': self.settings['machine']['regpol']})
-                    log('D34', mlogdata)
-                    util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
-            except Exception as exc:
-                logdata = dict()
-                logdata['gpt'] = self.name
-                logdata['msg'] = str(exc)
-                log('E28', logdata)
-        else:
-            # Merge user settings if UserPolicyMode set accordingly
-            # and user settings (for HKCU) are exist.
-            policy_mode = self.get_policy_mode()
-            if policy_mode < 2:
-                try:
-                    for preference_name, preference_path in self.settings['user'].items():
-                        if preference_path:
-                            preference_type = get_preftype(preference_path)
-                            logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                            log('D29', logdata)
-                            preference_parser = get_parser(preference_type)
-                            preference_merger = get_merger(preference_type)
-                            preference_objects = preference_parser(preference_path)
-                            preference_merger(self.storage, self.sid, preference_objects, self.name)
-                except Exception as exc:
-                    logdata = dict()
-                    logdata['gpt'] = self.name
-                    logdata['msg'] = str(exc)
-                    log('E29', logdata)
-            if policy_mode > 0:
-                try:
-                    for preference_name, preference_path in self.settings['machine'].items():
-                        if preference_path:
-                            preference_type = get_preftype(preference_path)
-                            logdata = dict({'pref': preference_type.value, 'sid': self.sid})
-                            log('D29', logdata)
-                            preference_parser = get_parser(preference_type)
-                            preference_merger = get_merger(preference_type)
-                            preference_objects = preference_parser(preference_path)
-                            preference_merger(self.storage, self.sid, preference_objects, self.name)
-                except Exception as exc:
-                    logdata = dict()
-                    logdata['gpt'] = self.name
-                    logdata['msg'] = str(exc)
-                    log('E29', logdata)
-
-
+        try:
+            # Merge user policies to registry if possible
+            if self.settings['user']['regpol']:
+                mulogdata = dict({'polfile': self.settings['user']['regpol']})
+                log('D35', mulogdata)
+                util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
+            # Merge user preferences to registry if possible
+            for preference_name, preference_path in self.settings['user'].items():
+                if preference_path:
+                    preference_type = get_preftype(preference_path)
+                    logdata = dict({'pref': preference_type.value, 'sid': self.sid})
+                    log('D29', logdata)
+                    preference_parser = get_parser(preference_type)
+                    preference_merger = get_merger(preference_type)
+                    preference_objects = preference_parser(preference_path)
+                    preference_merger(self.storage, self.sid, preference_objects, self.name)
+        except Exception as exc:
+            logdata = dict()
+            logdata['gpt'] = self.name
+            logdata['msg'] = str(exc)
+            log('E29', logdata)
 
 def find_dir(search_path, name):
     '''
