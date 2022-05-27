@@ -18,7 +18,7 @@
 
 import os
 # Facility to determine GPTs for user
-from samba.gpclass import check_safe_path, check_refresh_gpo_list
+from samba.gpclass import check_safe_path
 
 from .applier_backend import applier_backend
 from storage import cache_factory, registry_factory
@@ -99,19 +99,21 @@ class samba_backend(applier_backend):
         except Exception as exc:
             log('F2')
             raise exc
-        self.storage.wipe_hklm()
-        self.storage.wipe_user(self.storage.get_info('machine_sid'))
-        for gptobj in machine_gpts:
-            try:
-                gptobj.merge_machine()
-            except Exception as exc:
-                logdata = dict()
-                logdata['msg'] = str(exc)
-                log('E26', logdata)
+
+        if self._is_machine_username:
+            self.storage.wipe_hklm()
+            self.storage.wipe_user(self.storage.get_info('machine_sid'))
+            for gptobj in machine_gpts:
+                try:
+                    gptobj.merge_machine()
+                except Exception as exc:
+                    logdata = dict()
+                    logdata['msg'] = str(exc)
+                    log('E26', logdata)
 
         # Load user GPT values in case user's name specified
         # This is a buggy implementation and should be tested more
-        if not self._is_machine_username:
+        else:
             user_gpts = list()
             try:
                 user_gpts = self._get_gpts(self.username, self.sid)
