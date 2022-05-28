@@ -47,25 +47,27 @@ from util.logging import log
 class file_runner:
     _gpoa_exe = '/usr/sbin/gpoa'
 
-    def __init__(self, username=None):
+    def __init__(self, loglevel, username=None):
         self._user = username
+        self._loglevel = loglevel
 
     def run(self):
         '''
         Call gpoa utility to generate scripts
         '''
         gpoa_cmd = [self._gpoa_exe]
+        if self._loglevel != None:
+            gpoa_cmd += ["--loglevel", str(self._loglevel)]
         if self._user:
             gpoa_cmd += [self._user]
 
-        output = subprocess.call(gpoa_cmd)
-        sys.exit(output)
+        subprocess.check_output(gpoa_cmd)
 
 def parse_cli_arguments():
     '''
     Command line argument parser
     '''
-    argparser = argparse.ArgumentParser(description='Update group policies for the specified user')
+    argparser = argparse.ArgumentParser(description='Update group policies for computer and the specified user')
     argparser.add_argument('-u',
         '--user',
         default=None,
@@ -78,6 +80,11 @@ def parse_cli_arguments():
         type=int,
         default=5,
         help='Set logging verbosity level')
+    argparser.add_argument('-s',
+        '--system',
+        action='store_true',
+        default=None,
+        help='Run gpoa directly in system mode')
 
     return argparser.parse_args()
 
@@ -106,6 +113,15 @@ def runner_factory(args, target):
             logdata = dict({'username': username})
             log('W2', logdata)
 
+    if args.system:
+        return try_directly(username, target, args.loglevel)
+    else:
+        return try_by_oddjob(username, target)
+
+def try_by_oddjob(username, target):
+    '''
+    Run group policies applying by oddjob service
+    '''
     if is_oddjobd_gpupdate_accessible():
         log('D13')
         computer_runner = None
@@ -119,14 +135,20 @@ def runner_factory(args, target):
     else:
         log('W3')
 
+    return None
+
+def try_directly(username, target, loglevel):
+    '''
+    Run group policies applying directly
+    '''
     if is_root():
         log('D14')
         computer_runner = None
         user_runner = None
         if target == 'All' or target == 'Computer':
-            computer_runner = file_runner()
+            computer_runner = file_runner(loglevel)
         if target == 'All' or target == 'User':
-            user_runner = file_runner(username)
+            user_runner = file_runner(loglevel, username)
         return (computer_runner, user_runner)
     else:
         log('E1')
