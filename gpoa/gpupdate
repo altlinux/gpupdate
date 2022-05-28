@@ -72,11 +72,14 @@ def parse_cli_arguments():
         '--user',
         default=None,
         help='Name of the user for GPO update')
-    argparser.add_argument('--target',
+    argparser.add_argument('-t',
+        '--target',
         default=None,
-        type=str,
+        type=str.upper,
+        choices=["ALL", "USER", "COMPUTER"],
         help='Specify if it is needed to update user\'s or computer\'s policies')
-    argparser.add_argument('--loglevel',
+    argparser.add_argument('-l',
+        '--loglevel',
         type=int,
         default=5,
         help='Set logging verbosity level')
@@ -94,13 +97,14 @@ def runner_factory(args, target):
     factors taken into account.
     '''
     username = None
+    target = target.upper()
     if is_root():
         # Only root may specify any username to update.
         try:
             if args.user:
                 username = pwd.getpwnam(args.user).pw_name
             else:
-                target = 'Computer'
+                target = 'COMPUTER'
         except:
             username = None
             logdata = dict({'username': args.user})
@@ -126,10 +130,10 @@ def try_by_oddjob(username, target):
         log('D13')
         computer_runner = None
         user_runner = None
-        if target == 'All' or target == 'Computer':
+        if target == 'ALL' or target == 'COMPUTER':
             computer_runner = dbus_runner()
         if username:
-            if target == 'All' or target == 'User':
+            if target == 'ALL' or target == 'USER':
                 user_runner = dbus_runner(username)
         return (computer_runner, user_runner)
     else:
@@ -145,9 +149,9 @@ def try_directly(username, target, loglevel):
         log('D14')
         computer_runner = None
         user_runner = None
-        if target == 'All' or target == 'Computer':
+        if target == 'ALL' or target == 'COMPUTER':
             computer_runner = file_runner(loglevel)
-        if target == 'All' or target == 'User':
+        if target == 'ALL' or target == 'USER':
             user_runner = file_runner(loglevel, username)
         return (computer_runner, user_runner)
     else:

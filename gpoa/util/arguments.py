@@ -64,18 +64,15 @@ def process_target(target_name=None):
     The target may be 'All', 'Computer' or 'User'. This function
     determines which one was specified.
     '''
-    target = 'All'
 
-    if target_name == 'Computer':
-        target = 'Computer'
-
-    if target_name == 'User':
-        target = 'User'
+    target = "All"
+    if target_name:
+        target = target_name
 
     logdata = dict({'target': target})
     logging.debug(slogm(message_with_code('D10'), logdata))
 
-    return target
+    return target.upper()
 
 class ExitCodeUpdater(IntEnum):
     '''
