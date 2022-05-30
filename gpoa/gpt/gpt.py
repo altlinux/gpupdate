@@ -146,23 +146,11 @@ def get_merger(preference_type):
     return mergers[preference_type]
 
 class gpt:
-    __policy_num = 0
-    __sid_gpt = str()
-
     def __init__(self, gpt_path, sid):
         self.path = gpt_path
         self.sid = sid
         self.storage = registry_factory('registry')
         self.name = ''
-        if not gpt.__sid_gpt:
-            gpt.__sid_gpt = self.sid
-        else:
-            if gpt.__sid_gpt == self.sid:
-                gpt.__policy_num += 1
-            else:
-                gpt.__sid_gpt = self.sid
-                gpt.__policy_num = 0
-        self.policy_num = gpt.__policy_num
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:
             self.guid = 'Local Policy'
@@ -221,7 +209,7 @@ class gpt:
                 util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name)
             # Merge machine preferences to registry if possible
             for preference_name, preference_path in self.settings['machine'].items():
-                if preference_path and preference_name != 'scripts':
+                if preference_path:
                     preference_type = get_preftype(preference_path)
                     logdata = dict({'pref': preference_type.value, 'sid': self.sid})
                     log('D28', logdata)
@@ -229,11 +217,6 @@ class gpt:
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
                     preference_merger(self.storage, self.sid, preference_objects, self.name)
-                if preference_path and preference_name == 'scripts':
-                    logdata = dict({'pref': preference_path, 'sid': self.sid})
-                    log('D28', logdata)
-                    preference_objects = read_scripts(preference_path)
-                    merge_scripts(self.storage, self.sid, preference_objects, self.name, str(self.policy_num).zfill(5))
         except Exception as exc:
             logdata = dict()
             logdata['gpt'] = self.name
@@ -252,7 +235,7 @@ class gpt:
                 util.preg.merge_polfile(self.settings['user']['regpol'], sid=self.sid, policy_name=self.name)
             # Merge user preferences to registry if possible
             for preference_name, preference_path in self.settings['user'].items():
-                if preference_path and preference_name != 'scripts':
+                if preference_path:
                     preference_type = get_preftype(preference_path)
                     logdata = dict({'pref': preference_type.value, 'sid': self.sid})
                     log('D29', logdata)
@@ -260,11 +243,6 @@ class gpt:
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
                     preference_merger(self.storage, self.sid, preference_objects, self.name)
-                if preference_path and preference_name == 'scripts':
-                    logdata = dict({'pref': preference_path, 'sid': self.sid})
-                    log('D29', logdata)
-                    preference_objects = read_scripts(preference_path)
-                    merge_scripts(self.storage, self.sid, preference_objects, self.name, str(self.policy_num).zfill(5))
         except Exception as exc:
             logdata = dict()
             logdata['gpt'] = self.name

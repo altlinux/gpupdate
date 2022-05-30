@@ -182,11 +182,9 @@ class script_entry(object):
         self.sid = sid
         self.policy_name = policy_name
         self.action = scrobj.action
-        self.queue = scrobj.queue
-        self.policy_num = scrobj.policy_num
+        self.number = scrobj.number
         self.path = scrobj.path
         self.arg = scrobj.arg
-
 
     def update_fields(self):
         '''
@@ -195,8 +193,7 @@ class script_entry(object):
         fields = dict()
         fields['policy_name'] = self.policy_name
         fields['action'] = self.action
-        fields['queue'] = self.queue
-        fields['policy_num'] = self.policy_num
+        fields['number'] = self.number
         fields['path'] = self.path
         fields['arg'] = self.arg
 

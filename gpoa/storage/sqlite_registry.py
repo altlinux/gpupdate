@@ -150,8 +150,7 @@ class sqlite_registry(registry):
             , Column('id', Integer, primary_key=True)
             , Column('sid', String)
             , Column('policy_name', String)
-            , Column('queue', String)
-            , Column('policy_num', String)
+            , Column('number', String)
             , Column('action', String)
             , Column('path', String)
             , Column('arg', String)
@@ -427,9 +426,18 @@ class sqlite_registry(registry):
     def get_envvars(self, sid):
         return self._filter_sid_list(envvar_entry, sid)
 
-    def get_scripts(self, sid):
-        return self._filter_sid_list(script_entry, sid)
+    def _filter_scripts_list(self, row_object, sid, action):
+        res = (self
+            .db_session
+            .query(row_object)
+            .filter(row_object.sid == sid)
+            .filter(row_object.action == action)
+            .order_by(row_object.id)
+            .all())
+        return res
 
+    def get_scripts(self, sid, action):
+        return self._filter_scripts_list(script_entry, sid, action)
 
     def get_hkcu_entry(self, sid, hive_key):
         res = (self

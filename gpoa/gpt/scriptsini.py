@@ -17,57 +17,120 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import configparser
-import re
+import os
 
 
 def read_scripts(scripts_file):
-    scripts = set()
+    scripts = scripts_lists()
+
+    logon_scripts = dict()
+    logoff_scripts = dict()
+    startup_scripts = dict()
+    shutdown_scripts = dict()
+
     config = configparser.ConfigParser()
     config.read(scripts_file, encoding = 'utf-16')
+    scripts_file_dir = os.path.dirname(scripts_file)
+
     actions = config.sections()
     for act in actions:
-        count_qu = list()
+        act_upper = act.upper()
+        if act_upper == 'LOGON':
+            section_scripts = logon_scripts
+        elif act_upper == 'LOGOFF':
+            section_scripts = logoff_scripts
+        elif act_upper == 'STARTUP':
+            section_scripts = startup_scripts
+        elif act_upper == 'SHUTDOWN':
+            section_scripts = shutdown_scripts
+        else:
+            continue
+
         for key in config[act]:
-            qu = re.sub(r'[a-zA-Z]', '', key)
-            if qu not in count_qu:
-                obj_scr = script(act)
-                obj_scr.queue = qu
-                count_qu.append(qu)
+            key_lower = key.lower()
+            key_split = key_lower.split('cmdline')
+            if len(key_split) > 1 and not key_split[1]:
+                if key_split[0].isdigit():
+                    key_index = int(key_split[0])
+                    section_script[key_index] = script(act, scripts_file_dir, config[act][key])
+            key_split = key_lower.split('parameters')
+            if len(key_split) > 1 and not key_split[1]:
+                if key_split[0].isdigit():
+                    key_index = int(key_split[0])
+                    script = section_script.get(key_index)
+                    if script: script.set_args(config[act][key])
 
-            if key.lower().find('cmdline') != -1 and count_qu:
-                obj_scr.path = '{}{}/{}'.format(
-                    scripts_file.removesuffix(scripts_file.split('/')[-1]),
-                    act.upper(),
-                    config[act][key].upper())
-            if key.lower().find('parameters') != -1 and count_qu:
-                obj_scr.arg = config[act][key]
-            scripts.add(obj_scr)
+        for i in sorted(logon_scripts.keys()):
+            scripts_lists.add_script(logon_scripts[i])
+        for i in sorted(logoff_scripts.keys()):
+            scriptslists.add_script(logoff_scripts[i])
+        for i in sorted(startup_scripts.keys()):
+            scriptslists.add_script(startup_scripts[i])
+        for i in sorted(shutdown_scripts.keys()):
+            scriptslists.add_script(shutdown_scripts[i])
 
-    return list(scripts)
+    return scripts
 
-def merge_scripts(storage, sid, scripts_objects, policy_name, policy_num):
-    for script in scripts_objects:
-        script.policy_num = policy_num
-        storage.add_script(sid, script, policy_name)
+def merge_scripts(storage, sid, scripts_objects, policy_name):
+    for script in scripts_objects.get_logon_scripts()
+        storage.add_logon_script(sid, script)
+    for script in scripts_objects.get_logoff_scripts()
+        storage.add_logoff_script(sid, script)
+    for script in scripts_objects.get_startup_scripts()
+        storage.add_startup_script(sid, script)
+    for script in scripts_objects.get_shutdown_scripts()
+        storage.add_shutdown_script(sid, script)
 
+class scripts_lists:
+    def __init__ (self):
+        self.__logon_scripts = list()
+        self.__logoff_scripts = list()
+        self.__startup_scripts = list()
+        self.__shutdown_scripts = list()
+
+    def get_logon_scripts(self, action):
+        return self.__logon_scripts
+    def get_logoff_scripts(self, action):
+        return self.__logoff_scripts
+    def get_startup_scripts(self, action):
+        return self.__startup_scripts
+    def get_shutdown_scripts(self, action):
+        return self.__shutdown_scripts
+
+    def add_script(self, action, script):
+        self.get_action_list(action).append(script)
+    def add_script(self, action, script):
+        self.get_action_list(action).append(script)
+    def add_script(self, action, script):
+        self.get_action_list(action).append(script)
+    def add_script(self, action, script):
+        self.get_action_list(action).append(script)
 
 class script:
-    def __init__(self, action):
-        self.action = action
-        self.queue = str()
-        self.policy_num = str()
-        self.path = str()
-        self.arg = str()
+    __logon_counter = 0
+    __logoff_counter = 0
+    __startup_counter = 0
+    __shutdown_counter = 0
 
-    def set_obj(self, qu):
-        if qu is not self.queue:
-            self.queue = qu
+    def __init__(self, action, script_dir, script_filename):
+        action_upper = action.upper()
+        self.action = action_upper
+        self.path = os.path.join(script_dir, action_upper, script_filename.upper())
+        self.args = None
 
-    def add_item(self,qu, data):
-        self.qu[qu].append(data)
+        if action_upper == 'LOGON':
+            self.number = script.__logon_counter
+            script.__logon_counter += 1
+        elif action_upper == 'LOGOFF':
+            self.number = script.__logoff_counter
+            script.__logoff_counter += 1
+        elif action_upper == 'STARTUP':
+            self.number = script.__startup_counter
+            script.__startup_counter += 1
+        elif action_upper == 'SHUTDOWN':
+            self.number = script.__shutdown_counter
+            script.__shutdown_counter += 1
 
-    def checke_qu(self, qu):
-        if qu in self.qu.keys():
-            return True
-        else:
-            return False
+    def set_args(self, args):
+        self.args = args
+

@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2022 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,7 +38,8 @@ class scripts_applier(applier_frontend):
     def __init__(self, storage, sid):
         self.storage = storage
         self.sid = sid
-        self.scripts = self.storage.get_scripts(self.sid)
+        self.startup_scripts = self.storage.get_scripts(self.sid, 'STARTUP')
+        self.shutdown_scripts = self.storage.get_scripts(self.sid, 'SHUTDOWN')
         self.folder_path = Path(self.__cache_scripts)
         self.__module_enabled = check_enabled(self.storage
             , self.__module_name
@@ -61,12 +62,14 @@ class scripts_applier(applier_frontend):
         Creating and updating folder directories for scripts and copying them
         '''
         self.folder_path.mkdir(parents=True, exist_ok=True)
-        for ts in self.scripts:
-            if ts.path.split('/')[-4] == 'MACHINE':
-                script_path = (self.__cache_scripts +
-                               ts.policy_num + '/' +
-                               '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
-                install_script(ts, script_path, '700')
+        for ts in self.startup_scripts:
+            # FIXME
+            script_path = os.path.join(self.__cache_scripts)
+            install_script(ts, script_path, '700')
+        for ts in self.shutdown_scripts:
+            # FIXME
+            script_path = os.path.join(self.__cache_scripts)
+            install_script(ts, script_path, '700')
 
     def run(self):
         self.filling_cache()
@@ -88,8 +91,9 @@ class scripts_applier_user(applier_frontend):
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
+        self.logon_scripts = self.storage.get_scripts(self.sid, 'LOGON')
+        self.logoff_scripts = self.storage.get_scripts(self.sid, 'LOGOFF')
         self.username = username
-        self.scripts = self.storage.get_scripts(self.sid)
         self.folder_path = Path(self.__cache_scripts + self.username)
         self.__module_enabled = check_enabled(self.storage
             , self.__module_name
@@ -114,13 +118,14 @@ class scripts_applier_user(applier_frontend):
         '''
         self.folder_path.mkdir(parents=True, exist_ok=True)
         if self.__module_enabled:
-            for ts in self.scripts:
-                if ts.path.split('/')[-4] == 'USER':
-                    script_path = (self.__cache_scripts +
-                                self.username + '/' +
-                                ts.policy_num + '/' +
-                                '/'.join(ts.path.split('/')[ts.path.split('/').index('POLICIES')+4:-1]))
-                    install_script(ts, script_path, '755')
+            for ts in self.logon_scripts:
+                # FIXME
+                script_path = os.path.join(self.__cache_scripts, self.username)
+                install_script(ts, script_path, '755')
+            for ts in self.logoff_scripts:
+                # FIXME
+                script_path = os.path.join(self.__cache_scripts, self.username)
+                install_script(ts, script_path, '755')
 
     def user_context_apply(self):
         pass
@@ -136,7 +141,7 @@ class scripts_applier_user(applier_frontend):
         else:
             log('D159')
 
-def install_script(storage_script_entry, script_path, access_permissions):
+def install_script(storage_script_entry, script_dir, access_permissions):
     '''
     Copy scripts to specific directories and
     if given arguments
@@ -144,13 +149,14 @@ def install_script(storage_script_entry, script_path, access_permissions):
     '''
     dir_cr = Path(script_path)
     dir_cr.mkdir(parents=True, exist_ok=True)
-    script_file = (script_path + '/' +
-                   str(int(storage_script_entry.queue)).zfill(5) +
-                   '_' + storage_script_entry.path.split('/')[-1])
+    script_name = str(int(storage_script_entry.number)).zfill(5) +
+                  '_' + os.path.basename(storage_script_entry.path)
+    script_file = os.path.join(script_dir, script_name)
     shutil.copyfile(storage_script_entry.path, script_file)
+
     os.chmod(script_file, int(access_permissions, base = 8))
     if storage_script_entry.arg:
-        dir_path = script_path + '/' + script_file.split('/')[-1] + '.arg'
+        dir_path = script_path + '/' + script_name + '.arg'
         dir_arg = Path(dir_path)
         dir_arg.mkdir(parents=True, exist_ok=True)
         file_arg = open(dir_path + '/arg', 'w')
