@@ -52,33 +52,34 @@ def read_scripts(scripts_file):
             if len(key_split) > 1 and not key_split[1]:
                 if key_split[0].isdigit():
                     key_index = int(key_split[0])
-                    section_script[key_index] = script(act, scripts_file_dir, config[act][key])
+                    section_scripts[key_index] = script(act, scripts_file_dir, config[act][key])
             key_split = key_lower.split('parameters')
             if len(key_split) > 1 and not key_split[1]:
                 if key_split[0].isdigit():
                     key_index = int(key_split[0])
-                    script = section_script.get(key_index)
+                    script = section_scripts.get(key_index)
                     if script: script.set_args(config[act][key])
 
         for i in sorted(logon_scripts.keys()):
             scripts_lists.add_script(logon_scripts[i])
         for i in sorted(logoff_scripts.keys()):
-            scriptslists.add_script(logoff_scripts[i])
+            scripts_lists.add_script(logoff_scripts[i])
         for i in sorted(startup_scripts.keys()):
-            scriptslists.add_script(startup_scripts[i])
+            scripts_lists.add_script(startup_scripts[i])
         for i in sorted(shutdown_scripts.keys()):
-            scriptslists.add_script(shutdown_scripts[i])
+            scripts_lists.add_script(shutdown_scripts[i])
+
 
     return scripts
 
 def merge_scripts(storage, sid, scripts_objects, policy_name):
-    for script in scripts_objects.get_logon_scripts()
+    for script in scripts_objects.get_logon_scripts():
         storage.add_logon_script(sid, script)
-    for script in scripts_objects.get_logoff_scripts()
+    for script in scripts_objects.get_logoff_scripts():
         storage.add_logoff_script(sid, script)
-    for script in scripts_objects.get_startup_scripts()
+    for script in scripts_objects.get_startup_scripts():
         storage.add_startup_script(sid, script)
-    for script in scripts_objects.get_shutdown_scripts()
+    for script in scripts_objects.get_shutdown_scripts():
         storage.add_shutdown_script(sid, script)
 
 class scripts_lists:

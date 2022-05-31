@@ -147,16 +147,15 @@ def install_script(storage_script_entry, script_dir, access_permissions):
     if given arguments
     create directories for them and copy them there
     '''
-    dir_cr = Path(script_path)
+    dir_cr = Path(script_dir)
     dir_cr.mkdir(parents=True, exist_ok=True)
-    script_name = str(int(storage_script_entry.number)).zfill(5) +
-                  '_' + os.path.basename(storage_script_entry.path)
+    script_name = str(int(storage_script_entry.number)).zfill(5) + '_' + os.path.basename(storage_script_entry.path)
     script_file = os.path.join(script_dir, script_name)
     shutil.copyfile(storage_script_entry.path, script_file)
 
     os.chmod(script_file, int(access_permissions, base = 8))
     if storage_script_entry.arg:
-        dir_path = script_path + '/' + script_name + '.arg'
+        dir_path = script_dir + '/' + script_name + '.arg'
         dir_arg = Path(dir_path)
         dir_arg.mkdir(parents=True, exist_ok=True)
         file_arg = open(dir_path + '/arg', 'w')
