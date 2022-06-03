@@ -33,6 +33,7 @@ def read_scripts(scripts_file):
     scripts_file_dir = os.path.dirname(scripts_file)
 
     actions = config.sections()
+
     for act in actions:
         act_upper = act.upper()
         if act_upper == 'LOGON':
@@ -58,11 +59,20 @@ def read_scripts(scripts_file):
                 if key_split[0].isdigit():
                     key_index = int(key_split[0])
                     section_scripts[key_index].set_args(config[act][key])
-        if section_scripts:
-            for i in sorted(section_scripts.keys()):
-                keys_reverse = sorted(section_scripts.keys(), reverse=True)
-                section_scripts[i].number = section_scripts[i].number - i + keys_reverse[i]
-                scripts.add_script(act_upper, section_scripts[i])
+    if logon_scripts:
+        for i in sorted(logon_scripts.keys()):
+            scripts.add_script(act_upper, logon_scripts[i])
+    if logoff_scripts:
+        for i in sorted(logoff_scripts.keys()):
+            scripts.add_script(act_upper, logoff_scripts[i])
+
+    if startup_scripts:
+        for i in sorted(startup_scripts.keys()):
+            scripts.add_script(act_upper, startup_scripts[i])
+
+    if shutdown_scripts:
+        for i in sorted(shutdown_scripts.keys()):
+            scripts.add_script(act_upper, shutdown_scripts[i])
 
 
     return scripts

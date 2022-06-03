@@ -2,7 +2,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2022 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,14 +30,12 @@ class Scripts_runner:
         self.dir_scripts_machine = '/var/cache/gpupdate_scripts_cache/machine/'
         self.dir_scripts_users = '/var/cache/gpupdate_scripts_cache/users/'
         self.user_name = user_name
-        self.sort_path_scripts = dict()
         self.list_with_all_commands = list()
-        self.stack_dir = list()
-
+        stack_dir = None
         if work_mode and work_mode.upper() == 'MACHINE':
-            self.machine_runner_fill()
+            stack_dir = self.machine_runner_fill()
         elif work_mode and work_mode.upper() == 'USER':
-            self.user_runner_fill()
+            stack_dir = self.user_runner_fill()
         else:
             print('Invalid arguments entered')
             return
@@ -47,70 +45,60 @@ class Scripts_runner:
             print('Action needed')
             return
 
-        self.find_action()
-        self.sort_path_scripts = sorted(self.sort_path_scripts.items(), reverse = True)
-        for key in self.sort_path_scripts:
-            self.list_with_all_commands.append(self.search_scripts_in_dir(key[1]))
-
-        for it in range(len(self.list_with_all_commands)):
-            for it_cmd in self.list_with_all_commands.pop(0):
-                print(self.run_cmd_subprocess(it_cmd))
+        self.find_action(stack_dir)
+        for it_cmd in self.list_with_all_commands:
+            print(self.run_cmd_subprocess(it_cmd))
 
     def user_runner_fill(self):
-        if self.dir_scripts_users and self.user_name:
-            self.get_stack_dir(self.dir_scripts_users + self.user_name, self.stack_dir)
+        return self.get_stack_dir(self.dir_scripts_users + self.user_name)
 
     def machine_runner_fill(self):
-        if self.dir_scripts_machine:
-            self.get_stack_dir(self.dir_scripts_machine, self.stack_dir)
+        return self.get_stack_dir(self.dir_scripts_machine)
 
-    def get_stack_dir(self, path_dir, stack = None):
-        if stack == True:
-            stack = list()
+    def get_stack_dir(self, path_dir):
+        stack_dir = list()
         try:
             dir_script = Path(path_dir)
             for it_dir in dir_script.iterdir():
-                stack.append(str(it_dir))
-            return stack
+                stack_dir.append(str(it_dir))
+            return stack_dir
         except Exception as exc:
             print(exc)
             return None
 
-    def find_action(self):
-        self.stack_dir.sort()
-        while self.stack_dir:
-            path_turn = self.stack_dir.pop()
-            key_dict = str(path_turn).split('/')[-1]
-            list_tmp = self.get_stack_dir(path_turn, True)
-            for action in list_tmp:
-                if action.find(self.action) != -1:
-                    self.sort_path_scripts[key_dict] = action
+    def find_action(self, stack_dir):
+        if not stack_dir:
+            return
+        list_tmp = list()
+        while stack_dir:
+            path_turn = stack_dir.pop()
+            act = str(path_turn).split('/')[-1]
+            if act.find(self.action) != -1:
+                list_tmp = self.get_stack_dir(path_turn)
+        if list_tmp:
+            self.launch_list(list_tmp)
 
-    def search_scripts_in_dir(self, path_to_action):
-        one_gpt_action_scripts = self.get_stack_dir(path_to_action, True)
-        return self.launch_list(one_gpt_action_scripts)
 
-    def launch_list(self, list_gpt):
-        list_gpt = sorted(list_gpt)
-        script_cmd = list()
-        for file_in_task_dir in list_gpt:
+    def launch_list(self, list_tmp):
+        list_tmp = sorted(list_tmp)
+        for file_in_task_dir in list_tmp:
             if file_in_task_dir[-4:].upper() == '.ARG':
                 try:
                     arg = self.read_args(file_in_task_dir)
-                    script_cmd[-1] += arg
+                    for it_arg in arg.split():
+                        self.list_with_all_commands[-1].append(it_arg)
                 except Exception as exc:
-                    print('Argument read for {}: {}'.format(script_cmd.pop(), exc))
+                    print('Argument read for {}: {}'.format(self.list_with_all_commands.pop(), exc))
             else:
                 cmd = list()
                 cmd.append(file_in_task_dir)
-                script_cmd.append(cmd)
+                self.list_with_all_commands.append(cmd)
 
-        return script_cmd
 
     def read_args(self, path):
         with open(path + '/arg') as f:
             args = f.readlines()
-        return args
+        return args[0]
 
     def run_cmd_subprocess(self, cmd):
         try:
