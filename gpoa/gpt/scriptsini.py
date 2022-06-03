@@ -21,7 +21,7 @@ import os
 
 
 def read_scripts(scripts_file):
-    scripts = scripts_lists()
+    scripts = Scripts_lists()
 
     logon_scripts = dict()
     logoff_scripts = dict()
@@ -52,62 +52,59 @@ def read_scripts(scripts_file):
             if len(key_split) > 1 and not key_split[1]:
                 if key_split[0].isdigit():
                     key_index = int(key_split[0])
-                    section_scripts[key_index] = script(act, scripts_file_dir, config[act][key])
+                    section_scripts[key_index] = Script(act, scripts_file_dir, config[act][key])
             key_split = key_lower.split('parameters')
             if len(key_split) > 1 and not key_split[1]:
                 if key_split[0].isdigit():
                     key_index = int(key_split[0])
-                    script = section_scripts.get(key_index)
-                    if script: script.set_args(config[act][key])
-
-        for i in sorted(logon_scripts.keys()):
-            scripts_lists.add_script(logon_scripts[i])
-        for i in sorted(logoff_scripts.keys()):
-            scripts_lists.add_script(logoff_scripts[i])
-        for i in sorted(startup_scripts.keys()):
-            scripts_lists.add_script(startup_scripts[i])
-        for i in sorted(shutdown_scripts.keys()):
-            scripts_lists.add_script(shutdown_scripts[i])
+                    section_scripts[key_index].set_args(config[act][key])
+        if section_scripts:
+            for i in sorted(section_scripts.keys()):
+                keys_reverse = sorted(section_scripts.keys(), reverse=True)
+                section_scripts[i].number = section_scripts[i].number - i + keys_reverse[i]
+                scripts.add_script(act_upper, section_scripts[i])
 
 
     return scripts
 
 def merge_scripts(storage, sid, scripts_objects, policy_name):
     for script in scripts_objects.get_logon_scripts():
-        storage.add_logon_script(sid, script)
+        storage.add_script(sid, script, policy_name)
     for script in scripts_objects.get_logoff_scripts():
-        storage.add_logoff_script(sid, script)
+        storage.add_script(sid, script, policy_name)
     for script in scripts_objects.get_startup_scripts():
-        storage.add_startup_script(sid, script)
+        storage.add_script(sid, script, policy_name)
     for script in scripts_objects.get_shutdown_scripts():
-        storage.add_shutdown_script(sid, script)
+        storage.add_script(sid, script, policy_name)
 
-class scripts_lists:
+class Scripts_lists:
     def __init__ (self):
         self.__logon_scripts = list()
         self.__logoff_scripts = list()
         self.__startup_scripts = list()
         self.__shutdown_scripts = list()
 
-    def get_logon_scripts(self, action):
+    def get_logon_scripts(self):
         return self.__logon_scripts
-    def get_logoff_scripts(self, action):
+    def get_logoff_scripts(self):
         return self.__logoff_scripts
-    def get_startup_scripts(self, action):
+    def get_startup_scripts(self):
         return self.__startup_scripts
-    def get_shutdown_scripts(self, action):
+    def get_shutdown_scripts(self):
         return self.__shutdown_scripts
 
     def add_script(self, action, script):
-        self.get_action_list(action).append(script)
-    def add_script(self, action, script):
-        self.get_action_list(action).append(script)
-    def add_script(self, action, script):
-        self.get_action_list(action).append(script)
-    def add_script(self, action, script):
-        self.get_action_list(action).append(script)
+        if action == 'LOGON':
+            self.get_logon_scripts().append(script)
+        elif action == 'LOGOFF':
+            self.get_logoff_scripts().append(script)
+        elif action == 'STARTUP':
+            self.get_startup_scripts().append(script)
+        elif action == 'SHUTDOWN':
+            self.get_shutdown_scripts().append(script)
 
-class script:
+
+class Script:
     __logon_counter = 0
     __logoff_counter = 0
     __startup_counter = 0
@@ -120,17 +117,17 @@ class script:
         self.args = None
 
         if action_upper == 'LOGON':
-            self.number = script.__logon_counter
-            script.__logon_counter += 1
+            self.number = Script.__logon_counter
+            Script.__logon_counter += 1
         elif action_upper == 'LOGOFF':
-            self.number = script.__logoff_counter
-            script.__logoff_counter += 1
+            self.number = Script.__logoff_counter
+            Script.__logoff_counter += 1
         elif action_upper == 'STARTUP':
-            self.number = script.__startup_counter
-            script.__startup_counter += 1
+            self.number = Script.__startup_counter
+            Script.__startup_counter += 1
         elif action_upper == 'SHUTDOWN':
-            self.number = script.__shutdown_counter
-            script.__shutdown_counter += 1
+            self.number = Script.__shutdown_counter
+            Script.__shutdown_counter += 1
 
     def set_args(self, args):
         self.args = args
