@@ -63,12 +63,10 @@ class scripts_applier(applier_frontend):
         '''
         self.folder_path.mkdir(parents=True, exist_ok=True)
         for ts in self.startup_scripts:
-            # FIXME
-            script_path = os.path.join(self.__cache_scripts)
+            script_path = os.path.join(self.__cache_scripts, 'STARTUP')
             install_script(ts, script_path, '700')
         for ts in self.shutdown_scripts:
-            # FIXME
-            script_path = os.path.join(self.__cache_scripts)
+            script_path = os.path.join(self.__cache_scripts, 'SHUTDOWN')
             install_script(ts, script_path, '700')
 
     def run(self):
@@ -117,15 +115,13 @@ class scripts_applier_user(applier_frontend):
         Creating and updating folder directories for scripts and copying them
         '''
         self.folder_path.mkdir(parents=True, exist_ok=True)
-        if self.__module_enabled:
-            for ts in self.logon_scripts:
-                # FIXME
-                script_path = os.path.join(self.__cache_scripts, self.username)
-                install_script(ts, script_path, '755')
-            for ts in self.logoff_scripts:
-                # FIXME
-                script_path = os.path.join(self.__cache_scripts, self.username)
-                install_script(ts, script_path, '755')
+
+        for ts in self.logon_scripts:
+            script_path = os.path.join(self.__cache_scripts, self.username, 'LOGON')
+            install_script(ts, script_path, '755')
+        for ts in self.logoff_scripts:
+            script_path = os.path.join(self.__cache_scripts, self.username, 'LOGOFF')
+            install_script(ts, script_path, '755')
 
     def user_context_apply(self):
         pass
