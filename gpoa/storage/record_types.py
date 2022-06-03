@@ -184,7 +184,7 @@ class script_entry(object):
         self.action = scrobj.action
         self.number = scrobj.number
         self.path = scrobj.path
-        self.arg = scrobj.arg
+        self.arg = scrobj.args
 
     def update_fields(self):
         '''
