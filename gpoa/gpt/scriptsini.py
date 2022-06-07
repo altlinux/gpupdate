@@ -62,6 +62,7 @@ def read_scripts(scripts_file):
     if logon_scripts:
         for i in sorted(logon_scripts.keys()):
             scripts.add_script(act_upper, logon_scripts[i])
+
     if logoff_scripts:
         for i in sorted(logoff_scripts.keys()):
             scripts.add_script(act_upper, logoff_scripts[i])

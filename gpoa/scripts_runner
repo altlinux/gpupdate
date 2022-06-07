@@ -19,6 +19,7 @@
 
 import subprocess
 import argparse
+import os
 from pathlib import Path
 
 class Scripts_runner:
@@ -72,17 +73,18 @@ class Scripts_runner:
         list_tmp = list()
         while stack_dir:
             path_turn = stack_dir.pop()
-            act = str(path_turn).split('/')[-1]
-            if act.find(self.action) != -1:
+            basename = os.path.basename(path_turn)
+            if basename == self.action:
                 list_tmp = self.get_stack_dir(path_turn)
         if list_tmp:
-            self.launch_list(list_tmp)
+            self.fill_list_cmd(list_tmp)
 
 
-    def launch_list(self, list_tmp):
+    def fill_list_cmd(self, list_tmp):
         list_tmp = sorted(list_tmp)
         for file_in_task_dir in list_tmp:
-            if file_in_task_dir[-4:].upper() == '.ARG':
+            suffix = os.path.basename(file_in_task_dir)[-4:]
+            if suffix == '.arg':
                 try:
                     arg = self.read_args(file_in_task_dir)
                     for it_arg in arg.split():
