@@ -64,7 +64,10 @@ from .tasks import (
       read_tasks
     , merge_tasks
 )
-
+from .scriptsini import (
+      read_scripts
+    , merge_scripts
+)
 import util
 import util.preg
 from util.paths import (
@@ -87,6 +90,7 @@ class FileType(Enum):
     INIFILES = 'inifiles.xml'
     SERVICES = 'services.xml'
     PRINTERS = 'printers.xml'
+    SCRIPTS = 'scripts.ini'
 
 def get_preftype(path_to_file):
     fpath = Path(path_to_file)
@@ -112,6 +116,7 @@ def pref_parsers():
     parsers[FileType.INIFILES] = read_inifiles
     parsers[FileType.SERVICES] = read_services
     parsers[FileType.PRINTERS] = read_printers
+    parsers[FileType.SCRIPTS] = read_scripts
 
     return parsers
 
@@ -132,6 +137,7 @@ def pref_mergers():
     mergers[FileType.INIFILES] = merge_inifiles
     mergers[FileType.SERVICES] = merge_services
     mergers[FileType.PRINTERS] = merge_printers
+    mergers[FileType.SCRIPTS] = merge_scripts
 
     return mergers
 
@@ -145,13 +151,14 @@ class gpt:
         self.sid = sid
         self.storage = registry_factory('registry')
         self.name = ''
-
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:
             self.guid = 'Local Policy'
 
         self._machine_path = find_dir(self.path, 'Machine')
         self._user_path = find_dir(self.path, 'User')
+        self._scripts_machine_path = find_dir(self._machine_path, 'Scripts')
+        self._scripts_user_path = find_dir(self._user_path, 'Scripts')
 
         self.settings_list = [
               'shortcuts'
@@ -163,6 +170,7 @@ class gpt:
             , 'inifiles'
             , 'services'
             , 'scheduledtasks'
+            , 'scripts'
         ]
         self.settings = dict()
         self.settings['machine'] = dict()
@@ -178,6 +186,10 @@ class gpt:
             ulogdata = dict({'setting': setting, 'prefpath': user_preffile})
             log('D23', ulogdata)
             self.settings['user'][setting] = user_preffile
+
+        self.settings['machine']['scripts'] = find_file(self._scripts_machine_path, 'scripts.ini')
+        self.settings['user']['scripts'] = find_file(self._scripts_user_path, 'scripts.ini')
+
 
     def set_name(self, name):
         '''

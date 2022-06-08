@@ -19,6 +19,12 @@
 
 from enum import Enum
 
+import pwd
+import logging
+import subprocess
+import pysss_nss_idmap
+
+from .logging import log
 
 def wbinfo_getsid(domain, user):
     '''
@@ -39,24 +45,34 @@ def wbinfo_getsid(domain, user):
     return sid
 
 
-def get_sid(domain, username):
+def get_local_sid_prefix():
+    return "S-1-5-21-0-0-0"
+
+
+def get_sid(domain, username, is_machine = False):
     '''
     Lookup SID not only using wbinfo or sssd but also using own cache
     '''
-    domain_username = '{}\\{}'.format(domain, username)
     sid = 'local-{}'.format(username)
 
+    # local user
+    if not domain:
+        found_uid = 0
+        if not is_machine:
+            found_uid = pwd.getpwnam(username).pw_uid
+        return '{}-{}'.format(get_local_sid_prefix(), found_uid)
+
+    # domain user
     try:
         sid = wbinfo_getsid(domain, username)
     except:
-        sid = 'local-{}'.format(username)
-        logging.warning(
-            slogm('Error getting SID using wbinfo, will use cached SID: {}'.format(sid)))
+        logdata = dict({'sid': sid})
+        log('E16', logdata)
 
-    logging.debug(slogm('Working with SID: {}'.format(sid)))
+    logdata = dict({'sid': sid})
+    log('D21', logdata)
 
     return sid
-
 
 class IssuingAuthority(Enum):
     SECURITY_NULL_SID_AUTHORITY = 0

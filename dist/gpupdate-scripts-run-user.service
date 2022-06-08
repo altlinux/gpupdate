@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Group Policy scripts for a user
+After=gpupdate-user.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/libexec/gpupdate/scripts_runner --mode USER --action LOGON --user %u
+ExecStop=/usr/libexec/gpupdate/scripts_runner --mode USER --action LOGOFF --user %u
+
+[Install]
+WantedBy=default.target

@@ -174,3 +174,27 @@ class envvar_entry(object):
 
         return fields
 
+class script_entry(object):
+    '''
+    Object mapping representing scripts.ini
+    '''
+    def __init__(self, sid, scrobj, policy_name):
+        self.sid = sid
+        self.policy_name = policy_name
+        self.action = scrobj.action
+        self.number = scrobj.number
+        self.path = scrobj.path
+        self.arg = scrobj.args
+
+    def update_fields(self):
+        '''
+        Return list of fields to update
+        '''
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['action'] = self.action
+        fields['number'] = self.number
+        fields['path'] = self.path
+        fields['arg'] = self.arg
+
+        return fields

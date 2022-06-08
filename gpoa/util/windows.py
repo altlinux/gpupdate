@@ -18,14 +18,12 @@
 
 
 import os
-import pwd
-
+import subprocess
 from samba import getopt as options
 from samba import NTSTATUSError
 from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 import samba.gpo
-import pysss_nss_idmap
 
 from storage import cache_factory
 from messages import message_with_code
@@ -144,55 +142,6 @@ class smbcreds (smbopts):
                 log('F1', logdata)
                 raise exc
         return gpos
-
-def wbinfo_getsid(domain, user):
-    '''
-    Get SID using wbinfo
-    '''
-    # This part works only on client
-    username = '{}\\{}'.format(domain.upper(), user)
-    sid = pysss_nss_idmap.getsidbyname(username)
-
-    if username in sid:
-        return sid[username]['sid']
-
-    # This part works only on DC
-    wbinfo_cmd = ['wbinfo', '-n', username]
-    output = subprocess.check_output(wbinfo_cmd)
-    sid = output.split()[0].decode('utf-8')
-
-    return sid
-
-
-def get_local_sid_prefix():
-    return "S-1-5-21-0-0-0"
-
-
-def get_sid(domain, username, is_machine = False):
-    '''
-    Lookup SID not only using wbinfo or sssd but also using own cache
-    '''
-    sid = 'local-{}'.format(username)
-
-    # local user
-    if not domain:
-        found_uid = 0
-        if not is_machine:
-            found_uid = pwd.getpwnam(username).pw_uid
-        return '{}-{}'.format(get_local_sid_prefix(), found_uid)
-
-    # domain user
-    try:
-        sid = wbinfo_getsid(domain, username)
-    except:
-        logdata = dict({'sid': sid})
-        log('E16', logdata)
-
-    logdata = dict({'sid': sid})
-    log('D21', logdata)
-
-    return sid
-
 
 def expand_windows_var(text, username=None):
     '''

@@ -1,12 +1,14 @@
 [Unit]
-Description=Group policy update for machine
-After=syslog.target network-online.target sssd.service
+Description=Running Group Policy Scripts
+After=gpupdate.service
 
 [Service]
 Environment=PATH=/bin:/sbin:/usr/bin:/usr/sbin
 UnsetEnvironment=LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION
 Type=oneshot
-ExecStart=/usr/bin/gpupdate
+RemainAfterExit=true
+ExecStart=/usr/libexec/gpupdate/scripts_runner --mode MACHINE --action STARTUP
+ExecStop=/usr/libexec/gpupdate/scripts_runner --mode MACHINE --action SHUTDOWN
 StandardOutput=journal
 
 [Install]

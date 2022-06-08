@@ -225,6 +225,12 @@ msgstr "Ошибка при запуске pkcon_runner асинхронно д�
 msgid "Error merging user GPT (from machine GPO)"
 msgstr "Ошибка слияния пользовательской групповой политики (машинная часть)"
 
+msgid "Error cleaning directory for machine"
+msgstr "Ошибка очистки каталога для машины"
+
+msgid "Error cleaning directory for user"
+msgstr "Ошибка очистки каталога для пользователя"
+
 # Error_end
 
 # Debug
@@ -659,6 +665,33 @@ msgstr "Не удалось найти настройки gsettings пользо
 
 msgid "Configure user Group Policy loopback processing mode"
 msgstr "Настройка режима обработки замыкания пользовательской групповой политики"
+
+msgid "Saving information about script"
+msgstr "Сохранение информации о скрипте"
+
+msgid "No machine scripts directory to clean up"
+msgstr "Нет каталога машинных скриптов для очистки"
+
+msgid "No user scripts directory to clean up"
+msgstr "Нет каталога пользовательских скриптов для очистки"
+
+msgid "Prepare Scripts applier for machine"
+msgstr "Подготовка к применению машинных скриптов"
+
+msgid "Scripts applier for machine will not be started"
+msgstr "Применение машинных скриптов не запускается"
+
+msgid "Prepare Scripts applier for user in user context"
+msgstr "Подготовка к применению скриптов пользователя в его контексте"
+
+msgid "Scripts applier for user in user context will not be started"
+msgstr "Применение скриптов пользователя в его контексте не запускается"
+
+msgid "Clean machine scripts directory"
+msgstr "Очистка каталога машинных скриптов"
+
+msgid "Clean user scripts directory"
+msgstr "Очистка каталога пользовательских скриптов"
 
 # Debug_end
 

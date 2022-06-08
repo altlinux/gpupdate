@@ -35,7 +35,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from util.logging import slogm, log
-from util.util import is_machine_name
+from util.util import is_machine_name, get_homedir
 
 class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'
@@ -63,7 +63,7 @@ class firefox_applier(applier_frontend):
         '''
         Get directory names of Firefox profiles for specified username.
         '''
-        profiles_ini = os.path.join(util.get_homedir(self.username), self.__user_settings_dir, 'profiles.ini')
+        profiles_ini = os.path.join(get_homedir(self.username), self.__user_settings_dir, 'profiles.ini')
         config = configparser.ConfigParser()
         config.read(profiles_ini)
 
@@ -204,7 +204,7 @@ class firefox_applier(applier_frontend):
     def user_apply(self):
         profiles = self.get_profiles()
 
-        profiledir = os.path.join(util.get_homedir(self.username), self.__user_settings_dir)
+        profiledir = os.path.join(get_homedir(self.username), self.__user_settings_dir)
         for profile in profiles:
             logdata = dict()
             logdata['profiledir'] = profiledir

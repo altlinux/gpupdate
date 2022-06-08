@@ -51,7 +51,12 @@ from .envvar_applier import (
       envvar_applier
     , envvar_applier_user
 )
-from util.windows import get_sid
+from .scripts_applier import (
+      scripts_applier
+    , scripts_applier_user
+)
+
+from util.sid import get_sid
 from util.users import (
     is_root,
     get_process_user,
@@ -111,6 +116,13 @@ class frontend_manager:
         self.file_cache = fs_file_cache('file_cache')
 
         self.machine_appliers = dict()
+        self.user_appliers = dict()
+        if is_machine:
+            self._init_machine_appliers()
+        else:
+            self._init_user_appliers()
+
+    def _init_machine_appliers(self):
         self.machine_appliers['control'] = control_applier(self.storage)
         self.machine_appliers['polkit'] = polkit_applier(self.storage)
         self.machine_appliers['systemd'] = systemd_applier(self.storage)
@@ -124,10 +136,11 @@ class frontend_manager:
         self.machine_appliers['package'] = package_applier(self.storage)
         self.machine_appliers['ntp'] = ntp_applier(self.storage)
         self.machine_appliers['envvar'] = envvar_applier(self.storage, self.sid)
+        self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
 
+    def _init_user_appliers(self):
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
-        self.user_appliers = dict()
         self.user_appliers['shortcuts'] = shortcut_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['folders'] = folder_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.file_cache, self.sid, self.username)
@@ -141,6 +154,7 @@ class frontend_manager:
         self.user_appliers['package'] = package_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['polkit'] = polkit_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['envvar'] = envvar_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
 
     def machine_apply(self):
         '''

@@ -98,6 +98,8 @@ def error_code(code):
     error_ids[61] = 'Error running pkcon_runner async for machine'
     error_ids[62] = 'Error running pkcon_runner async for user'
     error_ids[63] = 'Error merging user GPT (from machine GPO)'
+    error_ids[64] = 'Error to cleanup directory for machine'
+    error_ids[65] = 'Error to cleanup directory for user'
 
 
     return error_ids.get(code, 'Unknown error code')
@@ -256,6 +258,15 @@ def debug_code(code):
     debug_ids[150] = 'Failed to found gsettings for machine'
     debug_ids[151] = 'Failed to found user gsettings'
     debug_ids[152] = 'Configure user Group Policy loopback processing mode'
+    debug_ids[153] = 'Saving information about script'
+    debug_ids[154] = 'No machine scripts directory to clean up'
+    debug_ids[155] = 'No user scripts directory to clean up'
+    debug_ids[156] = 'Prepare Scripts applier for machine'
+    debug_ids[157] = 'Scripts applier for machine will not be started'
+    debug_ids[158] = 'Prepare Scripts applier for user in user context'
+    debug_ids[159] = 'Scripts applier for user in user context will not be started'
+    debug_ids[160] = 'Clean machine scripts directory'
+    debug_ids[161] = 'Clean user scripts directory'
 
     return debug_ids.get(code, 'Unknown debug code')
 

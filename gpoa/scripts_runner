@@ -1,0 +1,124 @@
+#!/usr/bin/python3
+#
+# GPOA - GPO Applier for Linux
+#
+# Copyright (C) 2019-2022 BaseALT Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import subprocess
+import argparse
+import os
+from pathlib import Path
+
+class Scripts_runner:
+    '''
+    A class for an object that iterates over directories with scripts
+    in the desired sequence and launches them
+    '''
+    def __init__(self, work_mode = None,  user_name = None, action = None):
+        self.dir_scripts_machine = '/var/cache/gpupdate_scripts_cache/machine/'
+        self.dir_scripts_users = '/var/cache/gpupdate_scripts_cache/users/'
+        self.user_name = user_name
+        self.list_with_all_commands = list()
+        stack_dir = None
+        if work_mode and work_mode.upper() == 'MACHINE':
+            stack_dir = self.machine_runner_fill()
+        elif work_mode and work_mode.upper() == 'USER':
+            stack_dir = self.user_runner_fill()
+        else:
+            print('Invalid arguments entered')
+            return
+        if action:
+            self.action = action.upper()
+        else:
+            print('Action needed')
+            return
+
+        self.find_action(stack_dir)
+        for it_cmd in self.list_with_all_commands:
+            print(self.run_cmd_subprocess(it_cmd))
+
+    def user_runner_fill(self):
+        return self.get_stack_dir(self.dir_scripts_users + self.user_name)
+
+    def machine_runner_fill(self):
+        return self.get_stack_dir(self.dir_scripts_machine)
+
+    def get_stack_dir(self, path_dir):
+        stack_dir = list()
+        try:
+            dir_script = Path(path_dir)
+            for it_dir in dir_script.iterdir():
+                stack_dir.append(str(it_dir))
+            return stack_dir
+        except Exception as exc:
+            print(exc)
+            return None
+
+    def find_action(self, stack_dir):
+        if not stack_dir:
+            return
+        list_tmp = list()
+        while stack_dir:
+            path_turn = stack_dir.pop()
+            basename = os.path.basename(path_turn)
+            if basename == self.action:
+                list_tmp = self.get_stack_dir(path_turn)
+        if list_tmp:
+            self.fill_list_cmd(list_tmp)
+
+
+    def fill_list_cmd(self, list_tmp):
+        list_tmp = sorted(list_tmp)
+        for file_in_task_dir in list_tmp:
+            suffix = os.path.basename(file_in_task_dir)[-4:]
+            if suffix == '.arg':
+                try:
+                    arg = self.read_args(file_in_task_dir)
+                    for it_arg in arg.split():
+                        self.list_with_all_commands[-1].append(it_arg)
+                except Exception as exc:
+                    print('Argument read for {}: {}'.format(self.list_with_all_commands.pop(), exc))
+            else:
+                cmd = list()
+                cmd.append(file_in_task_dir)
+                self.list_with_all_commands.append(cmd)
+
+
+    def read_args(self, path):
+        with open(path + '/arg') as f:
+            args = f.readlines()
+        return args[0]
+
+    def run_cmd_subprocess(self, cmd):
+        try:
+            res = subprocess.check_output(cmd, encoding='utf-8')
+            return 'Script output: {}'.format(res)
+        except Exception as exc:
+            return exc
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Scripts runner')
+    parser.add_argument('--mode', type = str, help = 'MACHINE or USER', nargs = '?', default = None)
+    parser.add_argument('--user', type = str, help = 'User name ', nargs = '?', default = None)
+    parser.add_argument('--action', type = str, help = 'MACHINE : [STARTUP or SHUTDOWN], USER : [LOGON or LOGOFF]', nargs = '?', default = None)
+
+    args = parser.parse_args()
+    try:
+        Scripts_runner(args.mode, args.user, args.action)
+    except Exception as exc:
+        print(exc)
