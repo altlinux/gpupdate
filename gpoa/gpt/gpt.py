@@ -73,7 +73,8 @@ import util.preg
 from util.paths import (
     local_policy_path,
     cache_dir,
-    local_policy_cache
+    local_policy_cache,
+    local_policy_admin_path
 )
 from util.logging import log
 
@@ -347,3 +348,21 @@ def get_local_gpt(sid):
     local_policy.set_name('Local Policy')
 
     return local_policy
+
+def get_local_admin_gpt(sid):
+    '''
+    Create object out of local_admin_gpt.
+    '''
+    try:
+        path_lp = local_policy_admin_path()
+        logdata = dict()
+        logdata['path'] = path_lp
+        log('D162', logdata)
+        local_admin_policy = gpt(path_lp, sid)
+        local_admin_policy.set_name('Alt local administrator policy')
+    except Exception as exc:
+        logdata = dict()
+        logdata['exc'] = exc
+        log('D163', logdata)
+        return None
+    return local_admin_policy
