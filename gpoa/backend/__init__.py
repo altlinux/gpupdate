@@ -44,7 +44,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
         ldata = dict({'domain': domain, "username": username, 'is_machine': is_machine})
         log('D9', ldata)
         try:
-            back = samba_backend(sc, username, domain, is_machine)
+            back = samba_backend(sc, username, domain, is_machine, config.get_local_admin())
         except Exception as exc:
             logdata = dict({'error': str(exc)})
             log('E7', logdata)
@@ -52,7 +52,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
     if config.get_backend() == 'local' or no_domain:
         log('D8')
         try:
-            back = nodomain_backend()
+            back = nodomain_backend(username, is_machine, config.get_local_admin())
         except Exception as exc:
             logdata = dict({'error': str(exc)})
             log('E8', logdata)
