@@ -73,6 +73,9 @@ def parse_arguments():
         help='Show name of policy enabled')
     parser_active_backend = subparsers.add_parser('active-backend',
         help='Show currently configured backend')
+    parser_local_admin = subparsers.add_parser('local-admin',
+        help='Show current local admin without arg and set with arg')
+
 
     parser_set_backend.add_argument('backend',
         default='samba',
@@ -81,6 +84,14 @@ def parse_arguments():
         const='backend',
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
+
+    parser_local_admin.add_argument('state',
+        default=None,
+        type=str,
+        nargs='?',
+        const='state',
+        choices=['True', 'False'],
+        help='Set local-admin state')
 
     parser_write.add_argument('status',
         choices=['enable', 'disable'],
@@ -106,11 +117,18 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
+    parser_enable.add_argument('--local-admin',
+        default='False',
+        type=str,
+        choices=['True', 'False'],
+        help='Administration of local policies')
+
+
     parser_update.add_argument('--local-policy',
         default=None,
         help='Name of local policy to enable')
     parser_update.add_argument('--backend',
-        default='samba',
+        default=get_active_backend(),
         type=str,
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
@@ -167,6 +185,10 @@ def get_active_backend():
     config = GPConfig()
     return config.get_backend()
 
+def get_local_admin():
+    config = GPConfig()
+    return config.get_local_admin()
+
 def rollback_on_error(command_name):
     '''
     Disable group policy services in case command returns error code
@@ -210,8 +232,9 @@ def disable_gp():
     runcmd(cmd_disable_gpupdate_scripts_user_service)
     config.set_local_policy_template()
     config.set_backend()
+    config.set_local_admin('False')
 
-def enable_gp(policy_name, backend_type):
+def enable_gp(policy_name, backend_type, local_admin=False):
     '''
     Consistently enable group policy services
     '''
@@ -238,6 +261,7 @@ def enable_gp(policy_name, backend_type):
 
     config.set_local_policy_template(target_policy_name)
     config.set_backend(backend_type)
+    config.set_local_admin(local_admin)
 
     # Enable oddjobd_gpupdate in PAM config
     if not rollback_on_error(cmd_set_gpupdate_policy):
@@ -321,11 +345,11 @@ def act_write(status, localpolicy, backend):
     if status == 'disable' or status == '#f':
         disable_gp()
 
-def act_enable(localpolicy, backend):
+def act_enable(localpolicy, backend, local_admin):
     '''
     Enable group policy services
     '''
-    enable_gp(localpolicy, backend)
+    enable_gp(localpolicy, backend, local_admin)
 
 def act_active_policy():
     '''
@@ -345,6 +369,16 @@ def act_default_policy():
     '''
     print(get_default_policy_name())
 
+def act_local_admin(state):
+    '''
+    Print and set currently local_admin.
+    '''
+    if state:
+        config = GPConfig()
+        config.set_local_admin(state)
+
+    print(get_local_admin())
+
 def main():
     arguments = parse_arguments()
 
@@ -360,6 +394,7 @@ def main():
     action['active-policy'] = act_active_policy
     action['active-backend'] = act_active_backend
     action['default-policy'] = act_default_policy
+    action['local-admin'] = act_local_admin
 
     if arguments.action == None:
         action['status']()
@@ -367,11 +402,13 @@ def main():
         if get_status():
             action[arguments.action](arguments.local_policy, arguments.backend)
     elif arguments.action == 'enable':
-        action[arguments.action](arguments.local_policy, arguments.backend)
+        action[arguments.action](arguments.local_policy, arguments.backend, arguments.local_admin)
     elif arguments.action == 'write':
         action[arguments.action](arguments.status, arguments.localpolicy, arguments.backend)
     elif arguments.action == 'set-backend':
         action[arguments.action](arguments.backend)
+    elif arguments.action == 'local-admin':
+        action[arguments.action](arguments.state)
     else:
         action[arguments.action]()
 
