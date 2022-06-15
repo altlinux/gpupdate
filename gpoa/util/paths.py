@@ -73,6 +73,12 @@ def file_cache_dir():
 
     return cachedir
 
+def local_policy_admin_path():
+    '''
+    Returns path to directory where GPT local admin policy.
+    '''
+    return '/var/cache/gpupdate/local_admin_policy'
+
 def local_policy_cache():
     '''
     Returns path to directory where lies local policy settings cache
