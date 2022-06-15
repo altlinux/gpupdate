@@ -22,7 +22,7 @@ from samba.gpclass import check_safe_path
 
 from .applier_backend import applier_backend
 from storage import cache_factory, registry_factory
-from gpt.gpt import gpt, get_local_gpt
+from gpt.gpt import gpt, get_local_gpt, get_local_admin_gpt
 from util.util import (
     get_machine_name,
     is_machine_name
@@ -38,7 +38,7 @@ from util.logging import log
 class samba_backend(applier_backend):
     __user_policy_mode_key = 'Software\\Policies\\Microsoft\\Windows\\System\\UserPolicyMode'
 
-    def __init__(self, sambacreds, username, domain, is_machine):
+    def __init__(self, sambacreds, username, domain, is_machine, local_admin):
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
         self.__kinit_successful = machine_kinit(self.cache_path)
         if not self.__kinit_successful:
@@ -49,7 +49,7 @@ class samba_backend(applier_backend):
         machine_sid = get_sid(domain, machine_name, is_machine)
         self.storage.set_info('machine_name', machine_name)
         self.storage.set_info('machine_sid', machine_sid)
-
+        self.local_admin = local_admin
         # User SID to work with HKCU hive
         self.username = username
         self._is_machine_username = is_machine
@@ -176,6 +176,8 @@ class samba_backend(applier_backend):
                 obj.set_name(gpo.display_name)
                 gpts.append(obj)
             else:
+                if self.local_admin:
+                    gpts.append(get_local_admin_gpt(sid))
                 if 'Local Policy' == gpo.name:
                     gpts.append(get_local_gpt(sid))
 
