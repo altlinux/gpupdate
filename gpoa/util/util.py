@@ -122,10 +122,10 @@ def get_backends():
 
 def get_default_policy_name():
     '''
-    Determine the preferred Local Policy template name according to
+    Determine the preferred Local default Policy template name according to
     ALT distribution type
     '''
-    localpolicy = 'workstation'
+    localdefaultpolicy = 'workstation'
     dcpolicy = 'ad-domain-controller'
 
     try:
@@ -140,15 +140,15 @@ def get_default_policy_name():
             f = open(release)
             s = f.readline()
             if re.search('server', s, re.I):
-                localpolicy = 'server'
+                localdefaultpolicy = 'server'
     except:
         pass
 
-    return localpolicy
+    return localdefaultpolicy
 
-def get_policy_entries(directory):
+def get_policy_default_entries(directory):
     '''
-    Get list of directories representing "Local Policy" templates.
+    Get list of directories representing "Local default Policy" templates.
     '''
     filtered_entries = list()
     if os.path.isdir(directory):
@@ -162,17 +162,17 @@ def get_policy_entries(directory):
 
     return filtered_entries
 
-def get_policy_variants():
+def get_policy_default_variants():
     '''
-    Get the list of local policy variants deployed on this system.
+    Get the list of local default policy variants deployed on this system.
     Please note that is case overlapping names the names in
-    /etc/local-policy must override names in /usr/share/local-policy
+    /etc/local-policy-default must override names in /usr/share/local-policy-default
     '''
-    policy_dir = '/usr/share/local-policy'
-    etc_policy_dir = '/etc/local-policy'
+    policy_dir = '/usr/share/local-policy-default'
+    etc_policy_dir = '/etc/local-policy-default'
 
-    system_policies = get_policy_entries(policy_dir)
-    user_policies = get_policy_entries(etc_policy_dir)
+    system_policies = get_policy_default_entries(policy_dir)
+    user_policies = get_policy_default_entries(etc_policy_dir)
 
     general_listing = list()
     general_listing.extend(system_policies)

@@ -71,9 +71,9 @@ from .scriptsini import (
 import util
 import util.preg
 from util.paths import (
-    local_policy_path,
+    local_policy_default_path,
     cache_dir,
-    local_policy_cache,
+    local_policy_default_cache,
     local_policy_admin_path
 )
 from util.logging import log
@@ -324,7 +324,7 @@ def lp2gpt():
     '''
     Convert local-policy to full-featured GPT.
     '''
-    lppath = os.path.join(local_policy_path(), 'Machine/Registry.pol.xml')
+    lppath = os.path.join(local_policy_default_path(), 'Machine/Registry.pol.xml')
 
     # Load settings from XML PolFile
     polparser = GPPolParser()
@@ -332,22 +332,22 @@ def lp2gpt():
     polparser.pol_file = polfile
 
     # Create target default policy directory if missing
-    destdir = os.path.join(local_policy_cache(), 'Machine')
+    destdir = os.path.join(local_policy_default_cache(), 'Machine')
     os.makedirs(destdir, exist_ok=True)
 
     # Write PReg
     polparser.write_binary(os.path.join(destdir, 'Registry.pol'))
 
-def get_local_gpt(sid):
+def get_local_default_gpt(sid):
     '''
     Convert default policy to GPT and create object out of it.
     '''
     log('D25')
     lp2gpt()
-    local_policy = gpt(str(local_policy_cache()), sid)
-    local_policy.set_name('Local Policy')
+    local_policy_default = gpt(str(local_policy_default_cache()), sid)
+    local_policy_default.set_name('Local Policy')
 
-    return local_policy
+    return local_policy_default
 
 def get_local_admin_gpt(sid):
     '''

@@ -21,7 +21,7 @@ import os
 
 from .applier_backend import applier_backend
 from storage import registry_factory
-from gpt.gpt import gpt, get_local_gpt, get_local_admin_gpt
+from gpt.gpt import gpt, get_local_default_gpt, get_local_admin_gpt
 from util.util import (
     get_machine_name
 )
@@ -55,7 +55,7 @@ class nodomain_backend(applier_backend):
         # Get policies for machine at first.
         self.storage.wipe_hklm()
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
-        local_policy = get_local_gpt(self.sid)
+        local_policy = get_local_default_gpt(self.sid)
         local_policy.merge_machine()
         if self.local_admin:
             local_admin_policy = get_local_admin_gpt(self.sid)

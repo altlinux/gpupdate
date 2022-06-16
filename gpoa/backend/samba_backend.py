@@ -22,7 +22,7 @@ from samba.gpclass import check_safe_path
 
 from .applier_backend import applier_backend
 from storage import cache_factory, registry_factory
-from gpt.gpt import gpt, get_local_gpt, get_local_admin_gpt
+from gpt.gpt import gpt, get_local_default_gpt, get_local_admin_gpt
 from util.util import (
     get_machine_name,
     is_machine_name
@@ -179,7 +179,7 @@ class samba_backend(applier_backend):
                 if self.local_admin:
                     gpts.append(get_local_admin_gpt(sid))
                 if 'Local Policy' == gpo.name:
-                    gpts.append(get_local_gpt(sid))
+                    gpts.append(get_local_default_gpt(sid))
 
         return gpts
 

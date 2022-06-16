@@ -27,8 +27,8 @@ from util.util import (
       runcmd
     , get_backends
     , get_default_policy_name
-    , get_policy_entries
-    , get_policy_variants
+    , get_policy_default_entries
+    , get_policy_default_variants
 )
 from util.config import GPConfig
 from util.paths import get_custom_policy_dir
@@ -51,7 +51,7 @@ def parse_arguments():
         help='Group Policy management actions (default action is status)')
 
     parser_list = subparsers.add_parser('list',
-        help='List avalable types of local policy')
+        help='List avalable types of local default policy')
     parser_list = subparsers.add_parser('list-backends',
         help='Show list of available backends')
     parser_status = subparsers.add_parser('status',
@@ -70,7 +70,7 @@ def parse_arguments():
     parser_default = subparsers.add_parser('default-policy',
         help='Show name of default policy')
     parser_active = subparsers.add_parser('active-policy',
-        help='Show name of policy enabled')
+        help='Show name of default policy enabled')
     parser_active_backend = subparsers.add_parser('active-backend',
         help='Show currently configured backend')
     parser_local_admin = subparsers.add_parser('local-admin',
@@ -96,10 +96,10 @@ def parse_arguments():
     parser_write.add_argument('status',
         choices=['enable', 'disable'],
         help='Enable or disable Group Policies')
-    parser_write.add_argument('localpolicy',
+    parser_write.add_argument('localdefaultpolicy',
         default=None,
         nargs='?',
-        help='Name of local policy to enable')
+        help='Name of local default policy to enable')
     parser_write.add_argument('backend',
         default='samba',
         type=str,
@@ -108,9 +108,9 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
-    parser_enable.add_argument('--local-policy',
+    parser_enable.add_argument('--local-policy-default',
         default=None,
-        help='Name of local policy to enable')
+        help='Name of local default policy to enable')
     parser_enable.add_argument('--backend',
         default='samba',
         type=str,
@@ -124,9 +124,9 @@ def parse_arguments():
         help='Administration of local policies')
 
 
-    parser_update.add_argument('--local-policy',
+    parser_update.add_argument('--local-policy-default',
         default=None,
-        help='Name of local policy to enable')
+        help='Name of local default policy to enable')
     parser_update.add_argument('--backend',
         default=get_active_backend(),
         type=str,
@@ -137,7 +137,7 @@ def parse_arguments():
     return parser.parse_args()
 
 def validate_policy_name(policy_name):
-    return policy_name in [os.path.basename(d) for d in get_policy_variants()]
+    return policy_name in [os.path.basename(d) for d in get_policy_default_variants()]
 
 def is_unit_enabled(unit_name, unit_global=False):
     '''
@@ -174,12 +174,12 @@ def get_status():
 
     return False
 
-def get_active_policy_name():
+def get_active_policy_default_name():
     '''
-    Show the name of an active Local Policy template
+    Show the name of an active Local default Policy template
     '''
     config = GPConfig()
-    return os.path.basename(config.get_local_policy_template())
+    return os.path.basename(config.get_local_policy_default_template())
 
 def get_active_backend():
     config = GPConfig()
@@ -230,7 +230,7 @@ def disable_gp():
     runcmd(cmd_disable_gpupdate_user_timer)
     runcmd(cmd_disable_gpupdate_scripts_service)
     runcmd(cmd_disable_gpupdate_scripts_user_service)
-    config.set_local_policy_template()
+    config.set_local_policy_default_template()
     config.set_backend()
     config.set_local_admin('False')
 
@@ -259,7 +259,7 @@ def enable_gp(policy_name, backend_type, local_admin=False):
             target_policy_name = policy_name
     print (target_policy_name)
 
-    config.set_local_policy_template(target_policy_name)
+    config.set_local_policy_default_template(target_policy_name)
     config.set_backend(backend_type)
     config.set_local_admin(local_admin)
 
@@ -312,7 +312,7 @@ def act_list():
     '''
     Show list of available templates of Local Policy
     '''
-    for entry in get_policy_variants():
+    for entry in get_policy_default_variants():
         print(entry.rpartition('/')[2])
 
 def act_list_backends():
@@ -351,11 +351,11 @@ def act_enable(localpolicy, backend, local_admin):
     '''
     enable_gp(localpolicy, backend, local_admin)
 
-def act_active_policy():
+def act_active_policy_default():
     '''
-    Print active Local Policy template name to stdout
+    Print active Local default Policy template name to stdout
     '''
-    print(get_active_policy_name())
+    print(get_active_policy_default_name())
 
 def act_active_backend():
     '''
@@ -391,7 +391,7 @@ def main():
     action['enable'] = act_enable
     action['update'] = act_enable
     action['disable'] = disable_gp
-    action['active-policy'] = act_active_policy
+    action['active-policy'] = act_active_policy_default
     action['active-backend'] = act_active_backend
     action['default-policy'] = act_default_policy
     action['local-admin'] = act_local_admin
@@ -400,11 +400,11 @@ def main():
         action['status']()
     elif arguments.action == 'update':
         if get_status():
-            action[arguments.action](arguments.local_policy, arguments.backend)
+            action[arguments.action](arguments.local_policy_default, arguments.backend)
     elif arguments.action == 'enable':
-        action[arguments.action](arguments.local_policy, arguments.backend, arguments.local_admin)
+        action[arguments.action](arguments.local_policy_default, arguments.backend, arguments.local_admin)
     elif arguments.action == 'write':
-        action[arguments.action](arguments.status, arguments.localpolicy, arguments.backend)
+        action[arguments.action](arguments.status, arguments.localdefaultpolicy, arguments.backend)
     elif arguments.action == 'set-backend':
         action[arguments.action](arguments.backend)
     elif arguments.action == 'local-admin':

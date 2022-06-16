@@ -30,24 +30,24 @@ def get_custom_policy_dir():
     '''
     Returns path pointing to Custom Policy directory.
     '''
-    return '/etc/local-policy'
+    return '/etc/local-policy-default'
 
-def local_policy_path(default_template_name="default"):
+def local_policy_default_path(default_template_name="default"):
     '''
     Returns path pointing to Local Policy template directory.
     '''
-    local_policy_dir = '/usr/share/local-policy'
+    local_policy_dir = '/usr/share/local-policy-default'
 
     config = GPConfig()
-    local_policy_template = config.get_local_policy_template()
-    local_policy_template_path = os.path.join(local_policy_dir, local_policy_template)
+    local_policy_default_template = config.get_local_policy_default_template()
+    local_policy_default_template_path = os.path.join(local_policy_dir, local_policy_default_template)
     local_policy_default = os.path.join(local_policy_dir, default_template_name)
 
     result_path = pathlib.Path(local_policy_default)
-    if os.path.exists(local_policy_template):
-        result_path = pathlib.Path(local_policy_template)
-    elif os.path.exists(local_policy_template_path):
-        result_path = pathlib.Path(local_policy_template_path)
+    if os.path.exists(local_policy_default_template):
+        result_path = pathlib.Path(local_policy_default_template)
+    elif os.path.exists(local_policy_default_template_path):
+        result_path = pathlib.Path(local_policy_default_template_path)
 
     return pathlib.Path(result_path)
 
@@ -79,12 +79,12 @@ def local_policy_admin_path():
     '''
     return '/var/cache/gpupdate/local_admin_policy'
 
-def local_policy_cache():
+def local_policy_default_cache():
     '''
-    Returns path to directory where lies local policy settings cache
+    Returns path to directory where lies local default policy settings cache
     transformed into GPT.
     '''
-    lpcache = pathlib.Path.joinpath(cache_dir(), 'local-policy')
+    lpcache = pathlib.Path.joinpath(cache_dir(), 'local-policy-default')
 
     if not lpcache.exists():
         lpcache.mkdir(parents=True, exist_ok=True)
