@@ -28,9 +28,11 @@ class dbus_runner:
     to trigger gpoa for user running in sysadmin context.
     '''
 
-    _bus_name = 'com.redhat.oddjob_gpupdate'
+    _redhat_bus_name = 'com.redhat.oddjob_gpupdate'
+    _basealt_bus_name = 'ru.basealt.oddjob_gpupdate'
     # Interface name is equal to bus name.
-    _interface_name = 'com.redhat.oddjob_gpupdate'
+    _redhat_interface_name = 'com.redhat.oddjob_gpupdate'
+    _basealt_interface_name = 'ru.basealt.oddjob_gpupdate'
     _object_path = '/'
     # The timeout is in milliseconds. The default is -1 which is
     # DBUS_TIMEOUT_USE_DEFAULT which is 25 seconds. There is also
@@ -44,6 +46,27 @@ class dbus_runner:
     def __init__(self, username=None):
         self.username = username
         self.system_bus = dbus.SystemBus()
+        self.bus_name = self._basealt_bus_name
+        self.interface_name = self._basealt_interface_name
+        self.check_dbus()
+
+    def check_dbus(self):
+        try:
+            # Check privileged operations bus
+            log('D900', {'bus_name': self.bus_name})
+            self.system_bus.get_object(self.bus_name, '/')
+            return
+
+        except dbus.exceptions.DBusException as exc:
+            if exc.get_dbus_name() != 'org.freedesktop.DBus.Error.ServiceUnknown':
+                raise exc
+
+        self.bus_name = self._redhat_bus_name
+        self.interface_name = self._redhat_interface_name
+
+        # Try to check alternative privileged operations bus
+        log('W902', {'origin_bus_name': self._basealt_interface_name, 'bus_name': self.bus_name})
+        self.system_bus.get_object(self.bus_name, '/')
 
     def run(self):
         if self.username:
@@ -54,9 +77,9 @@ class dbus_runner:
                 # only for superuser. This method is called via PAM
                 # when user logs in.
                 try:
-                    result = self.system_bus.call_blocking(self._bus_name,
+                    result = self.system_bus.call_blocking(self.bus_name,
                         self._object_path,
-                        self._interface_name,
+                        self.interface_name,
                         'gpupdatefor',
                         's',
                         [self.username],
@@ -69,9 +92,9 @@ class dbus_runner:
                     raise exc
             else:
                 try:
-                    result = self.system_bus.call_blocking(self._bus_name,
+                    result = self.system_bus.call_blocking(self.bus_name,
                         self._object_path,
-                        self._interface_name,
+                        self.interface_name,
                         'gpupdate',
                         None,
                         [],
@@ -84,9 +107,9 @@ class dbus_runner:
         else:
             log('D11')
             try:
-                result = self.system_bus.call_blocking(self._bus_name,
+                result = self.system_bus.call_blocking(self.bus_name,
                     self._object_path,
-                    self._interface_name,
+                    self.interface_name,
                     'gpupdate_computer',
                     None,
                     # The following positional parameter is called "args".
@@ -146,9 +169,14 @@ def is_oddjobd_gpupdate_accessible():
         oddjobd_state = oddjobd_properties.Get('org.freedesktop.systemd1.Unit', 'ActiveState')
 
         # Check if oddjobd_gpupdate is accesssible
-        oddjobd_gpupdate = system_bus.get_object('com.redhat.oddjob_gpupdate', '/')
-        oddjobd_upupdate_interface = dbus.Interface(oddjobd_gpupdate, 'com.redhat.oddjob_gpupdate')
-        #oddjobd_upupdate_interface.gpupdate()
+        try:
+            oddjobd_gpupdate = system_bus.get_object('ru.basealt.oddjob_gpupdate', '/')
+            oddjobd_upupdate_interface = dbus.Interface(oddjobd_gpupdate, 'ru.basealt.oddjob_gpupdate')
+        except dbus.exceptions.DBusException as exc:
+            if exc.get_dbus_name() != '.org.freedesktop.DBus.Error.ServiceUnknown':
+                oddjobd_gpupdate = system_bus.get_object('com.redhat.oddjob_gpupdate', '/')
+                oddjobd_upupdate_interface = dbus.Interface(oddjobd_gpupdate, 'com.redhat.oddjob_gpupdate')
+                #oddjobd_upupdate_interface.gpupdate()
 
         if oddjobd_state == 'active':
             oddjobd_accessible = True
