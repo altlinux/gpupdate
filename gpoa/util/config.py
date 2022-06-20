@@ -80,16 +80,16 @@ class GPConfig:
         with open(self.__config_path, 'w') as config_file:
             self.full_config.write(config_file)
 
-    def get_local_admin(self):
+    def get_local_policy(self):
         '''
         Get local-admin states from the config file.
         '''
         if 'gpoa' in self.full_config:
             if 'local-admin' in self.full_config['gpoa']:
-                    if self.full_config['gpoa']['local-admin'] in [1 , '1', 'True', True , 'true']:
+                    if self.full_config['gpoa']['local-policy'] in [1 , '1', 'True', True , 'true']:
                         return True
         return False
 
-    def set_local_admin(self, state='False'):
-        self.full_config['gpoa']['local-admin'] = state
+    def set_local_policy(self, state='False'):
+        self.full_config['gpoa']['local-policy'] = state
         self.write_config()

@@ -267,8 +267,8 @@ def debug_code(code):
     debug_ids[159] = 'Scripts applier for user in user context will not be started'
     debug_ids[160] = 'Clean machine scripts directory'
     debug_ids[161] = 'Clean user scripts directory'
-    debug_ids[162] = 'Create object from local_admin_gpt'
-    debug_ids[163] = 'Failed to create object for local_admin_gpt'
+    debug_ids[162] = 'Create object from local_policy_gpt'
+    debug_ids[163] = 'Failed to create object for local_policy_gpt'
 
     return debug_ids.get(code, 'Unknown debug code')
 
