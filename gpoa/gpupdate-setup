@@ -45,6 +45,7 @@ def parse_arguments():
     '''
     Parse CLI arguments.
     '''
+    config = GPConfig()
     parser = argparse.ArgumentParser(prog='gpupdate-setup')
     subparsers = parser.add_subparsers(dest='action',
         metavar='action',
@@ -69,12 +70,12 @@ def parse_arguments():
         help='Set or change currently active backend')
     parser_default = subparsers.add_parser('default-policy',
         help='Show name of default policy')
-    parser_active = subparsers.add_parser('active-policy',
+    parser_active = subparsers.add_parser('local-policy',
         help='Show name of default policy enabled')
     parser_active_backend = subparsers.add_parser('active-backend',
         help='Show currently configured backend')
-    parser_local_admin = subparsers.add_parser('local-admin',
-        help='Show current local admin without arg and set with arg')
+    parser_local_policy = subparsers.add_parser('local-policy',
+        help='Show current local policy without arg and set with arg')
 
 
     parser_set_backend.add_argument('backend',
@@ -85,13 +86,13 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
-    parser_local_admin.add_argument('state',
+    parser_local_policy.add_argument('state',
         default=None,
         type=str,
         nargs='?',
         const='state',
         choices=['True', 'False'],
-        help='Set local-admin state')
+        help='Set local-policy state')
 
     parser_write.add_argument('status',
         choices=['enable', 'disable'],
@@ -117,7 +118,7 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
-    parser_enable.add_argument('--local-admin',
+    parser_enable.add_argument('--local-policy',
         default='False',
         type=str,
         choices=['True', 'False'],
@@ -127,6 +128,10 @@ def parse_arguments():
     parser_update.add_argument('--local-policy-default',
         default=None,
         help='Name of local default policy to enable')
+    
+    parser_update.add_argument('--local-policy',
+        default=str(get_local_policy()),
+        help='State of local policies')
     parser_update.add_argument('--backend',
         default=get_active_backend(),
         type=str,
@@ -185,9 +190,9 @@ def get_active_backend():
     config = GPConfig()
     return config.get_backend()
 
-def get_local_admin():
+def get_local_policy():
     config = GPConfig()
-    return config.get_local_admin()
+    return config.get_local_policy()
 
 def rollback_on_error(command_name):
     '''
@@ -232,9 +237,9 @@ def disable_gp():
     runcmd(cmd_disable_gpupdate_scripts_user_service)
     config.set_local_policy_default_template()
     config.set_backend()
-    config.set_local_admin('False')
+    config.set_local_policy('False')
 
-def enable_gp(policy_name, backend_type, local_admin=False):
+def enable_gp(policy_name, backend_type, local_policy=False):
     '''
     Consistently enable group policy services
     '''
@@ -261,7 +266,7 @@ def enable_gp(policy_name, backend_type, local_admin=False):
 
     config.set_local_policy_default_template(target_policy_name)
     config.set_backend(backend_type)
-    config.set_local_admin(local_admin)
+    config.set_local_policy(local_policy)
 
     # Enable oddjobd_gpupdate in PAM config
     if not rollback_on_error(cmd_set_gpupdate_policy):
@@ -345,11 +350,19 @@ def act_write(status, localpolicy, backend):
     if status == 'disable' or status == '#f':
         disable_gp()
 
-def act_enable(localpolicy, backend, local_admin):
+def act_enable(localpolicy, backend, local_policy):
     '''
     Enable group policy services
     '''
-    enable_gp(localpolicy, backend, local_admin)
+    enable_gp(localpolicy, backend, local_policy)
+
+def act_update(localpolicy, backend, local_policy):
+    '''
+    Enable group policy services
+    '''
+    enable_gp(localpolicy, backend, local_policy)
+
+
 
 def act_active_policy_default():
     '''
@@ -369,15 +382,15 @@ def act_default_policy():
     '''
     print(get_default_policy_name())
 
-def act_local_admin(state):
+def act_local_policy(state):
     '''
-    Print and set currently local_admin.
+    Print and set currently local_policy.
     '''
     if state:
         config = GPConfig()
-        config.set_local_admin(state)
+        config.set_local_policy(state)
 
-    print(get_local_admin())
+    print(get_local_policy())
 
 def main():
     arguments = parse_arguments()
@@ -389,20 +402,20 @@ def main():
     action['set-backend'] = act_set_backend
     action['write'] = act_write
     action['enable'] = act_enable
-    action['update'] = act_enable
+    action['update'] = act_update
     action['disable'] = disable_gp
     action['active-policy'] = act_active_policy_default
     action['active-backend'] = act_active_backend
     action['default-policy'] = act_default_policy
-    action['local-admin'] = act_local_admin
+    action['local-policy'] = act_local_policy
 
     if arguments.action == None:
         action['status']()
     elif arguments.action == 'update':
         if get_status():
-            action[arguments.action](arguments.local_policy_default, arguments.backend)
+            action[arguments.action](arguments.local_policy_default, arguments.backend, arguments.local_policy)
     elif arguments.action == 'enable':
-        action[arguments.action](arguments.local_policy_default, arguments.backend, arguments.local_admin)
+        action[arguments.action](arguments.local_policy_default, arguments.backend, arguments.local_policy)
     elif arguments.action == 'write':
         action[arguments.action](arguments.status, arguments.localdefaultpolicy, arguments.backend)
     elif arguments.action == 'set-backend':

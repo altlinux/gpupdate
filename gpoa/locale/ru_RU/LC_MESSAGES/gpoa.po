@@ -693,11 +693,11 @@ msgstr "Очистка каталога машинных скриптов"
 msgid "Clean user scripts directory"
 msgstr "Очистка каталога пользовательских скриптов"
 
-msgid "Create object from local_admin_gpt"
-msgstr "Создание объекта из local_admin_gpt"
+msgid "Create object from local_policy_gpt"
+msgstr "Создание объекта из local_policy_gpt"
 
-msgid "Failed to create object for local_admin_gpt"
-msgstr "Не удалось создать объект для local_admin_gpt"
+msgid "Failed to create object for local_policy_gpt"
+msgstr "Не удалось создать объект для local_policy_gpt"
 
 # Debug_end
 
