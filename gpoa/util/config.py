@@ -18,6 +18,7 @@
 
 
 from configparser import ConfigParser
+from os import stat
 
 from .util import (
       get_backends
@@ -60,22 +61,35 @@ class GPConfig:
             if 'dc' in self.full_config['samba']:
                 return self.full_config['samba']['dc']
 
-    def get_local_policy_template(self):
+    def get_local_policy_default_template(self):
         '''
         Fetch the name of chosen Local Policy template from
         configuration file.
         '''
         if 'gpoa' in self.full_config:
             if 'local-policy' in self.full_config['gpoa']:
-                return self.full_config['gpoa']['local-policy']
+                return self.full_config['gpoa']['local-policy-default']
 
         return get_default_policy_name()
 
-    def set_local_policy_template(self, template_name='default'):
-        self.full_config['gpoa']['local-policy'] = template_name
+    def set_local_policy_default_template(self, template_name='default'):
+        self.full_config['gpoa']['local-policy-default'] = template_name
         self.write_config()
 
     def write_config(self):
         with open(self.__config_path, 'w') as config_file:
             self.full_config.write(config_file)
 
+    def get_local_policy(self):
+        '''
+        Get local-admin states from the config file.
+        '''
+        if 'gpoa' in self.full_config:
+            if 'local-admin' in self.full_config['gpoa']:
+                    if self.full_config['gpoa']['local-policy'] in [1 , '1', 'True', True , 'true']:
+                        return True
+        return False
+
+    def set_local_policy(self, state='False'):
+        self.full_config['gpoa']['local-policy'] = state
+        self.write_config()
