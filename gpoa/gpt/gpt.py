@@ -72,7 +72,8 @@ import util
 import util.preg
 from util.paths import (
     local_policy_default_cache,
-    local_policy_template_path
+    local_policy_template_path,
+    local_policy_path
 )
 from util.logging import log
 
