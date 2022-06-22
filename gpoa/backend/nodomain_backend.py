@@ -31,7 +31,7 @@ from util.logging import slogm
 
 class nodomain_backend(applier_backend):
 
-    def __init__(self, username, is_machine, local_admin):
+    def __init__(self, username, is_machine, is_local_policy_enabled):
         domain = None
         machine_name = get_machine_name()
         machine_sid = get_sid(domain, machine_name, True)
@@ -39,7 +39,7 @@ class nodomain_backend(applier_backend):
         self.storage.set_info('domain', domain)
         self.storage.set_info('machine_name', machine_name)
         self.storage.set_info('machine_sid', machine_sid)
-        self.local_admin = local_admin
+        self._is_local_policy_enabled = is_local_policy_enabled
 
         # User SID to work with HKCU hive
         if is_machine:
@@ -57,7 +57,7 @@ class nodomain_backend(applier_backend):
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
         local_policy = get_local_default_gpt(self.sid)
         local_policy.merge_machine()
-        if self.local_admin:
-            local_admin_policy = get_local_policy_gpt(self.sid)
-            local_admin_policy.merge_machine()
-            local_admin_policy.merge_user()
+        if self._is_local_policy_enabled:
+            local_policy = get_local_policy_gpt(self.sid)
+            local_policy.merge_machine()
+            local_policy.merge_user()

@@ -71,10 +71,8 @@ from .scriptsini import (
 import util
 import util.preg
 from util.paths import (
-    local_policy_default_path,
-    cache_dir,
     local_policy_default_cache,
-    local_policy_path
+    local_policy_template_path
 )
 from util.logging import log
 
@@ -324,7 +322,7 @@ def lp2gpt():
     '''
     Convert local-policy to full-featured GPT.
     '''
-    lppath = os.path.join(local_policy_default_path(), 'Machine/Registry.pol.xml')
+    lppath = os.path.join(local_policy_template_path(), 'Machine/Registry.pol.xml')
 
     # Load settings from XML PolFile
     polparser = GPPolParser()
@@ -345,7 +343,7 @@ def get_local_default_gpt(sid):
     log('D25')
     lp2gpt()
     local_policy_default = gpt(str(local_policy_default_cache()), sid)
-    local_policy_default.set_name('Local Policy')
+    local_policy_default.set_name('Local Policy Default')
 
     return local_policy_default
 
@@ -359,7 +357,7 @@ def get_local_policy_gpt(sid):
         logdata['path'] = path_lp
         log('D162', logdata)
         local_policy = gpt(path_lp, sid)
-        local_policy.set_name('Alt local administrator policy')
+        local_policy.set_name('Local Policy')
     except Exception as exc:
         logdata = dict()
         logdata['exc'] = exc

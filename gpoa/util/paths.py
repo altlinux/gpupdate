@@ -25,29 +25,72 @@ from urllib.parse import urlparse
 from .config import GPConfig
 from .exceptions import NotUNCPathError
 
-
-def get_custom_policy_dir():
+def local_policy_custom_templates_dir():
     '''
-    Returns path pointing to Custom Policy directory.
+    Returns path pointing to custom templates directory.
     '''
-    return '/etc/local-policy-default'
+    return '/etc/local-policy'
 
-def local_policy_default_path(default_template_name="default"):
+def local_policy_system_templates_dir():
+    '''
+    Returns path pointing to system templates directory.
+    '''
+    return '/usr/share/local-policy'
+
+def _local_policy_templates_entries(directory):
+    '''
+    Get list of directories representing "Local Policy Default" templates.
+    '''
+    filtered_entries = list()
+    if os.path.isdir(directory):
+        entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
+
+        for entry in entries:
+            if os.path.isdir(os.path.join(entry)):
+                if not os.path.islink(os.path.join(entry)):
+                    if not entry.rpartition('/')[2] == 'default':
+                        filtered_entries.append(entry)
+
+    return filtered_entries
+
+def local_policy_templates():
+    '''
+    Get the list of local policy templates deployed on this system.
+    Please note that is case overlapping names the names in
+    /etc/local-policy must override names in /usr/share/local-policy
+    '''
+    system_templates_dir = local_policy_system_templates_dir()
+    custom_templates_dir = local_policy_custom_templates_dir()
+
+    system_templates = _local_policy_templates_entries(system_templates_dir)
+    custom_templates = _local_policy_templates_entries(custom_templates_dir)
+
+    general_listing = list()
+    general_listing.extend(system_templates)
+    general_listing.extend(custom_templates)
+
+    return general_listing
+
+def local_policy_template_path(default_template_name="default"):
     '''
     Returns path pointing to Local Policy template directory.
     '''
-    local_policy_dir = '/usr/share/local-policy-default'
+    system_templates_dir = local_policy_system_templates_dir()
+    custom_templates_dir = local_policy_custom_templates_dir()
 
     config = GPConfig()
-    local_policy_default_template = config.get_local_policy_default_template()
-    local_policy_default_template_path = os.path.join(local_policy_dir, local_policy_default_template)
-    local_policy_default = os.path.join(local_policy_dir, default_template_name)
+    template_name = config.get_local_policy_template()
+    system_template_path = os.path.join(system_templates_dir, template_name)
+    custom_template_path = os.path.join(custom_templates_dir, template_name)
+    default_template_path = os.path.join(system_templates_dir, default_template_name)
 
-    result_path = pathlib.Path(local_policy_default)
-    if os.path.exists(local_policy_default_template):
-        result_path = pathlib.Path(local_policy_default_template)
-    elif os.path.exists(local_policy_default_template_path):
-        result_path = pathlib.Path(local_policy_default_template_path)
+    result_path = pathlib.Path(default_template_path)
+    if os.path.exists(template_name):
+        result_path = pathlib.Path(template_name)
+    elif os.path.exists(custom_template_path):
+        result_path = pathlib.Path(custom_template_path)
+    elif os.path.exists(system_template_path):
+        result_path = pathlib.Path(system_template_path)
 
     return pathlib.Path(result_path)
 
@@ -81,10 +124,10 @@ def local_policy_path():
 
 def local_policy_default_cache():
     '''
-    Returns path to directory where lies local default policy settings cache
+    Returns path to directory where lies local policy default settings cache
     transformed into GPT.
     '''
-    lpcache = pathlib.Path.joinpath(cache_dir(), 'local-policy-default')
+    lpcache = pathlib.Path.joinpath(cache_dir(), 'local-policy')
 
     if not lpcache.exists():
         lpcache.mkdir(parents=True, exist_ok=True)

@@ -61,35 +61,45 @@ class GPConfig:
             if 'dc' in self.full_config['samba']:
                 return self.full_config['samba']['dc']
 
-    def get_local_policy_default_template(self):
+    def get_local_policy_template(self):
         '''
         Fetch the name of chosen Local Policy template from
         configuration file.
         '''
+        if 'local-policy' in self.full_config:
+            if 'template' in self.full_config['local-policy']:
+                return self.full_config['local-policy']['template']
         if 'gpoa' in self.full_config:
             if 'local-policy' in self.full_config['gpoa']:
-                return self.full_config['gpoa']['local-policy-default']
+                return self.full_config['gpoa']['local-policy']
 
         return get_default_policy_name()
 
-    def set_local_policy_default_template(self, template_name='default'):
-        self.full_config['gpoa']['local-policy-default'] = template_name
+    def set_local_policy_template(self, template_name='default'):
+        if not 'local-policy' in self.full_config:
+            self.full_config.add_section('local-policy')
+            self.full_config['local-policy']['template'] = template_name
+        if 'gpoa' in self.full_config:
+            if 'local-policy' in self.full_config['gpoa']:
+                self.full_config.remove_option('gpoa', 'local-policy')
         self.write_config()
 
     def write_config(self):
         with open(self.__config_path, 'w') as config_file:
             self.full_config.write(config_file)
 
-    def get_local_policy(self):
+    def get_local_policy_enabled(self):
         '''
-        Get local-admin states from the config file.
+        Get local policy state from the config file.
         '''
-        if 'gpoa' in self.full_config:
-            if 'local-admin' in self.full_config['gpoa']:
-                    if self.full_config['gpoa']['local-policy'] in [1 , '1', 'True', True , 'true']:
+        if 'local-policy' in self.full_config:
+            if 'enabled' in self.full_config['local-policy']:
+                    if self.full_config['local-policy']['enabled'] in [1 , '1', 'True', True , 'true']:
                         return True
-        return False
+                    if self.full_config['local-policy']['enabled'] in [0 , '0', 'False', False , 'false']:
+                        return False
+        return True
 
-    def set_local_policy(self, state='False'):
-        self.full_config['gpoa']['local-policy'] = state
+    def set_local_policy_enabled(self, state='True'):
+        self.full_config['local-policy']['enabled'] = state
         self.write_config()
