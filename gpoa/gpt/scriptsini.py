@@ -125,6 +125,8 @@ class Script:
         action_upper = action.upper()
         self.action = action_upper
         self.path = os.path.join(script_dir, action_upper, script_filename.upper())
+        if not os.path.isfile(self.path):
+            return None
         self.args = None
 
         if action_upper == 'LOGON':
