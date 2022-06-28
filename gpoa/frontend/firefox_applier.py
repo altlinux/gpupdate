@@ -117,7 +117,10 @@ class firefox_applier(applier_frontend):
                     if it_data.type == 4:
                         branch[parts[-1]].append(self.get_boolean(it_data.data))
                     else:
-                        branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
+                        if os.path.isdir(str(it_data.data).replace('\\', '/')):
+                            branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
+                        else:
+                            branch[parts[-1]].append(str(it_data.data))
             except Exception as exc:
                 logdata = dict()
                 logdata['Exception'] = exc
