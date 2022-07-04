@@ -22,17 +22,32 @@ def read_files(filesxml):
     files = list()
 
     for fil in get_xml_root(filesxml):
-        fil_obj = fileentry()
-
+        props = fil.find('Properties')
+        fil_obj = fileentry(props.get('fromPath'))
+        fil_obj.set_action(props.get('action', default='C'))
+        fil_obj.set_target_path(props.get('targetPath', default=None))
+        fil_obj.set_read_only(props.get('readOnly', default=None))
+        fil_obj.set_archive(props.get('archive', default=None))
+        fil_obj.set_hidden(props.get('hidden', default=None))
         files.append(fil_obj)
 
     return files
 
 def merge_files(storage, sid, file_objects, policy_name):
     for fileobj in file_objects:
-        pass
+        storage.add_file(sid, fileobj, policy_name)
 
 class fileentry:
-    def __init__(self):
-        pass
+    def __init__(self, fromPath):
+        self.fromPath = fromPath
 
+    def set_action(self, action):
+        self.action = action
+    def set_target_path(self, targetPath):
+        self.targetPath = targetPath
+    def set_read_only(self, readOnly):
+        self.readOnly = readOnly
+    def set_archive(self, archive):
+        self.archive = archive
+    def set_hidden(self, hidden):
+        self.hidden = hidden
