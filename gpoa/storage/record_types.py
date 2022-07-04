@@ -198,3 +198,35 @@ class script_entry(object):
         fields['arg'] = self.arg
 
         return fields
+
+class file_entry(object):
+    '''
+    Object mapping representing FILES.XML
+    '''
+    def __init__(self, sid, scrobj, policy_name):
+        self.sid = sid
+        self.policy_name = policy_name
+        self.action = scrobj.action
+        self.fromPath = scrobj.fromPath
+        self.targetPath = scrobj.targetPath
+        self.readOnly = scrobj.readOnly
+        self.archive = scrobj.archive
+        self.hidden = scrobj.hidden
+        self.suppress = scrobj.suppress
+
+
+    def update_fields(self):
+        '''
+        Return list of fields to update
+        '''
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['action'] = self.action
+        fields['fromPath'] = self.fromPath
+        fields['targetPath'] = self.targetPath
+        fields['readOnly'] = self.readOnly
+        fields['archive'] = self.archive
+        fields['hidden'] = self.hidden
+        fields['suppress'] = self.suppress
+
+        return fields
