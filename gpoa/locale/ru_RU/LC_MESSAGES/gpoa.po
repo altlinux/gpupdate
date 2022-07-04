@@ -693,6 +693,9 @@ msgstr "Очистка каталога машинных скриптов"
 msgid "Clean user scripts directory"
 msgstr "Очистка каталога пользовательских скриптов"
 
+msgid "Saving information about file"
+msgstr "Сохранение информации о файле"
+
 # Debug_end
 
 # Warning
