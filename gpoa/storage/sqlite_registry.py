@@ -45,6 +45,7 @@ from .record_types import (
     , folder_entry
     , envvar_entry
     , script_entry
+    , file_entry
 )
 
 class sqlite_registry(registry):
@@ -156,6 +157,21 @@ class sqlite_registry(registry):
             , Column('arg', String)
             , UniqueConstraint('sid', 'path', 'arg')
         )
+        self.__files = Table(
+              'Files'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('policy_name', String)
+            , Column('action', String)
+            , Column('fromPath', String)
+            , Column('targetPath', String)
+            , Column('readOnly', String)
+            , Column('archive', String)
+            , Column('hidden', String)
+            , Column('suppress', String)
+            , UniqueConstraint('sid', 'formPath', 'targetPath')
+        )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
@@ -169,6 +185,7 @@ class sqlite_registry(registry):
             mapper(folder_entry, self.__folders)
             mapper(envvar_entry, self.__envvars)
             mapper(script_entry, self.__scripts)
+            mapper(file_entry, self.__files)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -394,6 +411,21 @@ class sqlite_registry(registry):
                 .update(scr_entry.update_fields()))
             self.db_session.commit()
 
+    def add_file(self, sid, fileobj, policy_name):
+        f_entry = file_entry(sid, fileobj, policy_name)
+        logdata = dict()
+        logdata['file'] = f_entry.targetPath
+        logdata['sid'] = sid
+        log('D162', logdata)
+        try:
+            self._add(f_entry)
+        except Exception as exc:
+            (self
+                ._filter_sid_obj(file_entry, sid)
+                .filter(file_entry.targetPath == f_entry.targetPath)
+                .update(f_entry.update_fields()))
+            self.db_session.commit()
+
 
     def _filter_sid_obj(self, row_object, sid):
         res = (self
@@ -438,6 +470,9 @@ class sqlite_registry(registry):
 
     def get_scripts(self, sid, action):
         return self._filter_scripts_list(script_entry, sid, action)
+
+    def get_files(self, sid):
+        return self._filter_sid_list(file_entry, sid)
 
     def get_hkcu_entry(self, sid, hive_key):
         res = (self
@@ -489,6 +524,7 @@ class sqlite_registry(registry):
         self._wipe_sid(printer_entry, sid)
         self._wipe_sid(drive_entry, sid)
         self._wipe_sid(script_entry, sid)
+        self._wipe_sid(file_entry, sid)
 
     def _wipe_sid(self, row_object, sid):
         (self
