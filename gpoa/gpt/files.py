@@ -29,6 +29,7 @@ def read_files(filesxml):
         fil_obj.set_read_only(props.get('readOnly', default=None))
         fil_obj.set_archive(props.get('archive', default=None))
         fil_obj.set_hidden(props.get('hidden', default=None))
+        fil_obj.set_suppress(props.get('suppress', default=None))
         files.append(fil_obj)
 
     return files
@@ -51,3 +52,5 @@ class fileentry:
         self.archive = archive
     def set_hidden(self, hidden):
         self.hidden = hidden
+    def set_suppress(self, suppress):
+        self.suppress = suppress
