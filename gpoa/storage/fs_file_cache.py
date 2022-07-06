@@ -95,3 +95,15 @@ class fs_file_cache:
 
         return str(destfile)
 
+    def get_ls_smbdir(self, uri):
+        type_file_smb = 8
+        try:
+            uri_path = UNCPath(uri)
+            opendir = self.samba_context.opendir(str(uri_path))
+            ls_obj = opendir.getdents()
+            ls = [obj.name for obj in ls_obj if obj.smbc_type == type_file_smb]
+            return(ls)
+        except Exception as exc:
+            logdata = dict({'exception': str(exc)})
+            log('W12', logdata)
+            return(None)
