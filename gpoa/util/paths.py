@@ -91,7 +91,7 @@ class UNCPath:
         self.type = None
         if self.path.startswith(r'smb://'):
             self.type = 'uri'
-        if self.path.startswith(r'\\'):
+        if self.path.startswith(r'\\') or self.path.startswith(r'//'):
             self.type = 'unc'
         if not self.type:
             raise NotUNCPathError(path)
