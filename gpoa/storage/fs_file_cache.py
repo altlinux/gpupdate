@@ -39,7 +39,7 @@ class fs_file_cache:
         self.samba_context = smbc.Context(use_kerberos=1)
                 #, debug=10)
 
-    def store(self, uri):
+    def store(self, uri, log_enable = True):
         destdir = uri
         try:
             uri_path = UNCPath(uri)
@@ -72,8 +72,9 @@ class fs_file_cache:
                     df.write(data)
                 df.flush()
             except Exception as exc:
-                logdata = dict({'exception': str(exc)})
-                log('E35', logdata)
+                if log_enable:
+                    logdata = dict({'exception': str(exc)})
+                    log('E35', logdata)
                 raise exc
 
     def get(self, uri):
