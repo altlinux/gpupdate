@@ -37,7 +37,7 @@ class file_applier(applier_frontend):
         self.sid = sid
         self.file_cache = file_cache
         self.files = self.storage.get_files(self.sid)
-        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def run(self):
         ls_files_cp = get_list_all_files(self.files, self.file_cache)
