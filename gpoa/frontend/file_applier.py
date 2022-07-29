@@ -25,6 +25,7 @@ from .applier_frontend import (
 )
 from util.logging import log
 from util.windows import expand_windows_var
+from util.util import get_homedir
 
 
 class file_applier(applier_frontend):
@@ -90,6 +91,9 @@ class file_applier_user(applier_frontend):
             pass
             # log('#############D112')
 def get_list_all_files(files, file_cache, username = None):
+    '''
+    Forming a list of Files_cp objects
+    '''
     ls_files_cp = list()
 
     for file_obj in files:
@@ -97,7 +101,9 @@ def get_list_all_files(files, file_cache, username = None):
                     if file_obj.fromPath else None)
         targetPath = expand_windows_var(file_obj.targetPath, username).replace('\\', '/')
         dict_files_cp = dict()
-        dict_files_cp['targetPath'] = targetPath
+        dict_files_cp['targetPath'] = check_target_path(targetPath, username)
+        if not dict_files_cp['targetPath']:
+            continue
         dict_files_cp['action'] = file_obj.action
         dict_files_cp['readOnly'] = file_obj.readOnly
         dict_files_cp['archive'] = file_obj.archive
@@ -106,7 +112,7 @@ def get_list_all_files(files, file_cache, username = None):
         if fromPath and fromPath[-1] != '*':
             try:
                 file_cache.store(fromPath, False)
-                dict_files_cp['fromPath'] = file_cache.get(fromPath)
+                dict_files_cp['fromPath'] = Path(file_cache.get(fromPath))
                 ls_files_cp.append(Files_cp(dict_files_cp))
             except Exception as exc:
                 logdata = dict({fromPath: str(exc)})
@@ -118,7 +124,7 @@ def get_list_all_files(files, file_cache, username = None):
             for from_path in ls_from_paths:
                 try:
                     file_cache.store(from_path)
-                    dict_files_cp['fromPath'] = file_cache.get(from_path)
+                    dict_files_cp['fromPath'] = Path(file_cache.get(from_path))
                     ls_files_cp.append(Files_cp(dict_files_cp))
                 except Exception as exc:
                     logdata = dict({from_path: str(exc)})
@@ -131,3 +137,18 @@ def get_list_all_files(files, file_cache, username = None):
 
 def cp_all_files(ls_files_cp):
     pass
+
+def check_target_path(path_to_check, username = None):
+    '''
+    Function for checking the correctness of the path
+    '''
+    checking = Path(path_to_check)
+    if checking.is_dir():
+        return checking
+    elif username:
+        target_path = Path(get_homedir(username))
+        return target_path.joinpath(path_to_check
+                                    if path_to_check[0] != '/'
+                                    else path_to_check[1:])
+    else:
+        return False
