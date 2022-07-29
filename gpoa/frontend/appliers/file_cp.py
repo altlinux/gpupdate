@@ -27,9 +27,9 @@ from .folder import str2bool
 
 class Files_cp:
     def __init__(self, arg_dict):
-        self.fromPath = (Path(arg_dict['fromPath'])
+        self.fromPath = (arg_dict['fromPath']
                         if arg_dict['fromPath'] else None)
-        self.targetPath = Path(arg_dict['targetPath'])
+        self.targetPath = arg_dict['targetPath']
         self.action = action_letter2enum(arg_dict['action'])
         self.readOnly = str2bool(arg_dict['readOnly'])
         self.archive = str2bool(arg_dict['archive'])
