@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pathlib import Path
+
 
 from gpt.folders import (
       FileAction
     , action_letter2enum
 )
 from .folder import str2bool
-
+import shutil
 
 class Files_cp:
     def __init__(self, arg_dict):
@@ -37,14 +37,47 @@ class Files_cp:
         self.suppress = (str2bool(arg_dict['suppress'])
                         if arg_dict['suppress'] else None)
 
+    def get_target_file(self, hidden = None):
+        try:
+            if hidden and self.fromPath:
+                return self.targetPath.joinpath('.' + self.fromPath.name)
+            elif self.fromPath:
+                return self.targetPath.joinpath(self.fromPath.name)
+            else:
+                return self.targetPath
+        except Exception as exc:
+            print('log', exc)
+
+    def set_read_only(self, targetFile, readOnly):
+        if readOnly:
+            shutil.os.chmod(targetFile, int('444', base = 8))
+        else:
+            shutil.os.chmod(targetFile, int('664', base = 8))
+
     def _create_action(self):
-        pass
+        try:
+            targetFile = self.get_target_file(self.hidden)
+            if not targetFile.exists():
+                targetFile.write_bytes(self.fromPath.read_bytes())
+                shutil.chown(targetFile, self.username)
+                self.set_read_only(targetFile, self.readOnly)
+        except Exception as exc:
+            print('log', exc)
 
     def _delete_action(self):
-        pass
+        try:
+            self.get_target_file(self.hidden).unlink()
+        except Exception as exc:
+            print('log', exc)
 
     def _update_action(self):
-        pass
+        try:
+            targetFile = self.get_target_file(self.hidden)
+            targetFile.write_bytes(self.fromPath.read_bytes())
+            shutil.chown(self.targetPath.joinpath(self.fromPath.name), self.username)
+            self.set_read_only(targetFile, self.readOnly)
+        except Exception as exc:
+            print('log', exc)
 
     def act(self):
         if self.action == FileAction.CREATE:
