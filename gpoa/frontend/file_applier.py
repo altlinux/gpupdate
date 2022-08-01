@@ -42,7 +42,8 @@ class file_applier(applier_frontend):
 
     def run(self):
         ls_files_cp = get_list_all_files(self.files, self.file_cache)
-        cp_all_files(ls_files_cp)
+        for files_cp in ls_files_cp:
+            files_cp.act()
 
 
     def apply(self):
@@ -73,7 +74,8 @@ class file_applier_user(applier_frontend):
 
     def run(self):
         ls_files_cp = get_list_all_files(self.files, self.file_cache, self.username)
-        cp_all_files(ls_files_cp)
+        for files_cp in ls_files_cp:
+            files_cp.act()
 
     def admin_context_apply(self):
         if self.__module_enabled:
@@ -130,13 +132,12 @@ def get_list_all_files(files, file_cache, username = None):
                     logdata = dict({from_path: str(exc)})
                     log('W13', logdata)
         else:
-            dict_files_cp['fromPath'] = fromPath
+            dict_files_cp['fromPath'] = Path(fromPath) if fromPath else None
             ls_files_cp.append(Files_cp(dict_files_cp))
 
     return ls_files_cp
 
-def cp_all_files(ls_files_cp):
-    pass
+
 
 def check_target_path(path_to_check, username = None):
     '''
