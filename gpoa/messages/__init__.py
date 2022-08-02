@@ -268,6 +268,14 @@ def debug_code(code):
     debug_ids[160] = 'Clean machine scripts directory'
     debug_ids[161] = 'Clean user scripts directory'
     debug_ids[162] = 'Saving information about file'
+    debug_ids[163] = 'Failed to return file path'
+    debug_ids[164] = 'Failed to create file'
+    debug_ids[165] = 'Failed to delete file'
+    debug_ids[166] = 'Failed to update file'
+    debug_ids[167] = 'Running File copy applier for machine'
+    debug_ids[168] = 'Running File copy applier for machine will not be started'
+    debug_ids[169] = 'Running File copy applier for user in administrator context'
+    debug_ids[170] = 'Running File copy applier for user in administrator context will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 

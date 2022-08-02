@@ -23,6 +23,7 @@ from gpt.folders import (
     , action_letter2enum
 )
 from .folder import str2bool
+from util.logging import log
 import shutil
 
 class Files_cp:
@@ -46,7 +47,8 @@ class Files_cp:
             else:
                 return self.targetPath
         except Exception as exc:
-            print('log', exc)
+            logdata = dict({'exc': exc})
+            log('D163', logdata)
 
     def set_read_only(self, targetFile, readOnly):
         if readOnly:
@@ -62,13 +64,15 @@ class Files_cp:
                 shutil.chown(targetFile, self.username)
                 self.set_read_only(targetFile, self.readOnly)
         except Exception as exc:
-            print('log', exc)
+            logdata = dict({'exc': exc})
+            log('D164', logdata)
 
     def _delete_action(self):
         try:
             self.get_target_file(self.hidden).unlink()
         except Exception as exc:
-            print('log', exc)
+            logdata = dict({'exc': exc})
+            log('D165', logdata)
 
     def _update_action(self):
         try:
@@ -77,7 +81,8 @@ class Files_cp:
             shutil.chown(self.targetPath.joinpath(self.fromPath.name), self.username)
             self.set_read_only(targetFile, self.readOnly)
         except Exception as exc:
-            print('log', exc)
+            logdata = dict({'exc': exc})
+            log('D166', logdata)
 
     def act(self):
         if self.action == FileAction.CREATE:

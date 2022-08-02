@@ -48,11 +48,11 @@ class file_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            # log('#########D107#########')
+            log('D167')
             self.run()
         else:
             pass
-            # log('#############D108')
+            log('D168')
 
 class file_applier_user(applier_frontend):
     __module_name = 'FilesApplierUser'
@@ -79,19 +79,14 @@ class file_applier_user(applier_frontend):
 
     def admin_context_apply(self):
         if self.__module_enabled:
-            # log('###########D109')
+            log('D169')
             self.run()
         else:
-            pass
-            # log('############D110')
+            log('D170')
 
     def user_context_apply(self):
-        if self.__module_enabled:
-            # log('##############D111')
-            self.run()
-        else:
-            pass
-            # log('#############D112')
+        pass
+
 def get_list_all_files(files, file_cache, username = None):
     '''
     Forming a list of Files_cp objects
