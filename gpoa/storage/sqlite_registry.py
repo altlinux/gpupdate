@@ -414,8 +414,8 @@ class sqlite_registry(registry):
     def add_file(self, sid, fileobj, policy_name):
         f_entry = file_entry(sid, fileobj, policy_name)
         logdata = dict()
-        logdata['file'] = f_entry.targetPath
-        logdata['sid'] = sid
+        logdata['targetPath'] = f_entry.targetPath
+        logdata['fromPath'] = f_entry.fromPath
         log('D162', logdata)
         try:
             self._add(f_entry)

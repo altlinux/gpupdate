@@ -64,14 +64,19 @@ class Files_cp:
                 shutil.chown(targetFile, self.username)
                 self.set_read_only(targetFile, self.readOnly)
         except Exception as exc:
-            logdata = dict({'exc': exc})
+            logdata = dict()
+            logdata['exc'] = exc
+            logdata['fromPath'] = self.fromPath
+            logdata['targetPath'] = self.targetPath
             log('D164', logdata)
 
     def _delete_action(self):
         try:
             self.get_target_file(self.hidden).unlink()
         except Exception as exc:
-            logdata = dict({'exc': exc})
+            logdata = dict()
+            logdata['exc'] = exc
+            logdata['targetPath'] = self.targetPath
             log('D165', logdata)
 
     def _update_action(self):
@@ -81,7 +86,10 @@ class Files_cp:
             shutil.chown(self.targetPath.joinpath(self.fromPath.name), self.username)
             self.set_read_only(targetFile, self.readOnly)
         except Exception as exc:
-            logdata = dict({'exc': exc})
+            logdata = dict()
+            logdata['exc'] = exc
+            logdata['fromPath'] = self.fromPath
+            logdata['targetPath'] = self.targetPath
             log('D166', logdata)
 
     def act(self):

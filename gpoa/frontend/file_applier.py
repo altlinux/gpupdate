@@ -112,7 +112,9 @@ def get_list_all_files(files, file_cache, username = None):
                 dict_files_cp['fromPath'] = Path(file_cache.get(fromPath))
                 ls_files_cp.append(Files_cp(dict_files_cp))
             except Exception as exc:
-                logdata = dict({fromPath: str(exc)})
+                logdata = dict_files_cp
+                logdata['fromPath'] = fromPath
+                logdata['exc'] = exc
                 log('W13', logdata)
 
         elif fromPath:
@@ -124,7 +126,9 @@ def get_list_all_files(files, file_cache, username = None):
                     dict_files_cp['fromPath'] = Path(file_cache.get(from_path))
                     ls_files_cp.append(Files_cp(dict_files_cp))
                 except Exception as exc:
-                    logdata = dict({from_path: str(exc)})
+                    logdata = dict_files_cp
+                    logdata['fromPath'] = fromPath
+                    logdata['exc'] = exc
                     log('W13', logdata)
         else:
             dict_files_cp['fromPath'] = Path(fromPath) if fromPath else None
