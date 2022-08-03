@@ -161,7 +161,7 @@ class frontend_manager:
         self.user_appliers['polkit'] = polkit_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['envvar'] = envvar_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
-        self.machine_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
+        self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
 
     def machine_apply(self):
         '''
