@@ -25,6 +25,7 @@ from gpt.folders import (
 from .folder import str2bool
 from util.logging import log
 import shutil
+from pathlib import Path
 
 class Files_cp:
     def __init__(self, arg_dict):
@@ -38,31 +39,35 @@ class Files_cp:
         self.suppress = (str2bool(arg_dict['suppress'])
                         if arg_dict['suppress'] else None)
 
-    def get_target_file(self, hidden = None):
+    def get_target_file(self):
         try:
-            if hidden and self.fromPath:
-                return self.targetPath.joinpath('.' + self.fromPath.name)
-            elif self.fromPath:
-                return self.targetPath.joinpath(self.fromPath.name)
+            if self.fromPath and self.targetPath.is_dir():
+                return (self.targetPath.joinpath(self.fromPath.name)
+                        if not self.hidden else self.targetPath.joinpath('.' + self.fromPath.name))
             else:
-                return self.targetPath
+                if not self.hidden:
+                    return self.targetPath
+                else:
+                    target_path = str(self.targetPath)
+                    return Path(target_path.replace(target_path.split('/')[-1], '.' + target_path.split('/')[-1]))
+
         except Exception as exc:
             logdata = dict({'exc': exc})
             log('D163', logdata)
 
-    def set_read_only(self, targetFile, readOnly):
-        if readOnly:
+    def set_read_only(self, targetFile):
+        if  self.readOnly:
             shutil.os.chmod(targetFile, int('444', base = 8))
         else:
             shutil.os.chmod(targetFile, int('664', base = 8))
 
     def _create_action(self):
         try:
-            targetFile = self.get_target_file(self.hidden)
+            targetFile = self.get_target_file()
             if not targetFile.exists():
                 targetFile.write_bytes(self.fromPath.read_bytes())
                 shutil.chown(targetFile, self.username)
-                self.set_read_only(targetFile, self.readOnly)
+                self.set_read_only(targetFile)
         except Exception as exc:
             logdata = dict()
             logdata['exc'] = exc
@@ -72,7 +77,7 @@ class Files_cp:
 
     def _delete_action(self):
         try:
-            self.get_target_file(self.hidden).unlink()
+            self.get_target_file().unlink()
         except Exception as exc:
             logdata = dict()
             logdata['exc'] = exc
@@ -81,9 +86,9 @@ class Files_cp:
 
     def _update_action(self):
         try:
-            targetFile = self.get_target_file(self.hidden)
+            targetFile = self.get_target_file()
             targetFile.write_bytes(self.fromPath.read_bytes())
-            shutil.chown(self.targetPath.joinpath(self.fromPath.name), self.username)
+            shutil.chown(self.targetPath, self.username)
             self.set_read_only(targetFile, self.readOnly)
         except Exception as exc:
             logdata = dict()
