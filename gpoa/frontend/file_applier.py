@@ -145,10 +145,15 @@ def check_target_path(path_to_check, username = None):
     checking = Path(path_to_check)
     if checking.is_dir():
         return checking
+    #Check for path directory without '/something' suffix
+    elif (len(path_to_check.split('/')) > 2
+          and Path(path_to_check.replace(path_to_check.split('/')[-1], '')).is_dir()):
+        return checking
     elif username:
         target_path = Path(get_homedir(username))
-        return target_path.joinpath(path_to_check
+        res = target_path.joinpath(path_to_check
                                     if path_to_check[0] != '/'
                                     else path_to_check[1:])
+        return res
     else:
         return False
