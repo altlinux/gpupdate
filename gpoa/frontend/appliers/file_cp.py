@@ -77,7 +77,9 @@ class Files_cp:
 
     def _delete_action(self):
         try:
-            self.get_target_file().unlink()
+            targetFile = self.get_target_file()
+            if targetFile.exists():
+                targetFile.unlink()
         except Exception as exc:
             logdata = dict()
             logdata['exc'] = exc

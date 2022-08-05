@@ -170,7 +170,7 @@ class sqlite_registry(registry):
             , Column('archive', String)
             , Column('hidden', String)
             , Column('suppress', String)
-            , UniqueConstraint('sid', 'formPath', 'targetPath')
+            , UniqueConstraint('sid', 'targetPath', 'fromPath')
         )
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
