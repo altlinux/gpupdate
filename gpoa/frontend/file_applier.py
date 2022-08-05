@@ -108,7 +108,7 @@ def get_list_all_files(files, file_cache, username = None):
         dict_files_cp['hidden'] = file_obj.hidden
         dict_files_cp['suppress'] = file_obj.suppress
         dict_files_cp['username'] = username
-        if fromPath and fromPath[-1] != '*':
+        if fromPath and fromPath.split('/')[-1] != '*':
             try:
                 file_cache.store(fromPath, False)
                 dict_files_cp['fromPath'] = Path(file_cache.get(fromPath))
@@ -123,7 +123,7 @@ def get_list_all_files(files, file_cache, username = None):
                 logdata['exc'] = exc
                 log('W13', logdata)
 
-        elif fromPath:
+        elif fromPath and len(fromPath.split('/')) > 2:
             ls_files = file_cache.get_ls_smbdir(fromPath[:-1])
             if ls_files:
                 ls_from_paths = [fromPath[:-1] + file_s for file_s in ls_files]
