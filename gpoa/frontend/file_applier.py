@@ -26,6 +26,7 @@ from .applier_frontend import (
 from util.logging import log
 from util.windows import expand_windows_var
 from util.util import get_homedir
+from util.exceptions import NotUNCPathError
 
 
 class file_applier(applier_frontend):
@@ -112,6 +113,10 @@ def get_list_all_files(files, file_cache, username = None):
                 file_cache.store(fromPath, False)
                 dict_files_cp['fromPath'] = Path(file_cache.get(fromPath))
                 ls_files_cp.append(Files_cp(dict_files_cp))
+            except NotUNCPathError as exc:
+                dict_files_cp['fromPath'] = Path(fromPath)
+                if dict_files_cp['fromPath'].exists():
+                    ls_files_cp.append(Files_cp(dict_files_cp))
             except Exception as exc:
                 logdata = dict_files_cp
                 logdata['fromPath'] = fromPath
@@ -120,12 +125,24 @@ def get_list_all_files(files, file_cache, username = None):
 
         elif fromPath:
             ls_files = file_cache.get_ls_smbdir(fromPath[:-1])
-            ls_from_paths = [fromPath[:-1] + file_s for file_s in ls_files]
-            for from_path in ls_from_paths:
+            if ls_files:
+                ls_from_paths = [fromPath[:-1] + file_s for file_s in ls_files]
+                for from_path in ls_from_paths:
+                    try:
+                        file_cache.store(from_path)
+                        dict_files_cp['fromPath'] = Path(file_cache.get(from_path))
+                        ls_files_cp.append(Files_cp(dict_files_cp))
+                    except Exception as exc:
+                        logdata = dict_files_cp
+                        logdata['fromPath'] = fromPath
+                        logdata['exc'] = exc
+                        log('W13', logdata)
+            else:
                 try:
-                    file_cache.store(from_path)
-                    dict_files_cp['fromPath'] = Path(file_cache.get(from_path))
-                    ls_files_cp.append(Files_cp(dict_files_cp))
+                    ls = [fromFile for fromFile in Path(fromPath[:-1]).iterdir() if fromFile.is_file()]
+                    for from_path in ls:
+                        dict_files_cp['fromPath'] = from_path
+                        ls_files_cp.append(Files_cp(dict_files_cp))
                 except Exception as exc:
                     logdata = dict_files_cp
                     logdata['fromPath'] = fromPath
