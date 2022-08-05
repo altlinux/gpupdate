@@ -38,6 +38,7 @@ class Files_cp:
         self.hidden = str2bool(arg_dict['hidden'])
         self.suppress = (str2bool(arg_dict['suppress'])
                         if arg_dict['suppress'] else None)
+        self.username = arg_dict['username']
 
     def get_target_file(self):
         try:
@@ -66,7 +67,8 @@ class Files_cp:
             targetFile = self.get_target_file()
             if not targetFile.exists():
                 targetFile.write_bytes(self.fromPath.read_bytes())
-                shutil.chown(targetFile, self.username)
+                if self.username:
+                    shutil.chown(targetFile, self.username)
                 self.set_read_only(targetFile)
         except Exception as exc:
             logdata = dict()
@@ -90,7 +92,8 @@ class Files_cp:
         try:
             targetFile = self.get_target_file()
             targetFile.write_bytes(self.fromPath.read_bytes())
-            shutil.chown(self.targetPath, self.username)
+            if self.username:
+                shutil.chown(self.targetPath, self.username)
             self.set_read_only(targetFile, self.readOnly)
         except Exception as exc:
             logdata = dict()

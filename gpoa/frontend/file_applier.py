@@ -106,6 +106,7 @@ def get_list_all_files(files, file_cache, username = None):
         dict_files_cp['archive'] = file_obj.archive
         dict_files_cp['hidden'] = file_obj.hidden
         dict_files_cp['suppress'] = file_obj.suppress
+        dict_files_cp['username'] = username
         if fromPath and fromPath[-1] != '*':
             try:
                 file_cache.store(fromPath, False)
