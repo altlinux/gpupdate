@@ -52,7 +52,6 @@ class file_applier(applier_frontend):
             log('D167')
             self.run()
         else:
-            pass
             log('D168')
 
 class file_applier_user(applier_frontend):
@@ -66,7 +65,6 @@ class file_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
         self.files = self.storage.get_files(self.sid)
-        self.ls_all_files = dict()
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
