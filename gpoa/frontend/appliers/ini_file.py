@@ -26,6 +26,7 @@ from .folder import str2bool
 from util.logging import log
 import shutil
 from pathlib import Path
+import configparser
 
 class Ini_file:
     def __init__(self, arg_dict):
@@ -35,19 +36,48 @@ class Ini_file:
         self.key = arg_dict['property']
         self.value = arg_dict['value']
 
+        self.config = configparser.ConfigParser()
+
     def _create_action(self):
-        pass
+        if self.section not in self.config:
+            self.config[self.section] = dict()
+
+        self.config[self.section][self.key] = self.value
+
+        with self.path.open("w", encoding="utf-8") as configfile:
+            self.config.write(configfile)
+
+
 
     def _delete_action(self):
-        pass
+        if not self.path.exists():
+            return
+
+        if not self.section:
+            self.path.unlink()
+            return
+        if not self.key:
+            self.config.remove_section(self.section)
+        elif self.section in self.config:
+            self.config.remove_option(self.section, self.key)
+
+        with self.path.open("w", encoding="utf-8") as configfile:
+            self.config.write(configfile)
+
 
     def _update_action(self):
         pass
 
     def act(self):
+        try:
+            self.config.read(self.path)
+        except Exception as exc:
+            print('D!!!')
+            return
         if self.action == FileAction.CREATE:
             self._create_action()
         if self.action == FileAction.UPDATE:
+            self._delete_action()
             self._create_action()
         if self.action == FileAction.DELETE:
             self._delete_action()
