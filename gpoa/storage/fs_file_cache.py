@@ -39,7 +39,7 @@ class fs_file_cache:
         self.samba_context = smbc.Context(use_kerberos=1)
                 #, debug=10)
 
-    def store(self, uri, log_enable = True):
+    def store(self, uri):
         destdir = uri
         try:
             uri_path = UNCPath(uri)
@@ -63,19 +63,13 @@ class fs_file_cache:
         with open(destfile, 'wb') as df:
             df.truncate()
             df.flush()
-            try:
-                file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
-                while True:
-                    data = file_handler.read(self.__read_blocksize)
-                    if not data:
-                        break
-                    df.write(data)
-                df.flush()
-            except Exception as exc:
-                if log_enable:
-                    logdata = dict({'exception': str(exc)})
-                    log('E35', logdata)
-                raise exc
+            file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
+            while True:
+                data = file_handler.read(self.__read_blocksize)
+                if not data:
+                    break
+                df.write(data)
+            df.flush()
 
     def get(self, uri):
         destfile = uri

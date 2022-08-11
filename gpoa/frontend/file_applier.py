@@ -108,7 +108,7 @@ def get_list_all_files(files, file_cache, username = None):
         dict_files_cp['username'] = username
         if fromPath and fromPath.split('/')[-1] != '*':
             try:
-                file_cache.store(fromPath, False)
+                file_cache.store(fromPath)
                 dict_files_cp['fromPath'] = Path(file_cache.get(fromPath))
                 ls_files_cp.append(Files_cp(dict_files_cp))
             except NotUNCPathError as exc:
