@@ -18,6 +18,7 @@
 
 
 from configparser import ConfigParser
+from os import stat
 
 from .util import (
       get_backends
@@ -65,6 +66,9 @@ class GPConfig:
         Fetch the name of chosen Local Policy template from
         configuration file.
         '''
+        if 'local-policy' in self.full_config:
+            if 'template' in self.full_config['local-policy']:
+                return self.full_config['local-policy']['template']
         if 'gpoa' in self.full_config:
             if 'local-policy' in self.full_config['gpoa']:
                 return self.full_config['gpoa']['local-policy']
@@ -72,10 +76,30 @@ class GPConfig:
         return get_default_policy_name()
 
     def set_local_policy_template(self, template_name='default'):
-        self.full_config['gpoa']['local-policy'] = template_name
+        if not 'local-policy' in self.full_config:
+            self.full_config.add_section('local-policy')
+            self.full_config['local-policy']['template'] = template_name
+        if 'gpoa' in self.full_config:
+            if 'local-policy' in self.full_config['gpoa']:
+                self.full_config.remove_option('gpoa', 'local-policy')
         self.write_config()
 
     def write_config(self):
         with open(self.__config_path, 'w') as config_file:
             self.full_config.write(config_file)
 
+    def get_local_policy_enabled(self):
+        '''
+        Get local policy state from the config file.
+        '''
+        if 'local-policy' in self.full_config:
+            if 'enabled' in self.full_config['local-policy']:
+                    if self.full_config['local-policy']['enabled'] in [1 , '1', 'True', True , 'true']:
+                        return True
+                    if self.full_config['local-policy']['enabled'] in [0 , '0', 'False', False , 'false']:
+                        return False
+        return True
+
+    def set_local_policy_enabled(self, state='True'):
+        self.full_config['local-policy']['enabled'] = state
+        self.write_config()

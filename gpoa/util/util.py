@@ -122,7 +122,7 @@ def get_backends():
 
 def get_default_policy_name():
     '''
-    Determine the preferred Local Policy template name according to
+    Determine the preferred Local Policy default template name according to
     ALT distribution type
     '''
     localpolicy = 'workstation'
@@ -145,38 +145,3 @@ def get_default_policy_name():
         pass
 
     return localpolicy
-
-def get_policy_entries(directory):
-    '''
-    Get list of directories representing "Local Policy" templates.
-    '''
-    filtered_entries = list()
-    if os.path.isdir(directory):
-        entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
-
-        for entry in entries:
-            if os.path.isdir(os.path.join(entry)):
-                if not os.path.islink(os.path.join(entry)):
-                    if not entry.rpartition('/')[2] == 'default':
-                        filtered_entries.append(entry)
-
-    return filtered_entries
-
-def get_policy_variants():
-    '''
-    Get the list of local policy variants deployed on this system.
-    Please note that is case overlapping names the names in
-    /etc/local-policy must override names in /usr/share/local-policy
-    '''
-    policy_dir = '/usr/share/local-policy'
-    etc_policy_dir = '/etc/local-policy'
-
-    system_policies = get_policy_entries(policy_dir)
-    user_policies = get_policy_entries(etc_policy_dir)
-
-    general_listing = list()
-    general_listing.extend(system_policies)
-    general_listing.extend(user_policies)
-
-    return general_listing
-

@@ -27,12 +27,9 @@ from util.util import (
       runcmd
     , get_backends
     , get_default_policy_name
-    , get_policy_entries
-    , get_policy_variants
 )
 from util.config import GPConfig
-from util.paths import get_custom_policy_dir
-
+from util.paths import local_policy_custom_templates_dir, local_policy_templates
 
 class Runner:
     __control_path = '/usr/sbin/control'
@@ -45,34 +42,38 @@ def parse_arguments():
     '''
     Parse CLI arguments.
     '''
+    config = GPConfig()
     parser = argparse.ArgumentParser(prog='gpupdate-setup')
     subparsers = parser.add_subparsers(dest='action',
         metavar='action',
         help='Group Policy management actions (default action is status)')
 
     parser_list = subparsers.add_parser('list',
-        help='List avalable types of local policy')
+        help='List of avalable local policy templates')
     parser_list = subparsers.add_parser('list-backends',
         help='Show list of available backends')
     parser_status = subparsers.add_parser('status',
-        help='Show current Group Policy status')
+        help='Show current Group Policy subsystem status')
+
     parser_enable = subparsers.add_parser('enable',
         help='Enable Group Policy subsystem')
-
     parser_disable = subparsers.add_parser('disable',
         help='Disable Group Policy subsystem')
     parser_update = subparsers.add_parser('update',
-        help='Update state')
+        help='Update state of Group Policy subsystem')
     parser_write = subparsers.add_parser('write',
         help='Operate on Group Policies (enable or disable)')
     parser_set_backend = subparsers.add_parser('set-backend',
         help='Set or change currently active backend')
+
     parser_default = subparsers.add_parser('default-policy',
-        help='Show name of default policy')
+        help='Show name of default local policy template')
     parser_active = subparsers.add_parser('active-policy',
-        help='Show name of policy enabled')
+        help='Show currently configured local policy template')
     parser_active_backend = subparsers.add_parser('active-backend',
         help='Show currently configured backend')
+    parser_local_policy = subparsers.add_parser('local-policy',
+        help='Show/Set local policy management state')
 
     parser_set_backend.add_argument('backend',
         default='samba',
@@ -82,13 +83,21 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
+    parser_local_policy.add_argument('state',
+        default=None,
+        type=str,
+        nargs='?',
+        const='state',
+        choices=['True', 'False'],
+        help='Set local policy management state')
+
     parser_write.add_argument('status',
         choices=['enable', 'disable'],
         help='Enable or disable Group Policies')
     parser_write.add_argument('localpolicy',
         default=None,
         nargs='?',
-        help='Name of local policy to enable')
+        help='Name of local policy template')
     parser_write.add_argument('backend',
         default='samba',
         type=str,
@@ -97,20 +106,30 @@ def parse_arguments():
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
-    parser_enable.add_argument('--local-policy',
+    parser_enable.add_argument('--local-policy-default',
         default=None,
-        help='Name of local policy to enable')
+        help='Name of local default policy to enable')
     parser_enable.add_argument('--backend',
         default='samba',
         type=str,
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
 
-    parser_update.add_argument('--local-policy',
+    parser_enable.add_argument('--local-policy-enabled',
+        default='False',
+        type=str,
+        choices=['True', 'False'],
+        help='Enable applying local group policies')
+
+    parser_update.add_argument('--local-policy-default',
         default=None,
-        help='Name of local policy to enable')
+        help='Name of local default policy to enable')
+
+    parser_update.add_argument('--local-policy',
+        default=str(get_local_policy_enabled()),
+        help='State of local policies')
     parser_update.add_argument('--backend',
-        default='samba',
+        default=get_active_backend(),
         type=str,
         choices=['local', 'samba'],
         help='Backend (source of settings) name')
@@ -119,7 +138,7 @@ def parse_arguments():
     return parser.parse_args()
 
 def validate_policy_name(policy_name):
-    return policy_name in [os.path.basename(d) for d in get_policy_variants()]
+    return policy_name in [os.path.basename(d) for d in local_policy_templates()]
 
 def is_unit_enabled(unit_name, unit_global=False):
     '''
@@ -156,16 +175,20 @@ def get_status():
 
     return False
 
-def get_active_policy_name():
+def get_active_policy_default_name():
     '''
-    Show the name of an active Local Policy template
+    Show the name of an active Local default Policy template
     '''
     config = GPConfig()
-    return os.path.basename(config.get_local_policy_template())
+    return os.path.basename(config.get_default_local_policy_template())
 
 def get_active_backend():
     config = GPConfig()
     return config.get_backend()
+
+def get_local_policy_enabled():
+    config = GPConfig()
+    return config.get_local_policy_enabled()
 
 def rollback_on_error(command_name):
     '''
@@ -192,6 +215,10 @@ def disable_gp():
 
     config = GPConfig()
 
+    custom_templates_dir = local_policy_custom_templates_dir()
+    if not os.path.isdir(custom_templates_dir):
+        os.makedirs(custom_templates_dir)
+
     auth_result = 'local'
     try:
         auth_result = runcmd(cmd_control_system_auth)[1][0]
@@ -210,8 +237,9 @@ def disable_gp():
     runcmd(cmd_disable_gpupdate_scripts_user_service)
     config.set_local_policy_template()
     config.set_backend()
+    config.set_local_policy_enabled('False')
 
-def enable_gp(policy_name, backend_type):
+def enable_gp(policy_name, backend_type, local_policy=False):
     '''
     Consistently enable group policy services
     '''
@@ -226,10 +254,6 @@ def enable_gp(policy_name, backend_type):
 
     config = GPConfig()
 
-    custom_policy_dir = get_custom_policy_dir()
-    if not os.path.isdir(custom_policy_dir):
-        os.makedirs(custom_policy_dir)
-
     target_policy_name = get_default_policy_name()
     if policy_name:
         if validate_policy_name(policy_name):
@@ -238,6 +262,7 @@ def enable_gp(policy_name, backend_type):
 
     config.set_local_policy_template(target_policy_name)
     config.set_backend(backend_type)
+    config.set_local_policy_enabled(local_policy)
 
     # Enable oddjobd_gpupdate in PAM config
     if not rollback_on_error(cmd_set_gpupdate_policy):
@@ -288,7 +313,7 @@ def act_list():
     '''
     Show list of available templates of Local Policy
     '''
-    for entry in get_policy_variants():
+    for entry in local_policy_templates():
         print(entry.rpartition('/')[2])
 
 def act_list_backends():
@@ -321,17 +346,25 @@ def act_write(status, localpolicy, backend):
     if status == 'disable' or status == '#f':
         disable_gp()
 
-def act_enable(localpolicy, backend):
+def act_enable(localpolicy, backend, local_policy):
     '''
     Enable group policy services
     '''
-    enable_gp(localpolicy, backend)
+    enable_gp(localpolicy, backend, local_policy)
 
-def act_active_policy():
+def act_update(localpolicy, backend, local_policy):
     '''
-    Print active Local Policy template name to stdout
+    Enable group policy services
     '''
-    print(get_active_policy_name())
+    enable_gp(localpolicy, backend, local_policy)
+
+
+
+def act_active_policy_default():
+    '''
+    Print active Local default Policy template name to stdout
+    '''
+    print(get_active_policy_default_name())
 
 def act_active_backend():
     '''
@@ -345,6 +378,16 @@ def act_default_policy():
     '''
     print(get_default_policy_name())
 
+def act_local_policy(state):
+    '''
+    Print and set currently local_policy.
+    '''
+    if state:
+        config = GPConfig()
+        config.set_local_policy_enabled(state)
+
+    print(get_local_policy_enabled())
+
 def main():
     arguments = parse_arguments()
 
@@ -355,23 +398,26 @@ def main():
     action['set-backend'] = act_set_backend
     action['write'] = act_write
     action['enable'] = act_enable
-    action['update'] = act_enable
+    action['update'] = act_update
     action['disable'] = disable_gp
-    action['active-policy'] = act_active_policy
+    action['active-policy'] = act_active_policy_default
     action['active-backend'] = act_active_backend
     action['default-policy'] = act_default_policy
+    action['local-policy'] = act_local_policy
 
     if arguments.action == None:
         action['status']()
     elif arguments.action == 'update':
         if get_status():
-            action[arguments.action](arguments.local_policy, arguments.backend)
+            action[arguments.action](arguments.local_policy_default, arguments.backend, arguments.local_policy)
     elif arguments.action == 'enable':
-        action[arguments.action](arguments.local_policy, arguments.backend)
+        action[arguments.action](arguments.local_policy_default, arguments.backend, arguments.local_policy)
     elif arguments.action == 'write':
         action[arguments.action](arguments.status, arguments.localpolicy, arguments.backend)
     elif arguments.action == 'set-backend':
         action[arguments.action](arguments.backend)
+    elif arguments.action == 'local-policy':
+        action[arguments.action](arguments.state)
     else:
         action[arguments.action]()
 

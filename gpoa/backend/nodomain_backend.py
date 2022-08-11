@@ -21,7 +21,7 @@ import os
 
 from .applier_backend import applier_backend
 from storage import registry_factory
-from gpt.gpt import gpt, get_local_gpt
+from gpt.gpt import gpt, get_local_default_gpt, get_local_policy_gpt
 from util.util import (
     get_machine_name
 )
@@ -31,7 +31,7 @@ from util.logging import slogm
 
 class nodomain_backend(applier_backend):
 
-    def __init__(self):
+    def __init__(self, username, is_machine, is_local_policy_enabled):
         domain = None
         machine_name = get_machine_name()
         machine_sid = get_sid(domain, machine_name, True)
@@ -39,10 +39,14 @@ class nodomain_backend(applier_backend):
         self.storage.set_info('domain', domain)
         self.storage.set_info('machine_name', machine_name)
         self.storage.set_info('machine_sid', machine_sid)
+        self._is_local_policy_enabled = is_local_policy_enabled
 
         # User SID to work with HKCU hive
-        self.username = machine_name
-        self.sid = machine_sid
+        if is_machine:
+            self.sid = machine_sid
+        else:
+            self.sid = get_sid(domain, username)
+        self.username = username
 
     def retrieve_and_store(self):
         '''
@@ -51,6 +55,9 @@ class nodomain_backend(applier_backend):
         # Get policies for machine at first.
         self.storage.wipe_hklm()
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
-        local_policy = get_local_gpt(self.sid)
-        local_policy.merge()
-
+        local_policy = get_local_default_gpt(self.sid)
+        local_policy.merge_machine()
+        if self._is_local_policy_enabled:
+            local_policy = get_local_policy_gpt(self.sid)
+            local_policy.merge_machine()
+            local_policy.merge_user()
