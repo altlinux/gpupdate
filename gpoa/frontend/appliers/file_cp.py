@@ -43,14 +43,16 @@ class Files_cp:
     def get_target_file(self):
         try:
             if self.fromPath and self.targetPath.is_dir():
-                return (self.targetPath.joinpath(self.fromPath.name)
-                        if not self.hidden else self.targetPath.joinpath('.' + self.fromPath.name))
+                if self.hidden:
+                    return self.targetPath.joinpath('.' + self.fromPath.name)
+                else:
+                    return (self.targetPath.joinpath(self.fromPath.name)
+
             else:
                 if not self.hidden:
                     return self.targetPath
                 else:
-                    target_path = str(self.targetPath)
-                    return Path(target_path.replace(target_path.split('/')[-1], '.' + target_path.split('/')[-1]))
+                    return self.targetPath.parent.joinpath('.' + self.targetPath.name)
 
         except Exception as exc:
             logdata = dict({'exc': exc})
