@@ -46,7 +46,7 @@ class Files_cp:
                 if self.hidden:
                     return self.targetPath.joinpath('.' + self.fromPath.name)
                 else:
-                    return (self.targetPath.joinpath(self.fromPath.name)
+                    return (self.targetPath.joinpath(self.fromPath.name))
 
             else:
                 if not self.hidden:
