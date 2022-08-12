@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pathlib import Path
 
 from .appliers.file_cp import Files_cp
 from .applier_frontend import (
@@ -24,9 +23,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from util.logging import log
-from util.windows import expand_windows_var
-from util.util import get_homedir
-from util.exceptions import NotUNCPathError
+
 
 
 class file_applier(applier_frontend):
@@ -42,10 +39,8 @@ class file_applier(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def run(self):
-        ls_files_cp = get_list_all_files(self.files, self.file_cache)
-        for files_cp in ls_files_cp:
-            files_cp.act()
-
+        for file in self.files:
+            Files_cp(file, self.file_cache)
 
     def apply(self):
         if self.__module_enabled:
@@ -72,9 +67,8 @@ class file_applier_user(applier_frontend):
         )
 
     def run(self):
-        ls_files_cp = get_list_all_files(self.files, self.file_cache, self.username)
-        for files_cp in ls_files_cp:
-            files_cp.act()
+        for file in self.files:
+            Files_cp(file, self.file_cache, self.username)
 
     def admin_context_apply(self):
         if self.__module_enabled:
@@ -85,91 +79,3 @@ class file_applier_user(applier_frontend):
 
     def user_context_apply(self):
         pass
-
-def get_list_all_files(files, file_cache, username = None):
-    '''
-    Forming a list of Files_cp objects
-    '''
-    ls_files_cp = list()
-
-    for file_obj in files:
-        fromPath = (expand_windows_var(file_obj.fromPath, username).replace('\\', '/')
-                    if file_obj.fromPath else None)
-        targetPath = expand_windows_var(file_obj.targetPath, username).replace('\\', '/')
-        dict_files_cp = dict()
-        dict_files_cp['targetPath'] = check_target_path(targetPath, username)
-        if not dict_files_cp['targetPath']:
-            continue
-        dict_files_cp['action'] = file_obj.action
-        dict_files_cp['readOnly'] = file_obj.readOnly
-        dict_files_cp['archive'] = file_obj.archive
-        dict_files_cp['hidden'] = file_obj.hidden
-        dict_files_cp['suppress'] = file_obj.suppress
-        dict_files_cp['username'] = username
-        if fromPath and fromPath.split('/')[-1] != '*':
-            try:
-                file_cache.store(fromPath)
-                dict_files_cp['fromPath'] = Path(file_cache.get(fromPath))
-                ls_files_cp.append(Files_cp(dict_files_cp))
-            except NotUNCPathError as exc:
-                dict_files_cp['fromPath'] = Path(fromPath)
-                if dict_files_cp['fromPath'].exists():
-                    ls_files_cp.append(Files_cp(dict_files_cp))
-            except Exception as exc:
-                logdata = dict_files_cp
-                logdata['fromPath'] = fromPath
-                logdata['exc'] = exc
-                log('W13', logdata)
-
-        elif fromPath and len(fromPath.split('/')) > 2:
-            ls_files = file_cache.get_ls_smbdir(fromPath[:-1])
-            if ls_files:
-                ls_from_paths = [fromPath[:-1] + file_s for file_s in ls_files]
-                for from_path in ls_from_paths:
-                    try:
-                        file_cache.store(from_path)
-                        dict_files_cp['fromPath'] = Path(file_cache.get(from_path))
-                        ls_files_cp.append(Files_cp(dict_files_cp))
-                    except Exception as exc:
-                        logdata = dict_files_cp
-                        logdata['fromPath'] = fromPath
-                        logdata['exc'] = exc
-                        log('W13', logdata)
-            else:
-                try:
-                    ls = [fromFile for fromFile in Path(fromPath[:-1]).iterdir() if fromFile.is_file()]
-                    for from_path in ls:
-                        dict_files_cp['fromPath'] = from_path
-                        ls_files_cp.append(Files_cp(dict_files_cp))
-                except Exception as exc:
-                    logdata = dict_files_cp
-                    logdata['fromPath'] = fromPath
-                    logdata['exc'] = exc
-                    log('W13', logdata)
-        else:
-            dict_files_cp['fromPath'] = Path(fromPath) if fromPath else None
-            ls_files_cp.append(Files_cp(dict_files_cp))
-
-    return ls_files_cp
-
-
-
-def check_target_path(path_to_check, username = None):
-    '''
-    Function for checking the correctness of the path
-    '''
-    checking = Path(path_to_check)
-    if checking.is_dir():
-        return checking
-    #Check for path directory without '/something' suffix
-    elif (len(path_to_check.split('/')) > 2
-          and Path(path_to_check.replace(path_to_check.split('/')[-1], '')).is_dir()):
-        return checking
-    elif username:
-        target_path = Path(get_homedir(username))
-        res = target_path.joinpath(path_to_check
-                                    if path_to_check[0] != '/'
-                                    else path_to_check[1:])
-        return res
-    else:
-        return False
