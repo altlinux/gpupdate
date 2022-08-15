@@ -44,16 +44,16 @@ class Files_cp:
         self.hidden = str2bool(file_obj.hidden)
         self.suppress = str2bool(file_obj.suppress)
         self.username = username
-        self.targetFiles = self.get_list_files()
+        self.fromPathFiles = self.get_list_files()
         self.act()
 
-    def get_target_file(self, targetPath):
+    def get_target_file(self, targetPath, fromPath):
         try:
-            if self.fromPath and targetPath.is_dir():
+            if fromPath and targetPath.is_dir():
                 if self.hidden:
-                    return targetPath.joinpath('.' + self.fromPath.name)
+                    return targetPath.joinpath('.' + fromPath.name)
                 else:
-                    return targetPath.joinpath(self.fromPath.name)
+                    return targetPath.joinpath(fromPath.name)
 
             else:
                 if not self.hidden:
@@ -72,41 +72,42 @@ class Files_cp:
             shutil.os.chmod(targetFile, int('664', base = 8))
 
     def _create_action(self):
-        for target in self.targetFiles:
-            targetFile = self.get_target_file(target)
+        for fromPath in self.fromPathFiles:
             try:
+                targetFile = self.get_target_file(self.targetPath, fromPath)
                 if not targetFile.exists():
-                    targetFile.write_bytes(self.fromPath.read_bytes())
+                    targetFile.write_bytes(fromPath.read_bytes())
                     if self.username:
                         shutil.chown(targetFile, self.username)
                     self.set_read_only(targetFile)
             except Exception as exc:
                 logdata = dict()
                 logdata['exc'] = exc
-                logdata['fromPath'] = self.fromPath
+                logdata['fromPath'] = fromPath
                 logdata['targetPath'] = self.targetPath
                 logdata['targetFile'] = targetFile
                 log('D164', logdata)
 
     def _delete_action(self):
-        for targetFile in self.targetFiles:
-            try:
-                if targetFile.exists():
-                    targetFile.unlink()
-            except Exception as exc:
-                logdata = dict()
-                logdata['exc'] = exc
-                logdata['targetPath'] = self.targetPath
-                logdata['targetFile'] = targetFile
-                log('D165', logdata)
+        targetFile = Path(self.targetPath)
+        try:
+            if targetFile.exists():
+                targetFile.unlink()
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
+            logdata['targetPath'] = self.targetPath
+            logdata['targetFile'] = targetFile
+            log('D165', logdata)
 
     def _update_action(self):
-        for targetFile in self.targetFiles:
+        for fromPath in self.fromPathFiles:
+            targetFile = self.get_target_file(self.targetPath, fromPath)
             try:
-                targetFile.write_bytes(self.fromPath.read_bytes())
+                targetFile.write_bytes(fromPath.read_bytes())
                 if self.username:
                     shutil.chown(self.targetPath, self.username)
-                self.set_read_only(targetFile, self.readOnly)
+                self.set_read_only(targetFile)
             except Exception as exc:
                 logdata = dict()
                 logdata['exc'] = exc
@@ -119,7 +120,7 @@ class Files_cp:
         if self.action == FileAction.CREATE:
             self._create_action()
         if self.action == FileAction.UPDATE:
-            self._create_action()
+            self._update_action()
         if self.action == FileAction.DELETE:
             self._delete_action()
         if self.action == FileAction.REPLACE:
@@ -136,11 +137,11 @@ class Files_cp:
                 fromPath = Path(self.file_cache.get(self.fromPath))
                 ls_all_files.append(fromPath)
             except NotUNCPathError as exc:
-                fromPath = Path(fromPath)
+                fromPath = Path(self.fromPath)
                 if fromPath.exists():
                     ls_all_files.append(fromPath)
             except Exception as exc:
-                logdata['fromPath'] = fromPath
+                logdata['fromPath'] = self.fromPath
                 logdata['exc'] = exc
                 log('W13', logdata)
         elif self.fromPath and len(self.fromPath.split('/')) > 2:
@@ -150,11 +151,10 @@ class Files_cp:
                 for from_path in ls_from_paths:
                     try:
                         self.file_cache.store(from_path)
-                        ls_all_files.append(fromPath)
                         fromPath = Path(self.file_cache.get(from_path))
                         ls_all_files.append(fromPath)
                     except Exception as exc:
-                        logdata['fromPath'] = fromPath
+                        logdata['fromPath'] = self.fromPath
                         logdata['exc'] = exc
                         log('W13', logdata)
             else:
@@ -165,7 +165,7 @@ class Files_cp:
                         for fromPath in ls:
                             ls_all_files.append(fromPath)
                 except Exception as exc:
-                    logdata['fromPath'] = fromPath
+                    logdata['fromPath'] = self.fromPath
                     logdata['exc'] = exc
                     log('W13', logdata)
         else:
@@ -179,6 +179,8 @@ def check_target_path(path_to_check, username = None):
     '''
     checking = Path(path_to_check)
     if checking.is_dir():
+        if username and path_to_check == '/':
+            return Path(get_homedir(username))
         return checking
     #Check for path directory without '/something' suffix
     elif (len(path_to_check.split('/')) > 2
