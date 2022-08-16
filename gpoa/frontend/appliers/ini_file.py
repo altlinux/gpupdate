@@ -108,6 +108,6 @@ def check_path(path_to_check, username = None):
         res = target_path.joinpath(path_to_check
                                     if path_to_check[0] != '/'
                                     else path_to_check[1:])
-        return check_path(res)
+        return check_path(str(res))
     else:
         return False
