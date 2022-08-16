@@ -61,6 +61,11 @@ from .file_applier import (
     , file_applier_user
 )
 
+from .ini_applier import (
+      ini_applier
+    , ini_applier_user
+)
+
 from util.sid import get_sid
 from util.users import (
     is_root,
@@ -143,6 +148,7 @@ class frontend_manager:
         self.machine_appliers['envvar'] = envvar_applier(self.storage, self.sid)
         self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
         self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
+        self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)
 
     def _init_user_appliers(self):
         # User appliers are expected to work with user-writable
@@ -162,6 +168,7 @@ class frontend_manager:
         self.user_appliers['envvar'] = envvar_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
+        self.user_appliers['ini'] = ini_applier_user(self.storage, self.sid, self.username)
 
     def machine_apply(self):
         '''
