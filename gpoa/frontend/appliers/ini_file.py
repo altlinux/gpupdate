@@ -22,21 +22,28 @@ from gpt.folders import (
       FileAction
     , action_letter2enum
 )
-from .folder import str2bool
 from util.logging import log
-import shutil
 from pathlib import Path
 import configparser
+from util.windows import expand_windows_var
+from util.util import get_homedir
+
+
 
 class Ini_file:
-    def __init__(self, arg_dict):
-        self.path = arg_dict['path']
-        self.section = arg_dict['section']
-        self.action = action_letter2enum(arg_dict['action'])
-        self.key = arg_dict['property']
-        self.value = arg_dict['value']
-
+    def __init__(self, ini_obj, username=None):
+        path = expand_windows_var(ini_obj.path, username).replace('\\', '/')
+        self.path = check_path(path, username)
+        if not self.path:
+            logdata = {'path': ini_obj.path}
+            log('D175', logdata)
+            return None
+        self.section = ini_obj.section
+        self.action = action_letter2enum(ini_obj.action)
+        self.key = ini_obj.property
+        self.value = ini_obj.value
         self.config = configparser.ConfigParser()
+        self.act()
 
     def _create_action(self):
         if self.section not in self.config:
@@ -65,14 +72,12 @@ class Ini_file:
             self.config.write(configfile)
 
 
-    def _update_action(self):
-        pass
-
     def act(self):
         try:
             self.config.read(self.path)
         except Exception as exc:
-            print('D!!!')
+            logdata = {'exc': exc}
+            log('D176', logdata)
             return
         if self.action == FileAction.CREATE:
             self._create_action()
@@ -85,3 +90,24 @@ class Ini_file:
             self._delete_action()
             self._create_action()
 
+def check_path(path_to_check, username = None):
+    '''
+    Function for checking the right path for Inifile
+    '''
+    checking = Path(path_to_check)
+    if checking.exists():
+        if username and path_to_check == '/':
+            return Path(get_homedir(username))
+        return checking
+    #Check for path directory without '/nameIni' suffix
+    elif (len(path_to_check.split('/')) > 2
+          and Path(path_to_check.replace(path_to_check.split('/')[-1], '')).is_dir()):
+        return checking
+    elif username:
+        target_path = Path(get_homedir(username))
+        res = target_path.joinpath(path_to_check
+                                    if path_to_check[0] != '/'
+                                    else path_to_check[1:])
+        return check_path(res)
+    else:
+        return False

@@ -24,9 +24,6 @@ from .applier_frontend import (
     , check_enabled
 )
 from util.logging import log
-from util.windows import expand_windows_var
-from util.util import get_homedir
-
 
 class ini_applier(applier_frontend):
     __module_name = 'InifilesApplier'
@@ -40,16 +37,15 @@ class ini_applier(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def run(self):
-        list_all_inifiles = get_list_all_inifiles(self.inifiles_info)
-        for inifile in list_all_inifiles:
-            inifile.act()
+        for inifile in self.inifiles_info:
+            Ini_file(inifile)
 
     def apply(self):
         if self.__module_enabled:
-            print('D???start file_applier')
+            log('D171')
             self.run()
         else:
-            print('D???do not use  file_applier')
+            log('D172')
 
 class ini_applier_user(applier_frontend):
     __module_name = 'InifilesApplierUser'
@@ -68,56 +64,15 @@ class ini_applier_user(applier_frontend):
         )
 
     def run(self):
-        list_all_inifiles = get_list_all_inifiles(self.inifiles_info, self.username)
-        for inifile in list_all_inifiles:
-            inifile.act()
+        for inifile in self.inifiles_info:
+            Ini_file(inifile, self.username)
 
     def admin_context_apply(self):
         if self.__module_enabled:
-            print('D???start file_applier_user')
+            log('D173')
             self.run()
         else:
-            print('D???do not use file_applier_user')
+            log('D174')
 
     def user_context_apply(self):
         pass
-
-def get_list_all_inifiles(inifiles_info, username = None):
-    '''
-    Forming a list of ini_files objects
-    '''
-    ls_ini_files = list()
-
-    for ini_obj in inifiles_info:
-        path = expand_windows_var(ini_obj.path, username).replace('\\', '/')
-        dict_ini_file = dict()
-        dict_ini_file['path'] = check_path(path, username)
-        if not dict_ini_file['path']:
-            continue
-        dict_ini_file['action'] = ini_obj.action
-        dict_ini_file['section'] = ini_obj.section
-        dict_ini_file['property'] = ini_obj.property
-        dict_ini_file['value'] = ini_obj.value
-        ls_ini_files.append(Ini_file(dict_ini_file))
-
-    return ls_ini_files
-
-def check_path(path_to_check, username = None):
-    '''
-    Function for checking the right path for Inifile
-    '''
-    checking = Path(path_to_check)
-    if checking.exists():
-        return checking
-    #Check for path directory without '/nameIni' suffix
-    elif (len(path_to_check.split('/')) > 2
-          and Path(path_to_check.replace(path_to_check.split('/')[-1], '')).is_dir()):
-        return checking
-    elif username:
-        target_path = Path(get_homedir(username))
-        res = target_path.joinpath(path_to_check
-                                    if path_to_check[0] != '/'
-                                    else path_to_check[1:])
-        return check_path(res)
-    else:
-        return False

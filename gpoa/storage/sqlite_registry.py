@@ -448,7 +448,7 @@ class sqlite_registry(registry):
         logdata = dict()
         logdata['path'] = inientry.path
         logdata['action'] = inientry.action
-        print('D????', logdata)
+        log('D177', logdata)
         try:
             self._add(inientry)
         except Exception as exc:

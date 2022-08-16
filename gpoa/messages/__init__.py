@@ -276,6 +276,13 @@ def debug_code(code):
     debug_ids[168] = 'Running File copy applier for machine will not be started'
     debug_ids[169] = 'Running File copy applier for user in administrator context'
     debug_ids[170] = 'Running File copy applier for user in administrator context will not be started'
+    debug_ids[171] = 'Running ini applier for machine'
+    debug_ids[172] = 'Running ini applier for machine will not be started'
+    debug_ids[173] = 'Running ini applier for user in administrator context'
+    debug_ids[174] = 'Running ini applier for user in administrator context will not be started'
+    debug_ids[175] = 'Ini-file path not recognized'
+    debug_ids[176] = 'Ini-file is not readable'
+    debug_ids[177] = 'Saving information about ini-file'
 
     return debug_ids.get(code, 'Unknown debug code')
 
