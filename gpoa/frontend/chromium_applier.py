@@ -162,4 +162,81 @@ class chromium_applier(applier_frontend):
         #if not self._is_machine_name:
         #    logging.debug('Running user applier for Chromium')
         #    self.user_apply()
+    def get_valuename_typeint(self):
+        return (['ScreenMagnifierType','DeviceLoginScreenDefaultScreenMagnifierType'
+        , 'DefaultCookiesSetting', 'DefaultImagesSetting', 'DefaultJavaScriptSetting'
+        , 'DefaultPluginsSetting', 'DefaultPopupsSetting', 'DefaultNotificationsSetting'
+        , 'DefaultGeolocationSetting', 'DefaultMediaStreamSetting', 'DefaultWebBluetoothGuardSetting'
+        , 'DefaultKeygenSetting', 'ChromeFrameRendererSettings', 'RenderInChromeFrameList'
+        , 'ScreenOffDelayAC', 'ScreenLockDelayAC', 'IdleWarningDelayAC', 'IdleDelayAC'
+        , 'ScreenDimDelayBattery', 'ScreenOffDelayBattery', 'ScreenLockDelayBattery'
+        , 'IdleWarningDelayBattery','IdleDelayBattery', 'IdleAction', 'IdleActionAC'
+        , 'IdleActionBattery', 'LidCloseAction', 'PresentationIdleDelayScale'
+        , 'PresentationScreenDimDelayScale', 'UserActivityScreenDimDelayScale'
+        , 'ProxyServerMode', 'QuickUnlockTimeout', 'PinUnlockMinimumLength', 'PinUnlockMaximumLength'
+        , 'RestoreOnStartup', 'ArcCertificatesSyncMode', 'DeviceIdleLogoutTimeout'
+        , 'DeviceIdleLogoutWarningDuration', 'DeviceLocalAccountAutoLoginDelay'
+        , 'DeviceLoginScreenSaverTimeout', 'DevicePolicyRefreshRate', 'DeviceUpdateScatterFactor'
+        , 'DiskCacheSize', 'DisplayRotationDefault', 'ExtensionCacheSize', 'ForceYouTubeRestrict'
+        , 'HeartbeatFrequency', 'IncognitoModeAvailability', 'LoginAuthenticationBehavior'
+        , 'MaxConnectionsPerProxy', 'MaxInvalidationFetchDelay', 'MediaCacheSize'
+        , 'NetworkPredictionOptions', 'PolicyRefreshRate', 'ReportUploadFrequency'
+        , 'SAMLOfflineSigninTimeLimit', 'SessionLengthLimit', 'SystemTimezoneAutomaticDetection'
+        , 'UptimeLimit', 'SafeBrowsingProtectionLevel'])
 
+
+    def get_boolean(self,data):
+        if data in ['0', 'false', None, 'none', 0]:
+            return False
+        if data in ['1', 'true', 1]:
+            return True
+    def get_parts(self, hivekeyname):
+        '''
+        Parse registry path string and leave key parameters
+        '''
+        parts = hivekeyname.replace(self.__registry_branch, '').split('\\')
+        return parts
+
+
+    def create_dict(self, firefox_keys):
+        '''
+        Collect dictionaries from registry keys into a general dictionary
+        '''
+        counts = dict()
+        valuename_typeint = self.get_valuename_typeint()
+        for it_data in firefox_keys:
+            branch = counts
+            try:
+                if type(it_data.data) is bytes:
+                    it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
+                if it_data.valuename != it_data.data:
+                    parts = self.get_parts(it_data.hive_key)
+                    for part in parts[:-1]:
+                        branch = branch.setdefault(part, {})
+                    if it_data.type == 4:
+                        if it_data.valuename in valuename_typeint:
+                            branch[parts[-1]] = int(it_data.data)
+                        else:
+                            branch[parts[-1]] = self.get_boolean(it_data.data)
+                    else:
+                        branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+                else:
+                    parts = self.get_parts(it_data.keyname)
+                    for part in parts[:-1]:
+
+                        branch = branch.setdefault(part, {})
+                    if branch.get(parts[-1]) is None:
+                        branch[parts[-1]] = list()
+                    if it_data.type == 4:
+                        branch[parts[-1]].append(self.get_boolean(it_data.data))
+                    else:
+                        if os.path.isdir(str(it_data.data).replace('\\', '/')):
+                            branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
+                        else:
+                            branch[parts[-1]].append(str(it_data.data))
+            except Exception as exc:
+                logdata = dict()
+                logdata['Exception'] = exc
+                logdata['keyname'] = it_data.keyname
+                print('W!!!!!!!!1', logdata)
+        self.policies_json = counts['']
