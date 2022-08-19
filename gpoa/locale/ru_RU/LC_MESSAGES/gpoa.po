@@ -192,9 +192,6 @@ msgstr "Ошибка обновления конфигурации dconf"
 msgid "Unable to cache specified URI for user"
 msgstr "Невозможно кэшировать указанный URI для пользователя"
 
-msgid "Chromium preferences file does not exist at the moment"
-msgstr "Файл настроек Chromium в данный момент не существует"
-
 msgid "Error during attempt to read Chromium preferences for user"
 msgstr "Ошибка при попытке прочитать настройки Chromium для пользователя"
 
@@ -740,6 +737,9 @@ msgstr "Ini-файл не читается"
 
 msgid "Saving information about ini-file"
 msgstr "Сохранение информации об ini-файле"
+
+msgid "Dictionary key generation failed"
+msgstr "Формирования ключа словаря не удалось"
 
 # Debug_end
 

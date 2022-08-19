@@ -85,7 +85,6 @@ def error_code(code):
     error_ids[48] = 'Error recompiling global GSettings schemas'
     error_ids[49] = 'Error update configuration dconf'
     error_ids[50] = 'Unable to cache specified URI for user'
-    error_ids[51] = 'Chromium preferences file does not exist at the moment'
     error_ids[52] = 'Error during attempt to read Chromium preferences for user'
     error_ids[53] = 'Fail for applying shortcut to file with \'%\''
     error_ids[54] = 'Fail for applying shortcut to not absolute path'
@@ -283,6 +282,7 @@ def debug_code(code):
     debug_ids[175] = 'Ini-file path not recognized'
     debug_ids[176] = 'Ini-file is not readable'
     debug_ids[177] = 'Saving information about ini-file'
+    debug_ids[178] = 'Dictionary key generation failed'
 
     return debug_ids.get(code, 'Unknown debug code')
 
