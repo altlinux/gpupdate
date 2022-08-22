@@ -63,18 +63,13 @@ class fs_file_cache:
         with open(destfile, 'wb') as df:
             df.truncate()
             df.flush()
-            try:
-                file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
-                while True:
-                    data = file_handler.read(self.__read_blocksize)
-                    if not data:
-                        break
-                    df.write(data)
-                df.flush()
-            except Exception as exc:
-                logdata = dict({'exception': str(exc)})
-                log('E35', logdata)
-                raise exc
+            file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
+            while True:
+                data = file_handler.read(self.__read_blocksize)
+                if not data:
+                    break
+                df.write(data)
+            df.flush()
 
     def get(self, uri):
         destfile = uri
@@ -95,3 +90,17 @@ class fs_file_cache:
 
         return str(destfile)
 
+    def get_ls_smbdir(self, uri):
+        type_file_smb = 8
+        try:
+            uri_path = UNCPath(uri)
+            opendir = self.samba_context.opendir(str(uri_path))
+            ls_obj = opendir.getdents()
+            ls = [obj.name for obj in ls_obj if obj.smbc_type == type_file_smb]
+            return ls
+        except Exception as exc:
+            if Path(uri).exists():
+                return None
+            logdata = dict({'exception': str(exc)})
+            log('W12', logdata)
+            return None

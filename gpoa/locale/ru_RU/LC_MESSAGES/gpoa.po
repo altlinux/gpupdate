@@ -693,6 +693,33 @@ msgstr "Очистка каталога машинных скриптов"
 msgid "Clean user scripts directory"
 msgstr "Очистка каталога пользовательских скриптов"
 
+msgid "Saving information about file"
+msgstr "Сохранение информации о файле"
+
+msgid "Failed to return file path"
+msgstr "Не удалось вернуть путь к файлу"
+
+msgid "Failed to create file"
+msgstr "Не удалось создать файл"
+
+msgid "Failed to delete file"
+msgstr "Не удалось удалить файл"
+
+msgid "Failed to update file"
+msgstr "Не удалось обновить файл"
+
+msgid "Running File copy applier for machine"
+msgstr "Запуск применение настроек копирования файлов для машины"
+
+msgid "Running File copy applier for machine will not be started"
+msgstr "Запуск применение настроек копирования файлов для машины не будет запущено"
+
+msgid "Running File copy applier for user in administrator context"
+msgstr "Запуск применение настроек копирования файлов для пользователя в контексте администратора"
+
+msgid "Running File copy applier for user in administrator context will not be started"
+msgstr "Запуск применение настроек копирования файлов для пользователя в контексте администратора не будет запущено"
+
 # Debug_end
 
 # Warning
@@ -729,6 +756,12 @@ msgstr "CUPS не установлен: настройки принтера не
 
 msgid "Unsupported NTP server type"
 msgstr "Неподдерживаемый тип сервера NTP"
+
+msgid "Failed to read the list of files"
+msgstr "Не удалось прочитать список файлов"
+
+msgid "Failed to caching the file"
+msgstr "Не удалось кэшировать файл"
 
 # Fatal
 msgid "Unable to refresh GPO list"
