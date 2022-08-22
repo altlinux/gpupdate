@@ -25,6 +25,7 @@ from gpt.folders import (
     , action_letter2enum
 )
 from util.windows import expand_windows_var
+from util.util import get_homedir
 
 def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_folders=False):
     content = list()
@@ -47,8 +48,12 @@ def str2bool(boolstr):
 
 
 class Folder:
-    def __init__(self, folder_object, username):
-        self.folder_path = Path(expand_windows_var(folder_object.path, username).replace('\\', '/'))
+    def __init__(self, folder_object, username=None):
+        folder_path = expand_windows_var(folder_object.path, username).replace('\\', '/')
+        if username:
+            self.folder_path = Path(get_homedir(username)).joinpath(folder_path if folder_path [0] != '/' else folder_path [1:])
+        else:
+            self.folder_path = Path(folder_path)
         self.action = action_letter2enum(folder_object.action)
         self.delete_files = str2bool(folder_object.delete_files)
         self.delete_folder = str2bool(folder_object.delete_folder)

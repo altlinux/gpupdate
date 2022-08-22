@@ -23,10 +23,9 @@ from .applier_frontend import (
     , check_enabled
 )
 from .appliers.folder import Folder
-from util.logging import slogm, log
+from util.logging import log
 from util.windows import expand_windows_var
 import re
-import logging
 
 class folder_applier(applier_frontend):
     __module_name = 'FoldersApplier'
@@ -80,11 +79,7 @@ class folder_applier_user(applier_frontend):
             fld.act()
 
     def admin_context_apply(self):
-        if self.__module_enabled:
-            log('D109')
-            self.run()
-        else:
-            log('D110')
+        pass
 
     def user_context_apply(self):
         if self.__module_enabled:
