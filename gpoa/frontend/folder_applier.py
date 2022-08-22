@@ -49,7 +49,7 @@ class folder_applier(applier_frontend):
                 if drive or win_var:
                     continue
                 fld = Folder(directory_obj)
-                fld.action()
+                fld.act()
         else:
             log('D108')
 
