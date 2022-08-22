@@ -230,3 +230,31 @@ class file_entry(object):
         fields['suppress'] = self.suppress
 
         return fields
+
+class ini_entry(object):
+    '''
+    Object mapping representing INIFILES.XML
+    '''
+    def __init__(self, sid, iniobj, policy_name):
+        self.sid = sid
+        self.policy_name = policy_name
+        self.action = iniobj.action
+        self.path = iniobj.path
+        self.section = iniobj.section
+        self.property = iniobj.property
+        self.value = iniobj.value
+
+
+    def update_fields(self):
+        '''
+        Return list of fields to update
+        '''
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['action'] = self.action
+        fields['path'] = self.path
+        fields['section'] = self.section
+        fields['property'] = self.property
+        fields['value'] = self.value
+
+        return fields

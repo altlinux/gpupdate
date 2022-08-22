@@ -720,6 +720,27 @@ msgstr "Запуск применение настроек копировани�
 msgid "Running File copy applier for user in administrator context will not be started"
 msgstr "Запуск применение настроек копирования файлов для пользователя в контексте администратора не будет запущено"
 
+msgid "Running ini applier for machine"
+msgstr "Запуск применение настроек ini файлов для машины"
+
+msgid "Running ini applier for machine will not be started"
+msgstr "Запуск применение настроек ini файлов для машины не будет запущено"
+
+msgid "Running ini applier for user in administrator context"
+msgstr "Запуск применение настроек ini файлов для пользователя в контексте администратора"
+
+msgid "Running ini applier for user in administrator context will not be started"
+msgstr "Запуск применение настроек ini файлов для пользователя в контексте администратора не будет запущено"
+
+msgid "Ini-file path not recognized"
+msgstr "Путь к ini-файлу не распознан"
+
+msgid "Ini-file is not readable"
+msgstr "Ini-файл не читается"
+
+msgid "Saving information about ini-file"
+msgstr "Сохранение информации об ini-файле"
+
 # Debug_end
 
 # Warning

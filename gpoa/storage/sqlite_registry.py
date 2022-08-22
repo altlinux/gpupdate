@@ -46,6 +46,7 @@ from .record_types import (
     , envvar_entry
     , script_entry
     , file_entry
+    , ini_entry
 )
 
 class sqlite_registry(registry):
@@ -172,6 +173,20 @@ class sqlite_registry(registry):
             , Column('suppress', String)
             , UniqueConstraint('sid', 'policy_name', 'targetPath', 'fromPath')
         )
+        self.__ini = Table(
+              'Ini'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('policy_name', String)
+            , Column('action', String)
+            , Column('path', String)
+            , Column('section', String)
+            , Column('property', String)
+            , Column('value', String)
+            , UniqueConstraint('sid', 'action', 'path', 'section', 'property', 'value')
+        )
+
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
@@ -186,6 +201,7 @@ class sqlite_registry(registry):
             mapper(envvar_entry, self.__envvars)
             mapper(script_entry, self.__scripts)
             mapper(file_entry, self.__files)
+            mapper(ini_entry, self.__ini)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -427,6 +443,22 @@ class sqlite_registry(registry):
             self.db_session.commit()
 
 
+    def add_ini(self, sid, iniobj, policy_name):
+        inientry = ini_entry(sid, iniobj, policy_name)
+        logdata = dict()
+        logdata['path'] = inientry.path
+        logdata['action'] = inientry.action
+        log('D177', logdata)
+        try:
+            self._add(inientry)
+        except Exception as exc:
+            (self
+                ._filter_sid_obj(ini_entry, sid)
+                .filter(ini_entry.path == inientry.path)
+                .update(inientry.update_fields()))
+            self.db_session.commit()
+
+
     def _filter_sid_obj(self, row_object, sid):
         res = (self
             .db_session
@@ -473,6 +505,9 @@ class sqlite_registry(registry):
 
     def get_files(self, sid):
         return self._filter_sid_list(file_entry, sid)
+
+    def get_ini(self, sid):
+        return self._filter_sid_list(ini_entry, sid)
 
     def get_hkcu_entry(self, sid, hive_key):
         res = (self
@@ -525,6 +560,7 @@ class sqlite_registry(registry):
         self._wipe_sid(drive_entry, sid)
         self._wipe_sid(script_entry, sid)
         self._wipe_sid(file_entry, sid)
+        self._wipe_sid(ini_entry, sid)
 
     def _wipe_sid(self, row_object, sid):
         (self
