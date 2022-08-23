@@ -21,7 +21,6 @@ from .applier_frontend import (
     , check_enabled
 )
 
-import logging
 import json
 import os
 from util.logging import log
@@ -98,8 +97,9 @@ class chromium_applier(applier_frontend):
             log('D96')
 
     def get_valuename_typeint(self):
-        return (['ScreenMagnifierType','DeviceLoginScreenDefaultScreenMagnifierType'
-        , 'DefaultCookiesSetting', 'DefaultImagesSetting', 'DefaultJavaScriptSetting'
+        return (['DefaultFileSystemWriteGuardSetting','DefaultInsecureContentSetting_BlockInsecureContent'
+        , 'DefaultInsecureContentSetting', 'DefaultSensorsSetting', 'DefaultWebUsbGuardSetting'
+        , 'DefaultSerialGuardSetting','DefaultCookiesSetting', 'DefaultImagesSetting', 'DefaultJavaScriptSetting'
         , 'DefaultPluginsSetting', 'DefaultPopupsSetting', 'DefaultNotificationsSetting'
         , 'DefaultGeolocationSetting', 'DefaultMediaStreamSetting', 'DefaultWebBluetoothGuardSetting'
         , 'DefaultKeygenSetting', 'ChromeFrameRendererSettings', 'RenderInChromeFrameList'
@@ -109,11 +109,10 @@ class chromium_applier(applier_frontend):
         , 'IdleActionBattery', 'LidCloseAction', 'PresentationIdleDelayScale'
         , 'PresentationScreenDimDelayScale', 'UserActivityScreenDimDelayScale'
         , 'ProxyServerMode', 'QuickUnlockTimeout', 'PinUnlockMinimumLength', 'PinUnlockMaximumLength'
-        , 'RestoreOnStartup', 'ArcCertificatesSyncMode', 'DeviceIdleLogoutTimeout'
-        , 'DeviceIdleLogoutWarningDuration', 'DeviceLocalAccountAutoLoginDelay'
-        , 'DeviceLoginScreenSaverTimeout', 'DevicePolicyRefreshRate', 'DeviceUpdateScatterFactor'
-        , 'DiskCacheSize', 'DisplayRotationDefault', 'ExtensionCacheSize', 'ForceYouTubeRestrict'
-        , 'HeartbeatFrequency', 'IncognitoModeAvailability', 'LoginAuthenticationBehavior'
+        , 'RestoreOnStartup', 'DeviceIdleLogoutTimeout', 'DeviceIdleLogoutWarningDuration'
+        , 'DeviceLocalAccountAutoLoginDelay', 'DeviceLoginScreenSaverTimeout', 'DevicePolicyRefreshRate'
+        , 'DeviceUpdateScatterFactor', 'DiskCacheSize', 'DisplayRotationDefault', 'ExtensionCacheSize'
+        , 'ForceYouTubeRestrict', 'HeartbeatFrequency', 'IncognitoModeAvailability', 'LoginAuthenticationBehavior'
         , 'MaxConnectionsPerProxy', 'MaxInvalidationFetchDelay', 'MediaCacheSize'
         , 'NetworkPredictionOptions', 'PolicyRefreshRate', 'ReportUploadFrequency'
         , 'SAMLOfflineSigninTimeLimit', 'SessionLengthLimit', 'SystemTimezoneAutomaticDetection'
