@@ -525,11 +525,11 @@ msgstr "Запуск применение папок для машины"
 msgid "Folder applier for machine will not be started"
 msgstr "Применение папок для машины не запускается"
 
-msgid "Running Folder applier for user in administrator context"
-msgstr "Запуск применение папок для пользователя в контексте администратора"
+msgid "Folder creation skipped for machine"
+msgstr "Создание папки для машины пропущено"
 
-msgid "Folder applier for user in administrator context will not be started"
-msgstr "Применение папок для пользователя в контексте администратора не запускается"
+msgid "Folder creation skipped for user"
+msgstr "Создание папки для пользователя пропущено"
 
 msgid "Running Folder applier for user in user context"
 msgstr "Запуск применение папок для пользователя в контексте пользователя"
