@@ -46,6 +46,7 @@ class folder_applier(applier_frontend):
                 win_var = re.findall(r'%.+?%', check)
                 drive = re.findall(r'^[a-z A-Z]\:',check)
                 if drive or win_var:
+                    log('D109', {"path": directory_obj.path})
                     continue
                 fld = Folder(directory_obj)
                 fld.act()
@@ -74,6 +75,7 @@ class folder_applier_user(applier_frontend):
             win_var = re.findall(r'%.+?%', check)
             drive = re.findall(r'^[a-z A-Z]\:',check)
             if drive or win_var:
+                log('D110', {"path": directory_obj.path})
                 continue
             fld = Folder(directory_obj, self.username)
             fld.act()
