@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.9.9.1
+Version: 0.9.10
 Release: alt1
 
 Summary: GPT applier
@@ -101,7 +101,9 @@ done
 
 %post
 %post_service gpupdate
-gpupdate-setup update
+if [ -x "/bin/systemctl" ]; then
+    gpupdate-setup update
+fi
 
 # Remove storage in case we've lost compatibility between versions.
 # The storage will be regenerated on GPOA start.
@@ -149,6 +151,14 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Fri Aug 26 2022 Valery Sinelnikov <greh@altlinux.org> 0.9.10-alt1
+- INI-files preferences implementation
+- Files preferences implementation
+- Scripts (logon logoff startup shutdown) implementation
+- UserPolicyMode set accordingly
+- Folder bugs fixed
+- Firefox app full release
+
 * Thu Mar 03 2022 Valery Sinelnikov <greh@altlinux.org> 0.9.9.1-alt1
 - Fixed method call (Closes: 41994)
 - Removed unnecessary replace
