@@ -98,26 +98,52 @@ class chromium_applier(applier_frontend):
             log('D96')
 
     def get_valuename_typeint(self):
-        return (['DefaultFileSystemWriteGuardSetting','DefaultInsecureContentSetting_BlockInsecureContent'
-        , 'DefaultInsecureContentSetting', 'DefaultSensorsSetting', 'DefaultWebUsbGuardSetting'
-        , 'DefaultSerialGuardSetting','DefaultCookiesSetting', 'DefaultImagesSetting', 'DefaultJavaScriptSetting'
-        , 'DefaultPluginsSetting', 'DefaultPopupsSetting', 'DefaultNotificationsSetting'
-        , 'DefaultGeolocationSetting', 'DefaultMediaStreamSetting', 'DefaultWebBluetoothGuardSetting'
-        , 'DefaultKeygenSetting', 'ChromeFrameRendererSettings', 'RenderInChromeFrameList'
-        , 'ScreenOffDelayAC', 'ScreenLockDelayAC', 'IdleWarningDelayAC', 'IdleDelayAC'
-        , 'ScreenDimDelayBattery', 'ScreenOffDelayBattery', 'ScreenLockDelayBattery'
-        , 'IdleWarningDelayBattery','IdleDelayBattery', 'IdleAction', 'IdleActionAC'
-        , 'IdleActionBattery', 'LidCloseAction', 'PresentationIdleDelayScale'
-        , 'PresentationScreenDimDelayScale', 'UserActivityScreenDimDelayScale'
-        , 'ProxyServerMode', 'QuickUnlockTimeout', 'PinUnlockMinimumLength', 'PinUnlockMaximumLength'
-        , 'RestoreOnStartup', 'DeviceIdleLogoutTimeout', 'DeviceIdleLogoutWarningDuration'
-        , 'DeviceLocalAccountAutoLoginDelay', 'DeviceLoginScreenSaverTimeout', 'DevicePolicyRefreshRate'
-        , 'DeviceUpdateScatterFactor', 'DiskCacheSize', 'DisplayRotationDefault', 'ExtensionCacheSize'
-        , 'ForceYouTubeRestrict', 'HeartbeatFrequency', 'IncognitoModeAvailability', 'LoginAuthenticationBehavior'
-        , 'MaxConnectionsPerProxy', 'MaxInvalidationFetchDelay', 'MediaCacheSize'
-        , 'NetworkPredictionOptions', 'PolicyRefreshRate', 'ReportUploadFrequency'
-        , 'SAMLOfflineSigninTimeLimit', 'SessionLengthLimit', 'SystemTimezoneAutomaticDetection'
-        , 'UptimeLimit', 'SafeBrowsingProtectionLevel'])
+        '''
+        List of keys obtained by parsing chrome.admx
+        '''
+        valuename_typeint = (['DefaultCookiesSetting',
+                            'DefaultFileHandlingGuardSetting',
+                            'DefaultFileSystemReadGuardSetting',
+                            'DefaultFileSystemWriteGuardSetting',
+                            'DefaultImagesSetting',
+                            'DefaultInsecureContentSetting',
+                            'DefaultJavaScriptSetting',
+                            'DefaultPopupsSetting',
+                            'DefaultNotificationsSetting',
+                            'DefaultGeolocationSetting',
+                            'DefaultSensorsSetting',
+                            'DefaultWebBluetoothGuardSetting',
+                            'DefaultWebUsbGuardSetting',
+                            'DefaultSerialGuardSetting',
+                            'LegacySameSiteCookieBehaviorEnabled',
+                            'ProxyServerMode',
+                            'DefaultMediaStreamSetting',
+                            'PrintRasterizationMode',
+                            'DefaultPluginsSetting',
+                            'DefaultKeygenSetting',
+                            'ChromeFrameRendererSettings',
+                            'SafeBrowsingProtectionLevel',
+                            'PasswordProtectionWarningTrigger',
+                            'SafeBrowsingProtectionLevel_recommended',
+                            'RestoreOnStartup',
+                            'RestoreOnStartup_recommended',
+                            'AdsSettingForIntrusiveAdsSites',
+                            'AmbientAuthenticationInPrivateModesEnabled',
+                            'BrowserSignin',
+                            'ChromeVariations',
+                            'DeveloperToolsAvailability',
+                            'DownloadRestrictions',
+                            'DownloadRestrictions_recommended',
+                            'ForceYouTubeRestrict',
+                            'HeadlessMode',
+                            'IncognitoModeAvailability',
+                            'IntranetRedirectBehavior',
+                            'NetworkPredictionOptions',
+                            'NetworkPredictionOptions_recommended',
+                            'ProfilePickerOnStartupAvailability',
+                            'RelaunchNotification',
+                            'SafeSitesFilterBehavior'])
+        return valuename_typeint
 
 
     def get_boolean(self,data):
