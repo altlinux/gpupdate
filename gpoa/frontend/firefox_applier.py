@@ -110,7 +110,7 @@ class firefox_applier(applier_frontend):
                 else:
                     parts = self.get_parts(it_data.keyname)
                     for part in parts[:-1]:
-                            branch = branch.setdefault(part, {})
+                        branch = branch.setdefault(part, {})
                     if branch.get(parts[-1]) is None:
                         branch[parts[-1]] = list()
                     if it_data.type == 4:
@@ -126,7 +126,7 @@ class firefox_applier(applier_frontend):
                 logdata['keyname'] = it_data.keyname
                 log('W14', logdata)
 
-        self.policies_json = {'policies': counts}
+        self.policies_json = {'policies': dict_item_to_list(counts)}
 
     def machine_apply(self):
         '''
@@ -166,3 +166,27 @@ class firefox_applier(applier_frontend):
             self.machine_apply()
         else:
             log('D94')
+
+def key_dict_is_digit(dictionary:dict) -> bool:
+    '''
+    Checking if a dictionary key is a digit
+    '''
+    if not isinstance(dictionary, dict):
+        return False
+    for dig in dictionary.keys():
+        if dig.isdigit():
+            return True
+    return False
+
+
+def dict_item_to_list(dictionary:dict) -> dict:
+    '''
+    Replacing dictionaries with numeric keys with a List
+    '''
+    for key,val in dictionary.items():
+        if type(val) == dict:
+            if key_dict_is_digit(val):
+                dictionary[key] = [*val.values()]
+            else:
+                dict_item_to_list(dictionary[key])
+    return dictionary
