@@ -65,6 +65,7 @@ class chromium_applier(applier_frontend):
         except:
             recommended__json = {}
 
+        #Replacing all nested dictionaries with a list
         dict_item_to_list = (
             lambda target_dict :
                 {key:[*val.values()] if type(val) == dict else val for key,val in target_dict.items()}
@@ -143,31 +144,17 @@ class chromium_applier(applier_frontend):
             try:
                 if type(it_data.data) is bytes:
                     it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
-                if it_data.valuename != it_data.data:
-                    parts = self.get_parts(it_data.hive_key)
-                    for part in parts[:-1]:
-                        branch = branch.setdefault(part, {})
-                    if it_data.type == 4:
-                        if it_data.valuename in valuename_typeint:
-                            branch[parts[-1]] = int(it_data.data)
-                        else:
-                            branch[parts[-1]] = self.get_boolean(it_data.data)
+                parts = self.get_parts(it_data.hive_key)
+                for part in parts[:-1]:
+                    branch = branch.setdefault(part, {})
+                if it_data.type == 4:
+                    if it_data.valuename in valuename_typeint:
+                        branch[parts[-1]] = int(it_data.data)
                     else:
-                        branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+                        branch[parts[-1]] = self.get_boolean(it_data.data)
                 else:
-                    parts = self.get_parts(it_data.keyname)
-                    for part in parts[:-1]:
+                    branch[parts[-1]] = str(it_data.data).replace('\\', '/')
 
-                        branch = branch.setdefault(part, {})
-                    if branch.get(parts[-1]) is None:
-                        branch[parts[-1]] = list()
-                    if it_data.type == 4:
-                        branch[parts[-1]].append(self.get_boolean(it_data.data))
-                    else:
-                        if os.path.isdir(str(it_data.data).replace('\\', '/')):
-                            branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
-                        else:
-                            branch[parts[-1]].append(str(it_data.data))
             except Exception as exc:
                 logdata = dict()
                 logdata['Exception'] = exc
