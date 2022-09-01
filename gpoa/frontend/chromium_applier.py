@@ -33,9 +33,6 @@ class chromium_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Google\\Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
     __recommended_policies_path = '/etc/chromium/policies/recommended'
-    # JSON file where Chromium stores its settings (and which is
-    # overwritten every exit.
-    __user_settings = '.config/chromium/Default'
 
     def __init__(self, storage, sid, username):
         self.storage = storage

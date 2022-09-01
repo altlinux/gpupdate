@@ -27,7 +27,6 @@
 
 import json
 import os
-import configparser
 
 from .applier_frontend import (
       applier_frontend
@@ -35,7 +34,6 @@ from .applier_frontend import (
 )
 from util.logging import log
 from util.util import is_machine_name
-import util.util as util
 
 class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'
@@ -44,7 +42,6 @@ class firefox_applier(applier_frontend):
     __registry_branch = 'Software\\Policies\\Mozilla\\Firefox\\'
     __firefox_installdir1 = '/usr/lib64/firefox/distribution'
     __firefox_installdir2 = '/etc/firefox/policies'
-    __user_settings_dir = '.mozilla/firefox'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -61,20 +58,6 @@ class firefox_applier(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
-
-    def get_profiles(self):
-        '''
-        Get directory names of Firefox profiles for specified username.
-        '''
-        profiles_ini = os.path.join(util.get_homedir(self.username), self.__user_settings_dir, 'profiles.ini')
-        config = configparser.ConfigParser()
-        config.read(profiles_ini)
-
-        profile_paths = list()
-        for section in config.keys():
-            if section.startswith('Profile'):
-                profile_paths.append(config[section]['Path'])
-        return profile_paths
 
     def get_boolean(self,data):
         if data in ['0', 'false', None, 'none', 0]:
@@ -153,16 +136,6 @@ class firefox_applier(applier_frontend):
             logdata = dict()
             logdata['destfile'] = destfile
             log('D91', logdata)
-
-    def user_apply(self):
-        profiles = self.get_profiles()
-
-        profiledir = os.path.join(util.get_homedir(self.username), self.__user_settings_dir)
-        for profile in profiles:
-            logdata = dict()
-            logdata['profiledir'] = profiledir
-            logdata['profile'] = profile
-            log('D92', logdata)
 
     def apply(self):
         if self.__module_enabled:
