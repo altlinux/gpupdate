@@ -99,7 +99,7 @@ class chromium_applier(applier_frontend):
 
     def get_valuename_typeint(self):
         '''
-        List of keys obtained by parsing chrome.admx
+        List of keys resulting from parsing chrome.admx with parsing_chrom_admx_intvalues.py
         '''
         valuename_typeint = (['DefaultCookiesSetting',
                             'DefaultFileHandlingGuardSetting',
@@ -164,6 +164,7 @@ class chromium_applier(applier_frontend):
         Collect dictionaries from registry keys into a general dictionary
         '''
         counts = dict()
+        #getting the list of keys to read as an integer
         valuename_typeint = self.get_valuename_typeint()
         for it_data in firefox_keys:
             branch = counts
@@ -171,8 +172,10 @@ class chromium_applier(applier_frontend):
                 if type(it_data.data) is bytes:
                     it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
                 parts = self.get_parts(it_data.hive_key)
+                #creating a nested dictionary from elements
                 for part in parts[:-1]:
                     branch = branch.setdefault(part, {})
+                #dictionary key value initialization
                 if it_data.type == 4:
                     if it_data.valuename in valuename_typeint:
                         branch[parts[-1]] = int(it_data.data)

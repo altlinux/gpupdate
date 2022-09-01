@@ -99,14 +99,18 @@ class firefox_applier(applier_frontend):
             try:
                 if type(it_data.data) is bytes:
                     it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
+                #Cases when it is necessary to create nested dictionaries
                 if it_data.valuename != it_data.data:
                     parts = self.get_parts(it_data.hive_key)
+                    #creating a nested dictionary from elements
                     for part in parts[:-1]:
                         branch = branch.setdefault(part, {})
+                    #dictionary key value initialization
                     if it_data.type == 4:
                         branch[parts[-1]] = self.get_boolean(it_data.data)
                     else:
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+                #Cases when it is necessary to create lists in a dictionary
                 else:
                     parts = self.get_parts(it_data.keyname)
                     for part in parts[:-1]:
