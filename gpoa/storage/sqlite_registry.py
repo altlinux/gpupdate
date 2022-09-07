@@ -47,6 +47,7 @@ from .record_types import (
     , script_entry
     , file_entry
     , ini_entry
+    , networkshare_entry
 )
 
 class sqlite_registry(registry):
@@ -186,6 +187,21 @@ class sqlite_registry(registry):
             , Column('value', String)
             , UniqueConstraint('sid', 'action', 'path', 'section', 'property', 'value')
         )
+        self.__networkshare = Table(
+              'Networkshare'
+            , self.__metadata
+            , Column('id', Integer, primary_key=True)
+            , Column('sid', String)
+            , Column('policy_name', String)
+            , Column('name', String)
+            , Column('action', String)
+            , Column('path', String)
+            , Column('allRegular', String)
+            , Column('comment', String)
+            , Column('limitUsers', String)
+            , Column('abe', String)
+            , UniqueConstraint('sid', 'name', 'path')
+        )
 
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
@@ -202,6 +218,7 @@ class sqlite_registry(registry):
             mapper(script_entry, self.__scripts)
             mapper(file_entry, self.__files)
             mapper(ini_entry, self.__ini)
+            mapper(networkshare_entry, self.__networkshare)
         except:
             pass
             #logging.error('Error creating mapper')
@@ -458,6 +475,22 @@ class sqlite_registry(registry):
                 .update(inientry.update_fields()))
             self.db_session.commit()
 
+    def add_networkshare(self, sid, networkshareobj, policy_name):
+        networkshareentry = networkshare_entry(sid, networkshareobj, policy_name)
+        logdata = dict()
+        logdata['name'] = networkshareentry.name
+        logdata['path'] = networkshareentry.path
+        logdata['action'] = networkshareentry.action
+        log('D179', logdata)
+        try:
+            self._add(networkshareentry)
+        except Exception as exc:
+            (self
+                ._filter_sid_obj(networkshare_entry, sid)
+                .filter(networkshare_entry.path == networkshareentry.path)
+                .update(networkshareentry.update_fields()))
+            self.db_session.commit()
+
 
     def _filter_sid_obj(self, row_object, sid):
         res = (self
@@ -505,6 +538,9 @@ class sqlite_registry(registry):
 
     def get_files(self, sid):
         return self._filter_sid_list(file_entry, sid)
+
+    def get_networkshare(self, sid):
+        return self._filter_sid_list(networkshare_entry, sid)
 
     def get_ini(self, sid):
         return self._filter_sid_list(ini_entry, sid)
@@ -561,6 +597,7 @@ class sqlite_registry(registry):
         self._wipe_sid(script_entry, sid)
         self._wipe_sid(file_entry, sid)
         self._wipe_sid(ini_entry, sid)
+        self._wipe_sid(networkshare_entry, sid)
 
     def _wipe_sid(self, row_object, sid):
         (self
