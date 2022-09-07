@@ -741,6 +741,9 @@ msgstr "Сохранение информации об ini-файле"
 msgid "Dictionary key generation failed"
 msgstr "Формирования ключа словаря не удалось"
 
+msgid "Saving information about network shares"
+msgstr "Сохранение информации о сетевых ресурсах"
+
 # Debug_end
 
 # Warning
