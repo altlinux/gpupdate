@@ -68,6 +68,10 @@ from .scriptsini import (
       read_scripts
     , merge_scripts
 )
+from .networkshares import (
+      read_networkshares
+    , merge_networkshares
+)
 import util
 import util.preg
 from util.paths import (
@@ -91,6 +95,7 @@ class FileType(Enum):
     SERVICES = 'services.xml'
     PRINTERS = 'printers.xml'
     SCRIPTS = 'scripts.ini'
+    NETWORKSHARES = 'networkshares.xml'
 
 def get_preftype(path_to_file):
     fpath = Path(path_to_file)
@@ -117,6 +122,7 @@ def pref_parsers():
     parsers[FileType.SERVICES] = read_services
     parsers[FileType.PRINTERS] = read_printers
     parsers[FileType.SCRIPTS] = read_scripts
+    parsers[FileType.NETWORKSHARES] = read_networkshares
 
     return parsers
 
@@ -138,6 +144,7 @@ def pref_mergers():
     mergers[FileType.SERVICES] = merge_services
     mergers[FileType.PRINTERS] = merge_printers
     mergers[FileType.SCRIPTS] = merge_scripts
+    mergers[FileType.NETWORKSHARES] = merge_networkshares
 
     return mergers
 
@@ -171,6 +178,7 @@ class gpt:
             , 'services'
             , 'scheduledtasks'
             , 'scripts'
+            , 'networkshares'
         ]
         self.settings = dict()
         self.settings['machine'] = dict()
