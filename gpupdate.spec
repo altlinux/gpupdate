@@ -1,7 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.9.10
+Version: 0.9.11
 Release: alt1
 
 Summary: GPT applier
@@ -108,7 +108,7 @@ fi
 # Remove storage in case we've lost compatibility between versions.
 # The storage will be regenerated on GPOA start.
 %define active_policy %_sysconfdir/local-policy/active
-%triggerpostun -- %name < 0.9.6
+%triggerpostun -- %name < 0.9.10
 rm -f %_cachedir/%name/registry.sqlite
 if test -L %active_policy; then
 	sed -i "s|^\s*local-policy\s*=.*|local-policy = $(readlink -f %active_policy)|" \
@@ -151,6 +151,10 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Wed Sep 14 2022 Evgeny Sinelnikov <sin@altlinux.org> 0.9.11-alt1
+- Add Chromium applier
+- Update Firefox applier
+
 * Fri Aug 26 2022 Valery Sinelnikov <greh@altlinux.org> 0.9.10-alt1
 - INI-files preferences implementation
 - Files preferences implementation
