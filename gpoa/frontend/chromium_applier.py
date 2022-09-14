@@ -156,14 +156,14 @@ class chromium_applier(applier_frontend):
         return parts
 
 
-    def create_dict(self, firefox_keys):
+    def create_dict(self, chromium_keys):
         '''
         Collect dictionaries from registry keys into a general dictionary
         '''
         counts = dict()
         #getting the list of keys to read as an integer
         valuename_typeint = self.get_valuename_typeint()
-        for it_data in firefox_keys:
+        for it_data in chromium_keys:
             branch = counts
             try:
                 if type(it_data.data) is bytes:
