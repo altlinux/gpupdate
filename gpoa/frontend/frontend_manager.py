@@ -66,6 +66,10 @@ from .ini_applier import (
     , ini_applier_user
 )
 
+from .networkshare_applier import (
+      networkshare_applier
+)
+
 from util.sid import get_sid
 from util.users import (
     is_root,
@@ -146,6 +150,7 @@ class frontend_manager:
         self.machine_appliers['package'] = package_applier(self.storage)
         self.machine_appliers['ntp'] = ntp_applier(self.storage)
         self.machine_appliers['envvar'] = envvar_applier(self.storage, self.sid)
+        self.machine_appliers['networkshare'] = networkshare_applier(self.storage, self.sid)
         self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
         self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
         self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)
