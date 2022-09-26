@@ -179,7 +179,13 @@ class chromium_applier(applier_frontend):
                     else:
                         branch[parts[-1]] = self.get_boolean(it_data.data)
                 else:
-                    branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+                    if it_data.data[0] == '[' and it_data.data[-1] == ']':
+                        try:
+                            branch[parts[-1]] = json.loads(str(it_data.data))
+                        except:
+                            branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+                    else:
+                        branch[parts[-1]] = str(it_data.data).replace('\\', '/')
 
             except Exception as exc:
                 logdata = dict()
