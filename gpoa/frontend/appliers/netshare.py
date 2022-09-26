@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import subprocess
 
 from gpt.folders import (
       FileAction
@@ -28,21 +28,44 @@ from util.windows import expand_windows_var
 
 
 class Networkshare:
+
     def __init__(self, networkshare_obj):
+        self.net_full_cmd = ['/usr/bin/net', 'usershare']
+        self.cmd = list()
         self.name = networkshare_obj.name
-        self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/')
-        self.action = action_letter2enum(networkshare_obj)
+        self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/') if networkshare_obj.path else None
+        self.action = action_letter2enum(networkshare_obj.action)
         self.allRegular =  networkshare_obj.allRegular
         self.comment = networkshare_obj.comment
         self.limitUsers = networkshare_obj.limitUsers
         self.abe = networkshare_obj.abe
+        self._guest = 'guest_ok=y'
+        self.acl = 'Everyone:'
         self.act()
 
+    def _run_net_full_cmd(self):
+        try:
+            subprocess.call(self.net_full_cmd, stderr=subprocess.DEVNULL)
+        except Exception as exc:
+            logdata = dict()
+            logdata['cmd'] = self.net_full_cmd
+            logdata['exc'] = exc
+            log('D182', logdata)
+
+
     def _create_action(self):
-        pass
+        self.net_full_cmd.append('add')
+        self.net_full_cmd.append(self.name)
+        self.net_full_cmd.append(self.path)
+        self.net_full_cmd.append(self.comment)
+        self.net_full_cmd.append(self.acl + 'F' if self.abe == 'ENABLE' else self.acl + 'R')
+        self.net_full_cmd.append(self._guest)
+        self._run_net_full_cmd()
 
     def _delete_action(self):
-        pass
+        self.net_full_cmd.append('delete')
+        self.net_full_cmd.append(self.name)
+        self._run_net_full_cmd()
 
     def act(self):
         if self.action == FileAction.CREATE:

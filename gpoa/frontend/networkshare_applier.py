@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pathlib import Path
-
 from .appliers.netshare import Networkshare
 from .applier_frontend import (
       applier_frontend
@@ -42,7 +40,7 @@ class networkshare_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            print("log('D?')")
+            log('D180')
             self.run()
         else:
-            print("log('D?')")
+            log('D181')
