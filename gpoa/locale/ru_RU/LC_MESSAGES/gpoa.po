@@ -709,25 +709,25 @@ msgid "Running File copy applier for machine"
 msgstr "Запуск применение настроек копирования файлов для машины"
 
 msgid "Running File copy applier for machine will not be started"
-msgstr "Запуск применение настроек копирования файлов для машины не будет запущено"
+msgstr "Применение настроек копирования файлов для машины не будет запущено"
 
 msgid "Running File copy applier for user in administrator context"
 msgstr "Запуск применение настроек копирования файлов для пользователя в контексте администратора"
 
 msgid "Running File copy applier for user in administrator context will not be started"
-msgstr "Запуск применение настроек копирования файлов для пользователя в контексте администратора не будет запущено"
+msgstr "Применение настроек копирования файлов для пользователя в контексте администратора не будет запущено"
 
 msgid "Running ini applier for machine"
 msgstr "Запуск применение настроек ini файлов для машины"
 
 msgid "Running ini applier for machine will not be started"
-msgstr "Запуск применение настроек ini файлов для машины не будет запущено"
+msgstr "Применение настроек ini файлов для машины не будет запущено"
 
 msgid "Running ini applier for user in administrator context"
 msgstr "Запуск применение настроек ini файлов для пользователя в контексте администратора"
 
 msgid "Running ini applier for user in administrator context will not be started"
-msgstr "Запуск применение настроек ini файлов для пользователя в контексте администратора не будет запущено"
+msgstr "Применение настроек ini файлов для пользователя в контексте администратора не будет запущено"
 
 msgid "Ini-file path not recognized"
 msgstr "Путь к ini-файлу не распознан"
@@ -743,6 +743,15 @@ msgstr "Формирования ключа словаря не удалось"
 
 msgid "Saving information about network shares"
 msgstr "Сохранение информации о сетевых ресурсах"
+
+msgid "Running networkshare applier for machine"
+msgstr "Запуск применение настроек сетевых каталогов для машины"
+
+msgid "Running networkshare applier for machine will not be starte"
+msgstr "Применение настроек сетевых каталогов для машины не будет запущено"
+
+msgid "Apply network share data action failed"
+msgstr "Не удалось применить действие с данными общего сетевого ресурса"
 
 # Debug_end
 

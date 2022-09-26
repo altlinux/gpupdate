@@ -284,6 +284,9 @@ def debug_code(code):
     debug_ids[177] = 'Saving information about ini-file'
     debug_ids[178] = 'Dictionary key generation failed'
     debug_ids[179] = 'Saving information about network shares'
+    debug_ids[180] = 'Running networkshare applier for machine'
+    debug_ids[181] = 'Running networkshare applier for machine will not be started'
+    debug_ids[182] = 'Apply network share data action failed'
 
     return debug_ids.get(code, 'Unknown debug code')
 
