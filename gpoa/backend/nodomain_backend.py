@@ -52,5 +52,6 @@ class nodomain_backend(applier_backend):
         self.storage.wipe_hklm()
         self.storage.wipe_user(self.storage.get_info('machine_sid'))
         local_policy = get_local_gpt(self.sid)
-        local_policy.merge()
+        local_policy.merge_machine()
+        local_policy.merge_user()
 
