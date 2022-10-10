@@ -753,6 +753,15 @@ msgstr "Применение настроек сетевых каталогов 
 msgid "Apply network share data action failed"
 msgstr "Не удалось применить действие с данными общего сетевого ресурса"
 
+msgid "Running yandex_applier for machine"
+msgstr "Запуск yandex_applier для машины"
+
+msgid "Yandex_applier for machine will not be started"
+msgstr "Yandex_applier для машины не запустится"
+
+msgid "Wrote YandexBrowser preferences to"
+msgstr "Запись настройки Яндекс Браузера в"
+
 # Debug_end
 
 # Warning

@@ -72,7 +72,7 @@ class yandex_applier(applier_frontend):
             json.dump(dict_item_to_list(self.policies_json), f)
             logdata = dict()
             logdata['destfile'] = destfile
-            log('D97', logdata)
+            log('D185', logdata)
 
         destfilerec = os.path.join(self.__recommended_policies_path, 'policies.json')
         os.makedirs(self.__recommended_policies_path, exist_ok=True)
@@ -80,7 +80,7 @@ class yandex_applier(applier_frontend):
             json.dump(dict_item_to_list(recommended__json), f)
             logdata = dict()
             logdata['destfilerec'] = destfilerec
-            log('D97', logdata)
+            log('D185', logdata)
 
 
     def apply(self):
@@ -88,11 +88,11 @@ class yandex_applier(applier_frontend):
         All actual job done here.
         '''
         if self.__module_enabled:
-            print("log('D95'")
+            log('D183')
             self.create_dict(self.yandex_keys)
             self.machine_apply()
         else:
-            print("log('D96'")
+            log('D184')
 
     def get_valuename_typeint(self):
         '''
@@ -162,7 +162,7 @@ class yandex_applier(applier_frontend):
                 logdata = dict()
                 logdata['Exception'] = exc
                 logdata['keyname'] = it_data.keyname
-                print("log('????'", logdata)
+                log('D178', logdata)
         try:
             self.policies_json = counts['']
         except:
