@@ -26,8 +26,8 @@ import os
 from util.logging import log
 from util.util import is_machine_name
 
-class yandex_applier(applier_frontend):
-    __module_name = 'YandexApplier'
+class yandex_browser_applier(applier_frontend):
+    __module_name = 'YandexBrowserApplier'
     __module_enabled = True
     __module_experimental = False
     __registry_branch = 'Software\\Policies\\YandexBrowser'

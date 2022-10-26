@@ -287,8 +287,8 @@ def debug_code(code):
     debug_ids[180] = 'Running networkshare applier for machine'
     debug_ids[181] = 'Running networkshare applier for machine will not be started'
     debug_ids[182] = 'Apply network share data action failed'
-    debug_ids[183] = 'Running yandex_applier for machine'
-    debug_ids[184] = 'Yandex_applier for machine will not be started'
+    debug_ids[183] = 'Running yandex_browser_applier for machine'
+    debug_ids[184] = 'Yandex_browser_applier for machine will not be started'
     debug_ids[185] = 'Wrote YandexBrowser preferences to'
 
     return debug_ids.get(code, 'Unknown debug code')
