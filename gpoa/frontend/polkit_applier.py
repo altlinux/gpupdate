@@ -19,11 +19,10 @@
 from .applier_frontend import (
       applier_frontend
     , check_enabled
+    , check_windows_mapping_enabled
 )
 from .appliers.polkit import polkit
-from util.logging import slogm, log
-
-import logging
+from util.logging import log
 
 class polkit_applier(applier_frontend):
     __module_name = 'PolkitApplier'
