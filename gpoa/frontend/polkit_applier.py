@@ -28,7 +28,8 @@ class polkit_applier(applier_frontend):
     __module_name = 'PolkitApplier'
     __module_experimental = False
     __module_enabled = True
-    __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
+    __deny_all_win = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
+    __deny_all = 'Software\\BaseALT\\Policies\\GPUpdate\\RemovableStorageDevices\\Deny_All'
     __polkit_map = {
         __deny_all: ['49-gpoa_disk_permissions', { 'Deny_All': 0 }]
     }
@@ -36,6 +37,8 @@ class polkit_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
         deny_all = storage.filter_hklm_entries(self.__deny_all).first()
+        if not deny_all and check_windows_mapping_enabled(self.storage):
+            deny_all = storage.filter_hklm_entries(self.__deny_all_win).first()
         # Deny_All hook: initialize defaults
         template_file = self.__polkit_map[self.__deny_all][0]
         template_vars = self.__polkit_map[self.__deny_all][1]
@@ -69,7 +72,8 @@ class polkit_applier_user(applier_frontend):
     __module_name = 'PolkitApplierUser'
     __module_experimental = False
     __module_enabled = True
-    __deny_all = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
+    __deny_all_win = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
+    __deny_all = 'Software\\BaseALT\\Policies\\GPUpdate\\RemovableStorageDevices\\Deny_All'
     __polkit_map = {
             __deny_all: ['48-gpoa_disk_permissions_user', { 'Deny_All': 0, 'User': '' }]
     }
@@ -80,6 +84,8 @@ class polkit_applier_user(applier_frontend):
         self.username = username
 
         deny_all = storage.filter_hkcu_entries(self.sid, self.__deny_all).first()
+        if not deny_all and check_windows_mapping_enabled(self.storage):
+            deny_all = storage.filter_hkcu_entries(self.sid, self.__deny_all_win).first()
         # Deny_All hook: initialize defaults
         template_file = self.__polkit_map[self.__deny_all][0]
         template_vars = self.__polkit_map[self.__deny_all][1]
