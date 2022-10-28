@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
+
 import subprocess
 from enum import Enum
 
@@ -26,7 +26,7 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from util.logging import slogm, log
+from util.logging import log
 
 
 class NTPServerType(Enum):
@@ -117,30 +117,33 @@ class ntp_applier(applier_frontend):
         ntp_server_enabled = self.storage.get_hklm_entry(self.ntp_server_enabled)
         ntp_client_enabled = self.storage.get_hklm_entry(self.ntp_client_enabled)
 
-        if NTPServerType.NTP.value != server_type.data:
-            logdata = dict()
-            logdata['server_type'] = server_type
-            log('W10', logdata)
-        else:
-            log('D126')
-            if '1' == ntp_server_enabled.data:
-                log('D127')
-                self._start_chrony_client(server_address)
-                self._chrony_as_server()
-            elif '0' == ntp_server_enabled.data:
-                log('D128')
-                self._chrony_as_client()
+        if server_type:
+            if NTPServerType.NTP.value != server_type.data:
+                logdata = dict()
+                logdata['server_type'] = server_type
+                log('W10', logdata)
             else:
-                log('D129')
+                log('D126')
+                if ntp_server_enabled:
+                    if '1' == ntp_server_enabled.data:
+                        log('D127')
+                        self._start_chrony_client(server_address)
+                        self._chrony_as_server()
+                    elif '0' == ntp_server_enabled.data:
+                        log('D128')
+                        self._chrony_as_client()
+                    else:
+                        log('D129')
 
-            if '1' == ntp_client_enabled.data:
-                log('D130')
-                self._start_chrony_client()
-            elif '0' == ntp_client_enabled.data:
-                log('D131')
-                self._stop_chrony_client()
-            else:
-                log('D132')
+                if ntp_client_enabled:
+                    if '1' == ntp_client_enabled.data:
+                        log('D130')
+                        self._start_chrony_client()
+                    elif '0' == ntp_client_enabled.data:
+                        log('D131')
+                        self._stop_chrony_client()
+                    else:
+                        log('D132')
 
     def apply(self):
         if self.__module_enabled:
