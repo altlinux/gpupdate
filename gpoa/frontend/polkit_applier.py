@@ -30,9 +30,11 @@ class polkit_applier(applier_frontend):
     __module_enabled = True
     __deny_all_win = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
     __registry_branch = 'Software\\BaseALT\\Policies\\Polkit\\'
+    __registry_locks_branch = 'Software\\BaseALT\\Policies\\PolkitLocks\\'
     __polkit_map = {
         __deny_all_win: ['49-gpoa_disk_permissions', { 'Deny_All': 0 }],
-        __registry_branch : ['49-group_policy_permissions', {}]
+        __registry_branch : ['49-group_policy_permissions', {}],
+        __registry_locks_branch : ['47-group_policy_permissions', {}]
     }
 
     def __init__(self, storage):
@@ -42,36 +44,38 @@ class polkit_applier(applier_frontend):
             deny_all_win = storage.filter_hklm_entries(self.__deny_all_win).first()
         # Deny_All hook: initialize defaults
         polkit_filter = '{}%'.format(self.__registry_branch)
+        polkit_locks_filter = '{}%'.format(self.__registry_locks_branch)
         self.polkit_keys = self.storage.filter_hklm_entries(polkit_filter)
+        self.polkit_locks = self.storage.filter_hklm_entries(polkit_locks_filter)
         template_file = self.__polkit_map[self.__deny_all_win][0]
         template_vars = self.__polkit_map[self.__deny_all_win][1]
         template_file_all = self.__polkit_map[self.__registry_branch][0]
         template_vars_all = self.__polkit_map[self.__registry_branch][1]
-        res_no =  list()
-        res_yes = list()
-        res_auth_self = list()
-        res_auth_admin = list()
-        res_auth_self_keep = list()
-        res_auth_admin_keep = list()
+        template_file_all_lock = self.__polkit_map[self.__registry_locks_branch][0]
+        template_vars_all_lock = self.__polkit_map[self.__registry_locks_branch][1]
+        locks = list()
+        for lock in self.polkit_locks:
+            if bool(int(lock.data)):
+                locks.append(lock.valuename)
+
+        dict_lists_rules = {'No': [[], []],
+                            'Yes': [[], []],
+                            'Auth_self' : [[], []],
+                            'Auth_admin': [[], []],
+                            'Auth_self_keep': [[], []],
+                            'Auth_admin_keep': [[], []]}
+
+        check_and_add_to_list = (lambda it, act: dict_lists_rules[act][0].append(it.valuename)
+                                if it.valuename not in locks
+                                else dict_lists_rules[act][1].append(it.valuename))
+
         for it_data in self.polkit_keys:
-            if it_data.data == 'No':
-                res_no.append(it_data.valuename)
-            elif it_data.data == 'Yes':
-                res_yes.append(it_data.valuename)
-            elif it_data.data == 'Auth_self':
-                res_auth_self.append(it_data.valuename)
-            elif it_data.data == 'Auth_admin':
-                res_auth_admin.append(it_data.valuename)
-            elif it_data.data == 'Auth_self_keep':
-                res_auth_self_keep.append(it_data.valuename)
-            elif it_data.data == 'Auth_admin_keep':
-                res_auth_admin_keep.append(it_data.valuename)
-        self.__polkit_map[self.__registry_branch][1]['res_no'] = res_no
-        self.__polkit_map[self.__registry_branch][1]['res_yes'] = res_yes
-        self.__polkit_map[self.__registry_branch][1]['res_auth_self'] = res_auth_self
-        self.__polkit_map[self.__registry_branch][1]['res_auth_self_keep'] = res_auth_self_keep
-        self.__polkit_map[self.__registry_branch][1]['res_auth_admin'] = res_auth_admin
-        self.__polkit_map[self.__registry_branch][1]['res_auth_admin_keep'] = res_auth_admin_keep
+            check_and_add_to_list(it_data, it_data.data)
+
+        for key, item in dict_lists_rules.items():
+            self.__polkit_map[self.__registry_branch][1][key] = item[0]
+            self.__polkit_map[self.__registry_locks_branch][1][key] = item[1]
+
         if deny_all_win:
             logdata = dict()
             logdata['Deny_All_win'] = deny_all_win.data
@@ -82,6 +86,7 @@ class polkit_applier(applier_frontend):
         self.policies = []
         self.policies.append(polkit(template_file, template_vars))
         self.policies.append(polkit(template_file_all, template_vars_all))
+        self.policies.append(polkit(template_file_all_lock, template_vars_all_lock))
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -118,38 +123,28 @@ class polkit_applier_user(applier_frontend):
         if check_windows_mapping_enabled(self.storage):
             deny_all_win = storage.filter_hkcu_entries(self.sid, self.__deny_all_win).first()
         polkit_filter = '{}%'.format(self.__registry_branch)
-        self.polkit_keys = self.storage.filter_hklm_entries(self.sid, polkit_filter)
+        self.polkit_keys = self.storage.filter_hkcu_entries(self.sid, polkit_filter)
         # Deny_All hook: initialize defaults
         template_file = self.__polkit_map[self.__deny_all_win][0]
         template_vars = self.__polkit_map[self.__deny_all_win][1]
         template_file_all = self.__polkit_map[self.__registry_branch][0]
         template_vars_all = self.__polkit_map[self.__registry_branch][1]
-        res_no =  list()
-        res_yes = list()
-        res_auth_self = list()
-        res_auth_admin = list()
-        res_auth_self_keep = list()
-        res_auth_admin_keep = list()
+
+        dict_lists_rules = {'No': [],
+                            'Yes': [],
+                            'Auth_self': [],
+                            'Auth_admin': [],
+                            'Auth_self_keep': [],
+                            'Auth_admin_keep': []}
+
         for it_data in self.polkit_keys:
-            if it_data.data == 'No':
-                res_no.append(it_data.valuename)
-            elif it_data.data == 'Yes':
-                res_yes.append(it_data.valuename)
-            elif it_data.data == 'Auth_self':
-                res_auth_self.append(it_data.valuename)
-            elif it_data.data == 'Auth_admin':
-                res_auth_admin.append(it_data.valuename)
-            elif it_data.data == 'Auth_self_keep':
-                res_auth_self_keep.append(it_data.valuename)
-            elif it_data.data == 'Auth_admin_keep':
-                res_auth_admin_keep.append(it_data.valuename)
+            dict_lists_rules[it_data.data].append(it_data.valuename)
+
         self.__polkit_map[self.__registry_branch][1]['User'] = self.username
-        self.__polkit_map[self.__registry_branch][1]['res_no'] = res_no
-        self.__polkit_map[self.__registry_branch][1]['res_yes'] = res_yes
-        self.__polkit_map[self.__registry_branch][1]['res_auth_self'] = res_auth_self
-        self.__polkit_map[self.__registry_branch][1]['res_auth_self_keep'] = res_auth_self_keep
-        self.__polkit_map[self.__registry_branch][1]['res_auth_admin'] = res_auth_admin
-        self.__polkit_map[self.__registry_branch][1]['res_auth_admin_keep'] = res_auth_admin_keep
+
+        for key, item in dict_lists_rules.items():
+            self.__polkit_map[self.__registry_branch][1][key] = item
+
         if deny_all_win:
             logdata = dict()
             logdata['user'] = self.username
