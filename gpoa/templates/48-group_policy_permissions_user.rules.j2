@@ -17,45 +17,45 @@
  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #}
 
-{% if res_no|length %}
+{% if No|length %}
 polkit.addRule(function (action, subject) {
-    if ({% for res in res_no -%}
-        action.id == "{{res}}" {% if res_no|length == loop.index %}&&{% else %}||{% endif %}
+    if ({% for res in No -%}
+        action.id == "{{res}}" {% if No|length == loop.index %}&&{% else %}||{% endif %}
         {% endfor %}subject.user == "{{User}}") {
 			return polkit.Result.NO;
     }
-});{% endif %}{% if res_yes|length %}
+});{% endif %}{% if Yes|length %}
 polkit.addRule(function (action, subject) {
-    if ({% for res in res_yes -%}
-        action.id == "{{res}}" {% if res_yes|length == loop.index %}&&{% else %}||{% endif %}
+    if ({% for res in Yes -%}
+        action.id == "{{res}}" {% if Yes|length == loop.index %}&&{% else %}||{% endif %}
         {% endfor %}subject.user == "{{User}}") {
 			return polkit.Result.YES;
     }
-});{% endif %}{% if res_auth_self|length %}
+});{% endif %}{% if Auth_self|length %}
 polkit.addRule(function (action, subject) {
-    if ({% for res in res_auth_self -%}
-        action.id == "{{res}}" {% if res_auth_self|length == loop.index %}&&{% else %}||{% endif %}
+    if ({% for res in Auth_self -%}
+        action.id == "{{res}}" {% if Auth_self|length == loop.index %}&&{% else %}||{% endif %}
         {% endfor %}subject.user == "{{User}}") {
 			return polkit.Result.AUTH_SELF;
     }
-});{% endif %}{% if res_auth_admin|length %}
+});{% endif %}{% if Auth_admin|length %}
 polkit.addRule(function (action, subject) {
-    if ({% for res in res_auth_admin -%}
-        action.id == "{{res}}" {% if res_auth_admin|length == loop.index %}&&{% else %}||{% endif %}
+    if ({% for res in Auth_admin -%}
+        action.id == "{{res}}" {% if Auth_admin|length == loop.index %}&&{% else %}||{% endif %}
         {% endfor %}subject.user == "{{User}}") {
 			return polkit.Result.AUTH_ADMIN;
     }
-});{% endif %}{% if res_auth_self_keep|length %}
+});{% endif %}{% if Auth_self_keep|length %}
 polkit.addRule(function (action, subject) {
-    if ({% for res in res_auth_self_keep -%}
-        action.id == "{{res}}" {% if res_auth_self_keep|length == loop.index %}&&{% else %}||{% endif %}
+    if ({% for res in Auth_self_keep -%}
+        action.id == "{{res}}" {% if Auth_self_keep|length == loop.index %}&&{% else %}||{% endif %}
         {% endfor %}subject.user == "{{User}}") {
 			return polkit.Result.AUTH_SELF_KEEP;
     }
-});{% endif %}{% if res_auth_admin_keep|length %}
+});{% endif %}{% if Auth_admin_keep|length %}
 polkit.addRule(function (action, subject) {
-    if ({% for res in res_auth_admin_keep -%}
-        action.id == "{{res}}" {% if res_auth_admin_keep|length == loop.index %}&&{% else %}||{% endif %}
+    if ({% for res in Auth_admin_keep -%}
+        action.id == "{{res}}" {% if Auth_admin_keep|length == loop.index %}&&{% else %}||{% endif %}
         {% endfor %}subject.user == "{{User}}") {
 			return polkit.Result.AUTH_ADMIN_KEEP;
     }
