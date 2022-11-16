@@ -76,6 +76,7 @@ class firefox_applier(applier_frontend):
         '''
         Collect dictionaries from registry keys into a general dictionary
         '''
+        excp = ['SOCKSVersion']
         counts = dict()
         for it_data in firefox_keys:
             branch = counts
@@ -90,7 +91,10 @@ class firefox_applier(applier_frontend):
                         branch = branch.setdefault(part, {})
                     #dictionary key value initialization
                     if it_data.type == 4:
-                        branch[parts[-1]] = self.get_boolean(it_data.data)
+                        if it_data.valuename in excp:
+                            branch[parts[-1]] = int(it_data.data)
+                        else:
+                            branch[parts[-1]] = self.get_boolean(it_data.data)
                     else:
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
                 #Cases when it is necessary to create lists in a dictionary
