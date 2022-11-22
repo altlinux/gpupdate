@@ -115,6 +115,7 @@ class drive_entry(object):
         self.password = dobj.password
         self.dir = dobj.dir
         self.path = dobj.path
+        self.action = dobj.action
 
     def update_fields(self):
         fields = dict()
@@ -123,6 +124,7 @@ class drive_entry(object):
         fields['password'] = self.password
         fields['dir'] = self.dir
         fields['path'] = self.path
+        fields['action'] = self.action
 
         return fields
 
