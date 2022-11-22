@@ -20,16 +20,14 @@ import fileinput
 import jinja2
 import os
 import subprocess
-import logging
 from pathlib import Path
 
 from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from gpt.drives import json2drive
 from util.util import get_homedir
-from util.logging import slogm, log
+from util.logging import log
 
 def storage_get_drives(storage, sid):
     drives = storage.get_drives(sid)
@@ -129,6 +127,7 @@ class cifs_applier_user(applier_frontend):
             drive_settings['login'] = drv.login
             drive_settings['password'] = drv.password
             drive_settings['path'] = drv.path.replace('\\', '/')
+            drive_settings['action'] = drv.action
 
             drive_list.append(drive_settings)
 
