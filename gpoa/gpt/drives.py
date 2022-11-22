@@ -67,6 +67,7 @@ def read_drives(drives_file):
         drive_obj.set_pass(decrypt_pass(props.get('cpassword')))
         drive_obj.set_dir(props.get('letter'))
         drive_obj.set_path(props.get('path'))
+        drive_obj.set_action(props.get('action'))
 
         drives.append(drive_obj)
 
@@ -93,6 +94,7 @@ class drivemap:
         self.password = None
         self.dir = None
         self.path = None
+        self.action = None
 
     def set_login(self, username):
         self.login = username
@@ -109,6 +111,9 @@ class drivemap:
 
     def set_path(self, path):
         self.path = path
+
+    def set_action(self, action):
+        self.action = action
 
     def to_json(self):
         drive = dict()
