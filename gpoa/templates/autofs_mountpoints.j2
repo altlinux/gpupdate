@@ -1,7 +1,7 @@
 {#
  # GPOA - GPO Applier for Linux
  #
- # Copyright (C) 2019-2020 BaseALT Ltd.
+ # Copyright (C) 2019-2022 BaseALT Ltd.
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -17,5 +17,7 @@
  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #}
 {%- for drv in drives %}
+{% if (drv.action == 'C' or drv.action == 'U' or drv.action == 'R') %}
 {{ drv.dir }}	-fstype=cifs,cruid=$USER,sec=krb5,noperm	:{{ drv.path }}
+{% endif %}
 {% endfor %}
