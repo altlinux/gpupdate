@@ -68,6 +68,11 @@ def read_drives(drives_file):
         drive_obj.set_dir(props.get('letter'))
         drive_obj.set_path(props.get('path'))
         drive_obj.set_action(props.get('action'))
+        drive_obj.set_thisDrive(props.get('thisDrive'))
+        drive_obj.set_allDrives(props.get('allDrives'))
+        drive_obj.set_label(props.get('label'))
+        drive_obj.set_persistent(props.get('persistent'))
+        drive_obj.set_useLetter(props.get('useLetter'))
 
         drives.append(drive_obj)
 
@@ -95,6 +100,11 @@ class drivemap:
         self.dir = None
         self.path = None
         self.action = None
+        self.thisDrive = None
+        self.allDrives = None
+        self.label = None
+        self.persistent = None
+        self.useLetter = None
 
     def set_login(self, username):
         self.login = username
@@ -114,6 +124,21 @@ class drivemap:
 
     def set_action(self, action):
         self.action = action
+
+    def set_thisDrive(self, thisDrive):
+        self.thisDrive = thisDrive
+
+    def set_allDrives(self, allDrives):
+        self.allDrives = allDrives
+
+    def set_label(self, label):
+        self.label = label
+
+    def set_persistent(self, persistent):
+        self.persistent = persistent
+
+    def set_useLetter(self, useLetter):
+        self.useLetter = useLetter
 
     def to_json(self):
         drive = dict()

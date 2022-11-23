@@ -116,6 +116,12 @@ class drive_entry(object):
         self.dir = dobj.dir
         self.path = dobj.path
         self.action = dobj.action
+        self.thisDrive = dobj.thisDrive
+        self.allDrives = dobj.allDrives
+        self.label = dobj.label
+        self.persistent = dobj.persistent
+        self.useLetter = dobj.useLetter
+
 
     def update_fields(self):
         fields = dict()
@@ -125,6 +131,11 @@ class drive_entry(object):
         fields['dir'] = self.dir
         fields['path'] = self.path
         fields['action'] = self.action
+        fields['thisDrive'] = self.thisDrive
+        fields['allDrives'] = self.allDrives
+        fields['label'] = self.label
+        fields['persistent'] = self.persistent
+        fields['useLetter'] = self.useLetter
 
         return fields
 
