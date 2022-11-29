@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import fileinput
 import jinja2
 import os
 import subprocess
 from pathlib import Path
+import string
 
 from .applier_frontend import (
       applier_frontend
@@ -47,6 +47,59 @@ def add_line_if_missing(filename, ins_line):
         else:
             f.write(ins_line + '\n')
             f.flush()
+
+class Drive_list:
+    __alphabet = string.ascii_uppercase
+    def __init__(self):
+        self.set_of_all_letters = set()
+        self.dict_drives = dict()
+
+    def __get_letter(self, letter):
+        slice_letters = set(self.__alphabet[self.__alphabet.find(letter) + 1:]) - self.set_of_all_letters
+        free_letters = sorted(slice_letters)
+        if free_letters:
+            return free_letters[0]
+        else:
+            return None
+
+    def append(self, drive:dict):
+        if drive['dir'] not in self.set_of_all_letters:
+            if drive['action'] == 'D':
+                return
+            self.set_of_all_letters.add(drive['dir'])
+            self.dict_drives[drive['dir']] = drive
+            return
+
+        else:
+            if drive['action'] == 'C':
+                if drive['useLetter'] == '1':
+                    return
+                else:
+                    new_dir = self.__get_letter(drive['dir'])
+                    if not new_dir:
+                        return
+                    self.set_of_all_letters.add(new_dir)
+                    drive['dir'] = new_dir
+                    self.dict_drives[drive['dir']]:drive
+                    return
+
+            if drive['action'] == 'U':
+                self.dict_drives[drive['dir']]['thisDrive'] = drive['thisDrive']
+                self.dict_drives[drive['dir']]['allDrives'] = drive['allDrives']
+                self.dict_drives[drive['dir']]['label'] = drive['label']
+                self.dict_drives[drive['dir']]['persistent'] = drive['persistent']
+                self.dict_drives[drive['dir']]['useLetter'] = drive['useLetter']
+                return
+
+            if drive['action'] == 'R':
+                self.dict_drives[drive['dir']]:drive
+                return
+            if drive['action'] == 'D':
+                self.dict_drives.pop(drive['dir'], None)
+                return
+
+    def __call__(self):
+        return list(self.dict_drives.values())
 
 class cifs_applier(applier_frontend):
     def __init__(self, storage):
@@ -120,7 +173,7 @@ class cifs_applier_user(applier_frontend):
         add_line_if_missing(self.__auto_file, auto_destdir)
 
         # Collect data for drive settings
-        drive_list = list()
+        drive_list = Drive_list()
         for drv in self.drives:
             drive_settings = dict()
             drive_settings['dir'] = drv.dir
@@ -128,12 +181,17 @@ class cifs_applier_user(applier_frontend):
             drive_settings['password'] = drv.password
             drive_settings['path'] = drv.path.replace('\\', '/')
             drive_settings['action'] = drv.action
+            drive_settings['thisDrive'] = drv.thisDrive
+            drive_settings['allDrives'] = drv.allDrives
+            drive_settings['label'] = drv.label
+            drive_settings['persistent'] = drv.persistent
+            drive_settings['useLetter'] = drv.useLetter
 
             drive_list.append(drive_settings)
 
-        if len(drive_list) > 0:
+        if len(drive_list()) > 0:
             mount_settings = dict()
-            mount_settings['drives'] = drive_list
+            mount_settings['drives'] = drive_list()
             mount_text = self.template_mountpoints.render(**mount_settings)
 
             with open(self.user_config.resolve(), 'w') as f:
