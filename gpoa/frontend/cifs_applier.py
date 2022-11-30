@@ -95,8 +95,13 @@ class Drive_list:
                 self.dict_drives[drive['dir']]:drive
                 return
             if drive['action'] == 'D':
-                self.dict_drives.pop(drive['dir'], None)
-                return
+                if drive['useLetter'] == '1':
+                    self.dict_drives.pop(drive['dir'], None)
+                else:
+                    keys_set = set(self.dict_drives.keys())
+                    slice_letters = set(self.__alphabet[self.__alphabet.find(drive['dir']):])
+                    for letter_dir in (keys_set & slice_letters):
+                        self.dict_drives.pop(letter_dir, None)
 
     def __call__(self):
         return list(self.dict_drives.values())
