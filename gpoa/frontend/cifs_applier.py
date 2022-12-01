@@ -123,6 +123,8 @@ class cifs_applier_user(applier_frontend):
     __template_mountpoints = 'autofs_mountpoints.j2'
     __template_identity = 'autofs_identity.j2'
     __template_auto = 'autofs_auto.j2'
+    __template_mountpoints_hide = 'autofs_mountpoints_hide.j2'
+    __template_auto_hide = 'autofs_auto_hide.j2'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -131,17 +133,25 @@ class cifs_applier_user(applier_frontend):
 
         self.home = get_homedir(username)
         conf_file = '{}.conf'.format(sid)
+        conf_hide_file = '{}.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
+        autofs_hide_file = '{}.autofs'.format(sid)
         cred_file = '{}.creds'.format(sid)
 
         self.auto_master_d = Path(self.__auto_dir)
 
         self.user_config = self.auto_master_d / conf_file
+        self.user_config_hide = self.auto_master_d / conf_hide_file
         if os.path.exists(self.user_config.resolve()):
             self.user_config.unlink()
+        if os.path.exists(self.user_config_hide.resolve()):
+            self.user_config_hide.unlink()
         self.user_autofs = self.auto_master_d / autofs_file
+        self.user_autofs_hide = self.auto_master_d / autofs_hide_file
         if os.path.exists(self.user_autofs.resolve()):
             self.user_autofs.unlink()
+        if os.path.exists(self.user_autofs_hide.resolve()):
+            self.user_autofs_hide.unlink()
         self.user_creds = self.auto_master_d / cred_file
 
         self.mount_dir = Path(os.path.join(self.home, 'net'))
@@ -153,6 +163,9 @@ class cifs_applier_user(applier_frontend):
         self.template_mountpoints = self.template_env.get_template(self.__template_mountpoints)
         self.template_indentity = self.template_env.get_template(self.__template_identity)
         self.template_auto = self.template_env.get_template(self.__template_auto)
+
+        self.template_mountpoints_hide = self.template_env.get_template(self.__template_mountpoints_hide)
+        self.template_auto_hide = self.template_env.get_template(self.__template_auto_hide)
 
         self.__module_enabled = check_enabled(
               self.storage
@@ -199,9 +212,16 @@ class cifs_applier_user(applier_frontend):
             mount_settings['drives'] = drive_list()
             mount_text = self.template_mountpoints.render(**mount_settings)
 
+            mount_text_hide = self.template_mountpoints_hide.render(**mount_settings)
+
             with open(self.user_config.resolve(), 'w') as f:
                 f.truncate()
                 f.write(mount_text)
+                f.flush()
+
+            with open(self.user_config_hide.resolve(), 'w') as f:
+                f.truncate()
+                f.write(mount_text_hide)
                 f.flush()
 
             autofs_settings = dict()
@@ -210,6 +230,13 @@ class cifs_applier_user(applier_frontend):
             autofs_text = self.template_auto.render(**autofs_settings)
 
             with open(self.user_autofs.resolve(), 'w') as f:
+                f.truncate()
+                f.write(autofs_text)
+                f.flush()
+
+            autofs_settings['mount_file'] = self.user_config_hide.resolve()
+            autofs_text = self.template_auto.render(**autofs_settings)
+            with open(self.user_autofs_hide.resolve(), 'w') as f:
                 f.truncate()
                 f.write(autofs_text)
                 f.flush()
