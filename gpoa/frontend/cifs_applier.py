@@ -133,9 +133,9 @@ class cifs_applier_user(applier_frontend):
 
         self.home = get_homedir(username)
         conf_file = '{}.conf'.format(sid)
-        conf_hide_file = '{}.conf'.format(sid)
+        conf_hide_file = '{}_hide.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
-        autofs_hide_file = '{}.autofs'.format(sid)
+        autofs_hide_file = '{}_hide.autofs'.format(sid)
         cred_file = '{}.creds'.format(sid)
 
         self.auto_master_d = Path(self.__auto_dir)
@@ -235,7 +235,7 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             autofs_settings['mount_file'] = self.user_config_hide.resolve()
-            autofs_text = self.template_auto.render(**autofs_settings)
+            autofs_text = self.template_auto_hide.render(**autofs_settings)
             with open(self.user_autofs_hide.resolve(), 'w') as f:
                 f.truncate()
                 f.write(autofs_text)

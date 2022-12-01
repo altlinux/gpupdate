@@ -16,8 +16,5 @@
  # You should have received a copy of the GNU General Public License
  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #}
-{%- for drv in drives %}
-{% if (drv.thisDrive != 'HIDE') %}
-{{ drv.dir }}	-fstype=cifs,cruid=$USER,sec=krb5,noperm	:{{ drv.path }}
-{% endif %}
-{% endfor %}
+{{ home_dir }}/.net	{{ mount_file }}	-t 120
+
