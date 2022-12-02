@@ -45,7 +45,9 @@ from .folder_applier import (
       folder_applier
     , folder_applier_user
 )
-from .cifs_applier import cifs_applier_user
+from .cifs_applier import (
+      cifs_applier_user
+    , cifs_applier)
 from .ntp_applier import ntp_applier
 from .envvar_applier import (
       envvar_applier
@@ -140,6 +142,13 @@ class frontend_manager:
         self.machine_appliers['chromium'] = chromium_applier(self.storage, self.sid, self.username)
         self.machine_appliers['shortcuts'] = shortcut_applier(self.storage)
         self.machine_appliers['gsettings'] = gsettings_applier(self.storage, self.file_cache)
+        try:
+            self.machine_appliers['cifs'] = cifs_applier(self.storage, self.sid)
+        except Exception as exc:
+            logdata = dict()
+            logdata['applier_name'] = 'cifs'
+            logdata['msg'] = str(exc)
+            log('E24', logdata)
         self.machine_appliers['cups'] = cups_applier(self.storage)
         self.machine_appliers['firewall'] = firewall_applier(self.storage)
         self.machine_appliers['folders'] = folder_applier(self.storage, self.sid)

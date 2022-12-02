@@ -107,7 +107,7 @@ class Drive_list:
         return list(self.dict_drives.values())
 
 class cifs_applier(applier_frontend):
-    def __init__(self, storage):
+    def __init__(self, storage, sid):
         pass
 
     def apply(self):
