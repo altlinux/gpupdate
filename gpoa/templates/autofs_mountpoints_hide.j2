@@ -18,6 +18,10 @@
  #}
 {%- for drv in drives %}
 {% if (drv.thisDrive == 'HIDE') %}
+{% if drv.label %}
+{{ drv.label }}	-fstype=cifs,cruid=$USER,sec=krb5,noperm	:{{ drv.path }}
+{% else %}
 {{ drv.dir }}	-fstype=cifs,cruid=$USER,sec=krb5,noperm	:{{ drv.path }}
+{% endif %}
 {% endif %}
 {% endfor %}
