@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2022 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -107,11 +107,24 @@ class Drive_list:
         return list(self.dict_drives.values())
 
 class cifs_applier(applier_frontend):
+    __module_name = 'CIFSApplier'
+    __module_enabled = False
+    __module_experimental = True
+
     def __init__(self, storage, sid):
-        pass
+        self.applier_cifs = cifs_applier_user(storage, sid, None)
+        self.__module_enabled = check_enabled(
+              storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def apply(self):
-        pass
+        if self.__module_enabled:
+            log('D179')
+            self.applier_cifs._admin_context_apply()
+        else:
+            log('D180')
 
 class cifs_applier_user(applier_frontend):
     __module_name = 'CIFSApplierUser'
@@ -131,7 +144,10 @@ class cifs_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
 
-        self.home = get_homedir(username)
+        if username:
+            self.home = get_homedir(username)
+        else:
+            self.home = '/run'
         conf_file = '{}.conf'.format(sid)
         conf_hide_file = '{}_hide.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
@@ -180,7 +196,7 @@ class cifs_applier_user(applier_frontend):
         '''
         pass
 
-    def __admin_context_apply(self):
+    def _admin_context_apply(self):
         # Create /etc/auto.master.gpupdate.d directory
         self.auto_master_d.mkdir(parents=True, exist_ok=True)
         # Create user's destination mount directory
@@ -247,7 +263,7 @@ class cifs_applier_user(applier_frontend):
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D146')
-            self.__admin_context_apply()
+            self._admin_context_apply()
         else:
             log('D147')
 
