@@ -146,9 +146,9 @@ class cifs_applier_user(applier_frontend):
         self.username = username
 
         if username:
-            self.home = get_homedir(username)
+            self.home = '/run/media/' + username
         else:
-            self.home = '/run'
+            self.home = '/media/gpupdate'
         conf_file = '{}.conf'.format(sid)
         conf_hide_file = '{}_hide.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
@@ -171,7 +171,10 @@ class cifs_applier_user(applier_frontend):
             self.user_autofs_hide.unlink()
         self.user_creds = self.auto_master_d / cred_file
 
-        self.mount_dir = Path(os.path.join(self.home, 'net'))
+        if username:
+            self.mount_dir = Path(os.path.join(self.home, 'UserDrive'))
+        else:
+            self.mount_dir = Path(os.path.join(self.home, 'Drive'))
         self.drives = storage_get_drives(self.storage, self.sid)
 
         self.template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
