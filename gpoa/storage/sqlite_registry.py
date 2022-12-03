@@ -120,6 +120,12 @@ class sqlite_registry(registry):
             , Column('dir', String)
             , Column('policy_name', String)
             , Column('path', String)
+            , Column('action', String)
+            , Column('thisDrive', String)
+            , Column('allDrives', String)
+            , Column('label', String)
+            , Column('persistent', String)
+            , Column('useLetter', String)
             , UniqueConstraint('sid', 'dir')
         )
         self.__folders = Table(

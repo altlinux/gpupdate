@@ -283,6 +283,8 @@ def debug_code(code):
     debug_ids[176] = 'Ini-file is not readable'
     debug_ids[177] = 'Saving information about ini-file'
     debug_ids[178] = 'Dictionary key generation failed'
+    debug_ids[179] = 'Running CIFS applier for machine'
+    debug_ids[180] = 'CIFS applier for machine will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 

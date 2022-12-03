@@ -741,6 +741,12 @@ msgstr "Сохранение информации об ini-файле"
 msgid "Dictionary key generation failed"
 msgstr "Формирования ключа словаря не удалось"
 
+msgid "Running CIFS applier for machine"
+msgstr "Запуск применение настроек CIFS для машины"
+
+msgid "CIFS applier for machine will not be started"
+msgstr "Применение настроек CIFS для машины не будет запущено"
+
 # Debug_end
 
 # Warning

@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2022 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,20 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import fileinput
 import jinja2
 import os
 import subprocess
-import logging
 from pathlib import Path
+import string
 
 from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from gpt.drives import json2drive
 from util.util import get_homedir
-from util.logging import slogm, log
+from util.logging import log
 
 def storage_get_drives(storage, sid):
     drives = storage.get_drives(sid)
@@ -50,12 +48,84 @@ def add_line_if_missing(filename, ins_line):
             f.write(ins_line + '\n')
             f.flush()
 
+class Drive_list:
+    __alphabet = string.ascii_uppercase
+    def __init__(self):
+        self.dict_drives = dict()
+
+    def __get_letter(self, letter):
+        slice_letters = set(self.__alphabet[self.__alphabet.find(letter) + 1:]) - set(self.dict_drives.keys())
+        free_letters = sorted(slice_letters)
+        if free_letters:
+            return free_letters[0]
+        else:
+            return None
+
+    def append(self, drive:dict):
+        cur_dir = drive['dir']
+        if cur_dir not in set(self.dict_drives.keys()):
+            if drive['action'] == 'D':
+                return
+            self.dict_drives[cur_dir] = drive
+            return
+
+        else:
+            if drive['action'] == 'C':
+                if drive['useLetter'] == '1':
+                    return
+                else:
+                    new_dir = self.__get_letter(cur_dir)
+                    if not new_dir:
+                        return
+                    drive['dir'] = new_dir
+                    self.dict_drives[new_dir] = drive
+                    return
+
+            if drive['action'] == 'U':
+                self.dict_drives[cur_dir]['thisDrive'] = drive['thisDrive']
+                self.dict_drives[cur_dir]['allDrives'] = drive['allDrives']
+                self.dict_drives[cur_dir]['label'] = drive['label']
+                self.dict_drives[cur_dir]['persistent'] = drive['persistent']
+                self.dict_drives[cur_dir]['useLetter'] = drive['useLetter']
+                return
+
+            if drive['action'] == 'R':
+                self.dict_drives[cur_dir] = drive
+                return
+            if drive['action'] == 'D':
+                if drive['useLetter'] == '1':
+                    self.dict_drives.pop(cur_dir, None)
+                else:
+                    keys_set = set(self.dict_drives.keys())
+                    slice_letters = set(self.__alphabet[self.__alphabet.find(cur_dir):])
+                    for letter_dir in (keys_set & slice_letters):
+                        self.dict_drives.pop(letter_dir, None)
+
+    def __call__(self):
+        return list(self.dict_drives.values())
+
+    def len(self):
+        return len(self.dict_drives)
+
 class cifs_applier(applier_frontend):
-    def __init__(self, storage):
-        pass
+    __module_name = 'CIFSApplier'
+    __module_enabled = False
+    __module_experimental = True
+
+    def __init__(self, storage, sid):
+        self.applier_cifs = cifs_applier_user(storage, sid, None)
+        self.__module_enabled = check_enabled(
+              storage
+            , self.__module_name
+            , self.__module_experimental
+        )
 
     def apply(self):
-        pass
+        if self.__module_enabled:
+            log('D179')
+            self.applier_cifs._admin_context_apply()
+        else:
+            log('D180')
 
 class cifs_applier_user(applier_frontend):
     __module_name = 'CIFSApplierUser'
@@ -67,28 +137,44 @@ class cifs_applier_user(applier_frontend):
     __template_mountpoints = 'autofs_mountpoints.j2'
     __template_identity = 'autofs_identity.j2'
     __template_auto = 'autofs_auto.j2'
+    __template_mountpoints_hide = 'autofs_mountpoints_hide.j2'
+    __template_auto_hide = 'autofs_auto_hide.j2'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
 
-        self.home = get_homedir(username)
+        if username:
+            self.home = '/run/media/' + username
+        else:
+            self.home = '/media/gpupdate'
         conf_file = '{}.conf'.format(sid)
+        conf_hide_file = '{}_hide.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
+        autofs_hide_file = '{}_hide.autofs'.format(sid)
         cred_file = '{}.creds'.format(sid)
 
         self.auto_master_d = Path(self.__auto_dir)
 
         self.user_config = self.auto_master_d / conf_file
+        self.user_config_hide = self.auto_master_d / conf_hide_file
         if os.path.exists(self.user_config.resolve()):
             self.user_config.unlink()
+        if os.path.exists(self.user_config_hide.resolve()):
+            self.user_config_hide.unlink()
         self.user_autofs = self.auto_master_d / autofs_file
+        self.user_autofs_hide = self.auto_master_d / autofs_hide_file
         if os.path.exists(self.user_autofs.resolve()):
             self.user_autofs.unlink()
+        if os.path.exists(self.user_autofs_hide.resolve()):
+            self.user_autofs_hide.unlink()
         self.user_creds = self.auto_master_d / cred_file
 
-        self.mount_dir = Path(os.path.join(self.home, 'net'))
+        if username:
+            self.mount_dir = Path(os.path.join(self.home, 'UserDrive'))
+        else:
+            self.mount_dir = Path(os.path.join(self.home, 'Drive'))
         self.drives = storage_get_drives(self.storage, self.sid)
 
         self.template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
@@ -97,6 +183,9 @@ class cifs_applier_user(applier_frontend):
         self.template_mountpoints = self.template_env.get_template(self.__template_mountpoints)
         self.template_indentity = self.template_env.get_template(self.__template_identity)
         self.template_auto = self.template_env.get_template(self.__template_auto)
+
+        self.template_mountpoints_hide = self.template_env.get_template(self.__template_mountpoints_hide)
+        self.template_auto_hide = self.template_env.get_template(self.__template_auto_hide)
 
         self.__module_enabled = check_enabled(
               self.storage
@@ -111,7 +200,7 @@ class cifs_applier_user(applier_frontend):
         '''
         pass
 
-    def __admin_context_apply(self):
+    def _admin_context_apply(self):
         # Create /etc/auto.master.gpupdate.d directory
         self.auto_master_d.mkdir(parents=True, exist_ok=True)
         # Create user's destination mount directory
@@ -122,24 +211,37 @@ class cifs_applier_user(applier_frontend):
         add_line_if_missing(self.__auto_file, auto_destdir)
 
         # Collect data for drive settings
-        drive_list = list()
+        drive_list = Drive_list()
         for drv in self.drives:
             drive_settings = dict()
             drive_settings['dir'] = drv.dir
             drive_settings['login'] = drv.login
             drive_settings['password'] = drv.password
             drive_settings['path'] = drv.path.replace('\\', '/')
+            drive_settings['action'] = drv.action
+            drive_settings['thisDrive'] = drv.thisDrive
+            drive_settings['allDrives'] = drv.allDrives
+            drive_settings['label'] = drv.label
+            drive_settings['persistent'] = drv.persistent
+            drive_settings['useLetter'] = drv.useLetter
 
             drive_list.append(drive_settings)
 
-        if len(drive_list) > 0:
+        if drive_list.len() > 0:
             mount_settings = dict()
-            mount_settings['drives'] = drive_list
+            mount_settings['drives'] = drive_list()
             mount_text = self.template_mountpoints.render(**mount_settings)
+
+            mount_text_hide = self.template_mountpoints_hide.render(**mount_settings)
 
             with open(self.user_config.resolve(), 'w') as f:
                 f.truncate()
                 f.write(mount_text)
+                f.flush()
+
+            with open(self.user_config_hide.resolve(), 'w') as f:
+                f.truncate()
+                f.write(mount_text_hide)
                 f.flush()
 
             autofs_settings = dict()
@@ -152,13 +254,20 @@ class cifs_applier_user(applier_frontend):
                 f.write(autofs_text)
                 f.flush()
 
+            autofs_settings['mount_file'] = self.user_config_hide.resolve()
+            autofs_text = self.template_auto_hide.render(**autofs_settings)
+            with open(self.user_autofs_hide.resolve(), 'w') as f:
+                f.truncate()
+                f.write(autofs_text)
+                f.flush()
+
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
 
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D146')
-            self.__admin_context_apply()
+            self._admin_context_apply()
         else:
             log('D147')
 
