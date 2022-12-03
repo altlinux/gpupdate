@@ -51,11 +51,10 @@ def add_line_if_missing(filename, ins_line):
 class Drive_list:
     __alphabet = string.ascii_uppercase
     def __init__(self):
-        self.set_of_all_letters = set()
         self.dict_drives = dict()
 
     def __get_letter(self, letter):
-        slice_letters = set(self.__alphabet[self.__alphabet.find(letter) + 1:]) - self.set_of_all_letters
+        slice_letters = set(self.__alphabet[self.__alphabet.find(letter) + 1:]) - set(self.dict_drives.keys())
         free_letters = sorted(slice_letters)
         if free_letters:
             return free_letters[0]
@@ -63,11 +62,11 @@ class Drive_list:
             return None
 
     def append(self, drive:dict):
-        if drive['dir'] not in self.set_of_all_letters:
+        cur_dir = drive['dir']
+        if cur_dir not in set(self.dict_drives.keys()):
             if drive['action'] == 'D':
                 return
-            self.set_of_all_letters.add(drive['dir'])
-            self.dict_drives[drive['dir']] = drive
+            self.dict_drives[cur_dir] = drive
             return
 
         else:
@@ -75,36 +74,38 @@ class Drive_list:
                 if drive['useLetter'] == '1':
                     return
                 else:
-                    new_dir = self.__get_letter(drive['dir'])
+                    new_dir = self.__get_letter(cur_dir)
                     if not new_dir:
                         return
-                    self.set_of_all_letters.add(new_dir)
                     drive['dir'] = new_dir
-                    self.dict_drives[drive['dir']]:drive
+                    self.dict_drives[new_dir] = drive
                     return
 
             if drive['action'] == 'U':
-                self.dict_drives[drive['dir']]['thisDrive'] = drive['thisDrive']
-                self.dict_drives[drive['dir']]['allDrives'] = drive['allDrives']
-                self.dict_drives[drive['dir']]['label'] = drive['label']
-                self.dict_drives[drive['dir']]['persistent'] = drive['persistent']
-                self.dict_drives[drive['dir']]['useLetter'] = drive['useLetter']
+                self.dict_drives[cur_dir]['thisDrive'] = drive['thisDrive']
+                self.dict_drives[cur_dir]['allDrives'] = drive['allDrives']
+                self.dict_drives[cur_dir]['label'] = drive['label']
+                self.dict_drives[cur_dir]['persistent'] = drive['persistent']
+                self.dict_drives[cur_dir]['useLetter'] = drive['useLetter']
                 return
 
             if drive['action'] == 'R':
-                self.dict_drives[drive['dir']]:drive
+                self.dict_drives[cur_dir] = drive
                 return
             if drive['action'] == 'D':
                 if drive['useLetter'] == '1':
-                    self.dict_drives.pop(drive['dir'], None)
+                    self.dict_drives.pop(cur_dir, None)
                 else:
                     keys_set = set(self.dict_drives.keys())
-                    slice_letters = set(self.__alphabet[self.__alphabet.find(drive['dir']):])
+                    slice_letters = set(self.__alphabet[self.__alphabet.find(cur_dir):])
                     for letter_dir in (keys_set & slice_letters):
                         self.dict_drives.pop(letter_dir, None)
 
     def __call__(self):
         return list(self.dict_drives.values())
+
+    def len(self):
+        return len(self.dict_drives)
 
 class cifs_applier(applier_frontend):
     __module_name = 'CIFSApplier'
@@ -223,7 +224,7 @@ class cifs_applier_user(applier_frontend):
 
             drive_list.append(drive_settings)
 
-        if len(drive_list()) > 0:
+        if drive_list.len() > 0:
             mount_settings = dict()
             mount_settings['drives'] = drive_list()
             mount_text = self.template_mountpoints.render(**mount_settings)
