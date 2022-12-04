@@ -33,8 +33,8 @@ class polkit_applier(applier_frontend):
     __registry_locks_branch = 'Software\\BaseALT\\Policies\\PolkitLocks\\'
     __polkit_map = {
         __deny_all_win: ['49-gpoa_disk_permissions', { 'Deny_All': 0 }],
-        __registry_branch : ['49-group_policy_permissions', {}],
-        __registry_locks_branch : ['47-group_policy_permissions', {}]
+        __registry_branch : ['49-alt_group_policy_permissions', {}],
+        __registry_locks_branch : ['47-alt_group_policy_permissions', {}]
     }
 
     def __init__(self, storage):
@@ -112,7 +112,7 @@ class polkit_applier_user(applier_frontend):
     __registry_branch = 'Software\\BaseALT\\Policies\\Polkit\\'
     __polkit_map = {
             __deny_all_win: ['48-gpoa_disk_permissions_user', { 'Deny_All': 0, 'User': '' }],
-            __registry_branch : ['48-group_policy_permissions_user', {'User': ''}]
+            __registry_branch : ['48-alt_group_policy_permissions_user', {'User': ''}]
     }
 
     def __init__(self, storage, sid, username):
