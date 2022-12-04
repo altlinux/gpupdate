@@ -1,0 +1,63 @@
+{#
+ # GPOA - GPO Applier for Linux
+ #
+ # Copyright (C) 2019-2022 BaseALT Ltd.
+ #
+ # This program is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License
+ # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #}
+
+{% if No|length %}
+polkit.addRule(function (action, subject) {
+    if ({% for res in No -%}
+        action.id == "{{res}}" {% if No|length == loop.index %}&&{% else %}||{% endif %}
+        {% endfor %}subject.user == "{{User}}") {
+			return polkit.Result.NO;
+    }
+});{% endif %}{% if Yes|length %}
+polkit.addRule(function (action, subject) {
+    if ({% for res in Yes -%}
+        action.id == "{{res}}" {% if Yes|length == loop.index %}&&{% else %}||{% endif %}
+        {% endfor %}subject.user == "{{User}}") {
+			return polkit.Result.YES;
+    }
+});{% endif %}{% if Auth_self|length %}
+polkit.addRule(function (action, subject) {
+    if ({% for res in Auth_self -%}
+        action.id == "{{res}}" {% if Auth_self|length == loop.index %}&&{% else %}||{% endif %}
+        {% endfor %}subject.user == "{{User}}") {
+			return polkit.Result.AUTH_SELF;
+    }
+});{% endif %}{% if Auth_admin|length %}
+polkit.addRule(function (action, subject) {
+    if ({% for res in Auth_admin -%}
+        action.id == "{{res}}" {% if Auth_admin|length == loop.index %}&&{% else %}||{% endif %}
+        {% endfor %}subject.user == "{{User}}") {
+			return polkit.Result.AUTH_ADMIN;
+    }
+});{% endif %}{% if Auth_self_keep|length %}
+polkit.addRule(function (action, subject) {
+    if ({% for res in Auth_self_keep -%}
+        action.id == "{{res}}" {% if Auth_self_keep|length == loop.index %}&&{% else %}||{% endif %}
+        {% endfor %}subject.user == "{{User}}") {
+			return polkit.Result.AUTH_SELF_KEEP;
+    }
+});{% endif %}{% if Auth_admin_keep|length %}
+polkit.addRule(function (action, subject) {
+    if ({% for res in Auth_admin_keep -%}
+        action.id == "{{res}}" {% if Auth_admin_keep|length == loop.index %}&&{% else %}||{% endif %}
+        {% endfor %}subject.user == "{{User}}") {
+			return polkit.Result.AUTH_ADMIN_KEEP;
+    }
+});
+{% endif %}

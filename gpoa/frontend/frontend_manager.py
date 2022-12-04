@@ -68,6 +68,9 @@ from .ini_applier import (
     , ini_applier_user
 )
 
+from .networkshare_applier import networkshare_applier
+from .yandex_browser_applier import yandex_browser_applier
+
 from util.sid import get_sid
 from util.users import (
     is_root,
@@ -140,6 +143,7 @@ class frontend_manager:
         self.machine_appliers['systemd'] = systemd_applier(self.storage)
         self.machine_appliers['firefox'] = firefox_applier(self.storage, self.sid, self.username)
         self.machine_appliers['chromium'] = chromium_applier(self.storage, self.sid, self.username)
+        self.machine_appliers['yandex_browser'] = yandex_browser_applier(self.storage, self.sid, self.username)
         self.machine_appliers['shortcuts'] = shortcut_applier(self.storage)
         self.machine_appliers['gsettings'] = gsettings_applier(self.storage, self.file_cache)
         try:
@@ -155,6 +159,7 @@ class frontend_manager:
         self.machine_appliers['package'] = package_applier(self.storage)
         self.machine_appliers['ntp'] = ntp_applier(self.storage)
         self.machine_appliers['envvar'] = envvar_applier(self.storage, self.sid)
+        self.machine_appliers['networkshare'] = networkshare_applier(self.storage, self.sid)
         self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
         self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
         self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)

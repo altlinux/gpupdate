@@ -18,9 +18,8 @@
 
 import os
 import jinja2
-import logging
 
-from util.logging import slogm, log
+from util.logging import log
 
 class polkit:
     __template_path = '/usr/share/gpupdate/templates'
@@ -38,7 +37,19 @@ class polkit:
         else:
             self.outfile = os.path.join(self.__policy_dir, '{}.rules'.format(self.template_name))
 
+    def _is_empty(self):
+        for key, item in self.args.items():
+            if key == 'User':
+                continue
+            elif item:
+                return False
+        return True
+
     def generate(self):
+        if self._is_empty():
+            if os.path.isfile(self.outfile):
+                os.remove(self.outfile)
+            return
         try:
             template = self.__template_environment.get_template(self.infilename)
             text = template.render(**self.args)

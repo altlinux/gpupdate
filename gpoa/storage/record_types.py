@@ -271,3 +271,35 @@ class ini_entry(object):
         fields['value'] = self.value
 
         return fields
+
+class networkshare_entry(object):
+    '''
+    Object mapping representing NETWORKSHARES.XML
+    '''
+    def __init__(self, sid, networkshareobj, policy_name):
+        self.sid = sid
+        self.policy_name = policy_name
+        self.name = networkshareobj.name
+        self.action = networkshareobj.action
+        self.path = networkshareobj.path
+        self.allRegular = networkshareobj.allRegular
+        self.comment = networkshareobj.comment
+        self.limitUsers = networkshareobj.limitUsers
+        self.abe = networkshareobj.abe
+
+
+    def update_fields(self):
+        '''
+        Return list of fields to update
+        '''
+        fields = dict()
+        fields['policy_name'] = self.policy_name
+        fields['name'] = self.name
+        fields['action'] = self.action
+        fields['path'] = self.path
+        fields['allRegular'] = self.allRegular
+        fields['comment'] = self.comment
+        fields['limitUsers'] = self.limitUsers
+        fields['abe'] = self.abe
+
+        return fields

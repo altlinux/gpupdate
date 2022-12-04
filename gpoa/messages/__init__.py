@@ -285,6 +285,13 @@ def debug_code(code):
     debug_ids[178] = 'Dictionary key generation failed'
     debug_ids[179] = 'Running CIFS applier for machine'
     debug_ids[180] = 'CIFS applier for machine will not be started'
+    debug_ids[181] = 'Running networkshare applier for machine will not be started'
+    debug_ids[182] = 'Apply network share data action failed'
+    debug_ids[183] = 'Running yandex_browser_applier for machine'
+    debug_ids[184] = 'Yandex_browser_applier for machine will not be started'
+    debug_ids[185] = 'Wrote YandexBrowser preferences to'
+    debug_ids[186] = 'Saving information about network shares'
+    debug_ids[187] = 'Running networkshare applier for machine'
 
     return debug_ids.get(code, 'Unknown debug code')
 
