@@ -1,8 +1,8 @@
 %define _unpackaged_files_terminate_build 1
 
 Name: gpupdate
-Version: 0.9.11.2
-Release: alt1
+Version: 0.9.12
+Release: alt0.dev1
 
 Summary: GPT applier
 License: GPLv3+
@@ -108,7 +108,7 @@ fi
 # Remove storage in case we've lost compatibility between versions.
 # The storage will be regenerated on GPOA start.
 %define active_policy %_sysconfdir/local-policy/active
-%triggerpostun -- %name < 0.9.10
+%triggerpostun -- %name < 0.9.12
 rm -f %_cachedir/%name/registry.sqlite
 if test -L %active_policy; then
 	sed -i "s|^\s*local-policy\s*=.*|local-policy = $(readlink -f %active_policy)|" \
@@ -150,7 +150,13 @@ fi
 %exclude %python3_sitelibdir/gpoa/Makefile
 %exclude %python3_sitelibdir/gpoa/test
 
+# NOTE: remove this changelog entry when merging into sisyphus branch.
+# This is an auto-generated changelog entry for the upstream branch.
+# For release builds, you should add a hand-written changelog entry.
 %changelog
+* %(LC_TIME=C date "+%%a %%b %%d %%Y") %{?package_signer:%package_signer}%{!?package_signer:%packager} %version-%release
+- Development build: %version-%release
+
 * Fri Sep 30 2022 Valery Sinelnikov <greh@altlinux.org> 0.9.11.2-alt1
 - Fixed formation of the correct path for creating a user directory
 
