@@ -33,6 +33,7 @@ from .xdg import (
 from .util import get_homedir
 from .logging import log
 from .samba import smbopts
+from gpoa.storage import registry_factory
 
 
 class smbcreds (smbopts):
@@ -129,6 +130,9 @@ class smbcreds (smbopts):
                 list_selected_dc.clear()
             except NTSTATUSError as smb_exc:
                 logdata['smb_exc'] = str(smb_exc)
+                if not check_scroll_enabled():
+                    log('F1', logdata)
+                    raise smb_exc
                 self.selected_dc = get_dc_hostname(self.creds, self.lp)
                 if self.selected_dc not in list_selected_dc:
                     logdata['action'] = 'Search another dc'
@@ -182,3 +186,11 @@ def transform_windows_path(text):
 
     return result
 
+def check_scroll_enabled():
+    storage = registry_factory('registry')
+    enable_scroll = 'Software\\BaseALT\\Policies\\GPUpdate\\ScrollSysvolDC'
+    if storage.get_hklm_entry(enable_scroll):
+        data = storage.get_hklm_entry(enable_scroll).data
+        return bool(int(data))
+    else:
+        return False
