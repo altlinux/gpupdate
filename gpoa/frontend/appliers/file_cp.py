@@ -28,6 +28,7 @@ from pathlib import Path
 from util.windows import expand_windows_var
 from util.util import get_homedir
 from util.exceptions import NotUNCPathError
+import fnmatch
 
 class Files_cp:
     def __init__(self, file_obj, file_cache ,username=None):
@@ -89,16 +90,26 @@ class Files_cp:
                 log('D164', logdata)
 
     def _delete_action(self):
-        targetFile = Path(self.targetPath)
-        try:
-            if targetFile.exists():
-                targetFile.unlink()
-        except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
-            logdata['targetPath'] = self.targetPath
-            logdata['targetFile'] = targetFile
-            log('D165', logdata)
+        targetPathSplit = self.targetPath.split('/')
+        pattern = self.is_pattern(targetPathSplit)
+        list_target = list()
+        if not pattern:
+            list_target.append(Path(self.targetPath))
+        else:
+            tPath = Path(targetPathSplit[:-1])
+            files = [x for x in tPath.iterdir() if x.is_file()]
+            list_target = fnmatch.filter(files, targetPathSplit[-1])
+
+        for targetFile in list_target:
+            try:
+                if targetFile.exists():
+                    targetFile.unlink()
+            except Exception as exc:
+                logdata = dict()
+                logdata['exc'] = exc
+                logdata['targetPath'] = self.targetPath
+                logdata['targetFile'] = targetFile
+                log('D165', logdata)
 
     def _update_action(self):
         for fromPath in self.fromPathFiles:
@@ -126,12 +137,19 @@ class Files_cp:
         if self.action == FileAction.REPLACE:
             self._delete_action()
             self._create_action()
+    def is_pattern(self, path_split):
+        if path_split[-1].find('*') != -1 or path_split[-1].find('?') != -1:
+            return True
+        else:
+            return False
 
     def get_list_files(self):
         ls_all_files = list()
         logdata = dict()
         logdata['targetPath'] = self.targetPath
-        if self.fromPath and self.fromPath.split('/')[-1] != '*':
+        fromPathSplit = self.fromPath.split('/')
+        pattern = self.is_pattern(fromPathSplit)
+        if self.fromPath and not pattern:
             try:
                 self.file_cache.store(self.fromPath)
                 fromPath = Path(self.file_cache.get(self.fromPath))
@@ -144,10 +162,11 @@ class Files_cp:
                 logdata['fromPath'] = self.fromPath
                 logdata['exc'] = exc
                 log('W13', logdata)
-        elif self.fromPath and len(self.fromPath.split('/')) > 2:
+        elif self.fromPath and len(fromPathSplit) > 2:
             ls_files = self.file_cache.get_ls_smbdir(self.fromPath[:-1])
-            if ls_files:
-                ls_from_paths = [self.fromPath[:-1] + file_s for file_s in ls_files]
+            filtered_ls_files = fnmatch.filter(ls_files, fromPathSplit[-1])
+            if filtered_ls_files:
+                ls_from_paths = [self.fromPath[:-1] + file_s for file_s in filtered_ls_files]
                 for from_path in ls_from_paths:
                     try:
                         self.file_cache.store(from_path)
