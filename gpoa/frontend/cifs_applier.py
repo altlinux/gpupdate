@@ -172,9 +172,11 @@ class cifs_applier_user(applier_frontend):
         self.user_creds = self.auto_master_d / cred_file
 
         if username:
-            self.mount_dir = Path(os.path.join(self.home, 'UserDrive'))
+            self.mntTarget = 'UserDrive'
         else:
-            self.mount_dir = Path(os.path.join(self.home, 'Drive'))
+            self.mntTarget = 'Drive'
+
+        self.mount_dir = Path(os.path.join(self.home))
         self.drives = storage_get_drives(self.storage, self.sid)
 
         self.template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
@@ -246,6 +248,7 @@ class cifs_applier_user(applier_frontend):
 
             autofs_settings = dict()
             autofs_settings['home_dir'] = self.home
+            autofs_settings['mntTarget'] = self.mntTarget
             autofs_settings['mount_file'] = self.user_config.resolve()
             autofs_text = self.template_auto.render(**autofs_settings)
 
