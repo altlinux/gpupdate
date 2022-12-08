@@ -24,7 +24,6 @@ from gpt.folders import (
 )
 from util.logging import log
 from util.windows import expand_windows_var
-from util.util import get_homedir
 
 
 class Networkshare:
@@ -33,10 +32,11 @@ class Networkshare:
         self.net_full_cmd = ['/usr/bin/net', 'usershare']
         self.cmd = list()
         self.name = networkshare_obj.name
-        self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/') if networkshare_obj.path else None
-        if username and self.path:
-            path_share = self.path.replace(get_homedir(username), '')
-            self.path = get_homedir(username) + path_share if path_share [0] == '/' else get_homedir(username) + '/' + path_share
+        if username:
+            self.path = expand_windows_var(networkshare_obj.path, username).replace('\\', '/') if networkshare_obj.path else None
+        else:
+            self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/') if networkshare_obj.path else None
+
         self.action = action_letter2enum(networkshare_obj.action)
         self.allRegular =  networkshare_obj.allRegular
         self.comment = networkshare_obj.comment
@@ -61,7 +61,7 @@ class Networkshare:
         self.net_full_cmd.append(self.name)
         self.net_full_cmd.append(self.path)
         self.net_full_cmd.append(self.comment)
-        self.net_full_cmd.append(self.acl + 'F' if self.abe == 'ENABLE' else self.acl + 'R')
+        self.net_full_cmd.append(self.acl + 'F')
         self.net_full_cmd.append(self._guest)
         self._run_net_full_cmd()
 
