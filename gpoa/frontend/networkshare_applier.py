@@ -38,11 +38,11 @@ class networkshare_applier(applier_frontend):
         self.__module_enabled_user = check_enabled(self.storage, self.__module_name_user, self.__module_experimental)
 
     def run(self):
-        for networkshar in self.networkshare_info:
+        for networkshare in self.networkshare_info:
             if self.username:
-                Networkshare(networkshar, self.username)
+                Networkshare(networkshare, self.username)
             else:
-                Networkshare(networkshar)
+                Networkshare(networkshare)
 
     def apply(self):
         if self.__module_enabled:
