@@ -24,16 +24,19 @@ from gpt.folders import (
 )
 from util.logging import log
 from util.windows import expand_windows_var
-
+from util.util import get_homedir
 
 
 class Networkshare:
 
-    def __init__(self, networkshare_obj):
+    def __init__(self, networkshare_obj, username = None):
         self.net_full_cmd = ['/usr/bin/net', 'usershare']
         self.cmd = list()
         self.name = networkshare_obj.name
         self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/') if networkshare_obj.path else None
+        if username and self.path:
+            path_share = self.path.replace(get_homedir(username), '')
+            self.path = get_homedir(username) + path_share if path_share [0] == '/' else get_homedir(username) + '/' + path_share
         self.action = action_letter2enum(networkshare_obj.action)
         self.allRegular =  networkshare_obj.allRegular
         self.comment = networkshare_obj.comment
