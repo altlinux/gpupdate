@@ -294,6 +294,7 @@ def debug_code(code):
     debug_ids[187] = 'Running networkshare applier for machine'
     debug_ids[188] = 'Running networkshare applier for user'
     debug_ids[189] = 'Running networkshare applier for user will not be started'
+    debug_ids[190] = 'Applying settings for network share'
 
     return debug_ids.get(code, 'Unknown debug code')
 

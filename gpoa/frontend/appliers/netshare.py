@@ -30,6 +30,7 @@ class Networkshare:
 
     def __init__(self, networkshare_obj, username = None):
         self.net_full_cmd = ['/usr/bin/net', 'usershare']
+        self.net_cmd_check = ['/usr/bin/net', 'usershare', 'list']
         self.cmd = list()
         self.name = networkshare_obj.name
         if username:
@@ -46,11 +47,22 @@ class Networkshare:
         self.acl = 'Everyone:'
         self.act()
 
-    def _run_net_full_cmd(self):
+    def check_list_net(self):
         try:
-            subprocess.call(self.net_full_cmd, stderr=subprocess.DEVNULL)
+            res = subprocess.check_output(self.net_cmd_check, encoding='utf-8')
+            return res
         except Exception as exc:
-            logdata = dict()
+            return exc
+
+    def _run_net_full_cmd(self):
+        logdata = dict()
+        try:
+            res = subprocess.check_output(self.net_full_cmd, stderr=subprocess.DEVNULL, encoding='utf-8')
+            if res:
+                logdata['cmd'] = self.net_full_cmd
+                logdata['answer'] = res
+            log('D190', logdata)
+        except Exception as exc:
             logdata['cmd'] = self.net_full_cmd
             logdata['exc'] = exc
             log('D182', logdata)

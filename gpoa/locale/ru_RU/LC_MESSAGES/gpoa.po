@@ -774,6 +774,9 @@ msgstr "Запуск применение настроек сетевых кат
 msgid "Running networkshare applier for user will not be started"
 msgstr "Применение настроек сетевых каталогов  для пользователя не будет запущено"
 
+msgid "Applying settings for network share"
+msgstr "Применение настроек для сетевой папки"
+
 # Debug_end
 
 # Warning
