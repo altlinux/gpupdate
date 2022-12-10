@@ -139,7 +139,8 @@ class chromium_applier(applier_frontend):
                             'NetworkPredictionOptions_recommended',
                             'ProfilePickerOnStartupAvailability',
                             'RelaunchNotification',
-                            'SafeSitesFilterBehavior'])
+                            'SafeSitesFilterBehavior',
+                            'DiskCacheSize'])
         return valuename_typeint
 
 
