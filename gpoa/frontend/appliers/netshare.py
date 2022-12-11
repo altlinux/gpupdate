@@ -33,10 +33,7 @@ class Networkshare:
         self.net_cmd_check = ['/usr/bin/net', 'usershare', 'list']
         self.cmd = list()
         self.name = networkshare_obj.name
-        if username:
-            self.path = expand_windows_var(networkshare_obj.path, username).replace('\\', '/') if networkshare_obj.path else None
-        else:
-            self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/') if networkshare_obj.path else None
+        self.path = expand_windows_var(networkshare_obj.path, username).replace('\\', '/') if networkshare_obj.path else None
 
         self.action = action_letter2enum(networkshare_obj.action)
         self.allRegular =  networkshare_obj.allRegular

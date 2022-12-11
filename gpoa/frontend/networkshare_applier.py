@@ -39,10 +39,7 @@ class networkshare_applier(applier_frontend):
 
     def run(self):
         for networkshare in self.networkshare_info:
-            if self.username:
-                Networkshare(networkshare, self.username)
-            else:
-                Networkshare(networkshare)
+            Networkshare(networkshare, self.username)
 
     def apply(self):
         if self.__module_enabled:
