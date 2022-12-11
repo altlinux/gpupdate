@@ -39,6 +39,9 @@ class Files_cp:
             return
         self.fromPath = (expand_windows_var(file_obj.fromPath, username).replace('\\', '/')
                         if file_obj.fromPath else None)
+        self.isTargetPathDirectory = False
+        if self.targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
+            self.isTargetPathDirectory = True
         self.action = action_letter2enum(file_obj.action)
         self.readOnly = str2bool(file_obj.readOnly)
         self.archive = str2bool(file_obj.archive)
@@ -52,8 +55,7 @@ class Files_cp:
     def get_target_file(self, targetPath:Path, fromFile:Path) -> Path:
         try:
             if fromFile:
-                check = set(str(targetPath).split('/')) & set(str(fromFile).split('/'))
-                if len(check) < 2 :
+                if self.isTargetPathDirectory:
                     targetPath.mkdir(parents = True, exist_ok = True)
                 else:
                     targetPath.parent.mkdir(parents = True, exist_ok = True)
@@ -98,7 +100,7 @@ class Files_cp:
 
     def _delete_action(self):
         targetPathSplit = str(self.targetPath).split('/')
-        pattern = self.is_pattern(targetPathSplit)
+        pattern = self.is_pattern(targetPathSplit[-1])
         list_target = list()
         tPath = None
         if not pattern:
@@ -147,8 +149,9 @@ class Files_cp:
         if self.action == FileAction.REPLACE:
             self._delete_action()
             self._create_action()
-    def is_pattern(self, path_split):
-        if path_split[-1].find('*') != -1 or path_split[-1].find('?') != -1:
+
+    def is_pattern(self, name):
+        if name.find('*') != -1 or name.find('?') != -1:
             return True
         else:
             return False
@@ -158,7 +161,7 @@ class Files_cp:
         logdata = dict()
         logdata['targetPath'] = self.targetPath
         fromPathSplit = self.fromPath.split('/')
-        pattern = self.is_pattern(fromPathSplit)
+        pattern = self.is_pattern(fromPathSplit[-1])
         if self.fromPath and not pattern:
             try:
                 self.file_cache.store(self.fromPath)
