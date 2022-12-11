@@ -26,14 +26,15 @@ from util.logging import log
 from util.windows import expand_windows_var
 
 
-
 class Networkshare:
 
-    def __init__(self, networkshare_obj):
+    def __init__(self, networkshare_obj, username = None):
         self.net_full_cmd = ['/usr/bin/net', 'usershare']
+        self.net_cmd_check = ['/usr/bin/net', 'usershare', 'list']
         self.cmd = list()
         self.name = networkshare_obj.name
-        self.path = expand_windows_var(networkshare_obj.path).replace('\\', '/') if networkshare_obj.path else None
+        self.path = expand_windows_var(networkshare_obj.path, username).replace('\\', '/') if networkshare_obj.path else None
+
         self.action = action_letter2enum(networkshare_obj.action)
         self.allRegular =  networkshare_obj.allRegular
         self.comment = networkshare_obj.comment
@@ -43,11 +44,22 @@ class Networkshare:
         self.acl = 'Everyone:'
         self.act()
 
-    def _run_net_full_cmd(self):
+    def check_list_net(self):
         try:
-            subprocess.call(self.net_full_cmd, stderr=subprocess.DEVNULL)
+            res = subprocess.check_output(self.net_cmd_check, encoding='utf-8')
+            return res
         except Exception as exc:
-            logdata = dict()
+            return exc
+
+    def _run_net_full_cmd(self):
+        logdata = dict()
+        try:
+            res = subprocess.check_output(self.net_full_cmd, stderr=subprocess.DEVNULL, encoding='utf-8')
+            if res:
+                logdata['cmd'] = self.net_full_cmd
+                logdata['answer'] = res
+            log('D190', logdata)
+        except Exception as exc:
             logdata['cmd'] = self.net_full_cmd
             logdata['exc'] = exc
             log('D182', logdata)
@@ -58,7 +70,7 @@ class Networkshare:
         self.net_full_cmd.append(self.name)
         self.net_full_cmd.append(self.path)
         self.net_full_cmd.append(self.comment)
-        self.net_full_cmd.append(self.acl + 'F' if self.abe == 'ENABLE' else self.acl + 'R')
+        self.net_full_cmd.append(self.acl + 'F')
         self.net_full_cmd.append(self._guest)
         self._run_net_full_cmd()
 

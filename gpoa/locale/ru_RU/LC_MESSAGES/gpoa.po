@@ -768,6 +768,15 @@ msgstr "Yandex_browser_applier для машины не запустится"
 msgid "Wrote YandexBrowser preferences to"
 msgstr "Запись настройки Яндекс Браузера в"
 
+msgid "Running networkshare applier for user"
+msgstr "Запуск применение настроек сетевых каталогов для пользователя"
+
+msgid "Running networkshare applier for user will not be started"
+msgstr "Применение настроек сетевых каталогов  для пользователя не будет запущено"
+
+msgid "Applying settings for network share"
+msgstr "Применение настроек для сетевой папки"
+
 # Debug_end
 
 # Warning
