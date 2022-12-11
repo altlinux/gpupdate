@@ -77,9 +77,9 @@ class Files_cp:
 
     def set_read_only(self, targetFile):
         if  self.readOnly:
-            shutil.os.chmod(targetFile, int('444', base = 8))
+            shutil.os.chmod(targetFile, 0o444)
         else:
-            shutil.os.chmod(targetFile, int('664', base = 8))
+            shutil.os.chmod(targetFile, 0o664)
 
     def _create_action(self):
         for fromFile in self.fromPathFiles:
