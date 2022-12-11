@@ -99,20 +99,12 @@ class Files_cp:
                 log('D164', logdata)
 
     def _delete_action(self):
-        targetPathSplit = str(self.targetPath).split('/')
-        pattern = self.is_pattern(targetPathSplit[-1])
-        list_target = list()
-        tPath = None
-        if not pattern:
-            list_target.append(self.targetPath)
-        else:
-            tPath = Path('/'.join(targetPathSplit[:-1]))
-            files = [str(x).split('/')[-1] for x in tPath.iterdir() if x.is_file()]
-            list_target = fnmatch.filter(files, targetPathSplit[-1])
+        list_target = [self.targetPath.name]
+        if is_pattern(self.targetPath.name):
+            list_target = fnmatch.filter([str(x.name) for x in self.targetPath.parent.iterdir() if x.is_file()], self.targetPath.name)
 
         for targetFile in list_target:
-            if tPath:
-                targetFile = tPath.joinpath(targetFile)
+            targetFile = self.targetPath.parent.joinpath(targetFile)
             try:
                 if targetFile.exists():
                     targetFile.unlink()
