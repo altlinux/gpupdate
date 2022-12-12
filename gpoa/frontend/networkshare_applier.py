@@ -25,18 +25,21 @@ from util.logging import log
 
 class networkshare_applier(applier_frontend):
     __module_name = 'NetworksharesApplier'
+    __module_name_user = 'NetworksharesApplierUser'
     __module_experimental = True
     __module_enabled = False
 
-    def __init__(self, storage, sid):
+    def __init__(self, storage, sid, username = None):
         self.storage = storage
         self.sid = sid
+        self.username = username
         self.networkshare_info = self.storage.get_networkshare(self.sid)
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
+        self.__module_enabled_user = check_enabled(self.storage, self.__module_name_user, self.__module_experimental)
 
     def run(self):
-        for networkshar in self.networkshare_info:
-            Networkshare(networkshar)
+        for networkshare in self.networkshare_info:
+            Networkshare(networkshare, self.username)
 
     def apply(self):
         if self.__module_enabled:
@@ -44,3 +47,12 @@ class networkshare_applier(applier_frontend):
             self.run()
         else:
             log('D181')
+    def admin_context_apply(self):
+        pass
+
+    def user_context_apply(self):
+        if self.__module_enabled_user:
+            log('D188')
+            self.run()
+        else:
+            log('D189')
