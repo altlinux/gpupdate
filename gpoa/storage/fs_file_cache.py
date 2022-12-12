@@ -49,7 +49,7 @@ class fs_file_cache:
                     uri_path.get_domain(),
                     file_path))
             else:
-                destdir = destfile.parent()
+                destdir = destfile.parent
         except Exception as exc:
             logdata = dict({'exception': str(exc)})
             log('D144', logdata)
