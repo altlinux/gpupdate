@@ -125,7 +125,7 @@ class Files_cp:
 
     def _delete_action(self):
         list_target = [self.targetPath.name]
-        if is_pattern(self.targetPath.name):
+        if self.is_pattern(self.targetPath.name):
             list_target = fnmatch.filter([str(x.name) for x in self.targetPath.parent.iterdir() if x.is_file()], self.targetPath.name)
 
         for targetFile in list_target:
@@ -141,8 +141,8 @@ class Files_cp:
                 log('D165', logdata)
 
     def _update_action(self):
-        for fromPath in self.fromPathFiles:
-            targetFile = self.get_target_file(self.targetPath, fromPath)
+        for fromFile in self.fromPathFiles:
+            targetFile = self.get_target_file(self.targetPath, fromFile)
             try:
                 self.copy_target_file(targetFile, fromFile)
                 if self.username:
