@@ -41,8 +41,6 @@ class Files_cp:
         self.fromPath = (expand_windows_var(file_obj.fromPath, username).replace('\\', '/')
                         if file_obj.fromPath else None)
         self.isTargetPathDirectory = False
-        if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
-            self.isTargetPathDirectory = True
         self.action = action_letter2enum(file_obj.action)
         self.readOnly = str2bool(file_obj.readOnly)
         self.archive = str2bool(file_obj.archive)
@@ -51,6 +49,8 @@ class Files_cp:
         self.username = username
         self.fromPathFiles = list()
         if self.fromPath:
+            if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
+                self.isTargetPathDirectory = True
             self.get_list_files()
         self.act()
 
@@ -79,7 +79,7 @@ class Files_cp:
             logdata['targetPath'] = targetPath
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
-            log('W3314', logdata)
+            log('D163', logdata)
 
         return None
 
@@ -96,8 +96,7 @@ class Files_cp:
             logdata['targetFile'] = targetFile
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
-            log('W3315', logdata)
-#            log('D163', logdata)
+            log('W15', logdata)
 
     def set_read_only(self, targetFile):
         if  self.readOnly:
@@ -106,8 +105,10 @@ class Files_cp:
             shutil.os.chmod(targetFile, 0o664)
 
     def _create_action(self):
+        logdata = dict()
         for fromFile in self.fromPathFiles:
             targetFile = None
+
             try:
                 targetFile = self.get_target_file(self.targetPath, fromFile)
                 if not targetFile and not targetFile.exists():
@@ -115,8 +116,9 @@ class Files_cp:
                     if self.username:
                         shutil.chown(targetFile, self.username)
                     self.set_read_only(targetFile)
+                    logdata['File'] = targetFile
+                    log('D191', logdata)
             except Exception as exc:
-                logdata = dict()
                 logdata['exc'] = exc
                 logdata['fromPath'] = fromFile
                 logdata['targetPath'] = self.targetPath
@@ -127,20 +129,23 @@ class Files_cp:
         list_target = [self.targetPath.name]
         if self.is_pattern(self.targetPath.name):
             list_target = fnmatch.filter([str(x.name) for x in self.targetPath.parent.iterdir() if x.is_file()], self.targetPath.name)
-
+        logdata = dict()
         for targetFile in list_target:
             targetFile = self.targetPath.parent.joinpath(targetFile)
             try:
                 if targetFile.exists():
                     targetFile.unlink()
+                    logdata['File'] = targetFile
+                    log('D192', logdata)
+
             except Exception as exc:
-                logdata = dict()
                 logdata['exc'] = exc
                 logdata['targetPath'] = self.targetPath
                 logdata['targetFile'] = targetFile
                 log('D165', logdata)
 
     def _update_action(self):
+        logdata = dict()
         for fromFile in self.fromPathFiles:
             targetFile = self.get_target_file(self.targetPath, fromFile)
             try:
@@ -148,8 +153,9 @@ class Files_cp:
                 if self.username:
                     shutil.chown(self.targetPath, self.username)
                 self.set_read_only(targetFile)
+                logdata['File'] = targetFile
+                log('D192', logdata)
             except Exception as exc:
-                logdata = dict()
                 logdata['exc'] = exc
                 logdata['fromPath'] = self.fromPath
                 logdata['targetPath'] = self.targetPath
