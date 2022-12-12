@@ -295,6 +295,9 @@ def debug_code(code):
     debug_ids[188] = 'Running networkshare applier for user'
     debug_ids[189] = 'Running networkshare applier for user will not be started'
     debug_ids[190] = 'Applying settings for network share'
+    debug_ids[191] = 'File copy'
+    debug_ids[192] = 'File update'
+    debug_ids[193] = 'Deleting a file'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -320,6 +323,7 @@ def warning_code(code):
     warning_ids[12] = 'Failed to read the list of files'
     warning_ids[13] = 'Failed to caching the file'
     warning_ids[14] = 'Could not create a valid list of keys'
+    warning_ids[15] = 'Failed to copy file'
 
     return warning_ids.get(code, 'Unknown warning code')
 
