@@ -775,7 +775,7 @@ msgid "File copy"
 msgstr "Копирование файла"
 
 msgid "Running networkshare applier for user will not be started"
-msgstr "Применение настроек сетевых каталогов  для пользователя не будет запущено"
+msgstr "Применение настроек сетевых каталогов для пользователя не будет запущено"
 
 msgid "File update"
 msgstr "Обновление файла"
@@ -785,6 +785,15 @@ msgstr "Применение настроек для сетевой папки"
 
 msgid "Deleting a file"
 msgstr "Удаление файла"
+
+msgid "Running GPOA by root for user"
+msgstr "Запуск GPOA от root для пользователя"
+
+msgid "The GPOA process was started for computer"
+msgstr "Процесс GPOA запущен для компьютера"
+
+msgid "Running networkshare applier for machine will not be started"
+msgstr "Применение настроек сетевых каталогов для машины не будет запущен"
 
 # Debug_end
 
