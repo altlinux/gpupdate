@@ -39,15 +39,17 @@ class fs_file_cache:
         self.samba_context = smbc.Context(use_kerberos=1)
                 #, debug=10)
 
-    def store(self, uri):
-        destdir = uri
+    def store(self, uri, destfile = None):
         try:
             uri_path = UNCPath(uri)
-            file_name = os.path.basename(uri_path.get_path())
-            file_path = os.path.dirname(uri_path.get_path())
-            destdir = Path('{}/{}/{}'.format(self.storage_uri,
-                uri_path.get_domain(),
-                file_path))
+            if not destfile:
+                file_name = os.path.basename(uri_path.get_path())
+                file_path = os.path.dirname(uri_path.get_path())
+                destdir = Path('{}/{}/{}'.format(self.storage_uri,
+                    uri_path.get_domain(),
+                    file_path))
+            else:
+                destdir = destfile.parent
         except Exception as exc:
             logdata = dict({'exception': str(exc)})
             log('D144', logdata)
@@ -56,9 +58,10 @@ class fs_file_cache:
         if not destdir.exists():
             destdir.mkdir(parents=True, exist_ok=True)
 
-        destfile = Path('{}/{}/{}'.format(self.storage_uri,
-            uri_path.get_domain(),
-            uri_path.get_path()))
+        if not destfile:
+            destfile = Path('{}/{}/{}'.format(self.storage_uri,
+                uri_path.get_domain(),
+                uri_path.get_path()))
 
         with open(destfile, 'wb') as df:
             df.truncate()

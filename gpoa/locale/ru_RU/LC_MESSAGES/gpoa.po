@@ -771,11 +771,20 @@ msgstr "Запись настройки Яндекс Браузера в"
 msgid "Running networkshare applier for user"
 msgstr "Запуск применение настроек сетевых каталогов для пользователя"
 
+msgid "File copy"
+msgstr "Копирование файла"
+
 msgid "Running networkshare applier for user will not be started"
 msgstr "Применение настроек сетевых каталогов  для пользователя не будет запущено"
 
+msgid "File update"
+msgstr "Обновление файла"
+
 msgid "Applying settings for network share"
 msgstr "Применение настроек для сетевой папки"
+
+msgid "Deleting a file"
+msgstr "Удаление файла"
 
 # Debug_end
 
@@ -822,6 +831,9 @@ msgstr "Не удалось кэшировать файл"
 
 msgid "Could not create a valid list of keys"
 msgstr "Не удалось создать допустимый список ключей"
+
+msgid "Failed to copy file"
+msgstr "Не удалось скопировать файл"
 
 # Fatal
 msgid "Unable to refresh GPO list"
