@@ -111,7 +111,7 @@ class Files_cp:
 
             try:
                 targetFile = self.get_target_file(self.targetPath, fromFile)
-                if not targetFile and not targetFile.exists():
+                if targetFile and not targetFile.exists():
                     self.copy_target_file(targetFile, fromFile)
                     if self.username:
                         shutil.chown(targetFile, self.username)
