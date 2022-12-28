@@ -141,6 +141,8 @@ class cifs_applier_user(applier_frontend):
     __template_auto_hide = 'autofs_auto_hide.j2'
     __enable_house_link = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHome'
     __enable_house_link_user = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHomeUser'
+    __target_mountpoint = '/media/gpupdate'
+    __target_mountpoint_user = '/run/media'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -150,11 +152,11 @@ class cifs_applier_user(applier_frontend):
         self.state_house_link_user = False
 
         if username:
-            self.home = '/run/media/' + username
+            self.home = self.__target_mountpoint_user + '/' + username
             self.state_house_link = self.check_enable_house_link(self.__enable_house_link)
             self.state_house_link_user = self.check_enable_house_link(self.__enable_house_link_user)
         else:
-            self.home = '/media/gpupdate'
+            self.home = self.__target_mountpoint
 
         conf_file = '{}.conf'.format(sid)
         conf_hide_file = '{}_hide.conf'.format(sid)
@@ -179,9 +181,9 @@ class cifs_applier_user(applier_frontend):
         self.user_creds = self.auto_master_d / cred_file
 
         if username:
-            self.mntTarget = 'UserDrive'
+            self.mntTarget = 'drives'
         else:
-            self.mntTarget = 'Drive'
+            self.mntTarget = 'drives.system'
 
         self.mount_dir = Path(os.path.join(self.home))
         self.drives = storage_get_drives(self.storage, self.sid)
@@ -278,8 +280,8 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             if self.username:
-                dUser = Path(get_homedir(self.username)+'/UserDriveGP')
-                dMachine = Path(get_homedir(self.username)+'/DriveGP')
+                dUser = Path(get_homedir(self.username)+'/net.drives')
+                dMachine = Path(get_homedir(self.username)+'/net.drives.system')
                 exists_dUser = dUser.exists()
                 exists_dMachine = dMachine.exists()
 
@@ -294,7 +296,7 @@ class cifs_applier_user(applier_frontend):
 
                 if self.state_house_link and not exists_dMachine:
                     try:
-                        os.symlink('/media/gpupdate', dMachine, True)
+                        os.symlink(self.__target_mountpoint, dMachine, True)
                     except  Exception as exc:
                         log('D195', {'exc': exc})
                 elif  not self.state_house_link and exists_dMachine:
