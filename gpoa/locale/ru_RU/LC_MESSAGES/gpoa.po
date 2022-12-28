@@ -795,6 +795,12 @@ msgstr "Процесс GPOA запущен для компьютера"
 msgid "Running networkshare applier for machine will not be started"
 msgstr "Применение настроек сетевых каталогов для машины не будет запущено"
 
+msgid "Failed to create a link for the users network resources"
+msgstr "Не удалось создать ссылку на сетевые ресурсы пользователя"
+
+msgid "Failed to create a link to the network resources of the computer"
+msgstr "Не удалось создать ссылку на сетевые ресурсы компьютера"
+
 # Debug_end
 
 # Warning
