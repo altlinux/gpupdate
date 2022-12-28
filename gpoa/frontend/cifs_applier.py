@@ -139,16 +139,23 @@ class cifs_applier_user(applier_frontend):
     __template_auto = 'autofs_auto.j2'
     __template_mountpoints_hide = 'autofs_mountpoints_hide.j2'
     __template_auto_hide = 'autofs_auto_hide.j2'
+    __enable_house_link = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHome'
+    __enable_house_link_user = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHomeUser'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
         self.sid = sid
         self.username = username
+        self.state_house_link = False
+        self.state_house_link_user = False
 
         if username:
             self.home = '/run/media/' + username
+            self.state_house_link = self.check_enable_house_link(self.__enable_house_link)
+            self.state_house_link_user = self.check_enable_house_link(self.__enable_house_link_user)
         else:
             self.home = '/media/gpupdate'
+
         conf_file = '{}.conf'.format(sid)
         conf_hide_file = '{}_hide.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
@@ -195,6 +202,12 @@ class cifs_applier_user(applier_frontend):
             , self.__module_experimental
         )
 
+    def check_enable_house_link(self, enable_house_link):
+        if self.storage.get_hkcu_entry(enable_house_link):
+            data = self.storage.get_hkcu_entry(enable_house_link).data
+            return bool(int(data))
+        else:
+            return False
 
     def user_context_apply(self):
         '''
@@ -263,6 +276,31 @@ class cifs_applier_user(applier_frontend):
                 f.truncate()
                 f.write(autofs_text)
                 f.flush()
+
+            if self.username:
+                dUser = Path(get_homedir(self.username)+'/UserDriveGP')
+                dMachine = Path(get_homedir(self.username)+'/DriveGP')
+                exists_dUser = dUser.exists()
+                exists_dMachine = dMachine.exists()
+
+                if self.state_house_link_user and not exists_dUser:
+                    try:
+                        os.symlink(self.home, dUser, True)
+                    except  Exception as exc:
+                        log('D194', {'exc': exc})
+                elif  not self.state_house_link_user and exists_dUser:
+                    if dUser.is_symlink and dUser.owner() == 'root':
+                        dUser.unlink()
+
+                if self.state_house_link and not exists_dMachine:
+                    try:
+                        os.symlink('/media/gpupdate', dMachine, True)
+                    except  Exception as exc:
+                        log('D195', {'exc': exc})
+                elif  not self.state_house_link and exists_dMachine:
+                    if dMachine.is_symlink and dMachine.owner() == 'root':
+                        dMachine.unlink()
+
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
