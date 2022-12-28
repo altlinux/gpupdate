@@ -127,7 +127,7 @@ class Files_cp:
 
     def _delete_action(self):
         list_target = [self.targetPath.name]
-        if self.is_pattern(self.targetPath.name):
+        if self.is_pattern(self.targetPath.name) and self.targetPath.parent.exists() and self.targetPath.parent.is_dir():
             list_target = fnmatch.filter([str(x.name) for x in self.targetPath.parent.iterdir() if x.is_file()], self.targetPath.name)
         logdata = dict()
         for targetFile in list_target:
