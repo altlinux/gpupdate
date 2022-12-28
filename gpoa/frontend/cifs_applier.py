@@ -203,8 +203,8 @@ class cifs_applier_user(applier_frontend):
         )
 
     def check_enable_house_link(self, enable_house_link):
-        if self.storage.get_hkcu_entry(enable_house_link):
-            data = self.storage.get_hkcu_entry(enable_house_link).data
+        if self.storage.get_hkcu_entry(self.sid, enable_house_link):
+            data = self.storage.get_hkcu_entry(self.sid, enable_house_link).data
             return bool(int(data))
         else:
             return False
