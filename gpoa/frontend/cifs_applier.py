@@ -139,8 +139,8 @@ class cifs_applier_user(applier_frontend):
     __template_auto = 'autofs_auto.j2'
     __template_mountpoints_hide = 'autofs_mountpoints_hide.j2'
     __template_auto_hide = 'autofs_auto_hide.j2'
-    __enable_house_link = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHome'
-    __enable_house_link_user = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHomeUser'
+    __enable_home_link = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHome'
+    __enable_home_link_user = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHomeUser'
     __target_mountpoint = '/media/gpupdate'
     __target_mountpoint_user = '/run/media'
 
@@ -148,13 +148,13 @@ class cifs_applier_user(applier_frontend):
         self.storage = storage
         self.sid = sid
         self.username = username
-        self.state_house_link = False
-        self.state_house_link_user = False
+        self.state_home_link = False
+        self.state_home_link_user = False
 
         if username:
             self.home = self.__target_mountpoint_user + '/' + username
-            self.state_house_link = self.check_enable_house_link(self.__enable_house_link)
-            self.state_house_link_user = self.check_enable_house_link(self.__enable_house_link_user)
+            self.state_home_link = self.check_enable_home_link(self.__enable_home_link)
+            self.state_home_link_user = self.check_enable_home_link(self.__enable_home_link_user)
         else:
             self.home = self.__target_mountpoint
 
@@ -204,9 +204,9 @@ class cifs_applier_user(applier_frontend):
             , self.__module_experimental
         )
 
-    def check_enable_house_link(self, enable_house_link):
-        if self.storage.get_hkcu_entry(self.sid, enable_house_link):
-            data = self.storage.get_hkcu_entry(self.sid, enable_house_link).data
+    def check_enable_home_link(self, enable_home_link):
+        if self.storage.get_hkcu_entry(self.sid, enable_home_link):
+            data = self.storage.get_hkcu_entry(self.sid, enable_home_link).data
             return bool(int(data))
         else:
             return False
@@ -285,21 +285,21 @@ class cifs_applier_user(applier_frontend):
                 exists_dUser = dUser.exists()
                 exists_dMachine = dMachine.exists()
 
-                if self.state_house_link_user and not exists_dUser:
+                if self.state_home_link_user and not exists_dUser:
                     try:
                         os.symlink(self.home, dUser, True)
                     except  Exception as exc:
                         log('D194', {'exc': exc})
-                elif  not self.state_house_link_user and exists_dUser:
+                elif not self.state_home_link_user and exists_dUser:
                     if dUser.is_symlink and dUser.owner() == 'root':
                         dUser.unlink()
 
-                if self.state_house_link and not exists_dMachine:
+                if self.state_home_link and not exists_dMachine:
                     try:
                         os.symlink(self.__target_mountpoint, dMachine, True)
                     except  Exception as exc:
                         log('D195', {'exc': exc})
-                elif  not self.state_house_link and exists_dMachine:
+                elif not self.state_home_link and exists_dMachine:
                     if dMachine.is_symlink and dMachine.owner() == 'root':
                         dMachine.unlink()
 
