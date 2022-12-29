@@ -304,7 +304,7 @@ class cifs_applier_user(applier_frontend):
                 try:
                     os.symlink(dUserMountpointHide, dUserHide, True)
                 except  Exception as exc:
-                    log('D194', {'exc': exc})
+                    log('D196', {'exc': exc})
         else:
             if dUser.is_symlink() and dUser.owner() == 'root':
                 dUser.unlink()
@@ -328,7 +328,7 @@ class cifs_applier_user(applier_frontend):
                 try:
                     os.symlink(dMachineMountpointHide, dMachineHide, True)
                 except  Exception as exc:
-                    log('D195', {'exc': exc})
+                    log('D197', {'exc': exc})
         else:
             if dMachine.is_symlink() and dMachine.owner() == 'root':
                 dMachine.unlink()
