@@ -795,6 +795,18 @@ msgstr "Процесс GPOA запущен для компьютера"
 msgid "Running networkshare applier for machine will not be started"
 msgstr "Применение настроек сетевых каталогов для машины не будет запущено"
 
+msgid "Failed to create a symlink to the network drives mountpoint"
+msgstr "Не удалось создать ссылку на точку монтирования сетевых дисков пользователя"
+
+msgid "Failed to create a symlink to the system network drives mountpoint"
+msgstr "Не удалось создать ссылку на точку монтирования системных сетевых дисков"
+
+msgid "Failed to create a symlink to the hidden network drives mountpoint"
+msgstr "Не удалось создать ссылку на точку монтирования скрытых сетевых дисков пользователя"
+
+msgid "Failed to create a symlink to the hidden system network drives mountpoint"
+msgstr "Не удалось создать ссылку на точку монтирования скрытых системных сетевых дисков"
+
 # Debug_end
 
 # Warning

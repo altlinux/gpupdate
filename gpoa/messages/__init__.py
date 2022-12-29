@@ -298,6 +298,10 @@ def debug_code(code):
     debug_ids[191] = 'File copy'
     debug_ids[192] = 'File update'
     debug_ids[193] = 'Deleting a file'
+    debug_ids[194] = 'Failed to create a symlink to the network drives mountpoint'
+    debug_ids[195] = 'Failed to create a symlink to the system network drives mountpoint'
+    debug_ids[196] = 'Failed to create a symlink to the hidden network drives mountpoint'
+    debug_ids[197] = 'Failed to create a symlink to the hidden system network drives mountpoint'
 
     return debug_ids.get(code, 'Unknown debug code')
 
