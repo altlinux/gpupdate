@@ -282,53 +282,58 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             if self.username:
-                dUser = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname_user)
-                dMachine = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname)
-                dUserHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname_user)
-                dMachineHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname)
-                exists_dUser = dUser.exists()
-                exists_dMachine = dMachine.exists()
-                exists_dUserHide = dUserHide.exists()
-                exists_dMachineHide = dMachineHide.exists()
-
-                if self.state_home_link_user and not exists_dUser:
-                    try:
-                        os.symlink(Path(self.home).joinpath(self.__mountpoint_dirname_user), dUser, True)
-                    except  Exception as exc:
-                        log('D194', {'exc': exc})
-                elif not self.state_home_link_user and exists_dUser:
-                    if dUser.is_symlink and dUser.owner() == 'root':
-                        dUser.unlink()
-
-                if self.state_home_link_user and not exists_dUserHide:
-                    try:
-                        os.symlink(Path(self.home).joinpath('.' + self.__mountpoint_dirname_user), dUserHide, True)
-                    except  Exception as exc:
-                        log('D194', {'exc': exc})
-                elif not self.state_home_link_user and exists_dUserHide:
-                    if dUserHide.is_symlink and dUserHide.owner() == 'root':
-                        dUserHide.unlink()
-
-                if self.state_home_link and not exists_dMachine:
-                    try:
-                        os.symlink(Path(self.__target_mountpoint).joinpath(self.__mountpoint_dirname), dMachine, True)
-                    except  Exception as exc:
-                        log('D195', {'exc': exc})
-                elif not self.state_home_link and exists_dMachine:
-                    if dMachine.is_symlink and dMachine.owner() == 'root':
-                        dMachine.unlink()
-
-                if self.state_home_link and not exists_dMachineHide:
-                    try:
-                        os.symlink(Path(self.__target_mountpoint).joinpath('.' + self.__mountpoint_dirname), dMachineHide, True)
-                    except  Exception as exc:
-                        log('D195', {'exc': exc})
-                elif not self.state_home_link and exists_dMachineHide:
-                    if dMachineHide.is_symlink and dMachineHide.owner() == 'root':
-                        dMachineHide.unlink()
+                self.update_drivemaps_home_links()
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
+    def update_drivemaps_home_links():
+        dUser = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname_user)
+        dUserHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname_user)
+
+        if self.state_home_link_user:
+            dUserMountpoint = Path(self.home).joinpath(self.__mountpoint_dirname_user)
+            dUserMountpointHide = Path(self.home).joinpath('.' + self.__mountpoint_dirname_user)
+
+            if not dUser.exists():
+                try:
+                    os.symlink(dUserMountpoint, dUser, True)
+                except  Exception as exc:
+                    log('D194', {'exc': exc})
+
+            if not dUserHide.exists():
+                try:
+                    os.symlink(dUserMountpointHide, dUserHide, True)
+                except  Exception as exc:
+                    log('D194', {'exc': exc})
+        else:
+            if dUser.is_symlink() and dUser.owner() == 'root':
+                dUser.unlink()
+            if dUserHide.is_symlink() and dUserHide.owner() == 'root':
+                dUserHide.unlink()
+
+        dMachine = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname)
+        dMachineHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname)
+
+        if self.state_home_link:
+            dMachineMountpoint = Path(self.__target_mountpoint).joinpath(self.__mountpoint_dirname)
+            dMachineMountpointHide = Path(self.__target_mountpoint).joinpath('.' + self.__mountpoint_dirname)
+
+            if not dMachine.exists():
+                try:
+                    os.symlink(dMachineMountpoint, dMachine, True)
+                except  Exception as exc:
+                    log('D195', {'exc': exc})
+
+            if not dMachineHide.exists():
+                try:
+                    os.symlink(dMachineMountpointHide, dMachineHide, True)
+                except  Exception as exc:
+                    log('D195', {'exc': exc})
+        else:
+            if dMachine.is_symlink() and dMachine.owner() == 'root':
+                dMachine.unlink()
+            if dMachineHide.is_symlink() and dMachineHide.owner() == 'root':
+                dMachineHide.unlink()
 
     def admin_context_apply(self):
         if self.__module_enabled:
