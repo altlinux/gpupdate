@@ -286,7 +286,7 @@ class cifs_applier_user(applier_frontend):
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
-    def update_drivemaps_home_links():
+    def update_drivemaps_home_links(self):
         dUser = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname_user)
         dUserHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname_user)
 
