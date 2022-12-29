@@ -143,6 +143,8 @@ class cifs_applier_user(applier_frontend):
     __enable_home_link_user = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHomeUser'
     __target_mountpoint = '/media/gpupdate'
     __target_mountpoint_user = '/run/media'
+    __mountpoint_dirname = 'drives.system'
+    __mountpoint_dirname_user = 'drives'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -181,9 +183,9 @@ class cifs_applier_user(applier_frontend):
         self.user_creds = self.auto_master_d / cred_file
 
         if username:
-            self.mntTarget = 'drives'
+            self.mntTarget = self.__mountpoint_dirname_user
         else:
-            self.mntTarget = 'drives.system'
+            self.mntTarget = self.__mountpoint_dirname
 
         self.mount_dir = Path(os.path.join(self.home))
         self.drives = storage_get_drives(self.storage, self.sid)
@@ -280,29 +282,50 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             if self.username:
-                dUser = Path(get_homedir(self.username)+'/net.drives')
-                dMachine = Path(get_homedir(self.username)+'/net.drives.system')
+                dUser = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname_user)
+                dMachine = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname)
+                dUserHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname_user)
+                dMachineHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname)
                 exists_dUser = dUser.exists()
                 exists_dMachine = dMachine.exists()
+                exists_dUserHide = dUserHide.exists()
+                exists_dMachineHide = dMachineHide.exists()
 
                 if self.state_home_link_user and not exists_dUser:
                     try:
-                        os.symlink(self.home, dUser, True)
+                        os.symlink(Path(self.home).joinpath(self.__mountpoint_dirname_user), dUser, True)
                     except  Exception as exc:
                         log('D194', {'exc': exc})
                 elif not self.state_home_link_user and exists_dUser:
                     if dUser.is_symlink and dUser.owner() == 'root':
                         dUser.unlink()
 
+                if self.state_home_link_user and not exists_dUserHide:
+                    try:
+                        os.symlink(Path(self.home).joinpath('.' + self.__mountpoint_dirname_user), dUserHide, True)
+                    except  Exception as exc:
+                        log('D194', {'exc': exc})
+                elif not self.state_home_link_user and exists_dUserHide:
+                    if dUserHide.is_symlink and dUserHide.owner() == 'root':
+                        dUserHide.unlink()
+
                 if self.state_home_link and not exists_dMachine:
                     try:
-                        os.symlink(self.__target_mountpoint, dMachine, True)
+                        os.symlink(Path(self.__target_mountpoint).joinpath(self.__mountpoint_dirname), dMachine, True)
                     except  Exception as exc:
                         log('D195', {'exc': exc})
                 elif not self.state_home_link and exists_dMachine:
                     if dMachine.is_symlink and dMachine.owner() == 'root':
                         dMachine.unlink()
 
+                if self.state_home_link and not exists_dMachineHide:
+                    try:
+                        os.symlink(Path(self.__target_mountpoint).joinpath('.' + self.__mountpoint_dirname), dMachineHide, True)
+                    except  Exception as exc:
+                        log('D195', {'exc': exc})
+                elif not self.state_home_link and exists_dMachineHide:
+                    if dMachineHide.is_symlink and dMachineHide.owner() == 'root':
+                        dMachineHide.unlink()
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
