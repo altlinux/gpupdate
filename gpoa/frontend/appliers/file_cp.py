@@ -100,6 +100,8 @@ class Files_cp:
             log('W15', logdata)
 
     def set_exe_file(self, targetFile, fromFile):
+        if not targetFile.is_file():
+            return
         if Path(fromFile).suffix in self.exe_check.get_list_markers():
             targetPath = str(targetFile.parent)
             if targetPath or targetPath + '/' in self.exe_check.get_list_paths():
