@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .appliers.file_cp import Files_cp
+from .appliers.file_cp import Files_cp, Execution_check
 from .applier_frontend import (
       applier_frontend
     , check_enabled
@@ -33,6 +33,7 @@ class file_applier(applier_frontend):
 
     def __init__(self, storage, file_cache, sid):
         self.storage = storage
+        self.exe_check = Execution_check(storage)
         self.sid = sid
         self.file_cache = file_cache
         self.files = self.storage.get_files(self.sid)
@@ -40,7 +41,7 @@ class file_applier(applier_frontend):
 
     def run(self):
         for file in self.files:
-            Files_cp(file, self.file_cache)
+            Files_cp(file, self.file_cache, self.exe_check)
 
     def apply(self):
         if self.__module_enabled:
@@ -59,6 +60,7 @@ class file_applier_user(applier_frontend):
         self.file_cache = file_cache
         self.sid = sid
         self.username = username
+        self.exe_check = Execution_check(storage)
         self.files = self.storage.get_files(self.sid)
         self.__module_enabled = check_enabled(
               self.storage
@@ -68,7 +70,7 @@ class file_applier_user(applier_frontend):
 
     def run(self):
         for file in self.files:
-            Files_cp(file, self.file_cache, self.username)
+            Files_cp(file, self.file_cache, self.exe_check, self.username)
 
     def admin_context_apply(self):
         if self.__module_enabled:

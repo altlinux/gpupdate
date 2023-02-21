@@ -32,8 +32,9 @@ from util.paths import UNCPath
 import fnmatch
 
 class Files_cp:
-    def __init__(self, file_obj, file_cache ,username=None):
+    def __init__(self, file_obj, file_cache, exe_check, username=None):
         self.file_cache = file_cache
+        self.exe_check = exe_check
         targetPath = expand_windows_var(file_obj.targetPath, username).replace('\\', '/')
         self.targetPath = check_target_path(targetPath, username)
         if not self.targetPath:
@@ -98,11 +99,21 @@ class Files_cp:
             logdata['exc'] = exc
             log('W15', logdata)
 
-    def set_read_only(self, targetFile):
-        if  self.readOnly:
-            shutil.os.chmod(targetFile, 0o444)
+    def set_exe_file(self, targetFile, fromFile):
+        if not targetFile.is_file():
+            return
+        if Path(fromFile).suffix in self.exe_check.get_list_markers():
+            targetPath = str(targetFile.parent)
+            if targetPath or targetPath + '/' in self.exe_check.get_list_paths():
+                if self.readOnly:
+                    shutil.os.chmod(targetFile, 0o555)
+                else:
+                    shutil.os.chmod(targetFile, 0o775)
         else:
-            shutil.os.chmod(targetFile, 0o664)
+            if self.readOnly:
+                shutil.os.chmod(targetFile, 0o444)
+            else:
+                shutil.os.chmod(targetFile, 0o664)
 
     def _create_action(self):
         logdata = dict()
@@ -115,7 +126,7 @@ class Files_cp:
                     self.copy_target_file(targetFile, fromFile)
                     if self.username:
                         shutil.chown(targetFile, self.username)
-                    self.set_read_only(targetFile)
+                    self.set_exe_file(targetFile, fromFile)
                     logdata['File'] = targetFile
                     log('D191', logdata)
             except Exception as exc:
@@ -152,7 +163,7 @@ class Files_cp:
                 self.copy_target_file(targetFile, fromFile)
                 if self.username:
                     shutil.chown(self.targetPath, self.username)
-                self.set_read_only(targetFile)
+                self.set_exe_file(targetFile, fromFile)
                 logdata['File'] = targetFile
                 log('D192', logdata)
             except Exception as exc:
@@ -222,3 +233,27 @@ def check_target_path(path_to_check, username = None):
         rootpath = Path(get_homedir(username))
 
     return rootpath.joinpath(checking)
+
+class Execution_check():
+
+    __etension_marker_key_name = 'ExtensionMarker'
+    __marker_usage_path_key_name = 'MarkerUsagePath'
+    __hklm_branch = 'Software\\BaseALT\\Policies\\GroupPolicies\\Files'
+
+    def __init__(self, storage):
+        etension_marker_branch = '{}\\{}%'.format(self.__hklm_branch, self.__etension_marker_key_name)
+        marker_usage_path_branch = '{}\\{}%'.format(self.__hklm_branch, self.__marker_usage_path_key_name)
+        self.etension_marker = storage.filter_hklm_entries(etension_marker_branch)
+        self.marker_usage_path = storage.filter_hklm_entries(marker_usage_path_branch)
+        self.list_paths = list()
+        self.list_markers = list()
+        for marker in self.etension_marker:
+            self.list_markers.append(marker.data)
+        for usage_path in self.marker_usage_path:
+            self.list_paths.append(usage_path.data)
+
+    def get_list_paths(self):
+        return self.list_paths
+
+    def get_list_markers(self):
+        return self.list_markers
