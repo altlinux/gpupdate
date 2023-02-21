@@ -24,9 +24,9 @@ from gpt.folders import (
 )
 from util.logging import log
 from pathlib import Path
-import configparser
 from util.windows import expand_windows_var
 from util.util import get_homedir
+from configobj import ConfigObj
 
 
 
@@ -42,43 +42,40 @@ class Ini_file:
         self.action = action_letter2enum(ini_obj.action)
         self.key = ini_obj.property
         self.value = ini_obj.value
-        self.config = configparser.ConfigParser()
-        self.act()
-
-    def _create_action(self):
-        if self.section not in self.config:
-            self.config[self.section] = dict()
-
-        self.config[self.section][self.key] = self.value
-
-        with self.path.open("w", encoding="utf-8") as configfile:
-            self.config.write(configfile)
-
-
-
-    def _delete_action(self):
-        if not self.path.exists():
-            return
-
-        if not self.section:
-            self.path.unlink()
-            return
-        if not self.key:
-            self.config.remove_section(self.section)
-        elif self.section in self.config:
-            self.config.remove_option(self.section, self.key)
-
-        with self.path.open("w", encoding="utf-8") as configfile:
-            self.config.write(configfile)
-
-
-    def act(self):
         try:
-            self.config.read(self.path)
+            self.config = ConfigObj(str(self.path), unrepr=False)
         except Exception as exc:
             logdata = {'exc': exc}
             log('D176', logdata)
             return
+
+        self.act()
+
+    def _create_action(self):
+        if self.path.is_dir():
+            return
+        if self.section not in self.config:
+            self.config[self.section] = dict()
+
+        self.config[self.section][self.key] = self.value
+        self.config.write()
+
+
+    def _delete_action(self):
+        if not self.path.exists() or self.path.is_dir():
+            return
+        if not self.section:
+            self.path.unlink()
+            return
+        if self.section in self.config:
+            if not self.key:
+                self.config.pop(self.section)
+            elif self.key in self.config[self.section]:
+                self.config[self.section].pop(self.key)
+        self.config.write()
+
+
+    def act(self):
         if self.action == FileAction.CREATE:
             self._create_action()
         if self.action == FileAction.UPDATE:
