@@ -21,7 +21,12 @@ import os
 import subprocess
 from samba import getopt as options
 from samba import NTSTATUSError
-from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
+
+try:
+    from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
+except ImportError:
+    from samba.gp.gpclass import get_dc_hostname, check_refresh_gpo_list
+
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 import samba.gpo
 

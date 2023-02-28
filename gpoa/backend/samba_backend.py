@@ -18,7 +18,10 @@
 
 import os
 # Facility to determine GPTs for user
-from samba.gpclass import check_safe_path
+try:
+    from samba.gpclass import check_safe_path
+except ImportError:
+    from samba.gp.gpclass import check_safe_path
 
 from .applier_backend import applier_backend
 from storage import cache_factory, registry_factory
