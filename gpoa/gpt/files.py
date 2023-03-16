@@ -30,6 +30,7 @@ def read_files(filesxml):
         fil_obj.set_archive(props.get('archive', default=None))
         fil_obj.set_hidden(props.get('hidden', default=None))
         fil_obj.set_suppress(props.get('suppress', default=None))
+        fil_obj.set_executable(props.get('executable', default=None))
         files.append(fil_obj)
 
     return files
@@ -54,3 +55,5 @@ class fileentry:
         self.hidden = hidden
     def set_suppress(self, suppress):
         self.suppress = suppress
+    def set_executable(self, executable):
+        self.executable = executable
