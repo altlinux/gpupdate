@@ -178,6 +178,7 @@ class sqlite_registry(registry):
             , Column('archive', String)
             , Column('hidden', String)
             , Column('suppress', String)
+            , Column('executable', String)
             , UniqueConstraint('sid', 'policy_name', 'targetPath', 'fromPath')
         )
         self.__ini = Table(
