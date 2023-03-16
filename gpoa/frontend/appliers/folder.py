@@ -65,6 +65,8 @@ class Folder:
 
     def _delete_action(self):
         if self.folder_path.exists():
+            if self.action == FileAction.REPLACE:
+                self.delete_folder = True
             remove_dir_tree(self.folder_path,
                 self.delete_files,
                 self.delete_folder,
