@@ -47,6 +47,7 @@ class Files_cp:
         self.archive = str2bool(file_obj.archive)
         self.hidden = str2bool(file_obj.hidden)
         self.suppress = str2bool(file_obj.suppress)
+        self.executable = str2bool(file_obj.executable)
         self.username = username
         self.fromPathFiles = list()
         if self.fromPath:
@@ -98,6 +99,8 @@ class Files_cp:
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
             log('W15', logdata)
+            targetFile.unlink()
+            return None
 
     def set_exe_file(self, targetFile, fromFile):
         if not targetFile.is_file():
@@ -109,7 +112,14 @@ class Files_cp:
                     shutil.os.chmod(targetFile, 0o555)
                 else:
                     shutil.os.chmod(targetFile, 0o775)
+        elif self.executable:
+            if self.readOnly:
+               shutil.os.chmod(targetFile, 0o555)
+            else:
+               shutil.os.chmod(targetFile, 0o775)
+
         else:
+
             if self.readOnly:
                 shutil.os.chmod(targetFile, 0o444)
             else:
@@ -123,7 +133,8 @@ class Files_cp:
             try:
                 targetFile = self.get_target_file(self.targetPath, fromFile)
                 if targetFile and not targetFile.exists():
-                    self.copy_target_file(targetFile, fromFile)
+                    if not self.copy_target_file(targetFile, fromFile):
+                        raise
                     if self.username:
                         shutil.chown(targetFile, self.username)
                     self.set_exe_file(targetFile, fromFile)
@@ -160,7 +171,8 @@ class Files_cp:
         for fromFile in self.fromPathFiles:
             targetFile = self.get_target_file(self.targetPath, fromFile)
             try:
-                self.copy_target_file(targetFile, fromFile)
+                if not self.copy_target_file(targetFile, fromFile):
+                    raise
                 if self.username:
                     shutil.chown(self.targetPath, self.username)
                 self.set_exe_file(targetFile, fromFile)
