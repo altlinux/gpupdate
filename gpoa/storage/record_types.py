@@ -216,17 +216,17 @@ class file_entry(object):
     '''
     Object mapping representing FILES.XML
     '''
-    def __init__(self, sid, scrobj, policy_name):
+    def __init__(self, sid, fileobj, policy_name):
         self.sid = sid
         self.policy_name = policy_name
-        self.action = scrobj.action
-        self.fromPath = scrobj.fromPath
-        self.targetPath = scrobj.targetPath
-        self.readOnly = scrobj.readOnly
-        self.archive = scrobj.archive
-        self.hidden = scrobj.hidden
-        self.suppress = scrobj.suppress
-
+        self.action = fileobj.action
+        self.fromPath = fileobj.fromPath
+        self.targetPath = fileobj.targetPath
+        self.readOnly = fileobj.readOnly
+        self.archive = fileobj.archive
+        self.hidden = fileobj.hidden
+        self.suppress = fileobj.suppress
+        self.executable = fileobj.executable
 
     def update_fields(self):
         '''
@@ -241,6 +241,7 @@ class file_entry(object):
         fields['archive'] = self.archive
         fields['hidden'] = self.hidden
         fields['suppress'] = self.suppress
+        fields['executable'] = self.executable
 
         return fields
 
