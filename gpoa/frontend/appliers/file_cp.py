@@ -100,15 +100,21 @@ class Files_cp:
             log('W15', logdata)
 
     def set_exe_file(self, targetFile, fromFile):
+        if Path(fromFile).suffix in self.exe_check.get_list_markers():
+            targetPath = targetFile.parent
+            for i in self.exe_check.get_list_paths():
+                if targetPath == Path(i):
+                    return True
+        return False
+
+    def set_mod_file(self, targetFile, fromFile):
         if not targetFile.is_file():
             return
-        if Path(fromFile).suffix in self.exe_check.get_list_markers():
-            targetPath = str(targetFile.parent)
-            if targetPath or targetPath + '/' in self.exe_check.get_list_paths():
-                if self.readOnly:
-                    shutil.os.chmod(targetFile, 0o555)
-                else:
-                    shutil.os.chmod(targetFile, 0o775)
+        if self.set_exe_file(targetFile, fromFile):
+            if self.readOnly:
+                shutil.os.chmod(targetFile, 0o555)
+            else:
+                shutil.os.chmod(targetFile, 0o775)
         else:
             if self.readOnly:
                 shutil.os.chmod(targetFile, 0o444)
@@ -126,7 +132,7 @@ class Files_cp:
                     self.copy_target_file(targetFile, fromFile)
                     if self.username:
                         shutil.chown(targetFile, self.username)
-                    self.set_exe_file(targetFile, fromFile)
+                    self.set_mod_file(targetFile, fromFile)
                     logdata['File'] = targetFile
                     log('D191', logdata)
             except Exception as exc:
@@ -163,7 +169,7 @@ class Files_cp:
                 self.copy_target_file(targetFile, fromFile)
                 if self.username:
                     shutil.chown(self.targetPath, self.username)
-                self.set_exe_file(targetFile, fromFile)
+                self.set_mod_file(targetFile, fromFile)
                 logdata['File'] = targetFile
                 log('D192', logdata)
             except Exception as exc:
