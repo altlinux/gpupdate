@@ -19,6 +19,7 @@
 
 import os
 import os.path
+import tempfile
 from pathlib import Path
 import smbc
 
@@ -63,16 +64,21 @@ class fs_file_cache:
                 uri_path.get_domain(),
                 uri_path.get_path()))
 
-        with open(destfile, 'wb') as df:
-            df.truncate()
-            df.flush()
+        try:
+            fd, tmpfile = tempfile.mkstemp('', str(destfile))
+            df = os.fdopen(fd, 'wb')
             file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
             while True:
                 data = file_handler.read(self.__read_blocksize)
                 if not data:
                     break
                 df.write(data)
-            df.flush()
+            df.close()
+            os.rename(tmpfile, destfile)
+        except:
+            tmppath = Path(tmpfile)
+            if tmppath.exists():
+                tmppath.unlink()
 
     def get(self, uri):
         destfile = uri
