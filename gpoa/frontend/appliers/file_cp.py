@@ -47,6 +47,7 @@ class Files_cp:
         self.archive = str2bool(file_obj.archive)
         self.hidden = str2bool(file_obj.hidden)
         self.suppress = str2bool(file_obj.suppress)
+        self.executable = str2bool(file_obj.executable)
         self.username = username
         self.fromPathFiles = list()
         if self.fromPath:
@@ -100,6 +101,8 @@ class Files_cp:
             log('W15', logdata)
 
     def set_exe_file(self, targetFile, fromFile):
+        if self.executable:
+            return True
         if Path(fromFile).suffix in self.exe_check.get_list_markers():
             targetPath = targetFile.parent
             for i in self.exe_check.get_list_paths():
