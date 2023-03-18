@@ -153,7 +153,7 @@ class Files_cp:
                 if targetFile.exists():
                     targetFile.unlink()
                     logdata['File'] = targetFile
-                    log('D192', logdata)
+                    log('D193', logdata)
 
             except Exception as exc:
                 logdata['exc'] = exc

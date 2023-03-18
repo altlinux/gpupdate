@@ -771,13 +771,13 @@ msgstr "Запись настройки Яндекс Браузера в"
 msgid "Running networkshare applier for user"
 msgstr "Запуск применение настроек сетевых каталогов для пользователя"
 
-msgid "File copy"
+msgid "Copying a file"
 msgstr "Копирование файла"
 
 msgid "Running networkshare applier for user will not be started"
 msgstr "Применение настроек сетевых каталогов для пользователя не будет запущено"
 
-msgid "File update"
+msgid "Updating a file"
 msgstr "Обновление файла"
 
 msgid "Applying settings for network share"
