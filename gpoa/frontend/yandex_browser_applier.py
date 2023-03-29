@@ -105,6 +105,7 @@ class yandex_browser_applier(applier_frontend):
                             'DefaultGeolocationSetting',
                             'DefaultPopupsSetting',
                             'DeveloperToolsAvailability',
+                            'DiskCacheSize',
                             'IncognitoModeAvailability',
                             'PasswordProtectionWarningTrigger',
                             'SafeBrowsingProtectionLevel',
