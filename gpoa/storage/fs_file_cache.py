@@ -75,6 +75,7 @@ class fs_file_cache:
                 df.write(data)
             df.close()
             os.rename(tmpfile, destfile)
+            os.chmod(destfile, 0o644)
         except:
             tmppath = Path(tmpfile)
             if tmppath.exists():
