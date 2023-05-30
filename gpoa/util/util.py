@@ -23,6 +23,7 @@ import subprocess
 import re
 from pathlib import Path
 from .samba import smbopts
+import ast
 
 
 def get_machine_name():
@@ -180,3 +181,9 @@ def get_policy_variants():
 
     return general_listing
 
+def string_to_literal_eval(string):
+    try:
+        literaleval = ast.literal_eval(string)
+    except:
+        literaleval = string
+    return literaleval
