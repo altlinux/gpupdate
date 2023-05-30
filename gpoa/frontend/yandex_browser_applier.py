@@ -24,7 +24,7 @@ from .applier_frontend import (
 import json
 import os
 from util.logging import log
-from util.util import is_machine_name
+from util.util import is_machine_name, string_to_literal_eval
 
 class yandex_browser_applier(applier_frontend):
     __module_name = 'YandexBrowserApplier'
@@ -65,7 +65,7 @@ class yandex_browser_applier(applier_frontend):
         #Replacing all nested dictionaries with a list
         dict_item_to_list = (
             lambda target_dict :
-                {key:[*val.values()] if type(val) == dict else val for key,val in target_dict.items()}
+                {key:[*val.values()] if type(val) == dict else string_to_literal_eval(val) for key,val in target_dict.items()}
             )
         os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
