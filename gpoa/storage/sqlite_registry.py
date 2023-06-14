@@ -28,8 +28,8 @@ from sqlalchemy import (
     UniqueConstraint
 )
 from sqlalchemy.orm import (
-    mapper,
-    sessionmaker
+    sessionmaker,
+    registry as registry_alch
 )
 
 from util.logging import log
@@ -58,7 +58,7 @@ class sqlite_registry(registry):
             cdir = cache_dir()
         self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cdir, self.db_name))
         self.db_cnt = create_engine(self.db_path, echo=False)
-        self.__metadata = MetaData(self.db_cnt)
+        self.__metadata = MetaData()
         self.__info = Table(
             'info',
             self.__metadata,
@@ -213,19 +213,20 @@ class sqlite_registry(registry):
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
+        mapper_reg = registry_alch()
         try:
-            mapper(info_entry, self.__info)
-            mapper(samba_preg, self.__hklm)
-            mapper(samba_hkcu_preg, self.__hkcu)
-            mapper(ad_shortcut, self.__shortcuts)
-            mapper(printer_entry, self.__printers)
-            mapper(drive_entry, self.__drives)
-            mapper(folder_entry, self.__folders)
-            mapper(envvar_entry, self.__envvars)
-            mapper(script_entry, self.__scripts)
-            mapper(file_entry, self.__files)
-            mapper(ini_entry, self.__ini)
-            mapper(networkshare_entry, self.__networkshare)
+            mapper_reg.map_imperatively(info_entry, self.__info)
+            mapper_reg.map_imperatively(samba_preg, self.__hklm)
+            mapper_reg.map_imperatively(samba_hkcu_preg, self.__hkcu)
+            mapper_reg.map_imperatively(ad_shortcut, self.__shortcuts)
+            mapper_reg.map_imperatively(printer_entry, self.__printers)
+            mapper_reg.map_imperatively(drive_entry, self.__drives)
+            mapper_reg.map_imperatively(folder_entry, self.__folders)
+            mapper_reg.map_imperatively(envvar_entry, self.__envvars)
+            mapper_reg.map_imperatively(script_entry, self.__scripts)
+            mapper_reg.map_imperatively(file_entry, self.__files)
+            mapper_reg.map_imperatively(ini_entry, self.__ini)
+            mapper_reg.map_imperatively(networkshare_entry, self.__networkshare)
         except:
             pass
             #logging.error('Error creating mapper')
