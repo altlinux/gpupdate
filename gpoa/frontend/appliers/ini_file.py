@@ -26,8 +26,7 @@ from util.logging import log
 from pathlib import Path
 from util.windows import expand_windows_var
 from util.util import get_homedir
-from configobj import ConfigObj
-
+from util.gpoa_ini_parsing import GpoaConfigObj
 
 
 class Ini_file:
@@ -43,7 +42,7 @@ class Ini_file:
         self.key = ini_obj.property
         self.value = ini_obj.value
         try:
-            self.config = ConfigObj(str(self.path), unrepr=False)
+            self.config = GpoaConfigObj(str(self.path), unrepr=False)
         except Exception as exc:
             logdata = {'exc': exc}
             log('D176', logdata)
@@ -79,12 +78,10 @@ class Ini_file:
         if self.action == FileAction.CREATE:
             self._create_action()
         if self.action == FileAction.UPDATE:
-            self._delete_action()
             self._create_action()
         if self.action == FileAction.DELETE:
             self._delete_action()
         if self.action == FileAction.REPLACE:
-            self._delete_action()
             self._create_action()
 
 def check_path(path_to_check, username = None):
