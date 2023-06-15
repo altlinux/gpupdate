@@ -29,8 +29,8 @@ from sqlalchemy import (
     MetaData
 )
 from sqlalchemy.orm import (
-    mapper,
-    sessionmaker
+    sessionmaker,
+    registry as registry_alch
 )
 
 from util.logging import log
@@ -55,7 +55,7 @@ class sqlite_cache(cache):
         logdata = dict({'cache_file': self.storage_uri})
         log('D20', logdata)
         self.db_cnt = create_engine(self.storage_uri, echo=False)
-        self.__metadata = MetaData(self.db_cnt)
+        self.__metadata = MetaData()
         self.cache_table = Table(
             self.cache_name,
             self.__metadata,
@@ -67,7 +67,8 @@ class sqlite_cache(cache):
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
-        mapper(self.mapper_obj, self.cache_table)
+        mapper_reg = registry_alch()
+        mapper_reg.map_imperatively(self.mapper_obj, self.cache_table)
 
     def store(self, str_id, value):
         obj = self.mapper_obj(str_id, value)
