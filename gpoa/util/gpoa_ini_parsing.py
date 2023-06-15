@@ -82,12 +82,12 @@ class GpoaConfigObj(ConfigObj):
 
     def _handle_comment(self, comment):
         """Deal with a comment."""
-        if not comment.strip():
-            return comment or ''  # return trailing whitespace as-is
+        if not comment:
+            return ''
         start = self.indent_type
-        if not (comment.lstrip().startswith('#') or comment.lstrip().startswith(';')):
+        if not comment.lstrip().startswith(tuple(self.COMMENT_MARKERS)):
             start += ' # '
-        return (start + comment)
+        return start + comment.strip()
 
     def _parse(self, infile):
         """Actually parse the config file."""
