@@ -174,3 +174,8 @@ def string_to_literal_eval(string):
     except:
         literaleval = string
     return literaleval
+
+def touch_file(filename):
+    path = Path(filename)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
