@@ -180,20 +180,3 @@ def touch_file(filename):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.touch()
 
-def create_ini_file(filename, data):
-    """
-    Create an ini-file based on a dictionary of dictionaries.
-    Args:
-        data (dict): The dictionary of dictionaries containing the data for the ini-file.
-        filename (str): The filename to save the ini-file.
-    Returns:
-        None
-    Raises:
-        None
-    """
-    with open(filename, 'w') as file:
-        for section, section_data in data.items():
-            file.write(f"[{section}]\n")
-            for key, value in section_data.items():
-                file.write(f"{key} = {value}\n")
-            file.write("\n")

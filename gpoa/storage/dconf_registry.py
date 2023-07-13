@@ -65,3 +65,21 @@ def load_preg_dconf(preg):
             dd_target.setdefault(all_list_key[-1], []).append(i.data)
     # Update the global registry dictionary with the contents of dd
     update_dict(Dconf_registry.global_registry_dict, dd)
+
+def create_dconf_ini_file(filename, data):
+    '''
+    Create an ini-file based on a dictionary of dictionaries.
+    Args:
+        data (dict): The dictionary of dictionaries containing the data for the ini-file.
+        filename (str): The filename to save the ini-file.
+    Returns:
+        None
+    Raises:
+        None
+    '''
+    with open(filename, 'w') as file:
+        for section, section_data in data.items():
+            file.write(f'[{section}]\n')
+            for key, value in section_data.items():
+                file.write(f'{key} = "{value}"\n')
+            file.write('\n')
