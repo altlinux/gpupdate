@@ -17,4 +17,51 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Dconf_registry():
+    '''
+    A class variable that represents a global registry dictionary shared among instances of the class
+    '''
     global_registry_dict = dict()
+
+
+def update_dict(dict1, dict2):
+    '''
+    Updates dict1 with the key-value pairs from dict2
+    '''
+    for key, value in dict2.items():
+        if key in dict1:
+            # If both values are dictionaries, recursively call the update_dict function
+            if isinstance(dict1[key], dict) and isinstance(value, dict):
+                update_dict(dict1[key], value)
+            else:
+                # If the value in dict1 is not a dictionary or the value in dict2 is not a dictionary,
+                # replace the value in dict1 with the value from dict2
+                dict1[key] = value
+        else:
+            # If the key does not exist in dict1, add the key-value pair from dict2 to dict1
+            dict1[key] = value
+
+
+def load_preg_dconf(preg):
+    '''
+    Loads the configuration from preg registry into a dictionary
+    '''
+    dd = dict()
+    for i in preg.entries:
+        # Skip this entry if the valuename starts with '**del'
+        if i.valuename.startswith('**del'):
+            continue
+        if i.valuename != i.data:
+            if i.keyname.replace('\\', '/') in dd:
+                # If the key exists in dd, update its value with the new key-value pair
+                dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):i.data})
+            else:
+                # If the key does not exist in dd, create a new key-value pair
+                dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):i.data}
+        else:
+            # If the value name is the same as the data,
+            # split the keyname and add the data to the appropriate location in dd.
+            all_list_key = i.keyname.split('\\')
+            dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
+            dd_target.setdefault(all_list_key[-1], []).append(i.data)
+    # Update the global registry dictionary with the contents of dd
+    update_dict(Dconf_registry.global_registry_dict, dd)
