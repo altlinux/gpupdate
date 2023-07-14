@@ -83,7 +83,7 @@ def preg_keymap(preg):
 
 def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_name='Unknown'):
     pregfile = load_preg(preg)
-    load_preg_dconf(pregfile)
+    load_preg_dconf(pregfile, preg)
     logdata = dict({'pregfile': preg})
     log('D32', logdata)
     storage = registry_factory(reg_name, reg_path)
