@@ -19,6 +19,7 @@
 
 from xml.etree import ElementTree
 from storage import registry_factory
+from storage.dconf_registry import load_preg_dconf
 
 from samba.gp_parse.gp_pol import GPPolParser
 
@@ -82,6 +83,7 @@ def preg_keymap(preg):
 
 def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_name='Unknown'):
     pregfile = load_preg(preg)
+    load_preg_dconf(pregfile)
     logdata = dict({'pregfile': preg})
     log('D32', logdata)
     storage = registry_factory(reg_name, reg_path)
