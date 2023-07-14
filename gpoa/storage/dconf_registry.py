@@ -20,7 +20,7 @@ class Dconf_registry():
     '''
     A class variable that represents a global registry dictionary shared among instances of the class
     '''
-    global_registry_dict = dict()
+    global_registry_dict = dict({'Software/BaseALT/Policies/ReadQueue':{}})
 
 
 def update_dict(dict1, dict2):
@@ -41,12 +41,17 @@ def update_dict(dict1, dict2):
             dict1[key] = value
 
 
-def load_preg_dconf(preg):
+def add_to_dict(dictionary, string):
+    correct_path = '/'.join(string.split('/')[:-2])
+    dictionary[len(dictionary)] = correct_path
+
+
+def load_preg_dconf(pregfile, pathfile):
     '''
     Loads the configuration from preg registry into a dictionary
     '''
     dd = dict()
-    for i in preg.entries:
+    for i in pregfile.entries:
         # Skip this entry if the valuename starts with '**del'
         if i.valuename.startswith('**del'):
             continue
@@ -64,7 +69,9 @@ def load_preg_dconf(preg):
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
             dd_target.setdefault(all_list_key[-1], []).append(i.data)
     # Update the global registry dictionary with the contents of dd
+    add_to_dict(Dconf_registry.global_registry_dict['Software/BaseALT/Policies/ReadQueue'], pathfile)
     update_dict(Dconf_registry.global_registry_dict, dd)
+
 
 def create_dconf_ini_file(filename, data):
     '''
