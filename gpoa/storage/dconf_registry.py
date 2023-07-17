@@ -16,11 +16,51 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import subprocess
+from util.util import string_to_literal_eval
+
 class Dconf_registry():
     '''
     A class variable that represents a global registry dictionary shared among instances of the class
     '''
-    global_registry_dict = dict({'Software/BaseALT/Policies/ReadQueue':{}})
+    _ReadQueue = 'Software/BaseALT/Policies/ReadQueue'
+    global_registry_dict = dict({_ReadQueue:{}})
+    list_keys = list()
+
+    @staticmethod
+    def get_matching_keys(path):
+        try:
+            process = subprocess.Popen(['dconf', 'list', path],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            output, error = process.communicate()
+            if not output and not error:
+                return
+            if not error:
+                keys = output.strip().split('\n')
+                for key in keys:
+                    Dconf_registry.get_matching_keys(f'{path}{key}')
+            else:
+                Dconf_registry.list_keys.append(path)
+            return Dconf_registry.list_keys
+        except Exception as exc:
+            #log
+            return None
+
+    @staticmethod
+    def get_key_values(keys):
+        key_values = {}
+        try:
+            for key in keys:
+                process = subprocess.Popen(['dconf', 'read', key],
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                output, error = process.communicate()
+
+                if not error:
+                    key_values[key] = string_to_literal_eval(string_to_literal_eval(output))
+        except Exception as exc:
+            #log
+            ...
+        return key_values
 
 
 def update_dict(dict1, dict2):
@@ -55,21 +95,27 @@ def load_preg_dconf(pregfile, pathfile):
         # Skip this entry if the valuename starts with '**del'
         if i.valuename.startswith('**del'):
             continue
+
+        if isinstance(i.data, int):
+            correct_data = (i.type, i.data)
+        else:
+            correct_data = i.data
+
         if i.valuename != i.data:
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
-                dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):i.data})
+                dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):correct_data})
             else:
                 # If the key does not exist in dd, create a new key-value pair
-                dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):i.data}
+                dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):correct_data}
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
             all_list_key = i.keyname.split('\\')
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
-            dd_target.setdefault(all_list_key[-1], []).append(i.data)
+            dd_target.setdefault(all_list_key[-1], []).append(correct_data)
     # Update the global registry dictionary with the contents of dd
-    add_to_dict(Dconf_registry.global_registry_dict['Software/BaseALT/Policies/ReadQueue'], pathfile)
+    add_to_dict(Dconf_registry.global_registry_dict[Dconf_registry._ReadQueue], pathfile)
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
