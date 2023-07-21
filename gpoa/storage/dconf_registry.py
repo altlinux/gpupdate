@@ -27,6 +27,22 @@ class Dconf_registry():
     global_registry_dict = dict({_ReadQueue:{}})
     list_keys = list()
 
+    shortcuts = list()
+    folders = list()
+    files = list()
+    drives = list()
+    scheduledtasks = list()
+    environmentvariables = list()
+    inifiles = list()
+    services = list()
+    printers = list()
+    scripts = list()
+    networkshares = list()
+
+    def __init__(self, username, is_machine):
+        self.username = username
+        self.is_machine = is_machine
+
     @staticmethod
     def get_matching_keys(path):
         try:
