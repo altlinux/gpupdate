@@ -180,3 +180,9 @@ def touch_file(filename):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.touch()
 
+def get_uid_by_username(username):
+    try:
+        user_info = pwd.getpwnam(username)
+        return user_info.pw_uid
+    except KeyError:
+        return None
