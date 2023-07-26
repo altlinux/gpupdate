@@ -93,6 +93,12 @@ def local_policy_cache():
 
     return lpcache
 
+def get_dconf_config_path(uid = None):
+    if uid:
+        return f'/etc/dconf/db/policy{uid}.d/policy{uid}.ini'
+    else:
+        return '/etc/dconf/db/policy.d/policy.ini'
+
 class UNCPath:
     def __init__(self, path):
         self.path = path

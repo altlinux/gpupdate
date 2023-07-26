@@ -17,7 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess
-from util.util import string_to_literal_eval
+from pathlib import Path
+from util.util import string_to_literal_eval, get_uid_by_username, touch_file
+from util.paths import get_dconf_config_path
 
 class Dconf_registry():
     '''
@@ -25,6 +27,8 @@ class Dconf_registry():
     '''
     _ReadQueue = 'Software/BaseALT/Policies/ReadQueue'
     global_registry_dict = dict({_ReadQueue:{}})
+    __template_file = '/usr/share/dconf/user_mandatory.template'
+
     list_keys = list()
 
     shortcuts = list()
@@ -42,6 +46,11 @@ class Dconf_registry():
     def __init__(self, username, is_machine):
         self.username = username
         self.is_machine = is_machine
+        self.uid = get_uid_by_username(username) if not is_machine else None
+        target_file = get_dconf_config_path(self.uid)
+        touch_file(target_file)
+        self.apply_template()
+        create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict)
 
     @staticmethod
     def get_matching_keys(path):
@@ -77,6 +86,37 @@ class Dconf_registry():
             #log
             ...
         return key_values
+
+    def check_profile_template(self):
+        if Path(self.__template_file).exists():
+            return True
+        else:
+            return None
+
+    def apply_template(self):
+        if self.uid and self.check_profile_template():
+            with open(self.__template_file, "r") as f:
+                template = f.read()
+            # Replace the "{uid}" placeholder with the actual UID value
+            content = template.replace("{{uid}}", str(self.uid))
+
+        elif self.uid:
+            content = f"user-db:user\n" \
+              f"system-db:policy\n" \
+              f"system-db:policy{self.uid}\n" \
+              f"system-db:local\n" \
+              f"system-db:default\n" \
+              f"system-db:local\n" \
+              f"system-db:policy{self.uid}\n" \
+              f"system-db:policy\n"
+        else:
+            return
+
+        user_mandatory = f'/run/dconf/user/{self.uid}'
+        touch_file(user_mandatory)
+
+        with open(user_mandatory, "w") as f:
+            f.write(content)
 
 
 def update_dict(dict1, dict2):
