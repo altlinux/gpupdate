@@ -87,6 +87,23 @@ class Dconf_registry():
             ...
         return key_values
 
+    @staticmethod
+    def dconf_update():
+        try:
+            process = subprocess.Popen(['dconf', 'update'],
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            output, error = process.communicate()
+
+            if error:
+                #log error
+                ...
+            else:
+                #log done
+                ...
+        except Exception as exc:
+            #log exp
+            ...
+
     def check_profile_template(self):
         if Path(self.__template_file).exists():
             return True
