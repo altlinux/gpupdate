@@ -169,24 +169,19 @@ def load_preg_dconf(pregfile, pathfile):
         if i.valuename.startswith('**del'):
             continue
 
-        if isinstance(i.data, int):
-            correct_data = (i.type, i.data)
-        else:
-            correct_data = i.data
-
         if i.valuename != i.data:
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
-                dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):correct_data})
+                dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):i.data})
             else:
                 # If the key does not exist in dd, create a new key-value pair
-                dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):correct_data}
+                dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):i.data}
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
             all_list_key = i.keyname.split('\\')
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
-            dd_target.setdefault(all_list_key[-1], []).append(correct_data)
+            dd_target.setdefault(all_list_key[-1], []).append(i.data)
     # Update the global registry dictionary with the contents of dd
     add_to_dict(Dconf_registry.global_registry_dict[Dconf_registry._ReadQueue], pathfile)
     update_dict(Dconf_registry.global_registry_dict, dd)
@@ -207,5 +202,8 @@ def create_dconf_ini_file(filename, data):
         for section, section_data in data.items():
             file.write(f'[{section}]\n')
             for key, value in section_data.items():
-                file.write(f'{key} = "{value}"\n')
+                if isinstance(value, int):
+                    file.write(f'{key} = {value}\n')
+                else:
+                    file.write(f'{key} = "{value}"\n')
             file.write('\n')
