@@ -135,6 +135,17 @@ class Dconf_registry():
         with open(user_mandatory, "w") as f:
             f.write(content)
 
+def filter_dict_keys(starting_string, input_dict):
+    return {key: input_dict[key] for key in input_dict if key.startswith(starting_string)}
+
+def has_single_key_with_value(input_dict):
+
+    if not input_dict or len(input_dict) == 0:
+        return False
+    elif len(input_dict) == 1 and list(input_dict.values())[0] is None:
+        return False
+    else:
+        return True
 
 def update_dict(dict1, dict2):
     '''
