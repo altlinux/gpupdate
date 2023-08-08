@@ -69,7 +69,8 @@ from .ini_applier import (
 )
 
 from .kde_applier import (
-     kde_applier_user
+      kde_applier
+    , kde_applier_user
 )
 
 from .networkshare_applier import networkshare_applier
@@ -167,6 +168,7 @@ class frontend_manager:
         self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
         self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
         self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)
+        self.machine_appliers['kde'] = kde_applier(self.storage)
 
     def _init_user_appliers(self):
         # User appliers are expected to work with user-writable
