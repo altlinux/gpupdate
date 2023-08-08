@@ -33,19 +33,18 @@ widget_utilities = {
 class kde_applier(applier_frontend):
     __module_name = 'KdeApplier'
     __module_experimental = False
-    __module_enabled = True 
+    __module_enabled = True
     __hklm_branch = 'Software\\BaseALT\\Policies\\KDE\\'
     __hklm_lock_branch = 'Software\\BaseALT\\Policies\\KDELocks\\'
 
-    def __init__(self, storage, sid=None, username=None):
+    def __init__(self, storage):
         self.storage = storage
-        self.username = username
-        self.sid = sid
         self.locks_dict = {}
         kde_filter = '{}%'.format(self.__hklm_branch)
-        locks_filter = '{}%'.format(self.__hklm_lock_branch) 
-        self.locks_settings = self.storage.filter_hklm_entries(self.sid, locks_filter)
-        self.kde_settings = self.storage.filter_hklm_entries(self.sid, kde_filter)
+        locks_filter = '{}%'.format(self.__hklm_lock_branch)
+        self.locks_settings = self.storage.filter_hklm_entries(locks_filter)
+        self.kde_settings = self.storage.filter_hklm_entries(kde_filter)
+
         self.__module_enabled = check_enabled(
             self.storage,
             self.__module_name,
@@ -59,24 +58,18 @@ class kde_applier(applier_frontend):
         '''
         Change settings applied in admin context
         '''
-        if self.__module_enabled:
-            #log('')
-            pass
-        else:
-            pass
-            #log('')
+
     def user_context_apply(self):
         '''
         Change settings applied in user context
         '''
-        # TODO: Добавить в файл /massages/__init__.py логи, в файл /local/gpoa.po перевод логов
 
     def apply(self):
         if self.__module_enabled:
-            log('')
-            parse_key2(self.locks_settings, self.kde_settings, self.username)
+            log('D198')
+            parse_key(self.locks_settings, self.kde_settings)
         else:
-            log('')
+            log('D199')
 
 class kde_applier_user(applier_frontend):
     __module_name = 'KdeApplierUser'
@@ -122,14 +115,13 @@ class kde_applier_user(applier_frontend):
         if self.__module_enabled:
             #log('')
             pass
-            #self.parse_key()
-            type_pol = 'user'
-            parse_key2(self.locks_settings, self.kde_settings, self.username, type_pol)
+            type_pol = True
+            parse_key(self.locks_settings, self.kde_settings, self.username, type_pol)
         else:
             pass
             #log('')
 
-def parse_key2(locks_settings, kde_settings, username, type_pol):
+def parse_key(locks_settings, kde_settings, username = None, type_pol = False):
     '''
     Method used to parse hive_key
     '''
@@ -142,7 +134,7 @@ def parse_key2(locks_settings, kde_settings, username, type_pol):
         file = valuename[0]
         value = valuename[1]
         data = string_to_literal_eval(setting.data)
-        if file == 'plasma' and type_pol == 'user':
+        if file == 'plasma' and type_pol == True:
             apply_for_widget(value, widget_utilities, username, data)
         else:
             apply(file, data, username, valuenameForDict, locks_dict, type_pol)
@@ -157,7 +149,6 @@ def apply(file, data, username, valuenameForDict, locks_dict, type_pol=False):
     else:
         config_file_path = f"/etc/xdg/{file}"
     with open(config_file_path, 'a') as config_file:
-            print(config_file_path)
             for section, values in data.items():
                 config_file.write(f"[{section}]\n")
             if valuenameForDict in locks_dict:
