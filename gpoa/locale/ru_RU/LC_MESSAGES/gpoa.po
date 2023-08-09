@@ -228,6 +228,12 @@ msgstr "Ошибка очистки каталога для машины"
 msgid "Error cleaning directory for user"
 msgstr "Ошибка очистки каталога для пользователя"
 
+msgid "Error while executing command for widgets"
+msgstr "Ошибка при выполнении команды для виджетов"
+
+msgid "Error creating environment variables"
+msgstr "Ошибка создания перемеенных среды"
+
 # Error_end
 
 # Debug
@@ -771,13 +777,13 @@ msgstr "Запись настройки Яндекс Браузера в"
 msgid "Running networkshare applier for user"
 msgstr "Запуск применение настроек сетевых каталогов для пользователя"
 
-msgid "Copying a file"
+msgid "File copy"
 msgstr "Копирование файла"
 
 msgid "Running networkshare applier for user will not be started"
 msgstr "Применение настроек сетевых каталогов для пользователя не будет запущено"
 
-msgid "Updating a file"
+msgid "File update"
 msgstr "Обновление файла"
 
 msgid "Applying settings for network share"
@@ -806,6 +812,24 @@ msgstr "Не удалось создать ссылку на точку монт
 
 msgid "Failed to create a symlink to the hidden system network drives mountpoint"
 msgstr "Не удалось создать ссылку на точку монтирования скрытых системных сетевых дисков"
+
+msgid "Running KDE applier for machine"
+msgstr "Запуск применения настроек KDE для машины"
+
+msgid "KDE applier for machine will not be started"
+msgstr "Применение настроек KDE для машины не удалось"
+
+msgid "Running KDE applier for user in user context"
+msgstr "Запуск применения настроек KDE в контексте пользователя"
+
+msgid "KDE applier for user in user context will not be started"
+msgstr "KDE в контексте пользователя не запускается"
+
+msgid "Changing the configuration file"
+msgstr "Изменение конфигурационного файла"
+
+msgid "Widget command completed successfully"
+msgstr "Команда для виджетов выполнена успешно"
 
 # Debug_end
 
