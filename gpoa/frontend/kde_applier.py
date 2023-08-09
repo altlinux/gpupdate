@@ -44,15 +44,13 @@ class kde_applier(applier_frontend):
         locks_filter = '{}%'.format(self.__hklm_lock_branch)
         self.locks_settings = self.storage.filter_hklm_entries(locks_filter)
         self.kde_settings = self.storage.filter_hklm_entries(kde_filter)
+        self.all_kde_settings = {}
 
         self.__module_enabled = check_enabled(
             self.storage,
             self.__module_name,
             self.__module_experimental
         )
-
-    def run(self):
-        pass
 
     def admin_context_apply(self):
         '''
@@ -67,7 +65,8 @@ class kde_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             log('D198')
-            parse_key(self.locks_settings, self.kde_settings)
+            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings)
+            #print(self.all_kde_settings)
         else:
             log('D199')
 
@@ -98,9 +97,7 @@ class kde_applier_user(applier_frontend):
             self.__module_name,
             self.__module_experimental
         )
-
-    def run(self):
-        pass
+        self.all_kde_settings = {}
 
     def admin_context_apply(self):
         '''
@@ -111,17 +108,15 @@ class kde_applier_user(applier_frontend):
         '''
         Change settings applied in user context
         '''
-        # TODO: Добавить в файл /massages/__init__.py логи, в файл /local/gpoa.po перевод логов
         if self.__module_enabled:
-            #log('')
-            pass
+            log('D200')
             type_pol = True
-            parse_key(self.locks_settings, self.kde_settings, self.username, type_pol)
+            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings, self.username, type_pol)
+            #print(self.all_kde_settings)
         else:
-            pass
-            #log('')
+            log('D201')
 
-def parse_key(locks_settings, kde_settings, username = None, type_pol = False):
+def parse_key(locks_settings, kde_settings, all_kde_dict, username = None, type_pol = False):
     '''
     Method used to parse hive_key
     '''
@@ -134,10 +129,12 @@ def parse_key(locks_settings, kde_settings, username = None, type_pol = False):
         file = valuename[0]
         value = valuename[1]
         data = string_to_literal_eval(setting.data)
+
         if file == 'plasma' and type_pol == True:
             apply_for_widget(value, widget_utilities, username, data)
         else:
             apply(file, data, username, valuenameForDict, locks_dict, type_pol)
+            update_dict(all_kde_dict, {file : data})
 
 
 def apply(file, data, username, valuenameForDict, locks_dict, type_pol=False):
@@ -148,7 +145,12 @@ def apply(file, data, username, valuenameForDict, locks_dict, type_pol=False):
         config_file_path = os.path.expanduser(f'{get_homedir(username)}/.config/{file}')
     else:
         config_file_path = f"/etc/xdg/{file}"
+        if os.path.exists(config_file_path):
+            os.remove(config_file_path)
     with open(config_file_path, 'a') as config_file:
+            logdata = dict()
+            logdata['file'] = config_file_path
+            log('D202', logdata)
             for section, values in data.items():
                 config_file.write(f"[{section}]\n")
             if valuenameForDict in locks_dict:
@@ -171,7 +173,6 @@ def apply_for_widget(value, widget_utilities, username, data):
     '''
     try:
             if value in widget_utilities:
-                # TODO: Выявить и добавить,по надобности, нужные переменные окружения для выполнения plasma-apply-desktoptheme и plasma-apply-cursortheme
                 os.environ["XDG_DATA_DIRS"] = f"{get_homedir(username)}.local/share/flatpak/exports/share:/var/lib/flatpak \
                     /exports/share:/usr/local/share:/usr/share/kf5:/usr/share:/var/lib/snapd/desktop"
                     #Variable for system detection of directories before files with .colors extension
@@ -186,13 +187,31 @@ def apply_for_widget(value, widget_utilities, username, data):
                 stdout, stderr = proc.communicate()
                 if proc.returncode == 0:
                     output = stdout.decode("utf-8").strip()
+                    log('D203')
                 else:
                     error = stderr.decode("utf-8").strip()
+                    log('E66')
             else:
                 pass
     except OSError as e:
-        pass
+        log('E67')
 
+def update_dict(dict1, dict2):
+    '''
+    Updates dict1 with the key-value pairs from dict2
+    '''
+    for key, value in dict2.items():
+        if key in dict1:
+            # If both values are dictionaries, recursively call the update_dict function
+            if isinstance(dict1[key], dict) and isinstance(value, dict):
+                update_dict(dict1[key], value)
+            else:
+                # If the value in dict1 is not a dictionary or the value in dict2 is not a dictionary,
+                # replace the value in dict1 with the value from dict2
+                dict1[key] = value
+        else:
+            # If the key does not exist in dict1, add the key-value pair from dict2 to dict1
+            dict1[key] = value
 
 
 
