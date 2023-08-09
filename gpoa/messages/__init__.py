@@ -99,8 +99,8 @@ def error_code(code):
     error_ids[63] = 'Error merging user GPT (from machine GPO)'
     error_ids[64] = 'Error to cleanup directory for machine'
     error_ids[65] = 'Error to cleanup directory for user'
-
-
+    error_ids[66] = 'Error while executing command for widgets'
+    error_ids[67] = 'Error creating environment variables'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -295,14 +295,19 @@ def debug_code(code):
     debug_ids[188] = 'Running networkshare applier for user'
     debug_ids[189] = 'Running networkshare applier for user will not be started'
     debug_ids[190] = 'Applying settings for network share'
-    debug_ids[191] = 'Copying a file'
-    debug_ids[192] = 'Updating a file'
+    debug_ids[191] = 'File copy'
+    debug_ids[192] = 'File update'
     debug_ids[193] = 'Deleting a file'
     debug_ids[194] = 'Failed to create a symlink to the network drives mountpoint'
     debug_ids[195] = 'Failed to create a symlink to the system network drives mountpoint'
     debug_ids[196] = 'Failed to create a symlink to the hidden network drives mountpoint'
     debug_ids[197] = 'Failed to create a symlink to the hidden system network drives mountpoint'
-
+    debug_ids[198] = 'Running KDE applier for machine'
+    debug_ids[199] = 'KDE applier for machine will not be started'
+    debug_ids[200] = 'Running KDE applier for user in user context'
+    debug_ids[201] = 'KDE applier for user in user context will not be started'
+    debug_ids[202] = 'Changing the configuration file'
+    debug_ids[203] = 'Widget command completed successfully'
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
