@@ -21,12 +21,22 @@ from pathlib import Path
 from util.util import string_to_literal_eval, get_uid_by_username, touch_file
 from util.paths import get_dconf_config_path
 
+
+class PregDconf():
+    def __init__(self, keyname, valuename, type_preg, data):
+        self.keyname = keyname
+        self.valuename = valuename
+        self.hive_key = '{}/{}'.format(self.keyname, self.valuename)
+        self.type = type_preg
+        self.data = data
+
 class Dconf_registry():
     '''
     A class variable that represents a global registry dictionary shared among instances of the class
     '''
     _ReadQueue = 'Software/BaseALT/Policies/ReadQueue'
     global_registry_dict = dict({_ReadQueue:{}})
+    global_registry_dict_win_style = dict()
     __template_file = '/usr/share/dconf/user_mandatory.template'
 
     list_keys = list()
@@ -135,8 +145,48 @@ class Dconf_registry():
         with open(user_mandatory, "w") as f:
             f.write(content)
 
+
+    def filter_entries(self, startswith):
+        if startswith[-1] == '%':
+            startswith = startswith[:-1]
+            return filter_dict_keys(startswith, Dconf_registry.global_registry_dict_win_style)
+        return filter_dict_keys(startswith, Dconf_registry.global_registry_dict)
+
+
+    def filter_hklm_entries(self, startswith):
+        pregs = self.filter_entries(startswith)
+        list_entiers = []
+        for keyname, value in pregs.items():
+            for valuename, data in value.items():
+                list_entiers.append(PregDconf(keyname, valuename, find_preg_type(data), data))
+        return list_entiers
+
+
+    def filter_hkcu_entries(self, sid, startswith):
+        return self.filter_hklm_entries(startswith)
+
+
+    def get_entry(self, dictionary, path):
+        keys = path.split("\\") if "\\" in path else path.split("/")
+        result = dictionary
+        for key in keys:
+            if isinstance(result, dict) and key in result:
+                result = result[key]
+            else:
+                return None
+        return result
+
+    def get_hkcu_entry(self, sid, hive_key):
+        return self.get_hklm_entry(hive_key)
+
+
+    def get_hklm_entry(self, hive_key):
+        return self.get_entry(Dconf_registry.global_registry_dict_win_style, hive_key)
+
+
 def filter_dict_keys(starting_string, input_dict):
     return {key: input_dict[key] for key in input_dict if key.startswith(starting_string)}
+
 
 def has_single_key_with_value(input_dict):
 
@@ -146,6 +196,14 @@ def has_single_key_with_value(input_dict):
         return False
     else:
         return True
+
+
+def find_preg_type(argument):
+    if isinstance(argument, int):
+        return 4
+    else:
+        return 1
+
 
 def update_dict(dict1, dict2):
     '''
@@ -175,6 +233,7 @@ def load_preg_dconf(pregfile, pathfile):
     Loads the configuration from preg registry into a dictionary
     '''
     dd = dict()
+    dd_win_style = dict()
     for i in pregfile.entries:
         # Skip this entry if the valuename starts with '**del'
         if i.valuename.startswith('**del'):
@@ -184,18 +243,24 @@ def load_preg_dconf(pregfile, pathfile):
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):i.data})
+                dd_win_style[i.keyname].update({i.valuename:i.data})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):i.data}
+                dd_win_style[i.keyname] = {i.valuename:i.data}
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
             all_list_key = i.keyname.split('\\')
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
             dd_target.setdefault(all_list_key[-1], []).append(i.data)
+
+            dd_target_win = dd_win_style.setdefault('\\'.join(all_list_key[:-1]),{})
+            dd_target_win.setdefault(all_list_key[-1], []).append(i.data)
     # Update the global registry dictionary with the contents of dd
     add_to_dict(Dconf_registry.global_registry_dict[Dconf_registry._ReadQueue], pathfile)
     update_dict(Dconf_registry.global_registry_dict, dd)
+    update_dict(Dconf_registry.global_registry_dict_win_style, dd_win_style)
 
 
 def create_dconf_ini_file(filename, data):
