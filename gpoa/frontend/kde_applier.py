@@ -40,6 +40,8 @@ class kde_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
         self.locks_dict = {}
+        self.locks_data_dict = {}
+        self.all_kde_settings = {}
         kde_filter = '{}%'.format(self.__hklm_branch)
         locks_filter = '{}%'.format(self.__hklm_lock_branch)
         self.locks_settings = self.storage.filter_hklm_entries(locks_filter)
@@ -65,8 +67,8 @@ class kde_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             log('D198')
-            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings)
-            #print(self.all_kde_settings)
+            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings, self.locks_data_dict)
+            apply(self.all_kde_settings, self.locks_data_dict)
         else:
             log('D199')
 
@@ -83,11 +85,14 @@ class kde_applier_user(applier_frontend):
             'wallpaperimage': 'plasma-apply-wallpaperimage'
         }
 
+
     def __init__(self, storage, sid=None, username=None):
         self.storage = storage
         self.username = username
         self.sid = sid
         self.locks_dict = {}
+        self.locks_data_dict = {}
+        self.all_kde_settings = {}
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch) 
         self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
@@ -97,7 +102,7 @@ class kde_applier_user(applier_frontend):
             self.__module_name,
             self.__module_experimental
         )
-        self.all_kde_settings = {}
+
 
     def admin_context_apply(self):
         '''
@@ -110,13 +115,12 @@ class kde_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D200')
-            type_pol = True
-            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings, self.username, type_pol)
-            #print(self.all_kde_settings)
+            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings, self.locks_data_dict, self.username)
+            apply(self.all_kde_settings, self.locks_data_dict, self.username)
         else:
             log('D201')
 
-def parse_key(locks_settings, kde_settings, all_kde_dict, username = None, type_pol = False):
+def parse_key(locks_settings, kde_settings, all_kde_dict, locks_data_dict, username = None):
     '''
     Method used to parse hive_key
     '''
@@ -124,48 +128,42 @@ def parse_key(locks_settings, kde_settings, all_kde_dict, username = None, type_
     for locks in locks_settings:
         locks_dict[locks.valuename] = locks.data
     for setting in kde_settings:
-        valuenameForDict = setting.valuename
         valuename = setting.valuename.split('.')
         file = valuename[0]
         value = valuename[1]
         data = string_to_literal_eval(setting.data)
-
-        if file == 'plasma' and type_pol == True:
+        valuename_for_dict = f"{file}.{value}"
+        type_of_lock = locks_dict[valuename_for_dict]
+        if type_of_lock == '1':
+            locks_data_dict[str(data)] = type_of_lock
+        if file == 'plasma' and username is not None:
             apply_for_widget(value, widget_utilities, username, data)
         else:
-            apply(file, data, username, valuenameForDict, locks_dict, type_pol)
             update_dict(all_kde_dict, {file : data})
 
-
-def apply(file, data, username, valuenameForDict, locks_dict, type_pol=False):
-    '''
-    Method for editing INI configuration files responsible for KDE settings
-    '''
-    if type_pol:
-        config_file_path = os.path.expanduser(f'{get_homedir(username)}/.config/{file}')
-    else:
-        config_file_path = f"/etc/xdg/{file}"
-        if os.path.exists(config_file_path):
-            os.remove(config_file_path)
-    with open(config_file_path, 'a') as config_file:
-            logdata = dict()
-            logdata['file'] = config_file_path
-            log('D202', logdata)
-            for section, values in data.items():
-                config_file.write(f"[{section}]\n")
-            if valuenameForDict in locks_dict:
-                if locks_dict[valuenameForDict] == '1':
-                    for key, value in values.items():
-                        config_line = f"{key}[$i]={value}\n"
-                        config_file.write(config_line)
-                elif locks_dict[valuenameForDict] == '0':
-                    for key, value in values.items():
-                        config_line = f"{key}={value}\n"
-                        config_file.write(config_line)
+def apply(all_kde_dict, locks_data_dict, username = None):
+        for file_name, sections in all_kde_dict.items():
+            if username is not None:
+                file_name = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
             else:
-                for key, value in values.items():
-                        config_line = f"{key}={value}\n"
-                        config_file.write(config_line)
+                file_name = f"/etc/xdg/{file_name}"
+                if os.path.exists(file_name):
+                    os.remove(file_name)
+            with open(file_name, 'a') as file:
+                logdata = dict()
+                logdata['file'] = file_name
+                log('D202', logdata)
+                print(file_name)
+                for section, keys in sections.items():
+                    result = { section : keys}
+                    file.write(f"[{section}]\n")
+                    if str(result) in locks_data_dict:
+                        for key, value in keys.items():
+                            file.write(f"{key}[$i]={value}\n")
+                    else:
+                        for key, value in keys.items():
+                            file.write(f"{key}={value}\n")
+                file.write('\n')
 
 def apply_for_widget(value, widget_utilities, username, data):
     '''
@@ -212,9 +210,3 @@ def update_dict(dict1, dict2):
         else:
             # If the key does not exist in dict1, add the key-value pair from dict2 to dict1
             dict1[key] = value
-
-
-
-
-
-
