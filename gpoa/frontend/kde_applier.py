@@ -142,28 +142,30 @@ def parse_key(locks_settings, kde_settings, all_kde_dict, locks_data_dict, usern
             update_dict(all_kde_dict, {file : data})
 
 def apply(all_kde_dict, locks_data_dict, username = None):
-        for file_name, sections in all_kde_dict.items():
-            if username is not None:
-                file_name = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
-            else:
-                file_name = f"/etc/xdg/{file_name}"
-                if os.path.exists(file_name):
-                    os.remove(file_name)
-            with open(file_name, 'a') as file:
-                logdata = dict()
-                logdata['file'] = file_name
-                log('D202', logdata)
-                print(file_name)
-                for section, keys in sections.items():
-                    result = { section : keys}
-                    file.write(f"[{section}]\n")
-                    if str(result) in locks_data_dict:
-                        for key, value in keys.items():
-                            file.write(f"{key}[$i]={value}\n")
-                    else:
-                        for key, value in keys.items():
-                            file.write(f"{key}={value}\n")
-                file.write('\n')
+    '''
+    Method for changing configuration files
+    '''
+    for file_name, sections in all_kde_dict.items():
+        if username is not None:
+            file_name = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
+        else:
+            file_name = f"/etc/xdg/{file_name}"
+            if os.path.exists(file_name):
+                os.remove(file_name)
+        with open(file_name, 'a') as file:
+            logdata = dict()
+            logdata['file'] = file_name
+            log('D202', logdata)
+            for section, keys in sections.items():
+                result = { section : keys}
+                file.write(f"[{section}]\n")
+                if str(result) in locks_data_dict:
+                    for key, value in keys.items():
+                        file.write(f"{key}[$i]={value}\n")
+                else:
+                    for key, value in keys.items():
+                        file.write(f"{key}={value}\n")
+            file.write('\n')
 
 def apply_for_widget(value, widget_utilities, username, data):
     '''
