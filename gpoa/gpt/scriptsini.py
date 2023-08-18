@@ -61,19 +61,19 @@ def read_scripts(scripts_file):
                     section_scripts[key_index].set_args(config[act][key])
     if logon_scripts:
         for i in sorted(logon_scripts.keys()):
-            scripts.add_script(act_upper, logon_scripts[i])
+            scripts.add_script('LOGON', logon_scripts[i])
 
     if logoff_scripts:
         for i in sorted(logoff_scripts.keys()):
-            scripts.add_script(act_upper, logoff_scripts[i])
+            scripts.add_script('LOGOFF', logoff_scripts[i])
 
     if startup_scripts:
         for i in sorted(startup_scripts.keys()):
-            scripts.add_script(act_upper, startup_scripts[i])
+            scripts.add_script('STARTUP', startup_scripts[i])
 
     if shutdown_scripts:
         for i in sorted(shutdown_scripts.keys()):
-            scripts.add_script(act_upper, shutdown_scripts[i])
+            scripts.add_script('SHUTDOWN', shutdown_scripts[i])
 
 
     return scripts
