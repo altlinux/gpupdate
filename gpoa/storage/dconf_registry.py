@@ -26,9 +26,23 @@ class PregDconf():
     def __init__(self, keyname, valuename, type_preg, data):
         self.keyname = keyname
         self.valuename = valuename
-        self.hive_key = '{}/{}'.format(self.keyname, self.valuename)
+        self.hive_key = '{}\\{}'.format(self.keyname, self.valuename)
         self.type = type_preg
         self.data = data
+
+
+class gplist(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def first(self):
+        if self:
+            return self[0]
+        else:
+            return None
+
+    def count(self):
+        return len(self)
 
 class Dconf_registry():
     '''
@@ -40,6 +54,7 @@ class Dconf_registry():
     __template_file = '/usr/share/dconf/user_mandatory.template'
 
     list_keys = list()
+    _info = dict()
 
     shortcuts = list()
     folders = list()
@@ -155,11 +170,11 @@ class Dconf_registry():
 
     def filter_hklm_entries(self, startswith):
         pregs = self.filter_entries(startswith)
-        list_entiers = []
+        list_entiers = list()
         for keyname, value in pregs.items():
             for valuename, data in value.items():
                 list_entiers.append(PregDconf(keyname, valuename, find_preg_type(data), data))
-        return list_entiers
+        return gplist(list_entiers)
 
 
     def filter_hkcu_entries(self, sid, startswith):
@@ -182,6 +197,104 @@ class Dconf_registry():
 
     def get_hklm_entry(self, hive_key):
         return self.get_entry(Dconf_registry.global_registry_dict_win_style, hive_key)
+
+
+    def set_info(self, key , data):
+        self._info[key] = data
+
+
+    def get_info(self, key):
+        return self._info.setdefault(key, None)
+
+
+    def add_shortcut(self, sid, sc_obj, policy_name):
+        self.shortcuts.append(sc_obj)
+
+
+    def add_printer(self, sid, pobj, policy_name):
+        self.printers.append(pobj)
+
+
+    def add_drive(self, sid, dobj, policy_name):
+        self.drives.append(dobj)
+
+
+    def add_folder(self, sid, fobj, policy_name):
+        self.folders.append(fobj)
+
+
+    def add_envvar(self, sid, evobj, policy_name):
+        self.environmentvariables.append(evobj)
+
+
+    def add_script(self, sid, scrobj, policy_name):
+        self.scripts.append(scrobj)
+
+
+    def add_file(self, sid, fileobj, policy_name):
+        self.files.append(fileobj)
+
+
+    def add_ini(self, sid, iniobj, policy_name):
+        self.inifiles.append(iniobj)
+
+
+    def add_networkshare(self, sid, networkshareobj, policy_name):
+        self.networkshares.append(networkshareobj)
+
+
+    def get_shortcuts(self, sid):
+        return self.shortcuts
+
+
+    def get_printers(self, sid):
+        return self.printers
+
+
+    def get_drives(self, sid):
+        return self.drives
+
+
+    def get_folders(self, sid):
+        return self.folders
+
+
+    def get_envvars(self, sid):
+        return self.environmentvariables
+
+
+    def get_scripts(self, sid, action):
+        action_scripts = list()
+        for part in self.scripts:
+            if action == 'LOGON':
+                action_scripts.extend(part.get_logon_scripts())
+            elif action == 'LOGOFF':
+                action_scripts.extend(part.get_logoff_scripts())
+            elif action == 'STARTUP':
+                action_scripts.extend(part.get_startup_scripts())
+            elif action == 'SHUTDOWN':
+                action_scripts.extend(part.get_shutdown_scripts())
+        return action_scripts
+
+
+
+    def get_files(self, sid):
+        return self.files
+
+
+    def get_networkshare(self, sid):
+        return self.networkshares
+
+
+    def get_ini(self, sid):
+        return self.inifiles
+
+
+    def wipe_user(self, sid):
+        ...
+
+    def wipe_hklm(self):
+        ...
 
 
 def filter_dict_keys(starting_string, input_dict):
