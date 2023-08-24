@@ -18,10 +18,12 @@
 
 from .applier_frontend import applier_frontend, check_enabled
 from util.logging import log
-from util.util import get_homedir, string_to_literal_eval
+from util.util import get_homedir
 
 import os
 import subprocess
+import json
+#import pdb
 
 widget_utilities = {
             'colorscheme': 'plasma-apply-colorscheme',
@@ -32,8 +34,8 @@ widget_utilities = {
 
 class kde_applier(applier_frontend):
     __module_name = 'KdeApplier'
-    __module_experimental = False
-    __module_enabled = True
+    __module_experimental = True
+    __module_enabled = False
     __hklm_branch = 'Software\\BaseALT\\Policies\\KDE\\'
     __hklm_lock_branch = 'Software\\BaseALT\\Policies\\KDELocks\\'
 
@@ -67,15 +69,15 @@ class kde_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             log('D198')
-            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings, self.locks_data_dict)
-            apply(self.all_kde_settings, self.locks_data_dict)
+            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict)
+            apply(self.all_kde_settings, self.locks_dict)
         else:
             log('D199')
 
 class kde_applier_user(applier_frontend):
     __module_name = 'KdeApplierUser'
-    __module_experimental = False
-    __module_enabled = True
+    __module_experimental = True
+    __module_enabled = False
     __hkcu_branch = 'Software\\BaseALT\\Policies\\KDE\\'
     __hkcu_lock_branch = 'Software\\BaseALT\\Policies\\KDELocks\\'
     widget_utilities = {
@@ -84,7 +86,6 @@ class kde_applier_user(applier_frontend):
             'desktoptheme': 'plasma-apply-desktoptheme',
             'wallpaperimage': 'plasma-apply-wallpaperimage'
         }
-
 
     def __init__(self, storage, sid=None, username=None):
         self.storage = storage
@@ -103,7 +104,6 @@ class kde_applier_user(applier_frontend):
             self.__module_experimental
         )
 
-
     def admin_context_apply(self):
         '''
         Change settings applied in admin context
@@ -115,59 +115,83 @@ class kde_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D200')
-            parse_key(self.locks_settings, self.kde_settings, self.all_kde_settings, self.locks_data_dict, self.username)
-            apply(self.all_kde_settings, self.locks_data_dict, self.username)
+            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.username)
+            apply(self.all_kde_settings, self.locks_dict, self.username)
         else:
             log('D201')
 
-def parse_key(locks_settings, kde_settings, all_kde_dict, locks_data_dict, username = None):
-    '''
-    Method used to parse hive_key
-    '''
-    locks_dict = {}
-    for locks in locks_settings:
-        locks_dict[locks.valuename] = locks.data
-    for setting in kde_settings:
-        valuename = setting.valuename.split('.')
-        file = valuename[0]
-        value = valuename[1]
-        data = string_to_literal_eval(setting.data)
-        valuename_for_dict = f"{file}.{value}"
-        type_of_lock = locks_dict[valuename_for_dict]
-        if type_of_lock == '1':
-            locks_data_dict[str(data)] = type_of_lock
-        if file == 'plasma' and username is not None:
-            apply_for_widget(value, widget_utilities, username, data)
-        else:
-            update_dict(all_kde_dict, {file : data})
+def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, username = None):
+        for locks in locks_settings:
+            locks_dict[locks.valuename] = locks.data
+        for setting in kde_settings:
+            try:
+                file_name, section, value = setting.keyname.split("\\")[-2], setting.keyname.split("\\")[-1], setting.valuename
+                data = setting.data
+                if file_name == 'plasma':
+                    apply_for_widget(section, username, data)
+                if file_name not in all_kde_settings:
+                    all_kde_settings[file_name] = {}
+                if section not in all_kde_settings[file_name]:
+                    all_kde_settings[file_name][section] = {}
+                all_kde_settings[file_name][section][value] = data
+                return all_kde_settings, locks_dict
+            except Exception as exc:
+                logdata = dict()
+                logdata['Exception'] = exc
+                logdata['Exception'] = setting
+                log('W16', logdata)
 
-def apply(all_kde_dict, locks_data_dict, username = None):
-    '''
-    Method for changing configuration files
-    '''
-    for file_name, sections in all_kde_dict.items():
-        if username is not None:
-            file_name = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
-        else:
-            file_name = f"/etc/xdg/{file_name}"
-            if os.path.exists(file_name):
-                os.remove(file_name)
-        with open(file_name, 'a') as file:
+def apply(all_kde_settings, locks_dict, username = None):
+    if username is None:
+        for file_name, sections in all_kde_settings.items():
+            file_path = f'/etc/xdg/{file_name}'
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            with open(file_path, 'w') as file:
+                for section, keys in sections.items():
+                    file.write(f'[{section}]\n')
+                    for key, value in keys.items():
+                        if key in locks_dict and locks_dict[key] == '1':
+                            file.write(f'{key}[$i]={value}\n')
+                        else:
+                            file.write(f'{key}={value}\n')
+                    file.write('\n')
+    else:
+        for file_name, sections in all_kde_settings.items():
+            for section, keys in sections.items():
+                for key, value in keys.items():
+                    if key in locks_dict and locks_dict[key] == '1':
+                        command = [
+                            'kwriteconfig5',
+                            '--file', file_name,
+                            '--group', section,
+                            '--key', key +'/$i/',
+                            '--type', 'string',
+                            value
+                        ]
+                    else:
+                        command = [
+                            'kwriteconfig5',
+                            '--file', file_name,
+                            '--group', section,
+                            '--key', key,
+                            '--type', 'string',
+                            value
+                        ]
+                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            new_content = []
+            file_path = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
+            with open(file_path, 'r') as file:
+                for line in file:
+                    line = line.replace('/$i/', '[$i]')
+                    new_content.append(line)
+            with open(file_path, 'w') as file:
+                file.writelines(new_content)
             logdata = dict()
             logdata['file'] = file_name
             log('D202', logdata)
-            for section, keys in sections.items():
-                result = { section : keys}
-                file.write(f"[{section}]\n")
-                if str(result) in locks_data_dict:
-                    for key, value in keys.items():
-                        file.write(f"{key}[$i]={value}\n")
-                else:
-                    for key, value in keys.items():
-                        file.write(f"{key}={value}\n")
-            file.write('\n')
 
-def apply_for_widget(value, widget_utilities, username, data):
+def apply_for_widget(value, username, data):
     '''
     Method for changing graphics settings in plasma context
     '''
@@ -184,31 +208,11 @@ def apply_for_widget(value, widget_utilities, username, data):
                     #environment variable for accessing binary files without hard links
                 command = [f"{widget_utilities[value]}", f"{data}"]
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = proc.communicate()
                 if proc.returncode == 0:
-                    output = stdout.decode("utf-8").strip()
                     log('D203')
                 else:
-                    error = stderr.decode("utf-8").strip()
                     log('E66')
             else:
                 pass
     except OSError as e:
         log('E67')
-
-def update_dict(dict1, dict2):
-    '''
-    Updates dict1 with the key-value pairs from dict2
-    '''
-    for key, value in dict2.items():
-        if key in dict1:
-            # If both values are dictionaries, recursively call the update_dict function
-            if isinstance(dict1[key], dict) and isinstance(value, dict):
-                update_dict(dict1[key], value)
-            else:
-                # If the value in dict1 is not a dictionary or the value in dict2 is not a dictionary,
-                # replace the value in dict1 with the value from dict2
-                dict1[key] = value
-        else:
-            # If the key does not exist in dict1, add the key-value pair from dict2 to dict1
-            dict1[key] = value
