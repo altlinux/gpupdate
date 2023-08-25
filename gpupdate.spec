@@ -11,6 +11,7 @@
 %add_python3_req_skip messages
 %add_python3_req_skip storage
 %add_python3_req_skip storage.fs_file_cache
+%add_python3_req_skip storage.dconf_registry
 %add_python3_req_skip util
 %add_python3_req_skip util.arguments
 %add_python3_req_skip util.config
