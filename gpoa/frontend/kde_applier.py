@@ -23,7 +23,6 @@ from util.util import get_homedir
 import os
 import subprocess
 import json
-#import pdb
 
 widget_utilities = {
             'colorscheme': 'plasma-apply-colorscheme',
@@ -56,16 +55,6 @@ class kde_applier(applier_frontend):
             self.__module_experimental
         )
 
-    def admin_context_apply(self):
-        '''
-        Change settings applied in admin context
-        '''
-
-    def user_context_apply(self):
-        '''
-        Change settings applied in user context
-        '''
-
     def apply(self):
         if self.__module_enabled:
             log('D198')
@@ -95,7 +84,7 @@ class kde_applier_user(applier_frontend):
         self.locks_data_dict = {}
         self.all_kde_settings = {}
         kde_filter = '{}%'.format(self.__hkcu_branch)
-        locks_filter = '{}%'.format(self.__hkcu_lock_branch) 
+        locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
         self.kde_settings = self.storage.filter_hkcu_entries(self.sid, kde_filter)
         self.__module_enabled = check_enabled(
@@ -105,9 +94,7 @@ class kde_applier_user(applier_frontend):
         )
 
     def admin_context_apply(self):
-        '''
-        Change settings applied in admin context
-        '''
+        pass
 
     def user_context_apply(self):
         '''
@@ -134,7 +121,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, user
                 if section not in all_kde_settings[file_name]:
                     all_kde_settings[file_name][section] = {}
                 all_kde_settings[file_name][section][value] = data
-                return all_kde_settings, locks_dict
+
             except Exception as exc:
                 logdata = dict()
                 logdata['Exception'] = exc
