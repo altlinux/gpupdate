@@ -115,7 +115,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, user
                 file_name, section, value = setting.keyname.split("\\")[-2], setting.keyname.split("\\")[-1], setting.valuename
                 data = setting.data
                 if file_name == 'plasma':
-                    apply_for_widget(section, username, data)
+                    apply_for_widget(section, data)
                 if file_name not in all_kde_settings:
                     all_kde_settings[file_name] = {}
                 if section not in all_kde_settings[file_name]:
@@ -178,24 +178,16 @@ def apply(all_kde_settings, locks_dict, username = None):
             logdata['file'] = file_name
             log('D202', logdata)
 
-def apply_for_widget(value, username, data):
+def apply_for_widget(value, data):
     '''
     Method for changing graphics settings in plasma context
     '''
     try:
             if value in widget_utilities:
-                os.environ["XDG_DATA_DIRS"] = f"{get_homedir(username)}.local/share/flatpak/exports/share:/var/lib/flatpak \
-                    /exports/share:/usr/local/share:/usr/share/kf5:/usr/share:/var/lib/snapd/desktop"
-                    #Variable for system detection of directories before files with .colors extension
-                os.environ["DISPLAY"] = ":0"
-                    #Variable for command execution plasma-apply-colorscheme
-                os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
-                os.environ["PATH"] = f"{get_homedir(username)}/bin:/usr/local/bin:/usr/lib/kf5/bin:/usr/bin:/bin:/usr/games: \
-                    /var/lib/snapd/snap/bin"
-                    #environment variable for accessing binary files without hard links
+                os.environ["PATH"] = "/usr/lib/kf5/bin:"
                 command = [f"{widget_utilities[value]}", f"{data}"]
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if proc.returncode == 0:
+                if proc.returncode == None:
                     log('D203')
                 else:
                     log('E66')
