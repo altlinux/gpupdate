@@ -30,6 +30,7 @@ def info_code(code):
     info_ids[7] = 'Firefox policy'
     info_ids[8] = 'Chromium policy'
     info_ids[9] = 'Set user property to'
+    info_ids[10] = 'The line in the configuration file was cleared'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -101,6 +102,7 @@ def error_code(code):
     error_ids[65] = 'Error to cleanup directory for user'
     error_ids[66] = 'Error while executing command for widgets'
     error_ids[67] = 'Error creating environment variables'
+    error_ids[68] = 'Error running kwriteconfig5 command'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
