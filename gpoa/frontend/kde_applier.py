@@ -165,18 +165,44 @@ def apply(all_kde_settings, locks_dict, username = None):
                             '--type', 'string',
                             value
                         ]
-                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    try:
+                        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    except Exception as exc:
+                        clear_locks_settings(username, file_name, key)
+                        try:
+                            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        except Exception as exc:
+                            logdata = dict()
+                            logdata['command'] = command
+                            log('E68', logdata)
             new_content = []
             file_path = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
             with open(file_path, 'r') as file:
                 for line in file:
-                    line = line.replace('/$i/', '[$i]')
+                    line = line.replace('/$i/', '[$i]').replace(')(', '][')
                     new_content.append(line)
             with open(file_path, 'w') as file:
                 file.writelines(new_content)
             logdata = dict()
             logdata['file'] = file_name
             log('D202', logdata)
+
+def clear_locks_settings(username, file_name, key):
+    '''
+    Method to remove old locked settings
+    '''
+    file_path = f'{get_homedir(username)}/.config/{file_name}'
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    with open(file_path, 'w') as file:
+        for line in lines:
+            if f'{key}[$i]=' not in line:
+                file.write(line)
+    for line in lines:
+        if f'{key}[$i]=' in line:
+            logdata = dict()
+            logdata['line'] = line.strip()
+            log('I10', logdata)
 
 def apply_for_widget(value, data):
     '''
