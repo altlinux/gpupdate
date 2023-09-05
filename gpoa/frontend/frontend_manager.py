@@ -68,6 +68,11 @@ from .ini_applier import (
     , ini_applier_user
 )
 
+from .kde_applier import (
+      kde_applier
+    , kde_applier_user
+)
+
 from .networkshare_applier import networkshare_applier
 from .yandex_browser_applier import yandex_browser_applier
 
@@ -163,6 +168,7 @@ class frontend_manager:
         self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
         self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
         self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)
+        self.machine_appliers['kde'] = kde_applier(self.storage)
 
     def _init_user_appliers(self):
         # User appliers are expected to work with user-writable
@@ -184,6 +190,7 @@ class frontend_manager:
         self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
         self.user_appliers['ini'] = ini_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['kde'] = kde_applier_user(self.storage, self.sid, self.username)
 
     def machine_apply(self):
         '''
