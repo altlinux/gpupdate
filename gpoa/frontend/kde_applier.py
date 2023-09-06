@@ -138,7 +138,8 @@ def apply(all_kde_settings, locks_dict, username = None):
                 for section, keys in sections.items():
                     file.write(f'[{section}]\n')
                     for key, value in keys.items():
-                        if key in locks_dict and locks_dict[key] == '1':
+                        lock = f"{file_name};{section};{key}"
+                        if lock in locks_dict and locks_dict[lock] == '1':
                             file.write(f'{key}[$i]={value}\n')
                         else:
                             file.write(f'{key}={value}\n')
@@ -147,7 +148,8 @@ def apply(all_kde_settings, locks_dict, username = None):
         for file_name, sections in all_kde_settings.items():
             for section, keys in sections.items():
                 for key, value in keys.items():
-                    if key in locks_dict and locks_dict[key] == '1':
+                    lock = f"{file_name};{section};{key}"
+                    if lock in locks_dict and locks_dict[lock] == '1':
                         command = [
                             'kwriteconfig5',
                             '--file', file_name,
