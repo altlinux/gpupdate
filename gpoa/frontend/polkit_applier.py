@@ -26,8 +26,8 @@ from util.logging import log
 
 class polkit_applier(applier_frontend):
     __module_name = 'PolkitApplier'
-    __module_experimental = False
-    __module_enabled = True
+    __module_experimental = True
+    __module_enabled = False
     __deny_all_win = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
     __registry_branch = 'Software\\BaseALT\\Policies\\Polkit\\'
     __registry_locks_branch = 'Software\\BaseALT\\Policies\\PolkitLocks\\'
@@ -106,8 +106,8 @@ class polkit_applier(applier_frontend):
 
 class polkit_applier_user(applier_frontend):
     __module_name = 'PolkitApplierUser'
-    __module_experimental = False
-    __module_enabled = True
+    __module_experimental = True
+    __module_enabled = False
     __deny_all_win = 'Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\Deny_All'
     __registry_branch = 'Software\\BaseALT\\Policies\\Polkit\\'
     __polkit_map = {
