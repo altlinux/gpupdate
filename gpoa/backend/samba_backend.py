@@ -143,6 +143,7 @@ class samba_backend(applier_backend):
             if policy_mode > 0:
                 for gptobj in machine_gpts:
                     try:
+                        gptobj.sid = self.sid
                         gptobj.merge_user()
                     except Exception as exc:
                         logdata = dict()
@@ -191,9 +192,9 @@ def upm2str(upm_num):
     result = 'Not configured'
 
     if upm_num in [1, '1']:
-        result = 'Replace'
+        result = 'Merge'
 
     if upm_num in [2, '2']:
-        result = 'Merge'
+        result = 'Replace'
 
     return result
