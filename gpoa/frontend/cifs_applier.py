@@ -109,8 +109,8 @@ class Drive_list:
 
 class cifs_applier(applier_frontend):
     __module_name = 'CIFSApplier'
-    __module_enabled = False
-    __module_experimental = True
+    __module_enabled = True
+    __module_experimental = False
 
     def __init__(self, storage, sid):
         self.applier_cifs = cifs_applier_user(storage, sid, None)
@@ -129,8 +129,8 @@ class cifs_applier(applier_frontend):
 
 class cifs_applier_user(applier_frontend):
     __module_name = 'CIFSApplierUser'
-    __module_enabled = False
-    __module_experimental = True
+    __module_enabled = True
+    __module_experimental = False
     __auto_file = '/etc/auto.master'
     __auto_dir = '/etc/auto.master.gpupdate.d'
     __template_path = '/usr/share/gpupdate/templates'
