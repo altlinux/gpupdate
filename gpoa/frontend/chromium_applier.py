@@ -140,7 +140,13 @@ class chromium_applier(applier_frontend):
                             'ProfilePickerOnStartupAvailability',
                             'RelaunchNotification',
                             'SafeSitesFilterBehavior',
-                            'DiskCacheSize'])
+                            'DiskCacheSize',
+                            'FetchKeepaliveDurationSecondsOnShutdown',
+                            'MaxConnectionsPerProxy',
+                            'RelaunchNotificationPeriod',
+                            'UserAgentReduction',
+                            'UserDataSnapshotRetentionLimit',
+                            'BrowserSwitcherDelay'])
         return valuename_typeint
 
 
