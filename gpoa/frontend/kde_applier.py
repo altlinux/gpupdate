@@ -22,7 +22,7 @@ from util.util import get_homedir
 
 import os
 import subprocess
-import json
+
 
 widget_utilities = {
             'colorscheme': 'plasma-apply-colorscheme',
@@ -76,10 +76,11 @@ class kde_applier_user(applier_frontend):
             'wallpaperimage': 'plasma-apply-wallpaperimage'
         }
 
-    def __init__(self, storage, sid=None, username=None):
+    def __init__(self, storage, sid=None, username=None, file_cache = None):
         self.storage = storage
         self.username = username
         self.sid = sid
+        self.file_cache = file_cache
         self.locks_dict = {}
         self.locks_data_dict = {}
         self.all_kde_settings = {}
@@ -102,12 +103,12 @@ class kde_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D200')
-            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.username)
+            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache)
             apply(self.all_kde_settings, self.locks_dict, self.username)
         else:
             log('D201')
 
-def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, username = None):
+def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None):
         for locks in locks_settings:
             locks_dict[locks.valuename] = locks.data
         for setting in kde_settings:
@@ -115,7 +116,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, user
                 file_name, section, value = setting.keyname.split("\\")[-2], setting.keyname.split("\\")[-1], setting.valuename
                 data = setting.data
                 if file_name == 'plasma':
-                    apply_for_widget(section, data)
+                    apply_for_widget(section, data, file_cache)
                 if file_name not in all_kde_settings:
                     all_kde_settings[file_name] = {}
                 if section not in all_kde_settings[file_name]:
@@ -138,7 +139,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                 for section, keys in sections.items():
                     file.write(f'[{section}]\n')
                     for key, value in keys.items():
-                        lock = f"{file_name};{section};{key}"
+                        lock = f"{file_name}.{section}.{key}"
                         if lock in locks_dict and locks_dict[lock] == '1':
                             file.write(f'{key}[$i]={value}\n')
                         else:
@@ -148,7 +149,7 @@ def apply(all_kde_settings, locks_dict, username = None):
         for file_name, sections in all_kde_settings.items():
             for section, keys in sections.items():
                 for key, value in keys.items():
-                    lock = f"{file_name};{section};{key}"
+                    lock = f"{file_name}.{section}.{key}"
                     if lock in locks_dict and locks_dict[lock] == '1':
                         command = [
                             'kwriteconfig5',
@@ -206,20 +207,35 @@ def clear_locks_settings(username, file_name, key):
             logdata['line'] = line.strip()
             log('I10', logdata)
 
-def apply_for_widget(value, data):
+def apply_for_widget(value, data, file_cache):
     '''
     Method for changing graphics settings in plasma context
     '''
     try:
-            if value in widget_utilities:
-                os.environ["PATH"] = "/usr/lib/kf5/bin:"
-                command = [f"{widget_utilities[value]}", f"{data}"]
-                proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if proc.returncode == None:
-                    log('D203')
-                else:
-                    log('E66')
+        if value in widget_utilities:
+            if value == 'wallpaperimage':
+                file_cache.store(data)
+                data = file_cache.get(data)
+            os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
+                #Variable for system detection of directories before files with .colors extension
+            os.environ["DISPLAY"] = ":0"
+                #Variable for command execution plasma-apply-colorscheme
+            os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
+            os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
+            os.environ["PATH"] = "/usr/lib/kf5/bin:"
+                #environment variable for accessing binary files without hard links
+            command = [f"{widget_utilities[value]}", f"{data}"]
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout = proc.communicate()
+            logdata = dict()
+            logdata['Conclusion'] = stdout
+            if proc.returncode == 0:
+                log(logdata)
+                log('D203')
             else:
-                pass
+                log(logdata)
+                log('E66')
+        else:
+            pass
     except OSError as e:
         log('E67')

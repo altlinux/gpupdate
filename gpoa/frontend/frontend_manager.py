@@ -190,7 +190,7 @@ class frontend_manager:
         self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
         self.user_appliers['ini'] = ini_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['kde'] = kde_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['kde'] = kde_applier_user(self.storage, self.sid, self.username, self.file_cache)
 
     def machine_apply(self):
         '''
