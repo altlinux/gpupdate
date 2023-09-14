@@ -21,6 +21,7 @@ import pathlib
 import os
 from pathlib import Path
 from urllib.parse import urlparse
+from util.util import get_homedir
 
 from .config import GPConfig
 from .exceptions import NotUNCPathError
@@ -67,9 +68,16 @@ def file_cache_dir():
     Returns path pointing to gpupdate's cache directory
     '''
     cachedir = pathlib.Path('/var/cache/gpupdate_file_cache')
-
     if not cachedir.exists():
         cachedir.mkdir(parents=True, exist_ok=True)
+
+    return cachedir
+
+def file_cache_path_home(username) -> str:
+    '''
+    Returns the path pointing to the gpupdate cache directory in the /home directory.
+    '''
+    cachedir = f'{get_homedir(username)}/.cache/gpupdate'
 
     return cachedir
 
