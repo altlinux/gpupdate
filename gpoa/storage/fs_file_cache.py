@@ -25,16 +25,19 @@ import smbc
 
 
 from util.logging import log
-from util.paths import file_cache_dir, UNCPath
+from util.paths import file_cache_dir, file_cache_path_home, UNCPath
 from util.exceptions import NotUNCPathError
 
 
 class fs_file_cache:
     __read_blocksize = 4096
 
-    def __init__(self, cache_name):
+    def __init__(self, cache_name, username = None):
         self.cache_name = cache_name
-        self.storage_uri = file_cache_dir()
+        if username:
+            self.storage_uri = file_cache_path_home(username)
+        else:
+            self.storage_uri = file_cache_dir()
         logdata = dict({'cache_file': self.storage_uri})
         log('D20', logdata)
         self.samba_context = smbc.Context(use_kerberos=1)
@@ -75,6 +78,7 @@ class fs_file_cache:
                 df.write(data)
             df.close()
             os.rename(tmpfile, destfile)
+            os.chmod(destfile, 0o644)
         except:
             tmppath = Path(tmpfile)
             if tmppath.exists():
