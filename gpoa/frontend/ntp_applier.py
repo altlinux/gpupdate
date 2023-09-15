@@ -117,7 +117,7 @@ class ntp_applier(applier_frontend):
         ntp_server_enabled = self.storage.get_hklm_entry(self.ntp_server_enabled)
         ntp_client_enabled = self.storage.get_hklm_entry(self.ntp_client_enabled)
 
-        if server_type:
+        if server_type and server_type.data:
             if NTPServerType.NTP.value != server_type.data:
                 logdata = dict()
                 logdata['server_type'] = server_type
