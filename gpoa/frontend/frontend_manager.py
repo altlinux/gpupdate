@@ -133,7 +133,7 @@ class frontend_manager:
         self.is_machine = is_machine
         self.process_uname = get_process_user()
         self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
-        self.file_cache = fs_file_cache('file_cache')
+        self.file_cache = fs_file_cache('file_cache', self.username)
 
         self.machine_appliers = dict()
         self.user_appliers = dict()
