@@ -171,9 +171,12 @@ def apply(all_kde_settings, locks_dict, username = None):
                     try:
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     except Exception as exc:
-                        clear_locks_settings(username, file_name, key)
                         try:
+                            clear_locks_settings(username, file_name, key)
                             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        except OSError as exc:
+                            logdata['exc'] = exc
+                            log('W18', exc)
                         except Exception as exc:
                             logdata = dict()
                             logdata['command'] = command
@@ -237,5 +240,9 @@ def apply_for_widget(value, data, file_cache):
                 log('E66')
         else:
             pass
-    except OSError as e:
-        log('E67')
+    except OSError as exc:
+        logdata['exc'] = exc
+        log('W17', logdata)
+    except Exception as exc:
+        logdata['exc'] = exc
+        log('E67', logdata)
