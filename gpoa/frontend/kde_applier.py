@@ -125,8 +125,11 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
 
             except Exception as exc:
                 logdata = dict()
-                logdata['Exception'] = exc
-                logdata['Exception'] = setting
+                logdata['file_name'] = file_name
+                logdata['section'] = section
+                logdata['value'] = value
+                logdata['data'] = data
+                logdata['exc'] = exc
                 log('W16', logdata)
 
 def apply(all_kde_settings, locks_dict, username = None):
@@ -233,11 +236,9 @@ def apply_for_widget(value, data, file_cache):
             logdata = dict()
             logdata['Conclusion'] = stdout
             if proc.returncode == 0:
-                log(logdata)
-                log('D203')
+                log('D203', logdata)
             else:
-                log(logdata)
-                log('E66')
+                log('E66', logdata)
         else:
             pass
     except OSError as exc:
