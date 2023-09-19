@@ -335,9 +335,10 @@ def warning_code(code):
     warning_ids[13] = 'Failed to caching the file'
     warning_ids[14] = 'Could not create a valid list of keys'
     warning_ids[15] = 'Failed to copy file'
-    warning_ids[16] = 'Failed to create settings list'
+    warning_ids[16] = 'Failed to create KDE settings list'
     warning_ids[17] = 'Could not find application tools'
-    warning_ids[18] = 'Failed to open settings'
+    warning_ids[18] = 'Failed to open KDE settings'
+    warning_ids[19] = 'Failed to change KDE configuration file'
 
     return warning_ids.get(code, 'Unknown warning code')
 

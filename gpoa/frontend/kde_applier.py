@@ -69,12 +69,6 @@ class kde_applier_user(applier_frontend):
     __module_enabled = False
     __hkcu_branch = 'Software\\BaseALT\\Policies\\KDE\\'
     __hkcu_lock_branch = 'Software\\BaseALT\\Policies\\KDELocks\\'
-    widget_utilities = {
-            'colorscheme': 'plasma-apply-colorscheme',
-            'cursortheme': 'plasma-apply-cursortheme',
-            'desktoptheme': 'plasma-apply-desktoptheme',
-            'wallpaperimage': 'plasma-apply-wallpaperimage'
-        }
 
     def __init__(self, storage, sid=None, username=None, file_cache = None):
         self.storage = storage
@@ -133,6 +127,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 log('W16', logdata)
 
 def apply(all_kde_settings, locks_dict, username = None):
+    logdata = dict()
     if username is None:
         for file_name, sections in all_kde_settings.items():
             file_path = f'/etc/xdg/{file_name}'
@@ -179,22 +174,24 @@ def apply(all_kde_settings, locks_dict, username = None):
                             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         except OSError as exc:
                             logdata['exc'] = exc
-                            log('W18', exc)
+                            log('W18', logdata)
                         except Exception as exc:
-                            logdata = dict()
                             logdata['command'] = command
                             log('E68', logdata)
             new_content = []
-            file_path = os.path.expanduser(f'{get_homedir(username)}/.config/{file_name}')
-            with open(file_path, 'r') as file:
-                for line in file:
-                    line = line.replace('/$i/', '[$i]').replace(')(', '][')
-                    new_content.append(line)
-            with open(file_path, 'w') as file:
-                file.writelines(new_content)
-            logdata = dict()
-            logdata['file'] = file_name
-            log('D202', logdata)
+            file_path = f'{get_homedir(username)}/.config/{file_name}'
+            try:
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        line = line.replace('/$i/', '[$i]').replace(')(', '][')
+                        new_content.append(line)
+                with open(file_path, 'w') as file:
+                    file.writelines(new_content)
+                logdata['file'] = file_name
+                log('D202', logdata)
+            except Exception as exc:
+                logdata['exc'] = exc
+                log('W19', logdata)
 
 def clear_locks_settings(username, file_name, key):
     '''
@@ -217,6 +214,7 @@ def apply_for_widget(value, data, file_cache):
     '''
     Method for changing graphics settings in plasma context
     '''
+    logdata = dict()
     try:
         if value in widget_utilities:
             if value == 'wallpaperimage':
@@ -233,7 +231,6 @@ def apply_for_widget(value, data, file_cache):
             command = [f"{widget_utilities[value]}", f"{data}"]
             proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout = proc.communicate()
-            logdata = dict()
             logdata['Conclusion'] = stdout
             if proc.returncode == 0:
                 log('D203', logdata)

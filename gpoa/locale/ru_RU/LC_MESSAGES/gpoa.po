@@ -886,14 +886,17 @@ msgstr "Не удалось создать допустимый список к�
 msgid "Failed to copy file"
 msgstr "Не удалось скопировать файл"
 
-msgid "Failed to create settings list"
-msgstr "Не удалось создать список настроек"
+msgid "Failed to create KDE settings list"
+msgstr "Не удалось создать список настроек KDE"
 
 msgid "Could not find application tools"
 msgstr "Не удалось найти инструменты применения"
 
-msgid "Failed to open settings"
-msgstr "Не удалось открыть настройки"
+msgid "Failed to open KDE settings"
+msgstr "Не удалось открыть настройки KDE"
+
+msgid "Failed to change KDE configuration file"
+msgstr "Не удалось изменить файл конфигурации KDE"
 
 # Fatal
 msgid "Unable to refresh GPO list"
