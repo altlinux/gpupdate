@@ -62,7 +62,7 @@ class systemd_unit:
 
             service_state = self._get_state()
 
-            if not service_state in ['stopped']:
+            if not service_state in ['stopped', 'deactivating', 'inactive']:
                 logdata = dict()
                 logdata['unit'] = self.unit_name
                 log('E46', logdata)
