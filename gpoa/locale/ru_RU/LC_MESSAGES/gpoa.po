@@ -898,6 +898,9 @@ msgstr "Не удалось открыть настройки KDE"
 msgid "Failed to change KDE configuration file"
 msgstr "Не удалось изменить файл конфигурации KDE"
 
+msgid "Error connecting to server"
+msgstr "Ошибка при подключении к серверу"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"

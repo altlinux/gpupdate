@@ -49,9 +49,13 @@ class systemd_unit:
             service_state = self._get_state()
 
             if not service_state in ['active', 'activating']:
-                logdata = dict()
-                logdata['unit'] = self.unit_name
-                log('E46', logdata)
+                service_timer_name =  self.unit_name.replace(".service", ".timer")
+                self.unit = self.manager.LoadUnit(dbus.String(service_timer_name))
+                service_state = self._get_state()
+                if not service_state in ['active', 'activating']:
+                    logdata = dict()
+                    logdata['unit'] = self.unit_name
+                    log('E46', logdata)
         else:
             self.manager.StopUnit(self.unit_name, 'replace')
             self.manager.DisableUnitFiles([self.unit_name], dbus.Boolean(False))

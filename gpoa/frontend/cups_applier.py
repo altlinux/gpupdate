@@ -81,8 +81,12 @@ class cups_applier(applier_frontend):
         if not is_rpm_installed('cups'):
             log('W9')
             return
-
-        self.cups_connection = cups.Connection()
+        try:
+            self.cups_connection = cups.Connection()
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc', exc]
+            log('W20', logdata)
         self.printers = storage_get_printers(self.storage, self.storage.get_info('machine_sid'))
 
         if self.printers:

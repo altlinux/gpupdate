@@ -339,6 +339,7 @@ def warning_code(code):
     warning_ids[17] = 'Could not find application tools'
     warning_ids[18] = 'Failed to open KDE settings'
     warning_ids[19] = 'Failed to change KDE configuration file'
+    warning_ids[20] = 'Error connecting to server'
 
     return warning_ids.get(code, 'Unknown warning code')
 
