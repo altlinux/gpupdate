@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from storage.dconf_registry import Dconf_registry
 
 def read_services(service_file):
     '''
@@ -37,6 +38,7 @@ def read_services(service_file):
 
         services.append(srv_obj)
 
+    Dconf_registry.services.append(services)
     return services
 
 def merge_services(storage, sid, service_objects, policy_name):

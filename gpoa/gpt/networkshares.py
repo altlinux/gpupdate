@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from storage.dconf_registry import Dconf_registry
 
 def read_networkshares(networksharesxml):
     networkshares = list()
@@ -32,6 +33,7 @@ def read_networkshares(networksharesxml):
         networkshare_obj.set_abe(props.get('abe', default=None))
         networkshares.append(networkshare_obj)
 
+    Dconf_registry.networkshares.append(networkshares)
     return networkshares
 
 def merge_networkshares(storage, sid, networkshares_objects, policy_name):

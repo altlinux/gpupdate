@@ -19,6 +19,7 @@
 import json
 from base64 import b64decode
 from Crypto.Cipher import AES
+from storage.dconf_registry import Dconf_registry
 
 from util.xml import get_xml_root
 
@@ -76,6 +77,7 @@ def read_drives(drives_file):
 
         drives.append(drive_obj)
 
+    Dconf_registry.drives.append(drives)
     return drives
 
 def merge_drives(storage, sid, drive_objects, policy_name):
