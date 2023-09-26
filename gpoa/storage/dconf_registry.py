@@ -71,7 +71,10 @@ class Dconf_registry():
     def __init__(self, username, is_machine):
         self.username = username
         self.is_machine = is_machine
-        self.uid = get_uid_by_username(username) if not is_machine else None
+        if self.is_machine:
+            self.uid = None
+        else:
+            self.uid = get_uid_by_username(username) if not is_machine else None
         target_file = get_dconf_config_path(self.uid)
         touch_file(target_file)
         self.apply_template()
