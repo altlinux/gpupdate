@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from storage.dconf_registry import Dconf_registry
 
 def read_inifiles(inifiles_file):
     inifiles = list()
