@@ -78,7 +78,18 @@ class Dconf_registry():
         target_file = get_dconf_config_path(self.uid)
         touch_file(target_file)
         self.apply_template()
-        create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict)
+        create_dconf_ini_file(target_file,self.global_registry_dict)
+
+
+    @classmethod
+    def set_info(cls, key , data):
+        cls._info[key] = data
+
+
+    @classmethod
+    def get_info(cls, key):
+        return cls._info.setdefault(key, None)
+
 
     @staticmethod
     def get_matching_keys(path):
@@ -164,13 +175,15 @@ class Dconf_registry():
             f.write(content)
 
 
+    @classmethod
     def filter_entries(self, startswith):
         if startswith[-1] == '%':
             startswith = startswith[:-1]
-            return filter_dict_keys(startswith, Dconf_registry.global_registry_dict_win_style)
-        return filter_dict_keys(startswith, Dconf_registry.global_registry_dict)
+            return filter_dict_keys(startswith, self.global_registry_dict_win_style)
+        return filter_dict_keys(startswith, self.global_registry_dict)
 
 
+    @classmethod
     def filter_hklm_entries(self, startswith):
         pregs = self.filter_entries(startswith)
         list_entiers = list()
@@ -184,6 +197,7 @@ class Dconf_registry():
         return self.filter_hklm_entries(startswith)
 
 
+    @classmethod
     def get_entry(self, dictionary, path):
         keys = path.split("\\") if "\\" in path else path.split("/")
         result = dictionary
@@ -194,78 +208,86 @@ class Dconf_registry():
                 return None
         return result
 
+    @classmethod
     def get_hkcu_entry(self, sid, hive_key):
         return self.get_hklm_entry(hive_key)
 
 
+    @classmethod
     def get_hklm_entry(self, hive_key):
-        return self.get_entry(Dconf_registry.global_registry_dict_win_style, hive_key)
+        return self.get_entry(self.global_registry_dict_win_style, hive_key)
 
 
-    def set_info(self, key , data):
-        self._info[key] = data
-
-
-    def get_info(self, key):
-        return self._info.setdefault(key, None)
-
-
+    @classmethod
     def add_shortcut(self, sid, sc_obj, policy_name):
         self.shortcuts.append(sc_obj)
 
 
+    @classmethod
     def add_printer(self, sid, pobj, policy_name):
         self.printers.append(pobj)
 
 
+    @classmethod
     def add_drive(self, sid, dobj, policy_name):
         self.drives.append(dobj)
 
 
+    @classmethod
     def add_folder(self, sid, fobj, policy_name):
         self.folders.append(fobj)
 
 
+    @classmethod
     def add_envvar(self, sid, evobj, policy_name):
         self.environmentvariables.append(evobj)
 
 
+    @classmethod
     def add_script(self, sid, scrobj, policy_name):
         self.scripts.append(scrobj)
 
 
+    @classmethod
     def add_file(self, sid, fileobj, policy_name):
         self.files.append(fileobj)
 
 
+    @classmethod
     def add_ini(self, sid, iniobj, policy_name):
         self.inifiles.append(iniobj)
 
 
+    @classmethod
     def add_networkshare(self, sid, networkshareobj, policy_name):
         self.networkshares.append(networkshareobj)
 
 
+    @classmethod
     def get_shortcuts(self, sid):
         return self.shortcuts
 
 
+    @classmethod
     def get_printers(self, sid):
         return self.printers
 
 
+    @classmethod
     def get_drives(self, sid):
         return self.drives
 
-
+    @classmethod
     def get_folders(self, sid):
         return self.folders
 
 
+    @classmethod
     def get_envvars(self, sid):
         return self.environmentvariables
 
 
+    @classmethod
     def get_scripts(self, sid, action):
         action_scripts = list()
         for part in self.scripts:
@@ -280,24 +302,29 @@ class Dconf_registry():
         return action_scripts
 
 
-
+    @classmethod
     def get_files(self, sid):
         return self.files
 
 
+    @classmethod
     def get_networkshare(self, sid):
         return self.networkshares
 
 
+    @classmethod
     def get_ini(self, sid):
         return self.inifiles
 
 
+    @classmethod
     def wipe_user(self, sid):
-        ...
+        self.wipe_hklm()
 
+
+    @classmethod
     def wipe_hklm(self):
-        ...
+        self.global_registry_dict = dict({self._ReadQueue:{}})
 
 
 def filter_dict_keys(starting_string, input_dict):
