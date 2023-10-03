@@ -178,7 +178,7 @@ class Dconf_registry():
     @classmethod
     def filter_entries(self, startswith):
         if startswith[-1] == '%':
-            startswith = startswith[:-1]
+            startswith = startswith[:-2]
             return filter_dict_keys(startswith, self.global_registry_dict_win_style)
         return filter_dict_keys(startswith, self.global_registry_dict)
 
@@ -189,7 +189,8 @@ class Dconf_registry():
         list_entiers = list()
         for keyname, value in pregs.items():
             for valuename, data in value.items():
-                list_entiers.append(PregDconf(keyname, valuename, find_preg_type(data), data))
+                list_entiers.append(PregDconf(
+                    keyname, convert_string_dconf(valuename), find_preg_type(data), data))
         return gplist(list_entiers)
 
 
@@ -381,16 +382,16 @@ def load_preg_dconf(pregfile, pathfile):
         # Skip this entry if the valuename starts with '**del'
         if i.valuename.startswith('**del'):
             continue
-
+        valuename = convert_string_dconf(i.valuename)
         if i.valuename != i.data:
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
-                dd[i.keyname.replace('\\', '/')].update({i.valuename.replace('\\', '/'):i.data})
-                dd_win_style[i.keyname].update({i.valuename:i.data})
+                dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):i.data})
+                dd_win_style[i.keyname].update({valuename:i.data})
             else:
                 # If the key does not exist in dd, create a new key-value pair
-                dd[i.keyname.replace('\\', '/')] = {i.valuename.replace('\\', '/'):i.data}
-                dd_win_style[i.keyname] = {i.valuename:i.data}
+                dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):i.data}
+                dd_win_style[i.keyname] = {valuename:i.data}
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
@@ -426,3 +427,14 @@ def create_dconf_ini_file(filename, data):
                 else:
                     file.write(f'{key} = "{value}"\n')
             file.write('\n')
+
+def convert_string_dconf(input_string):
+    # Check if the input string contains '%semicolon%'
+    if '%semicolon%' in input_string:
+        # If it contains, replace '%semicolon%' with ';'
+        output_string = input_string.replace('%semicolon%', ';')
+    else:
+        # If it doesn't contain, replace ';' with '%semicolon%'
+        output_string = input_string.replace(';', '%semicolon%')
+
+    return output_string
