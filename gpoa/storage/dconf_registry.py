@@ -176,6 +176,18 @@ class Dconf_registry():
 
 
     @classmethod
+    def get_dictionary_from_dconf(self, startswith):
+        output_dict = {}
+        dconf_dict = self.get_key_values(self.get_matching_keys(startswith))
+
+        for key, value in dconf_dict.items():
+            keys_tmp = key.split('/')
+            output_dict.setdefault('/'.join(keys_tmp[0:-1])[1:], {})[keys_tmp[-1]] = value
+
+        return output_dict
+
+
+    @classmethod
     def filter_entries(self, startswith):
         if startswith[-1] == '%':
             startswith = startswith[:-2]
