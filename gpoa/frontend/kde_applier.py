@@ -217,9 +217,12 @@ def apply_for_widget(value, data, file_cache):
     logdata = dict()
     try:
         if value in widget_utilities:
-            if value == 'wallpaperimage':
-                file_cache.store(data)
-                data = file_cache.get(data)
+            try:
+                if value == 'wallpaperimage':
+                    file_cache.store(data)
+                    data = file_cache.get(data)
+            except:
+                data = data
             os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
                 #Variable for system detection of directories before files with .colors extension
             os.environ["DISPLAY"] = ":0"
