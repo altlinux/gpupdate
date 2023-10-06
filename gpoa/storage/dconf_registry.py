@@ -179,6 +179,11 @@ class Dconf_registry():
 
 
     @classmethod
+    def check_dict_content(self):
+        return True if self.global_registry_dict_win_style else None
+
+
+    @classmethod
     def get_dictionary_from_dconf(self, *startswith_list):
         output_dict = {}
         for startswith in startswith_list:
