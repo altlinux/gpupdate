@@ -52,6 +52,8 @@ class Dconf_registry():
     global_registry_dict = dict({_ReadQueue:{}})
     global_registry_dict_win_style = dict()
     __template_file = '/usr/share/dconf/user_mandatory.template'
+    _policies_path = 'Software/'
+    _policies_win_path = 'SOFTWARE/'
 
     list_keys = list()
     _info = dict()
@@ -181,6 +183,11 @@ class Dconf_registry():
     @classmethod
     def check_dict_content(self):
         return True if self.global_registry_dict_win_style else None
+
+
+    @classmethod
+    def get_policies_from_dconf(self):
+        return self.get_dictionary_from_dconf(self._policies_path, self._policies_win_path)
 
 
     @classmethod
@@ -346,6 +353,7 @@ class Dconf_registry():
     @classmethod
     def wipe_hklm(self):
         self.global_registry_dict = dict({self._ReadQueue:{}})
+        self.global_registry_dict_win_style = dict()
 
 
 def filter_dict_keys(starting_string, input_dict):
