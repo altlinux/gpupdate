@@ -93,6 +93,9 @@ class Dconf_registry():
 
     @staticmethod
     def get_matching_keys(path):
+        if path[0] != '/':
+            path = '/' + path
+
         try:
             process = subprocess.Popen(['dconf', 'list', path],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -176,13 +179,13 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_dictionary_from_dconf(self, startswith):
+    def get_dictionary_from_dconf(self, *startswith_list):
         output_dict = {}
-        dconf_dict = self.get_key_values(self.get_matching_keys(startswith))
-
-        for key, value in dconf_dict.items():
-            keys_tmp = key.split('/')
-            output_dict.setdefault('/'.join(keys_tmp[0:-1])[1:], {})[keys_tmp[-1]] = value
+        for startswith in startswith_list:
+            dconf_dict = self.get_key_values(self.get_matching_keys(startswith))
+            for key, value in dconf_dict.items():
+                keys_tmp = key.split('/')
+                update_dict(output_dict.setdefault('/'.join(keys_tmp[0:-1])[1:], {}), {keys_tmp[-1]: value})
 
         return output_dict
 
