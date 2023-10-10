@@ -175,7 +175,9 @@ def expand_windows_var(text, username=None):
 
     result = text
     for var in variables.keys():
-        result = result.replace('%{}%'.format(var), variables[var])
+        result = result.replace('%{}%'.format(var),
+                                 variables[var] if variables[var][-1] == '/'
+                                 else variables[var] +'/')
 
     return result
 
