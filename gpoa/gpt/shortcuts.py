@@ -124,17 +124,33 @@ class shortcut:
         :param name: Name of the application
         :param type: Link type - FILESYSTEM or URL
         '''
-        self.dest = dest
+        self.dest = self.replace_slashes(dest)
         self.path = path
         self.expanded_path = None
         self.arguments = arguments
-        self.name = name
+        self.name = self.replace_name(name)
         self.action = action
         self.changed = ''
         self.icon = None
         self.comment = ''
         self.is_in_user_context = self.set_usercontext()
         self.type = ttype
+
+    def replace_slashes(self, input_path):
+        if input_path.startswith('%'):
+            index = input_path.find('%', 1)
+            if index != -1:
+                replace_path = input_path[:index + 2] + input_path[index + 2:].replace('/','-')
+                return replace_path
+        return input_path.replace('/','-')
+
+    def replace_name(self, input_name):
+        if input_name.startswith('%'):
+            index = input_name.find('%', 1)
+            if index != -1:
+                replace_name = input_name[index + 2:]
+                return replace_name
+        return input_name
 
     def __str__(self):
         result = self.to_json()
