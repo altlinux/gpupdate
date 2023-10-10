@@ -20,6 +20,7 @@ import subprocess
 from pathlib import Path
 from util.util import string_to_literal_eval, get_uid_by_username, touch_file
 from util.paths import get_dconf_config_path
+import re
 
 
 class PregDconf():
@@ -205,8 +206,10 @@ class Dconf_registry():
     @classmethod
     def filter_entries(self, startswith):
         if startswith[-1] == '%':
-            startswith = startswith[:-2]
-            return filter_dict_keys(startswith, self.global_registry_dict_win_style)
+            startswith = startswith[:-1]
+            if startswith[-1] == '/' or startswith[-1] == '\\':
+                startswith = startswith[:-1]
+                return filter_dict_keys(startswith, self.global_registry_dict_win_style)
         return filter_dict_keys(startswith, self.global_registry_dict)
 
 
@@ -226,24 +229,31 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_entry(self, dictionary, path):
+    def get_entry(self, path, dictionary = None):
+        if not dictionary:
+            result = self.global_registry_dict
+        else:
+            result = dictionary
+
         keys = path.split("\\") if "\\" in path else path.split("/")
-        result = dictionary
-        for key in keys:
-            if isinstance(result, dict) and key in result:
-                result = result[key]
-            else:
-                return None
-        return result
-
-    @classmethod
-    def get_hkcu_entry(self, sid, hive_key):
-        return self.get_hklm_entry(hive_key)
+        key = '/'.join(keys[:-1])[1:]
+        if isinstance(result, dict) and key in result:
+            result = result.get(key).get(keys[-1])
+        else:
+            return None
 
 
     @classmethod
-    def get_hklm_entry(self, hive_key):
-        return self.get_entry(self.global_registry_dict_win_style, hive_key)
+    def get_hkcu_entry(self, sid, hive_key, dictionary = None):
+        return self.get_hklm_entry(hive_key, dictionary)
+
+
+    @classmethod
+    def get_hklm_entry(self, hive_key, dictionary = None):
+        if dictionary or self.check_dict_content():
+            return self.get_entry(hive_key, dictionary)
+        else:
+            return self.get_entry(hive_key, self.get_policies_from_dconf())
 
 
     @classmethod
@@ -357,7 +367,14 @@ class Dconf_registry():
 
 
 def filter_dict_keys(starting_string, input_dict):
-    return {key: input_dict[key] for key in input_dict if key.startswith(starting_string)}
+    result = dict()
+    for key in input_dict:
+        key_list = re.split(r'\\/', key)
+        start_list = re.split(r'\\/', starting_string)
+        if key_list == start_list:
+            result[key] = input_dict[key]
+
+    return result
 
 
 def has_single_key_with_value(input_dict):
