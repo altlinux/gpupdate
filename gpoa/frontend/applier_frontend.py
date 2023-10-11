@@ -27,7 +27,7 @@ def check_experimental_enabled(storage):
 
     result = False
 
-    if flag and '1' == flag.data:
+    if flag and '1' == str(flag.data):
         result = True
 
     return result
@@ -38,7 +38,7 @@ def check_windows_mapping_enabled(storage):
 
     result = True
 
-    if flag and '0' == flag.data:
+    if flag and '0' == str(flag.data):
         result = False
 
     return result
@@ -51,9 +51,9 @@ def check_module_enabled(storage, module_name):
     result = None
 
     if flag:
-        if '1' == flag.data:
+        if '1' == str(flag.data):
             result =  True
-        if '0' == flag.data:
+        if '0' == str(flag.data):
             result = False
 
     return result
