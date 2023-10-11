@@ -71,7 +71,7 @@ def read_folders(folders_file):
 
         folders.append(fld_obj)
 
-    Dconf_registry.folders.append(folders)
+
     return folders
 
 def merge_folders(storage, sid, folder_objects, policy_name):
