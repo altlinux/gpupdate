@@ -27,7 +27,7 @@ class PregDconf():
     def __init__(self, keyname, valuename, type_preg, data):
         self.keyname = keyname
         self.valuename = valuename
-        self.hive_key = '{}\\{}'.format(self.keyname, self.valuename)
+        self.hive_key = '{}/{}'.format(self.keyname, self.valuename)
         self.type = type_preg
         self.data = data
 
@@ -183,7 +183,11 @@ class Dconf_registry():
 
     @classmethod
     def check_dict_content(self):
-        return True if self.global_registry_dict_win_style else None
+        if (has_single_key_with_value(self.global_registry_dict)
+            or self.global_registry_dict_win_style):
+            return True
+        else:
+            None
 
 
     @classmethod
@@ -209,7 +213,7 @@ class Dconf_registry():
             startswith = startswith[:-1]
             if startswith[-1] == '/' or startswith[-1] == '\\':
                 startswith = startswith[:-1]
-                return filter_dict_keys(startswith, self.global_registry_dict_win_style)
+            return filter_dict_keys(startswith, self.global_registry_dict)
         return filter_dict_keys(startswith, self.global_registry_dict)
 
 
@@ -238,7 +242,9 @@ class Dconf_registry():
         keys = path.split("\\") if "\\" in path else path.split("/")
         key = '/'.join(keys[:-1])[1:]
         if isinstance(result, dict) and key in result:
-            result = result.get(key).get(keys[-1])
+            data = result.get(key).get(keys[-1])
+            return PregDconf(
+                    key, convert_string_dconf(keys[-1]), find_preg_type(data), data)
         else:
             return None
 
@@ -369,8 +375,8 @@ class Dconf_registry():
 def filter_dict_keys(starting_string, input_dict):
     result = dict()
     for key in input_dict:
-        key_list = re.split(r'\\/', key)
-        start_list = re.split(r'\\/', starting_string)
+        key_list = re.split(r'\\|/', key)
+        start_list = re.split(r'\\|/', starting_string)
         if key_list == start_list:
             result[key] = input_dict[key]
 
