@@ -44,7 +44,9 @@ def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_fo
     return content
 
 def str2bool(boolstr):
-    if boolstr and boolstr.lower() in ['true', 'yes', '1']:
+    if isinstance(boolstr, bool):
+        return boolstr
+    elif boolstr and boolstr.lower() in ['true', 'yes', '1']:
         return True
     return False
 
