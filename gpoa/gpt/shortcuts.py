@@ -24,7 +24,6 @@ from enum import Enum
 from xml.etree import ElementTree
 from xdg.DesktopEntry import DesktopEntry
 import json
-from storage.dconf_registry import Dconf_registry
 
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
@@ -91,7 +90,6 @@ def read_shortcuts(shortcuts_file):
 
         shortcuts.append(sc)
 
-    Dconf_registry.shortcuts.append(shortcuts)
     return shortcuts
 
 def merge_shortcuts(storage, sid, shortcut_objects, policy_name):

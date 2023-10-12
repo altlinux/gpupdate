@@ -18,7 +18,6 @@
 
 import configparser
 import os
-from storage.dconf_registry import Dconf_registry
 
 
 def read_scripts(scripts_file):
@@ -77,7 +76,6 @@ def read_scripts(scripts_file):
             scripts.add_script('SHUTDOWN', shutdown_scripts[i])
 
 
-    Dconf_registry.scripts.append(scripts)
     return scripts
 
 def merge_scripts(storage, sid, scripts_objects, policy_name):
