@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from storage.dconf_registry import Dconf_registry
 
 from util.xml import get_xml_root
 
@@ -40,7 +39,6 @@ def read_printers(printers_file):
 
         printers.append(prn_obj)
 
-    Dconf_registry.printers.append(printers)
     return printers
 
 def merge_printers(storage, sid, printer_objects, policy_name):

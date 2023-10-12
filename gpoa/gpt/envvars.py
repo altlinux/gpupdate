@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from storage.dconf_registry import Dconf_registry
 
 from enum import Enum
 
@@ -49,7 +48,6 @@ def read_envvars(envvars_file):
 
         variables.append(var_obj)
 
-    Dconf_registry.environmentvariables.append(variables)
     return variables
 
 def merge_envvars(storage, sid, envvar_objects, policy_name):

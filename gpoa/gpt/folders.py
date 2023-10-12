@@ -18,7 +18,6 @@
 
 
 from enum import Enum
-from storage.dconf_registry import Dconf_registry
 
 
 from util.xml import get_xml_root

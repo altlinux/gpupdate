@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from storage.dconf_registry import Dconf_registry
 
 def read_files(filesxml):
     files = list()
@@ -34,7 +33,6 @@ def read_files(filesxml):
         fil_obj.set_executable(props.get('executable', default=None))
         files.append(fil_obj)
 
-    Dconf_registry.files.append(files)
     return files
 
 def merge_files(storage, sid, file_objects, policy_name):
