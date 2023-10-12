@@ -46,7 +46,7 @@ class samba_backend(applier_backend):
         self.__kinit_successful = machine_kinit(self.cache_path)
         if not self.__kinit_successful:
             raise Exception('kinit is not successful')
-        self.storage = registry_factory('registry')
+        self.storage = registry_factory()
         self.storage.set_info('domain', domain)
         machine_name = get_machine_name()
         machine_sid = get_sid(domain, machine_name, is_machine)

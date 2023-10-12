@@ -128,7 +128,7 @@ class frontend_manager:
     '''
 
     def __init__(self, username, is_machine):
-        self.storage = registry_factory('registry')
+        self.storage = registry_factory('dconf', username=username, is_machine=is_machine)
         self.username = determine_username(username)
         self.is_machine = is_machine
         self.process_uname = get_process_user()

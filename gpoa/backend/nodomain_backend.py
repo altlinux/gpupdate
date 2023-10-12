@@ -35,7 +35,7 @@ class nodomain_backend(applier_backend):
         domain = None
         machine_name = get_machine_name()
         machine_sid = get_sid(domain, machine_name, True)
-        self.storage = registry_factory('registry')
+        self.storage = registry_factory()
         self.storage.set_info('domain', domain)
         self.storage.set_info('machine_name', machine_name)
         self.storage.set_info('machine_sid', machine_sid)
