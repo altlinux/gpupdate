@@ -59,10 +59,10 @@ class gsettings_applier(applier_frontend):
     __module_name = 'GSettingsApplier'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
+    __registry_branch = 'Software\\BaseALT\\Policies\\gsettings\\'
     __registry_locks_branch = 'Software\\BaseALT\\Policies\\GSettingsLocks\\'
-    __wallpaper_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.mate.background.picture-filename'
-    __vino_authentication_methods_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.gnome.Vino.authentication-methods'
+    __wallpaper_entry = 'Software\\BaseALT\\Policies\\gsettings\\org.mate.background.picture-filename'
+    __vino_authentication_methods_entry = 'Software\\BaseALT\\Policies\\gsettings\\org.gnome.Vino.authentication-methods'
     __global_schema = '/usr/share/glib-2.0/schemas'
     __override_priority_file = 'zzz_policy.gschema.override'
     __override_old_file = '0_policy.gschema.override'
@@ -108,13 +108,13 @@ class gsettings_applier(applier_frontend):
 
         # Get all configured gsettings locks
         for lock in self.gsettings_locks:
-            valuename = lock.hive_key.rpartition('\\')[2]
+            valuename = lock.hive_key.rpartition('/')[2]
             self.locks[valuename] = int(lock.data)
 
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
             helper = None
-            valuename = setting.hive_key.rpartition('\\')[2]
+            valuename = setting.hive_key.rpartition('/')[2]
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
