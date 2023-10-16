@@ -235,7 +235,7 @@ msgid "Error while executing command for widgets"
 msgstr "Ошибка при выполнении команды для виджетов"
 
 msgid "Error creating environment variables"
-msgstr "Ошибка создания перемеенных среды"
+msgstr "Ошибка создания переменных среды"
 
 msgid "Error running kwriteconfig5 command"
 msgstr "Ошибка выполнения команды kwriteconfig5"

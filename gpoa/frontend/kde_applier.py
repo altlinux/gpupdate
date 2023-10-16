@@ -111,11 +111,12 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 data = setting.data
                 if file_name == 'plasma':
                     apply_for_widget(section, data, file_cache)
-                if file_name not in all_kde_settings:
-                    all_kde_settings[file_name] = {}
-                if section not in all_kde_settings[file_name]:
-                    all_kde_settings[file_name][section] = {}
-                all_kde_settings[file_name][section][value] = data
+                else:
+                    if file_name not in all_kde_settings:
+                        all_kde_settings[file_name] = {}
+                    if section not in all_kde_settings[file_name]:
+                        all_kde_settings[file_name][section] = {}
+                    all_kde_settings[file_name][section][value] = data
 
             except Exception as exc:
                 logdata = dict()
