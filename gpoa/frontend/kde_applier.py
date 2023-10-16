@@ -135,6 +135,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                 os.remove(file_path)
             with open(file_path, 'w') as file:
                 for section, keys in sections.items():
+                    section = section.replace(')(', '][')
                     file.write(f'[{section}]\n')
                     for key, value in keys.items():
                         lock = f"{file_name}.{section}.{key}"
