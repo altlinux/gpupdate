@@ -240,11 +240,11 @@ class Dconf_registry():
             result = dictionary
 
         keys = path.split("\\") if "\\" in path else path.split("/")
-        key = '/'.join(keys[:-1])[1:]
-        if isinstance(result, dict) and key in result:
+        key = '/'.join(keys[:-1]) if keys[0] else '/'.join(keys[:-1])[1:]
+        if isinstance(result, dict) and key in result.keys():
             data = result.get(key).get(keys[-1])
             return PregDconf(
-                    key, convert_string_dconf(keys[-1]), find_preg_type(data), data)
+                key, convert_string_dconf(keys[-1]), find_preg_type(data), data)
         else:
             return None
 
@@ -378,7 +378,7 @@ def filter_dict_keys(starting_string, input_dict):
         key_list = re.split(r'\\|/', key)
         start_list = re.split(r'\\|/', starting_string)
         if key_list == start_list:
-            result[key] = input_dict[key]
+            result[key] = input_dict.get(key)
 
     return result
 
