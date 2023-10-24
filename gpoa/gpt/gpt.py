@@ -156,7 +156,7 @@ class gpt:
     def __init__(self, gpt_path, sid):
         self.path = gpt_path
         self.sid = sid
-        self.storage = registry_factory('registry')
+        self.storage = registry_factory()
         self.name = ''
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:

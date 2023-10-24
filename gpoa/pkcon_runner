@@ -54,7 +54,7 @@ class Pkcon_applier:
         self.__reinstall_command = ['/usr/bin/pkcon', '-y', 'reinstall']
         self.install_packages = set()
         self.remove_packages = set()
-        self.storage = registry_factory('registry')
+        self.storage = registry_factory()
         if sid:
             install_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__install_key_name)
             remove_branch_user = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
