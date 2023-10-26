@@ -55,6 +55,7 @@ class Dconf_registry():
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
+    __gpt_read = False
 
     list_keys = list()
     _info = dict()
@@ -82,6 +83,7 @@ class Dconf_registry():
         touch_file(target_file)
         self.apply_template()
         create_dconf_ini_file(target_file,self.global_registry_dict)
+        self.__gpt_read = True
 
 
     @classmethod
@@ -182,15 +184,6 @@ class Dconf_registry():
 
 
     @classmethod
-    def check_dict_content(self):
-        if (has_single_key_with_value(self.global_registry_dict)
-            or self.global_registry_dict_win_style):
-            return True
-        else:
-            None
-
-
-    @classmethod
     def get_policies_from_dconf(self):
         return self.get_dictionary_from_dconf(self._policies_path, self._policies_win_path)
 
@@ -234,7 +227,9 @@ class Dconf_registry():
 
     @classmethod
     def get_entry(self, path, dictionary = None):
-        if not dictionary:
+        if not self.__gpt_read and not dictionary:
+            dictionary = self.get_policies_from_dconf()
+        elif not dictionary:
             result = self.global_registry_dict
         else:
             result = dictionary
@@ -256,7 +251,7 @@ class Dconf_registry():
 
     @classmethod
     def get_hklm_entry(self, hive_key, dictionary = None):
-        if dictionary or self.check_dict_content():
+        if dictionary or self.__gpt_read:
             return self.get_entry(hive_key, dictionary)
         else:
             return self.get_entry(hive_key, self.get_policies_from_dconf())
