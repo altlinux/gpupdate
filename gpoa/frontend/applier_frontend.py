@@ -64,7 +64,7 @@ def check_enabled(storage, module_name, is_experimental):
 
     result = False
 
-    if None == module_enabled:
+    if None == module_enabled or None == module_enabled.data:
         if is_experimental and exp_enabled:
             result = True
         if not is_experimental:
