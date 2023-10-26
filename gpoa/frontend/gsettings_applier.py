@@ -61,12 +61,12 @@ class gsettings_applier(applier_frontend):
     __module_enabled = True
     __registry_branch = 'Software\\BaseALT\\Policies\\gsettings\\'
     __registry_locks_branch = 'Software\\BaseALT\\Policies\\GSettingsLocks\\'
-    __wallpaper_entry = 'Software\\BaseALT\\Policies\\gsettings\\org.mate.background.picture-filename'
-    __vino_authentication_methods_entry = 'Software\\BaseALT\\Policies\\gsettings\\org.gnome.Vino.authentication-methods'
+    __wallpaper_entry = 'Software/BaseALT/Policies/gsettings/org.mate.background.picture-filename'
+    __vino_authentication_methods_entry = 'Software/BaseALT/Policies/gsettings/org.gnome.Vino.authentication-methods'
     __global_schema = '/usr/share/glib-2.0/schemas'
     __override_priority_file = 'zzz_policy.gschema.override'
     __override_old_file = '0_policy.gschema.override'
-    __windows_settings = dict()
+
 
     def __init__(self, storage, file_cache):
         self.storage = storage
@@ -184,9 +184,9 @@ class gsettings_applier_user(applier_frontend):
     __module_name = 'GSettingsApplierUser'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\BaseALT\\Policies\\GSettings\\'
-    __wallpaper_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.mate.background.picture-filename'
-    __vino_authentication_methods_entry = 'Software\\BaseALT\\Policies\\GSettings\\org.gnome.Vino.authentication-methods'
+    __registry_branch = 'Software\\BaseALT\\Policies\\gsettings\\'
+    __wallpaper_entry = 'Software/BaseALT/Policies/gsettings/org.mate.background.picture-filename'
+    __vino_authentication_methods_entry = 'Software/BaseALT/Policies/gsettings/org.gnome.Vino.authentication-methods'
 
     def __init__(self, storage, file_cache, sid, username):
         self.storage = storage
@@ -204,25 +204,25 @@ class gsettings_applier_user(applier_frontend):
         mapping = [
               # Disable or enable screen saver
               GSettingsMapping(
-                  'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveActive'
+                  'Software/Policies/Microsoft/Windows/Control Panel/Desktop/ScreenSaveActive'
                 , 'org.mate.screensaver'
                 , 'idle-activation-enabled'
               )
               # Timeout in seconds for screen saver activation. The value of zero effectively disables screensaver start
             , GSettingsMapping(
-                  'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaveTimeOut'
+                  'Software/Policies/Microsoft/Windows/Control Panel/Desktop/ScreenSaveTimeOut'
                 , 'org.mate.session'
                 , 'idle-delay'
               )
               # Enable or disable password protection for screen saver
             , GSettingsMapping(
-                  'Software\\Policies\\Microsoft\\Windows\\Control Panel\\Desktop\\ScreenSaverIsSecure'
+                  'Software/Policies/Microsoft/Windows/Control Panel/Desktop/ScreenSaverIsSecure'
                 , 'org.mate.screensaver'
                 , 'lock-enabled'
               )
               # Specify image which will be used as a wallpaper
             , GSettingsMapping(
-                  'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Wallpaper'
+                  'Software/Microsoft/Windows/CurrentVersion/Policies/System/Wallpaper'
                 , 'org.mate.background'
                 , 'picture-filename'
               )
@@ -251,15 +251,6 @@ class gsettings_applier_user(applier_frontend):
         return uri_fetch(schema, path, value, self.file_cache)
 
     def run(self):
-        #for setting in self.gsettings_keys:
-        #    valuename = setting.hive_key.rpartition('\\')[2]
-        #    rp = valuename.rpartition('.')
-        #    schema = rp[0]
-        #    path = rp[2]
-        #    self.gsettings.append(user_gsetting(schema, path, setting.data))
-
-
-        # Calculate all mapped gsettings if mapping enabled
         if self.__windows_mapping_enabled:
             log('D83')
             self.windows_mapping_append()
@@ -268,7 +259,7 @@ class gsettings_applier_user(applier_frontend):
 
         # Calculate all configured gsettings
         for setting in self.gsettings_keys:
-            valuename = setting.hive_key.rpartition('\\')[2]
+            valuename = setting.hive_key.rpartition('/')[2]
             rp = valuename.rpartition('.')
             schema = rp[0]
             path = rp[2]
