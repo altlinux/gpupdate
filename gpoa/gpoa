@@ -23,7 +23,7 @@ import signal
 import gettext
 import locale
 
-from backend import backend_factory
+from backend import backend_factory, save_dconf
 from frontend.frontend_manager import frontend_manager, determine_username
 from plugin import plugin_manager
 from messages import message_with_code
@@ -159,6 +159,7 @@ class gpoa_controller:
                         einfo = geterr()
                         logdata.update(einfo)
                         log('E3', logdata)
+        save_dconf(self.username, self.is_machine)
 
     def start_frontend(self):
         '''
