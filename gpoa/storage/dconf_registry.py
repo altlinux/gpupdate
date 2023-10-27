@@ -18,8 +18,7 @@
 
 import subprocess
 from pathlib import Path
-from util.util import string_to_literal_eval, get_uid_by_username, touch_file
-from util.paths import get_dconf_config_path
+from util.util import string_to_literal_eval, touch_file
 import re
 
 
@@ -55,7 +54,9 @@ class Dconf_registry():
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
-    __gpt_read = False
+    __gpt_read_flag = False
+    __dconf_dict_flag = False
+    __dconf_dict = dict()
 
     list_keys = list()
     _info = dict()
@@ -72,18 +73,8 @@ class Dconf_registry():
     scripts = list()
     networkshares = list()
 
-    def __init__(self, username, is_machine):
-        self.username = username
-        self.is_machine = is_machine
-        if self.is_machine:
-            self.uid = None
-        else:
-            self.uid = get_uid_by_username(username) if not is_machine else None
-        target_file = get_dconf_config_path(self.uid)
-        touch_file(target_file)
-        self.apply_template()
-        create_dconf_ini_file(target_file,self.global_registry_dict)
-        self.__gpt_read = True
+    def __init__(self):
+        Dconf_registry.__gpt_read_flag = True
 
 
     @classmethod
@@ -151,32 +142,34 @@ class Dconf_registry():
             #log exp
             ...
 
+    @classmethod
     def check_profile_template(self):
         if Path(self.__template_file).exists():
             return True
         else:
             return None
 
-    def apply_template(self):
-        if self.uid and self.check_profile_template():
+    @classmethod
+    def apply_template(self, uid):
+        if uid and self.check_profile_template():
             with open(self.__template_file, "r") as f:
                 template = f.read()
             # Replace the "{uid}" placeholder with the actual UID value
-            content = template.replace("{{uid}}", str(self.uid))
+            content = template.replace("{{uid}}", str(uid))
 
-        elif self.uid:
+        elif uid:
             content = f"user-db:user\n" \
               f"system-db:policy\n" \
-              f"system-db:policy{self.uid}\n" \
+              f"system-db:policy{uid}\n" \
               f"system-db:local\n" \
               f"system-db:default\n" \
               f"system-db:local\n" \
-              f"system-db:policy{self.uid}\n" \
+              f"system-db:policy{uid}\n" \
               f"system-db:policy\n"
         else:
             return
 
-        user_mandatory = f'/run/dconf/user/{self.uid}'
+        user_mandatory = f'/run/dconf/user/{uid}'
         touch_file(user_mandatory)
 
         with open(user_mandatory, "w") as f:
@@ -221,21 +214,34 @@ class Dconf_registry():
         return gplist(list_entiers)
 
 
+    @classmethod
     def filter_hkcu_entries(self, sid, startswith):
         return self.filter_hklm_entries(startswith)
 
 
     @classmethod
-    def get_entry(self, path, dictionary = None):
-        if not self.__gpt_read and not dictionary:
-            dictionary = self.get_policies_from_dconf()
-        elif not dictionary:
-            result = self.global_registry_dict
-        else:
+    def get_storage(self,dictionary = None):
+        if dictionary:
             result = dictionary
+        elif Dconf_registry.__gpt_read_flag:
+            result = Dconf_registry.global_registry_dict
+        else:
+            if Dconf_registry.__dconf_dict_flag:
+                result = Dconf_registry.__dconf_dict
+            else:
+                Dconf_registry.__dconf_dict = Dconf_registry.get_policies_from_dconf()
+                result = Dconf_registry.__dconf_dict
+                Dconf_registry.__dconf_dict_flag = True
+        return result
+
+
+    @classmethod
+    def get_entry(self, path, dictionary = None):
+        result = Dconf_registry.get_storage(dictionary)
 
         keys = path.split("\\") if "\\" in path else path.split("/")
         key = '/'.join(keys[:-1]) if keys[0] else '/'.join(keys[:-1])[1:]
+
         if isinstance(result, dict) and key in result.keys():
             data = result.get(key).get(keys[-1])
             return PregDconf(
@@ -251,10 +257,8 @@ class Dconf_registry():
 
     @classmethod
     def get_hklm_entry(self, hive_key, dictionary = None):
-        if dictionary or self.__gpt_read:
-            return self.get_entry(hive_key, dictionary)
-        else:
-            return self.get_entry(hive_key, self.get_policies_from_dconf())
+        return self.get_entry(hive_key, dictionary)
+
 
 
     @classmethod
@@ -473,6 +477,7 @@ def create_dconf_ini_file(filename, data):
                 else:
                     file.write(f'{key} = "{value}"\n')
             file.write('\n')
+    Dconf_registry.dconf_update()
 
 def convert_string_dconf(input_string):
     # Check if the input string contains '%semicolon%'
