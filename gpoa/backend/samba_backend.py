@@ -24,7 +24,7 @@ except ImportError:
     from samba.gp.gpclass import check_safe_path
 
 from .applier_backend import applier_backend
-from storage import cache_factory, registry_factory
+from storage import registry_factory
 from gpt.gpt import gpt, get_local_gpt
 from util.util import (
     get_machine_name,
@@ -60,9 +60,6 @@ class samba_backend(applier_backend):
             self.sid = machine_sid
         else:
             self.sid = get_sid(self.storage.get_info('domain'), self.username)
-
-        self.cache = cache_factory('regpol_cache')
-        self.gpo_names = cache_factory('gpo_names')
 
         # Samba objects - LoadParm() and CredentialsOptions()
         self.sambacreds = sambacreds
