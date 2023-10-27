@@ -86,6 +86,7 @@ def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_nam
     load_preg_dconf(pregfile, preg)
     logdata = dict({'pregfile': preg})
     log('D32', logdata)
+    #log dconf
     return
     storage = registry_factory(reg_name, reg_path)
     for entry in pregfile.entries:
