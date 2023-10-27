@@ -60,8 +60,6 @@ def backend_factory(dc, username, is_machine, no_domain = False):
             logdata = dict({'error': str(exc)})
             log('E8', logdata)
 
-    save_dconf(username, is_machine)
-
     return back
 
 def save_dconf(username, is_machine):
