@@ -24,9 +24,10 @@ def read_polfile(filename):
     return load_preg(filename).entries
 
 def merge_polfile(storage, sid, policy_objects, policy_name):
-    for entry in policy_objects:
-        if not sid:
-            storage.add_hklm_entry(entry, policy_name)
-        else:
-            storage.add_hkcu_entry(entry, sid, policy_name)
+    pass
+    # for entry in policy_objects:
+    #     if not sid:
+    #         storage.add_hklm_entry(entry, policy_name)
+    #     else:
+    #         storage.add_hkcu_entry(entry, sid, policy_name)
 
