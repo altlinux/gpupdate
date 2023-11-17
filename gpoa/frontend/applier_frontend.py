@@ -18,8 +18,7 @@
 
 from abc import ABC
 
-import logging
-from util.logging import slogm
+from util.logging import log
 
 def check_experimental_enabled(storage):
     experimental_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\GlobalExperimental'
@@ -53,8 +52,8 @@ def check_module_enabled(storage, module_name):
     if flag:
         if '1' == str(flag.data):
             result =  True
-        if '0' == str(flag.data):
-            result = False
+        else:
+            result =  False
 
     return result
 
@@ -64,7 +63,7 @@ def check_enabled(storage, module_name, is_experimental):
 
     result = False
 
-    if None == module_enabled or None == module_enabled.data:
+    if None == module_enabled:
         if is_experimental and exp_enabled:
             result = True
         if not is_experimental:
