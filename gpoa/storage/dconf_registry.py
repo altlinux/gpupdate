@@ -335,13 +335,13 @@ class Dconf_registry():
         action_scripts = list()
         for part in self.scripts:
             if action == 'LOGON':
-                action_scripts.extend(part.get_logon_scripts())
+                action_scripts.append(part)
             elif action == 'LOGOFF':
-                action_scripts.extend(part.get_logoff_scripts())
+                action_scripts.append(part)
             elif action == 'STARTUP':
-                action_scripts.extend(part.get_startup_scripts())
+                action_scripts.append(part)
             elif action == 'SHUTDOWN':
-                action_scripts.extend(part.get_shutdown_scripts())
+                action_scripts.append(part)
         return action_scripts
 
 
