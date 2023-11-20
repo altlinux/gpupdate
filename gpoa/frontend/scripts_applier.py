@@ -148,10 +148,10 @@ def install_script(storage_script_entry, script_dir, access_permissions):
     shutil.copyfile(storage_script_entry.path, script_file)
 
     os.chmod(script_file, int(access_permissions, base = 8))
-    if storage_script_entry.arg:
+    if storage_script_entry.args:
         dir_path = script_dir + '/' + script_name + '.arg'
         dir_arg = Path(dir_path)
         dir_arg.mkdir(parents=True, exist_ok=True)
         file_arg = open(dir_path + '/arg', 'w')
-        file_arg.write(storage_script_entry.arg)
+        file_arg.write(storage_script_entry.args)
         file_arg.close()
