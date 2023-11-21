@@ -21,36 +21,36 @@ from abc import ABC
 from util.logging import log
 
 def check_experimental_enabled(storage):
-    experimental_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\GlobalExperimental'
-    flag = storage.get_hklm_entry(experimental_enable_flag)
+    experimental_enable_flag = '/Software/BaseALT/Policies/GPUpdate/GlobalExperimental'
+    flag = storage.get_key_value(experimental_enable_flag)
 
     result = False
 
-    if flag and '1' == str(flag.data):
+    if flag and '1' == str(flag):
         result = True
 
     return result
 
 def check_windows_mapping_enabled(storage):
-    windows_mapping_enable_flag = 'Software\\BaseALT\\Policies\\GPUpdate\\WindowsPoliciesMapping'
-    flag = storage.get_hklm_entry(windows_mapping_enable_flag)
+    windows_mapping_enable_flag = '/Software/BaseALT/Policies/GPUpdate/WindowsPoliciesMapping'
+    flag = storage.get_key_value(windows_mapping_enable_flag)
 
     result = True
 
-    if flag and '0' == str(flag.data):
+    if flag and '0' == str(flag):
         result = False
 
     return result
 
 def check_module_enabled(storage, module_name):
-    gpupdate_module_enable_branch = 'Software\\BaseALT\\Policies\\GPUpdate'
-    gpupdate_module_flag = '{}\\{}'.format(gpupdate_module_enable_branch, module_name)
-    flag = storage.get_hklm_entry(gpupdate_module_flag)
+    gpupdate_module_enable_branch = '/Software/BaseALT/Policies/GPUpdate'
+    gpupdate_module_flag = '{}/{}'.format(gpupdate_module_enable_branch, module_name)
+    flag = storage.get_key_value(gpupdate_module_flag)
 
     result = None
 
     if flag:
-        if '1' == str(flag.data):
+        if '1' == str(flag):
             result =  True
         else:
             result =  False
