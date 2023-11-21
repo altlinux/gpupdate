@@ -126,6 +126,20 @@ class Dconf_registry():
         return key_values
 
     @staticmethod
+    def get_key_value(key):
+        try:
+            process = subprocess.Popen(['dconf', 'read', key],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            output, error = process.communicate()
+
+            if not error:
+                key = string_to_literal_eval(string_to_literal_eval(output))
+        except Exception as exc:
+            #log
+            ...
+        return key
+
+    @staticmethod
     def dconf_update():
         try:
             process = subprocess.Popen(['dconf', 'update'],
@@ -233,6 +247,11 @@ class Dconf_registry():
                 result = Dconf_registry.__dconf_dict
                 Dconf_registry.__dconf_dict_flag = True
         return result
+
+
+    @classmethod
+    def filling_storage_from_dconf(self):
+        Dconf_registry.global_registry_dict = Dconf_registry.get_storage()
 
 
     @classmethod
