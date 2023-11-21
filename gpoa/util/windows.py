@@ -335,8 +335,8 @@ def transform_windows_path(text):
 
 def check_scroll_enabled():
     storage = registry_factory()
-    enable_scroll = 'Software\\BaseALT\\Policies\\GPUpdate\\ScrollSysvolDC'
-    if storage.get_hklm_entry(enable_scroll):
+    enable_scroll = '/Software/BaseALT/Policies/GPUpdate/ScrollSysvolDC'
+    if storage.get_key_value(enable_scroll):
         data = storage.get_hklm_entry(enable_scroll).data
         return bool(int(data))
     else:
