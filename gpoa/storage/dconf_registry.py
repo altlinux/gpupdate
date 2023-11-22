@@ -393,8 +393,8 @@ class Dconf_registry():
 def filter_dict_keys(starting_string, input_dict):
     result = dict()
     for key in input_dict:
-        key_list = re.split(r'\\|/', key)
-        start_list = re.split(r'\\|/', starting_string)
+        key_list = remove_empty_values(re.split(r'\\|/', key))
+        start_list = remove_empty_values(re.split(r'\\|/', starting_string))
         if key_list == start_list:
             result[key] = input_dict.get(key)
 
@@ -508,3 +508,20 @@ def convert_string_dconf(input_string):
         output_string = input_string.replace(';', '%semicolon%')
 
     return output_string
+
+def remove_empty_values(input_list):
+    return list(filter(None, input_list))
+
+def flatten_dictionary(input_dict, result=None, current_key=''):
+    if result is None:
+        result = {}
+
+    for key, value in input_dict.items():
+        new_key = f"{current_key}/{key}" if current_key else key
+
+        if isinstance(value, dict):
+            flatten_dictionary(value, result, new_key)
+        else:
+            result[new_key] = value
+
+    return result
