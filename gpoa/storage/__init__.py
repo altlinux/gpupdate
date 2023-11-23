@@ -19,7 +19,7 @@
 
 from storage.dconf_registry import Dconf_registry
 
-def registry_factory(registry_name='dconf', registry_dir=None):
+def registry_factory(registry_name='', registry_dir=None):
     if registry_name == 'dconf':
         return Dconf_registry()
     else:
