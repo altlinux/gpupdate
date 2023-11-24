@@ -163,15 +163,9 @@ def apply(all_kde_settings, locks_dict, username = None):
                             value
                         ]
                     try:
+                        clear_locks_settings(username, file_name, key)
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    except Exception as exc:
-                        try:
-                            clear_locks_settings(username, file_name, key)
-                            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                        except OSError as exc:
-                            logdata['exc'] = exc
-                            log('W18', logdata)
-                        except Exception as exc:
+                    except:
                             logdata['command'] = command
                             log('E68', logdata)
             new_content = []
@@ -206,37 +200,56 @@ def clear_locks_settings(username, file_name, key):
             logdata['line'] = line.strip()
             log('I10', logdata)
 
-def apply_for_widget(value, data, file_cache):
+def apply_for_wallpaper(value, data, file_cache):
     '''
     Method for changing graphics settings in plasma context
     '''
     logdata = dict()
+    path_to_wallpaper = f'{get_homedir(username)}/.config/plasma-org.kde.plasma.desktop-appletsrc'
     try:
-        if value in widget_utilities:
+        try:
+            if value == 'wallpaperimage':
+                file_cache.store(data)
+                data = file_cache.get(data)
+        except:
+            data = data
+        os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
+            #Variable for system detection of directories before files with .colors extension
+        os.environ["DISPLAY"] = ":0"
+            #Variable for command execution plasma-apply-colorscheme
+        os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
+        os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
+        os.environ["PATH"] = "/usr/lib/kf5/bin:"
+            #environment variable for accessing binary files without hard links
+        if os.path.isfile(path_to_wallpaper):
+            id_desktop = get_id_desktop(path_to_wallpaper)
+            command = [
+                'kwriteconfig5',
+                '--file', 'plasma-org.kde.plasma.desktop-appletsrc',
+                '--group', 'Containments',
+                '--group', id_desktop,
+                '--group', 'Wallpaper',
+                '--group', 'org.kde.image',
+                '--group', 'General',
+                '--key', 'Image',
+                 '--type', 'string',
+                data
+                ]
             try:
-                if value == 'wallpaperimage':
-                    file_cache.store(data)
-                    data = file_cache.get(data)
+                subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except:
-                data = data
-            os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
-                #Variable for system detection of directories before files with .colors extension
-            os.environ["DISPLAY"] = ":0"
-                #Variable for command execution plasma-apply-colorscheme
-            os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
-            os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
-            os.environ["PATH"] = "/usr/lib/kf5/bin:"
-                #environment variable for accessing binary files without hard links
-            command = [f"{widget_utilities[value]}", f"{data}"]
-            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            stdout = proc.communicate()
-            logdata['Conclusion'] = stdout
-            if proc.returncode == 0:
-                log('D203', logdata)
-            else:
-                log('E66', logdata)
+                    logdata['command'] = command
+                    log('E68', logdata)
+            try:
+                session_bus = dbus.SessionBus()
+                plasma_shell = session_bus.get_object('org.kde.plasmashell', '/PlasmaShell', introspect='org.kde.PlasmaShell')
+                plasma_shell_iface = dbus.Interface(plasma_shell, 'org.kde.PlasmaShell')
+                plasma_shell_iface.refreshCurrentShell()
+            except:
+                pass
         else:
-            pass
+            logdata['file'] = path_to_wallpaper
+            log('W21', logdata)
     except OSError as exc:
         logdata['exc'] = exc
         log('W17', logdata)
