@@ -22,14 +22,8 @@ from util.util import get_homedir
 
 import os
 import subprocess
-
-
-widget_utilities = {
-            'colorscheme': 'plasma-apply-colorscheme',
-            'cursortheme': 'plasma-apply-cursortheme',
-            'desktoptheme': 'plasma-apply-desktoptheme',
-            'wallpaperimage': 'plasma-apply-wallpaperimage'
-        }
+import re
+import dbus
 
 class kde_applier(applier_frontend):
     __module_name = 'KdeApplier'
@@ -97,20 +91,20 @@ class kde_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D200')
-            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache)
+            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username)
             apply(self.all_kde_settings, self.locks_dict, self.username)
         else:
             log('D201')
 
-def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None):
+def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None, username = None):
         for locks in locks_settings:
             locks_dict[locks.valuename] = locks.data
         for setting in kde_settings:
             try:
                 file_name, section, value = setting.keyname.split("\\")[-2], setting.keyname.split("\\")[-1], setting.valuename
                 data = setting.data
-                if file_name == 'plasma':
-                    apply_for_widget(section, data, file_cache)
+                if file_name == 'wallpaper':
+                    apply_for_wallpaper(data, file_cache, username)
                 else:
                     if file_name not in all_kde_settings:
                         all_kde_settings[file_name] = {}
