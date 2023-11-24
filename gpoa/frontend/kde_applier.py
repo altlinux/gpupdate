@@ -200,17 +200,16 @@ def clear_locks_settings(username, file_name, key):
             logdata['line'] = line.strip()
             log('I10', logdata)
 
-def apply_for_wallpaper(value, data, file_cache):
+def apply_for_wallpaper(data, file_cache, username):
     '''
-    Method for changing graphics settings in plasma context
+    Method to change wallpaper
     '''
     logdata = dict()
     path_to_wallpaper = f'{get_homedir(username)}/.config/plasma-org.kde.plasma.desktop-appletsrc'
     try:
         try:
-            if value == 'wallpaperimage':
-                file_cache.store(data)
-                data = file_cache.get(data)
+            file_cache.store(data)
+            data = file_cache.get(data)
         except:
             data = data
         os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
