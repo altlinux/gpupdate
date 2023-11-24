@@ -901,6 +901,9 @@ msgstr "Не удалось изменить файл конфигурации K
 msgid "Error connecting to server"
 msgstr "Ошибка при подключении к серверу"
 
+msgid "Wallpaper configuration file not found"
+msgstr "Конфигурационный файл для обоев не найден"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"
