@@ -141,6 +141,11 @@ def apply(all_kde_settings, locks_dict, username = None):
                     file.write('\n')
     else:
         for file_name, sections in all_kde_settings.items():
+            path = f'{get_homedir(username)}/.config/{file_name}'
+            if not os.path.exists(path):
+                open(path, 'a').close()
+            else:
+                pass
             for section, keys in sections.items():
                 for key, value in keys.items():
                     lock = f"{file_name}.{section}.{key}"
@@ -167,7 +172,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     except:
                             logdata['command'] = command
-                            log('E68', logdata)
+                            log('W22', logdata)
             new_content = []
             file_path = f'{get_homedir(username)}/.config/{file_name}'
             try:
