@@ -117,12 +117,12 @@ class Files_cp:
             if self.readOnly:
                 shutil.os.chmod(targetFile, 0o555)
             else:
-                shutil.os.chmod(targetFile, 0o775)
+                shutil.os.chmod(targetFile, 0o755)
         else:
             if self.readOnly:
                 shutil.os.chmod(targetFile, 0o444)
             else:
-                shutil.os.chmod(targetFile, 0o664)
+                shutil.os.chmod(targetFile, 0o644)
 
     def _create_action(self):
         logdata = dict()
