@@ -213,8 +213,8 @@ class Dconf_registry():
             startswith = startswith[:-1]
             if startswith[-1] == '/' or startswith[-1] == '\\':
                 startswith = startswith[:-1]
-            return filter_dict_keys(startswith, self.global_registry_dict)
-        return filter_dict_keys(startswith, self.global_registry_dict)
+            return filter_dict_keys(startswith, flatten_dictionary(self.global_registry_dict))
+        return filter_dict_keys(startswith, flatten_dictionary(self.global_registry_dict))
 
 
     @classmethod
@@ -222,9 +222,15 @@ class Dconf_registry():
         pregs = self.filter_entries(startswith)
         list_entiers = list()
         for keyname, value in pregs.items():
-            for valuename, data in value.items():
-                list_entiers.append(PregDconf(
-                    keyname, convert_string_dconf(valuename), find_preg_type(data), data))
+            if isinstance(value, dict):
+                for valuename, data in value.items():
+                    list_entiers.append(PregDconf(
+                        keyname, convert_string_dconf(valuename), find_preg_type(data), data))
+            elif isinstance(value, list):
+                for data in value:
+                    list_entiers.append(PregDconf(
+                        keyname, convert_string_dconf(data), find_preg_type(data), data))
+
         return gplist(list_entiers)
 
 
