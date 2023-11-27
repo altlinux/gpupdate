@@ -341,6 +341,8 @@ def warning_code(code):
     warning_ids[19] = 'Failed to change KDE configuration file'
     warning_ids[20] = 'Error connecting to server'
     warning_ids[21] = 'Wallpaper configuration file not found'
+    warning_ids[22] = 'The user setting was not installed, conflict with computer setting.'
+
 
     return warning_ids.get(code, 'Unknown warning code')
 
