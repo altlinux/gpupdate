@@ -284,7 +284,7 @@ class gsettings_applier_user(applier_frontend):
         try:
             entry = self.__wallpaper_entry
             filter_result = self.storage.get_hkcu_entry(self.sid, entry)
-            if filter_result:
+            if filter_result and filter_result.data:
                 self.file_cache.store(filter_result.data)
         except NotUNCPathError:
             ...
