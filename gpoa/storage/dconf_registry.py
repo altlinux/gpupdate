@@ -230,6 +230,10 @@ class Dconf_registry():
                 for data in value:
                     list_entiers.append(PregDconf(
                         keyname, convert_string_dconf(data), find_preg_type(data), data))
+            else:
+                list_entiers.append(PregDconf(
+                        '/'.join(keyname.split('/')[:-1]), convert_string_dconf(keyname.split('/')[-1]), find_preg_type(value), value))
+
 
         return gplist(list_entiers)
 
@@ -401,7 +405,7 @@ def filter_dict_keys(starting_string, input_dict):
     for key in input_dict:
         key_list = remove_empty_values(re.split(r'\\|/', key))
         start_list = remove_empty_values(re.split(r'\\|/', starting_string))
-        if key_list == start_list:
+        if key_list[:len(start_list)] == start_list:
             result[key] = input_dict.get(key)
 
     return result
