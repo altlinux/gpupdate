@@ -101,7 +101,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
             locks_dict[locks.valuename] = locks.data
         for setting in kde_settings:
             try:
-                file_name, section, value = setting.keyname.split("\\")[-2], setting.keyname.split("\\")[-1], setting.valuename
+                file_name, section, value = setting.keyname.split("/")[-2], setting.keyname.split("/")[-1], setting.valuename
                 data = setting.data
                 if file_name == 'wallpaper':
                     apply_for_wallpaper(data, file_cache, username)
@@ -134,7 +134,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                     file.write(f'[{section}]\n')
                     for key, value in keys.items():
                         lock = f"{file_name}.{section}.{key}".replace('][', ')(')
-                        if lock in locks_dict and locks_dict[lock] == '1':
+                        if lock in locks_dict and locks_dict[lock] == 1:
                             file.write(f'{key}[$i]={value}\n')
                         else:
                             file.write(f'{key}={value}\n')
@@ -149,7 +149,7 @@ def apply(all_kde_settings, locks_dict, username = None):
             for section, keys in sections.items():
                 for key, value in keys.items():
                     lock = f"{file_name}.{section}.{key}"
-                    if lock in locks_dict and locks_dict[lock] == '1':
+                    if lock in locks_dict and locks_dict[lock] == 1:
                         command = [
                             'kwriteconfig5',
                             '--file', file_name,
