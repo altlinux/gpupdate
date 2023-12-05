@@ -57,6 +57,9 @@ class fs_file_cache:
                     file_path))
             else:
                 destdir = destfile.parent
+        except NotUNCPathError:
+            return None
+
         except Exception as exc:
             logdata = dict({'exception': str(exc)})
             log('D144', logdata)
