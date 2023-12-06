@@ -29,11 +29,11 @@ class control_applier(applier_frontend):
     __module_name = 'ControlApplier'
     __module_experimental = False
     __module_enabled = True
-    _registry_branch = 'Software\\BaseALT\\Policies\\Control'
+    _registry_branch = 'Software/BaseALT/Policies/Control'
 
     def __init__(self, storage):
         self.storage = storage
-        self.control_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\Control%')
+        self.control_settings = self.storage.filter_hklm_entries(self._registry_branch)
         self.controls = list()
         self.__module_enabled = check_enabled(
               self.storage
@@ -43,7 +43,7 @@ class control_applier(applier_frontend):
 
     def run(self):
         for setting in self.control_settings:
-            valuename = setting.hive_key.rpartition('\\')[2]
+            valuename = setting.hive_key.rpartition('/')[2]
             try:
                 self.controls.append(control(valuename, int(setting.data)))
                 logdata = dict()

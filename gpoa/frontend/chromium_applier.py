@@ -30,7 +30,7 @@ class chromium_applier(applier_frontend):
     __module_name = 'ChromiumApplier'
     __module_enabled = True
     __module_experimental = False
-    __registry_branch = 'Software\\Policies\\Google\\Chrome'
+    __registry_branch = 'Software/Policies/Google/Chrome'
     __managed_policies_path = '/etc/chromium/policies/managed'
     __recommended_policies_path = '/etc/chromium/policies/recommended'
 
@@ -168,7 +168,7 @@ class chromium_applier(applier_frontend):
         '''
         Parse registry path string and leave key parameters
         '''
-        parts = hivekeyname.replace(self.__registry_branch, '').split('\\')
+        parts = hivekeyname.replace(self.__registry_branch, '').split('/')
         return parts
 
 
