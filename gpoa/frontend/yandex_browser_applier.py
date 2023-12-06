@@ -30,7 +30,7 @@ class yandex_browser_applier(applier_frontend):
     __module_name = 'YandexBrowserApplier'
     __module_enabled = True
     __module_experimental = False
-    __registry_branch = 'Software\\Policies\\YandexBrowser'
+    __registry_branch = 'Software/Policies/YandexBrowser'
     __managed_policies_path = '/etc/opt/yandex/browser/policies/managed'
     __recommended_policies_path = '/etc/opt/yandex/browser/policies/recommended'
 
@@ -152,7 +152,7 @@ class yandex_browser_applier(applier_frontend):
         '''
         Parse registry path string and leave key parameters
         '''
-        parts = hivekeyname.replace(self.__registry_branch, '').split('\\')
+        parts = hivekeyname.replace(self.__registry_branch, '').split('/')
         return parts
 
 

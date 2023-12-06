@@ -39,7 +39,7 @@ class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\Policies\\Mozilla\\Firefox\\'
+    __registry_branch = 'Software/Policies/Mozilla/Firefox'
     __firefox_installdir1 = '/usr/lib64/firefox/distribution'
     __firefox_installdir2 = '/etc/firefox/policies'
 
@@ -69,7 +69,7 @@ class firefox_applier(applier_frontend):
         '''
         Parse registry path string and leave key parameters
         '''
-        parts = hivekeyname.replace(self.__registry_branch, '').split('\\')
+        parts = hivekeyname.replace(self.__registry_branch, '').split('/')
         return parts
 
     def create_dict(self, firefox_keys):
