@@ -29,11 +29,11 @@ class systemd_applier(applier_frontend):
     __module_name = 'SystemdApplier'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'
+    __registry_branch = 'Software/BaseALT/Policies/SystemdUnits'
 
     def __init__(self, storage):
         self.storage = storage
-        self.systemd_unit_settings = self.storage.filter_hklm_entries('Software\\BaseALT\\Policies\\SystemdUnits%')
+        self.systemd_unit_settings = self.storage.filter_hklm_entries(self.__registry_branch)
         self.units = []
         self.__module_enabled = check_enabled(
               self.storage
@@ -43,7 +43,7 @@ class systemd_applier(applier_frontend):
 
     def run(self):
         for setting in self.systemd_unit_settings:
-            valuename = setting.hive_key.rpartition('\\')[2]
+            valuename = setting.hive_key.rpartition('/')[2]
             try:
                 self.units.append(systemd_unit(valuename, int(setting.data)))
                 logdata = dict()
@@ -76,7 +76,7 @@ class systemd_applier_user(applier_frontend):
     __module_name = 'SystemdApplierUser'
     __module_experimental = False
     __module_enabled = True
-    __registry_branch = 'Software\\BaseALT\\Policies\\SystemdUnits'
+    __registry_branch = 'Software/BaseALT/Policies/SystemdUnits'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
