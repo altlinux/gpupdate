@@ -99,6 +99,9 @@ def get_dconf_config_path(uid = None):
     else:
         return '/etc/dconf/db/policy.d/policy.ini'
 
+def get_desktop_files_directory():
+    return '/usr/share/applications'
+
 class UNCPath:
     def __init__(self, path):
         self.path = path
