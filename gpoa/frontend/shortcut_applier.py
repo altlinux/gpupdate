@@ -38,8 +38,7 @@ def storage_get_shortcuts(storage, sid, username=None):
     shortcut_objs = storage.get_shortcuts(sid)
     shortcuts = list()
 
-    for sc_obj in shortcut_objs:
-        sc = json2sc(sc_obj.shortcut)
+    for sc in shortcut_objs:
         if username:
             sc.set_expanded_path(expand_windows_var(sc.path, username))
         shortcuts.append(sc)
