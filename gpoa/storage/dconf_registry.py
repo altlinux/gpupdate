@@ -437,6 +437,9 @@ def update_dict(dict1, dict2):
             # If both values are dictionaries, recursively call the update_dict function
             if isinstance(dict1[key], dict) and isinstance(value, dict):
                 update_dict(dict1[key], value)
+            # If the value in dict1 is a list, extend it with unique values from value
+            elif isinstance(dict1[key], list):
+                dict1[key].extend(set(value) - set(dict1[key]))
             else:
                 # If the value in dict1 is not a dictionary or the value in dict2 is not a dictionary,
                 # replace the value in dict1 with the value from dict2
