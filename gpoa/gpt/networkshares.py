@@ -33,7 +33,6 @@ def read_networkshares(networksharesxml):
         networkshare_obj.set_abe(props.get('abe', default=None))
         networkshares.append(networkshare_obj)
 
-    Dconf_registry.networkshares.append(networkshares)
     return networkshares
 
 def merge_networkshares(storage, sid, networkshares_objects, policy_name):
