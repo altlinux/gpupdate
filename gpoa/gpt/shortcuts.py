@@ -27,6 +27,7 @@ import json
 
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
+from util.paths import get_desktop_files_directory
 
 class TargetType(Enum):
     FILESYSTEM = 'FILESYSTEM'
@@ -114,6 +115,19 @@ def json2sc(json_str):
         sc.set_icon(json_obj['icon'])
 
     return sc
+
+def find_desktop_entry(binary_path):
+    desktop_dir = get_desktop_files_directory()
+    binary_name = ''.join(binary_path.split('/')[-1])
+    desktop_file_path = Path(f"{desktop_dir}/{binary_name}.desktop")
+
+    if desktop_file_path.exists():
+        desktop_entry = DesktopEntry()
+        desktop_entry.parse(desktop_file_path)
+        return desktop_entry
+
+    return None
+
 
 class shortcut:
     def __init__(self, dest, path, arguments, name=None, action=None, ttype=TargetType.FILESYSTEM):
@@ -233,9 +247,11 @@ class shortcut:
         if dest:
             self.desktop_file = DesktopEntry(dest)
         else:
-            self.desktop_file = DesktopEntry()
-            self.desktop_file.addGroup('Desktop Entry')
-            self.desktop_file.set('Version', '1.0')
+            self.desktop_file = find_desktop_entry(self.path)
+            if not self.desktop_file:
+                self.desktop_file = DesktopEntry()
+                self.desktop_file.addGroup('Desktop Entry')
+                self.desktop_file.set('Version', '1.0')
         self._update_desktop()
 
         return self.desktop_file
@@ -257,7 +273,8 @@ class shortcut:
         if self.type == TargetType.URL:
             self.desktop_file.set('URL', desktop_path)
         else:
-            self.desktop_file.set('Terminal', 'false')
+            terminal_state = bool(self.desktop_file.get('Terminal'))
+            self.desktop_file.set('Terminal', 'true' if terminal_state else 'false')
             self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.arguments))
             self.desktop_file.set('Comment', self.comment)
 
