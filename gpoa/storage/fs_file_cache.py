@@ -35,7 +35,10 @@ class fs_file_cache:
     def __init__(self, cache_name, username = None):
         self.cache_name = cache_name
         if username:
-            self.storage_uri = file_cache_path_home(username)
+            try:
+                self.storage_uri = file_cache_path_home(username)
+            except:
+                self.storage_uri = file_cache_dir()
         else:
             self.storage_uri = file_cache_dir()
         logdata = dict({'cache_file': self.storage_uri})
