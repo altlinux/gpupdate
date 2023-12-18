@@ -265,7 +265,7 @@ def get_id_desktop(path_to_wallpaper):
     '''
     Method for getting desktop id. It is currently accepted that this number is one of the sections in the configuration file.
     '''
-    pattern = r'\[Containments\]\[(\d+)\](?:.*\n)+?activityId=[a-f0-9-]+'
+    pattern = r'\[Containments\]\[(\d+)\][^\[]*activityId=([^\s]+)'
     try:
         with open(path_to_wallpaper, 'r') as file:
             file_content = file.read()
