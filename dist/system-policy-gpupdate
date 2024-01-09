@@ -2,11 +2,12 @@
 session		[success=2 perm_denied=ignore default=die]	pam_localuser.so
 session		substack	gpupdate-remote-policy
 session		[default=1]	pam_permit.so
-session		[default=6]	pam_permit.so
+session		[default=7]	pam_permit.so
 session		[success=1 default=ignore]	pam_succeed_if.so user ingroup users quiet
-session		[default=4]	pam_permit.so
+session		[default=5]	pam_permit.so
 session		[success=1 default=ignore]	pam_succeed_if.so uid >= 500 quiet
-session		[default=2]	pam_permit.so
+session		[default=3]	pam_permit.so
+session		[success=1 default=ignore]	pam_succeed_if.so service = systemd-user quiet
 -session	required	pam_oddjob_gpupdate.so
 session		optional	pam_env.so user_readenv=1 conffile=/etc/gpupdate/environment user_envfile=.gpupdate_environment
 session		required	pam_permit.so
