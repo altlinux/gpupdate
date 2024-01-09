@@ -133,7 +133,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                     section = section.replace(')(', '][')
                     file.write(f'[{section}]\n')
                     for key, value in keys.items():
-                        lock = f"{file_name}.{section}.{key}"
+                        lock = f"{file_name}.{section}.{key}".replace('][', ')(')
                         if lock in locks_dict and locks_dict[lock] == '1':
                             file.write(f'{key}[$i]={value}\n')
                         else:
