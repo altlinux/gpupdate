@@ -2,7 +2,7 @@
 Description=Run gpupdate-user every hour
 
 [Timer]
-OnStartupSec=1
+OnStartupSec=60min
 OnUnitActiveSec=60min
 
 [Install]
