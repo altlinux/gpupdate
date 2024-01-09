@@ -146,10 +146,10 @@ def is_unit_enabled(unit_name, unit_global=False):
 
 def get_status():
     '''
-    Check that gpupdate.service and gpupdate-user.service are enabled.
+    Check that gpupdate.timer and gpupdate-user.timer are enabled.
     '''
-    is_gpupdate = is_unit_enabled('gpupdate.service')
-    is_gpupdate_user = is_unit_enabled('gpupdate-user.service', unit_global=True)
+    is_gpupdate = is_unit_enabled('gpupdate.timer')
+    is_gpupdate_user = is_unit_enabled('gpupdate-user.timer', unit_global=True)
 
     if is_gpupdate and is_gpupdate_user:
         return True
@@ -218,7 +218,7 @@ def enable_gp(policy_name, backend_type):
     cmd_set_gpupdate_policy = ['/usr/sbin/control', 'system-policy', 'gpupdate']
     cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel', '5']
     cmd_enable_gpupdate_service = ['/bin/systemctl', 'enable', 'gpupdate.service']
-    cmd_enable_gpupdate_user_service = ['/bin/systemctl', '--global', 'enable', 'gpupdate-user.service']
+    cmd_enable_gpupdate_user_service = ['/bin/systemctl', '--global', 'disable', 'gpupdate-user.service']
     cmd_enable_gpupdate_timer = ['/bin/systemctl', 'enable', 'gpupdate.timer']
     cmd_enable_gpupdate_user_timer = ['/bin/systemctl', '--global', 'enable', 'gpupdate-user.timer']
     cmd_enable_gpupdate_scripts_service = ['/bin/systemctl', 'enable', 'gpupdate-scripts-run.service']
@@ -254,11 +254,7 @@ def enable_gp(policy_name, backend_type):
     # Enable gpupdate-setup.service for all users
     if not rollback_on_error(cmd_enable_gpupdate_user_service):
         return
-    if not is_unit_enabled('gpupdate-user.service', unit_global=True):
-        disable_gp()
-        return
-
-        # Enable gpupdate-scripts-run.service
+    # Enable gpupdate-scripts-run.service
     if not rollback_on_error(cmd_enable_gpupdate_scripts_service):
         return
     if not is_unit_enabled('gpupdate-scripts-run.service'):
