@@ -1,6 +1,5 @@
 [Unit]
 Description=Run Group Policy scripts for a user
-After=gpupdate-user.service
 
 [Service]
 Type=oneshot
