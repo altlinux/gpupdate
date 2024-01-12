@@ -68,11 +68,11 @@ class ini_applier_user(applier_frontend):
             Ini_file(inifile, self.username)
 
     def admin_context_apply(self):
+        pass
+
+    def user_context_apply(self):
         if self.__module_enabled:
             log('D173')
             self.run()
         else:
             log('D174')
-
-    def user_context_apply(self):
-        pass
