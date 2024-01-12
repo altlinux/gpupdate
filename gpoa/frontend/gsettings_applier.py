@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
+from util.exceptions import NotUNCPathError
 import os
 import pwd
 import subprocess
@@ -295,6 +295,8 @@ class gsettings_applier_user(applier_frontend):
             filter_result = self.storage.get_hkcu_entry(self.sid, entry)
             if filter_result:
                 self.file_cache.store(filter_result.data)
+        except NotUNCPathError:
+            ...
         except Exception as exc:
             logdata = dict()
             logdata['exception'] = str(exc)
