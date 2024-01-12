@@ -279,8 +279,8 @@ def debug_code(code):
     debug_ids[170] = 'Running File copy applier for user in administrator context will not be started'
     debug_ids[171] = 'Running ini applier for machine'
     debug_ids[172] = 'Running ini applier for machine will not be started'
-    debug_ids[173] = 'Running ini applier for user in administrator context'
-    debug_ids[174] = 'Running ini applier for user in administrator context will not be started'
+    debug_ids[173] = 'Running ini applier for user in user context'
+    debug_ids[174] = 'Running ini applier for user in user context will not be started'
     debug_ids[175] = 'Ini-file path not recognized'
     debug_ids[176] = 'Ini-file is not readable'
     debug_ids[177] = 'Saving information about ini-file'
@@ -342,6 +342,7 @@ def warning_code(code):
     warning_ids[20] = 'Error connecting to server'
     warning_ids[21] = 'Wallpaper configuration file not found'
     warning_ids[22] = 'The user setting was not installed, conflict with computer setting.'
+    warning_ids[23] = 'Action for ini file failed'
 
 
     return warning_ids.get(code, 'Unknown warning code')

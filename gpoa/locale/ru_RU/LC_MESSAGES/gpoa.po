@@ -735,11 +735,11 @@ msgstr "Запуск применение настроек ini файлов дл
 msgid "Running ini applier for machine will not be started"
 msgstr "Применение настроек ini файлов для машины не будет запущено"
 
-msgid "Running ini applier for user in administrator context"
-msgstr "Запуск применение настроек ini файлов для пользователя в контексте администратора"
+msgid "Running ini applier for user in user context"
+msgstr "Запуск применение настроек ini файлов для пользователя в контексте пользователя"
 
-msgid "Running ini applier for user in administrator context will not be started"
-msgstr "Применение настроек ini файлов для пользователя в контексте администратора не будет запущено"
+msgid "Running ini applier for user in user context will not be started"
+msgstr "Применение настроек ini файлов для пользователя в контексте пользователя не будет запущено"
 
 msgid "Ini-file path not recognized"
 msgstr "Путь к ini-файлу не распознан"
@@ -906,6 +906,9 @@ msgstr "Конфигурационный файл для обоев не най�
 
 msgid "The user setting was not installed, conflict with computer setting."
 msgstr "Пользовательская настройка не была установлена, конфликт с настройкой компьютера."
+
+msgid "Action for ini file failed"
+msgstr "Не удалось выполнить действие для INI-файла"
 
 # Fatal
 msgid "Unable to refresh GPO list"

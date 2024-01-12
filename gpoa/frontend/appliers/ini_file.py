@@ -75,14 +75,21 @@ class Ini_file:
 
 
     def act(self):
-        if self.action == FileAction.CREATE:
-            self._create_action()
-        if self.action == FileAction.UPDATE:
-            self._create_action()
-        if self.action == FileAction.DELETE:
-            self._delete_action()
-        if self.action == FileAction.REPLACE:
-            self._create_action()
+        try:
+            if self.action == FileAction.CREATE:
+                self._create_action()
+            if self.action == FileAction.UPDATE:
+                self._create_action()
+            if self.action == FileAction.DELETE:
+                self._delete_action()
+            if self.action == FileAction.REPLACE:
+                self._create_action()
+        except Exception as exc:
+            logdata = dict()
+            logdata['action'] = self.action
+            logdata['exc'] = exc
+            log('W23', logdata)
+
 
 def check_path(path_to_check, username = None):
     '''
