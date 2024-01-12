@@ -19,7 +19,7 @@
 from .applier_frontend import applier_frontend, check_enabled
 from util.logging import log
 from util.util import get_homedir
-
+from util.exceptions import NotUNCPathError
 import os
 import subprocess
 import re
@@ -215,7 +215,7 @@ def apply_for_wallpaper(data, file_cache, username):
         try:
             file_cache.store(data)
             data = file_cache.get(data)
-        except:
+        except NotUNCPathError:
             data = data
         os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
             #Variable for system detection of directories before files with .colors extension
