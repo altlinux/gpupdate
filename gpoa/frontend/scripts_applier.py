@@ -19,9 +19,7 @@
 import os
 import shutil
 from pathlib import Path
-import pysss_nss_idmap
 
-from django.template import base
 from util.logging import log
 from .appliers.folder import remove_dir_tree
 from .applier_frontend import (
