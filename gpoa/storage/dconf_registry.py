@@ -125,13 +125,15 @@ class Dconf_registry():
         try:
             process = subprocess.Popen(['dconf', 'read', key],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            logdata['key'] = key
+            log('D205', logdata)
             output, error = process.communicate()
 
             if not error:
                 key = string_to_literal_eval(string_to_literal_eval(output))
         except Exception as exc:
-            #log
-            ...
+            logdata['exc'] = exc
+            log('E70', logdata)
         return key
 
     @staticmethod

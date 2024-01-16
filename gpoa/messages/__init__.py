@@ -104,6 +104,7 @@ def error_code(code):
     error_ids[67] = 'Error creating environment variables'
     error_ids[68] = 'Error running kwriteconfig5 command'
     error_ids[69] = 'Error getting list of keys'
+    error_ids[70] = 'Error getting key value'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -312,6 +313,7 @@ def debug_code(code):
     debug_ids[202] = 'Changing the configuration file'
     debug_ids[203] = 'Widget command completed successfully'
     debug_ids[204] = 'Getting a list of keys'
+    debug_ids[205] = 'Getting the key value'
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
