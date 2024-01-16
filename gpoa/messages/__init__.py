@@ -103,6 +103,7 @@ def error_code(code):
     error_ids[66] = 'Error while executing command for widgets'
     error_ids[67] = 'Error creating environment variables'
     error_ids[68] = 'Error running kwriteconfig5 command'
+    error_ids[69] = 'Error getting list of keys'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -310,6 +311,7 @@ def debug_code(code):
     debug_ids[201] = 'KDE applier for user in user context will not be started'
     debug_ids[202] = 'Changing the configuration file'
     debug_ids[203] = 'Widget command completed successfully'
+    debug_ids[204] = 'Getting a list of keys'
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):

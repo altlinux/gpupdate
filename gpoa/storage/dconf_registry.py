@@ -92,10 +92,12 @@ class Dconf_registry():
     def get_matching_keys(path):
         if path[0] != '/':
             path = '/' + path
-
+        logdata = dict()
         try:
             process = subprocess.Popen(['dconf', 'list', path],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            logdata['path'] = path
+            log('D204', logdata)
             output, error = process.communicate()
             if not output and not error:
                 return
@@ -107,7 +109,8 @@ class Dconf_registry():
                 Dconf_registry.list_keys.append(path)
             return Dconf_registry.list_keys
         except Exception as exc:
-            #log
+            logdata['exc'] = exc
+            log('E69', logdata)
             return None
 
     @staticmethod
