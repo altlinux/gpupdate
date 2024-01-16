@@ -113,17 +113,8 @@ class Dconf_registry():
     @staticmethod
     def get_key_values(keys):
         key_values = {}
-        try:
-            for key in keys:
-                process = subprocess.Popen(['dconf', 'read', key],
-                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                output, error = process.communicate()
-
-                if not error:
-                    key_values[key] = string_to_literal_eval(string_to_literal_eval(output))
-        except Exception as exc:
-            #log
-            ...
+        for key in keys:
+            key_values[key] = Dconf_registry.get_key_value(key)
         return key_values
 
     @staticmethod
