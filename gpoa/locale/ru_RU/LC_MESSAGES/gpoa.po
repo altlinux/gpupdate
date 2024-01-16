@@ -904,8 +904,8 @@ msgstr "Ошибка при подключении к серверу"
 msgid "Wallpaper configuration file not found"
 msgstr "Конфигурационный файл для обоев не найден"
 
-msgid "The user setting was not installed, conflict with computer setting."
-msgstr "Пользовательская настройка не была установлена, конфликт с настройкой компьютера."
+msgid "The user setting was not installed, conflict with computer setting"
+msgstr "Пользовательская настройка не была установлена, конфликт с настройкой компьютера"
 
 msgid "Action for ini file failed"
 msgstr "Не удалось выполнить действие для INI-файла"
