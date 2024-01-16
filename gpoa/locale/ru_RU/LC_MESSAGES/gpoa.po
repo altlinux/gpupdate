@@ -243,6 +243,9 @@ msgstr "Ошибка выполнения команды kwriteconfig5"
 msgid "Error getting list of keys"
 msgstr "Ошибка получения списка ключей"
 
+msgid "Error getting key value"
+msgstr "Ошибка при получении значения ключей"
+
 # Error_end
 
 # Debug
@@ -842,6 +845,9 @@ msgstr "Команда для виджетов выполнена успешно
 
 msgid "Getting a list of keys"
 msgstr "Получение списка ключей"
+
+msgid "Getting the key value"
+msgstr "Получение значения ключа"
 
 # Debug_end
 
