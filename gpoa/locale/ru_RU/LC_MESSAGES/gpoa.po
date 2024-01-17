@@ -246,6 +246,12 @@ msgstr "Ошибка получения списка ключей"
 msgid "Error getting key value"
 msgstr "Ошибка при получении значения ключей"
 
+msgid "Failed to update dconf database"
+msgstr "Не удалось обновить базу данных dconf"
+
+msgid "Exception occurred while updating dconf database"
+msgstr "Возникло исключение при обновлении базы данных dconf"
+
 # Error_end
 
 # Debug
@@ -848,6 +854,9 @@ msgstr "Получение списка ключей"
 
 msgid "Getting the key value"
 msgstr "Получение значения ключа"
+
+msgid "Successfully updated dconf database"
+msgstr "База данных dconf успешно обновлена"
 
 # Debug_end
 
