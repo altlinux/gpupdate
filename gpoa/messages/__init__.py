@@ -105,6 +105,8 @@ def error_code(code):
     error_ids[68] = 'Error running kwriteconfig5 command'
     error_ids[69] = 'Error getting list of keys'
     error_ids[70] = 'Error getting key value'
+    error_ids[71] = 'Failed to update dconf database'
+    error_ids[72] = 'Exception occurred while updating dconf database'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -314,6 +316,7 @@ def debug_code(code):
     debug_ids[203] = 'Widget command completed successfully'
     debug_ids[204] = 'Getting a list of keys'
     debug_ids[205] = 'Getting the key value'
+    debug_ids[206] = 'Successfully updated dconf database'
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):

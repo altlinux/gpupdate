@@ -144,14 +144,14 @@ class Dconf_registry():
             output, error = process.communicate()
 
             if error:
-                #log error
-                ...
+                logdata['error'] = error
+                log('E71', logdata)
             else:
-                #log done
-                ...
+                logdata['outpupt'] = output
+                log('D206', logdata)
         except Exception as exc:
-            #log exp
-            ...
+            logdata['exc'] = exc
+            log('E72', logdata)
 
     @classmethod
     def check_profile_template(self):
