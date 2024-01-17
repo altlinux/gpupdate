@@ -350,6 +350,7 @@ def warning_code(code):
     warning_ids[21] = 'Wallpaper configuration file not found'
     warning_ids[22] = 'The user setting was not installed, conflict with computer setting'
     warning_ids[23] = 'Action for ini file failed'
+    warning_ids[24] = 'Couldn\'t get the uid'
 
 
     return warning_ids.get(code, 'Unknown warning code')

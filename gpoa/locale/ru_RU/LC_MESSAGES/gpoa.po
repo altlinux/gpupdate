@@ -931,6 +931,9 @@ msgstr "Пользовательская настройка не была уст
 msgid "Action for ini file failed"
 msgstr "Не удалось выполнить действие для INI-файла"
 
+msgid "Couldn't get the uid"
+msgstr "Не удалось получить uid"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"
