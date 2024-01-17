@@ -858,6 +858,9 @@ msgstr "Получение значения ключа"
 msgid "Successfully updated dconf database"
 msgstr "База данных dconf успешно обновлена"
 
+msgid "Creating a dictionary with keys and values from the dconf database"
+msgstr "Формирование словаря с ключами и значениями из базы dconf"
+
 # Debug_end
 
 # Warning

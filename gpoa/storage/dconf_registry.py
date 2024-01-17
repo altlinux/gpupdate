@@ -204,6 +204,7 @@ class Dconf_registry():
                 keys_tmp = key.split('/')
                 update_dict(output_dict.setdefault('/'.join(keys_tmp[0:-1])[1:], {}), {keys_tmp[-1]: value})
 
+        log('D207')
         return output_dict
 
 

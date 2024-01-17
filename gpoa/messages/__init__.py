@@ -317,6 +317,7 @@ def debug_code(code):
     debug_ids[204] = 'Getting a list of keys'
     debug_ids[205] = 'Getting the key value'
     debug_ids[206] = 'Successfully updated dconf database'
+    debug_ids[207] = 'Creating a dictionary with keys and values from the dconf database'
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
