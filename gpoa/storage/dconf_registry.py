@@ -138,6 +138,7 @@ class Dconf_registry():
 
     @staticmethod
     def dconf_update():
+        logdata = dict()
         try:
             process = subprocess.Popen(['dconf', 'update'],
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
