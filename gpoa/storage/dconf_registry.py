@@ -179,6 +179,8 @@ class Dconf_registry():
               f"system-db:policy{uid}\n" \
               f"system-db:policy\n"
         else:
+            logdata['uid'] = uid
+            log('W24', logdata)
             return
 
         user_mandatory = f'/run/dconf/user/{uid}'
