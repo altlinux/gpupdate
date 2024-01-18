@@ -267,6 +267,7 @@ class Dconf_registry():
 
     @classmethod
     def get_entry(self, path, dictionary = None):
+        logdata = dict()
         result = Dconf_registry.get_storage(dictionary)
 
         keys = path.split("\\") if "\\" in path else path.split("/")
@@ -277,6 +278,8 @@ class Dconf_registry():
             return PregDconf(
                 key, convert_string_dconf(keys[-1]), find_preg_type(data), data)
         else:
+            logdata['path'] = path
+            log('D208', logdata)
             return None
 
 

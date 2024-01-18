@@ -861,6 +861,9 @@ msgstr "База данных dconf успешно обновлена"
 msgid "Creating a dictionary with keys and values from the dconf database"
 msgstr "Формирование словаря с ключами и значениями из базы dconf"
 
+msgid "No entry found for the specified path"
+msgstr "Не найдено записей по указанному пути"
+
 # Debug_end
 
 # Warning
