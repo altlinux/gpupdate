@@ -164,6 +164,9 @@ def dict_item_to_list(dictionary:dict) -> dict:
     '''
     Replacing dictionaries with numeric keys with a List
     '''
+    if '' in dictionary:
+        dictionary = dictionary.pop('')
+
     for key,val in dictionary.items():
         if type(val) == dict:
             if key_dict_is_digit(val):
