@@ -514,8 +514,8 @@ def create_dconf_ini_file(filename, data):
                     file.write(f'{key} = "{value}"\n')
             file.write('\n')
     logdata = dict()
-    logdata['filename'] = filename
-    log('D177', logdata)
+    logdata['path'] = filename
+    log('D209', logdata)
     Dconf_registry.dconf_update()
 
 def convert_string_dconf(input_string):

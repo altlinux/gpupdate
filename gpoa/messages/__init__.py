@@ -319,6 +319,8 @@ def debug_code(code):
     debug_ids[206] = 'Successfully updated dconf database'
     debug_ids[207] = 'Creating a dictionary with keys and values from the dconf database'
     debug_ids[208] = 'No entry found for the specified path'
+    debug_ids[209] = 'Creating an ini file with policies for dconf'
+
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):

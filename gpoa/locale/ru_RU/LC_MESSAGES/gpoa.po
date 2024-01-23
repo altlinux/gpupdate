@@ -864,6 +864,9 @@ msgstr "Формирование словаря с ключами и значе�
 msgid "No entry found for the specified path"
 msgstr "Не найдено записей по указанному пути"
 
+msgid "Creating an ini file with policies for dconf"
+msgstr "Создание ini-фала с политиками для  dconf"
+
 # Debug_end
 
 # Warning
