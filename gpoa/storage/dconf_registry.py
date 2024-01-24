@@ -122,6 +122,7 @@ class Dconf_registry():
 
     @staticmethod
     def get_key_value(key):
+        logdata = dict()
         try:
             process = subprocess.Popen(['dconf', 'read', key],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -163,6 +164,7 @@ class Dconf_registry():
 
     @classmethod
     def apply_template(self, uid):
+        logdata = dict()
         if uid and self.check_profile_template():
             with open(self.__template_file, "r") as f:
                 template = f.read()
