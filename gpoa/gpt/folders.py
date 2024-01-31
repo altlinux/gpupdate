@@ -66,6 +66,7 @@ def read_folders(folders_file):
         fld_obj.set_delete_folder(folder_int2bool(props.get('deleteFolder', default=1)))
         fld_obj.set_delete_sub_folders(folder_int2bool(props.get('deleteSubFolders', default=1)))
         fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles', default=1)))
+        fld_obj.set_hidden_folder(folder_int2bool(props.get('hidden', default=0)))
 
         folders.append(fld_obj)
 
@@ -83,6 +84,7 @@ class folderentry:
         self.delete_folder = False
         self.delete_sub_folders = False
         self.delete_files = False
+        self.hidden_folder = False
 
     def set_action(self, action):
         self.action = action
@@ -96,3 +98,5 @@ class folderentry:
     def set_delete_files(self, del_bool):
         self.delete_files = del_bool
 
+    def set_hidden_folder(self, hid_bool):
+        self.hidden_folder = hid_bool

@@ -140,6 +140,7 @@ class sqlite_registry(registry):
             , Column('delete_folder', String)
             , Column('delete_sub_folders', String)
             , Column('delete_files', String)
+            , Column('hidden_folder', String)
             , UniqueConstraint('sid', 'path')
         )
         self.__envvars = Table(
