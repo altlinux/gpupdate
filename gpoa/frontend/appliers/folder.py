@@ -59,6 +59,7 @@ class Folder:
         self.delete_files = str2bool(folder_object.delete_files)
         self.delete_folder = str2bool(folder_object.delete_folder)
         self.delete_sub_folders = str2bool(folder_object.delete_sub_folders)
+        self.hidden_folder = str2bool(folder_object.hidden_folder)
 
     def _create_action(self):
         self.folder_path.mkdir(parents=True, exist_ok=True)
@@ -73,6 +74,11 @@ class Folder:
                 self.delete_sub_folders)
 
     def act(self):
+        if self.hidden_folder == True and str(self.folder_path.name)[0] != '.':
+            path_components = list(self.folder_path.parts)
+            path_components[-1] = '.' + path_components[-1]
+            new_folder_path = Path(*path_components)
+            self.folder_path = new_folder_path
         if self.action == FileAction.CREATE:
             self._create_action()
         if self.action == FileAction.UPDATE:
