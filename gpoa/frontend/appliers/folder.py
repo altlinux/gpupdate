@@ -36,10 +36,12 @@ def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_fo
             content.remove(entry)
         if entry.is_dir() and delete_sub_folders:
             content.remove(entry)
-            remove_dir_tree(entry, delete_files, delete_folder, delete_sub_folders)
+            content.extend(remove_dir_tree(entry, delete_files, delete_folder, delete_sub_folders))
+
     if delete_folder and not content:
         path.rmdir()
 
+    return content
 
 def str2bool(boolstr):
     if boolstr and boolstr.lower() in ['true', 'yes', '1']:
