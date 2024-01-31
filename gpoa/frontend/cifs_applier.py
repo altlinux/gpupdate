@@ -48,6 +48,19 @@ def add_line_if_missing(filename, ins_line):
             f.write(ins_line + '\n')
             f.flush()
 
+def remove_chars_before_colon(input_string):
+    if ":" in input_string:
+        colon_index = input_string.index(":")
+        result_string = input_string[colon_index + 1:]
+        return result_string
+    else:
+        return input_string
+
+def remove_escaped_quotes(input_string):
+    result_string = input_string.replace('"', '').replace("'", '')
+    return result_string
+
+
 class Drive_list:
     __alphabet = string.ascii_uppercase
     def __init__(self):
@@ -236,11 +249,11 @@ class cifs_applier_user(applier_frontend):
             drive_settings['dir'] = drv.dir
             drive_settings['login'] = drv.login
             drive_settings['password'] = drv.password
-            drive_settings['path'] = drv.path.replace('\\', '/')
+            drive_settings['path'] = remove_chars_before_colon(drv.path.replace('\\', '/'))
             drive_settings['action'] = drv.action
             drive_settings['thisDrive'] = drv.thisDrive
             drive_settings['allDrives'] = drv.allDrives
-            drive_settings['label'] = drv.label
+            drive_settings['label'] = remove_escaped_quotes(drv.label)
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
 
