@@ -151,6 +151,7 @@ class folder_entry(object):
         self.delete_folder = str(fobj.delete_folder)
         self.delete_sub_folders = str(fobj.delete_sub_folders)
         self.delete_files = str(fobj.delete_files)
+        self.hidden_folder = str(fobj.hidden_folder)
 
     def update_fields(self):
         '''
@@ -162,6 +163,8 @@ class folder_entry(object):
         fields['delete_folder'] = self.delete_folder
         fields['delete_sub_folders'] = self.delete_sub_folders
         fields['delete_files'] = self.delete_files
+        fields['hidden_folder'] = self.hidden_folder
+
 
         return fields
 
