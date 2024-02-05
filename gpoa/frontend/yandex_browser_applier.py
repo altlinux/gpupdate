@@ -138,7 +138,8 @@ class yandex_browser_applier(applier_frontend):
                             'DefaultInsecureContentSetting',
                             'PasswordProtectionWarningTrigger',
                             'SafeBrowsingProtectionLevel',
-                            'SafeBrowsingProtectionLevel_recommended'])
+                            'SafeBrowsingProtectionLevel_recommended',
+                            'DiskCacheSize'])
         return valuename_typeint
 
 
