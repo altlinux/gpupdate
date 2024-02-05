@@ -106,20 +106,7 @@ def get_backends():
     '''
     Get the list of backends supported by GPOA
     '''
-    command = ['/usr/sbin/gpoa', '--list-backends']
-    backends = list()
-    out = list()
-
-    with subprocess.Popen(command, stdout=subprocess.PIPE) as proc:
-        out = proc.stdout.read().decode('utf-8')
-        proc.wait()
-    out = out.split('\n')
-    for line in out:
-        tmpline = line.replace('\n', '')
-        if tmpline != '':
-            backends.append(tmpline)
-
-    return backends
+    return ['local', 'samba']
 
 def get_default_policy_name():
     '''
