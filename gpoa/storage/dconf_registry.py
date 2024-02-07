@@ -127,7 +127,6 @@ class Dconf_registry():
             process = subprocess.Popen(['dconf', 'read', key],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             logdata['key'] = key
-            log('D205', logdata)
             output, error = process.communicate()
 
             if not error:
@@ -455,12 +454,20 @@ def update_dict(dict1, dict2):
             dict1[key] = value
 
 
-def add_to_dict(dictionary, string):
-    correct_path = '/'.join(string.split('/')[:-2])
-    dictionary[len(dictionary)] = correct_path
+def add_to_dict(string, policy_name, username):
+    if username is None:
+        correct_path = '/'.join(string.split('/')[:-2])
+        machine= '{}/Machine/'.format(Dconf_registry._ReadQueue)
+        dictionary = Dconf_registry.global_registry_dict.setdefault(machine, dict())
+    else:
+        correct_path = '/'.join(string.split('/')[:-2])
+        user = '{}/User'.format(Dconf_registry._ReadQueue)
+        dictionary = Dconf_registry.global_registry_dict.setdefault(user, dict())
+
+    dictionary[len(dictionary)] = (policy_name, correct_path)
 
 
-def load_preg_dconf(pregfile, pathfile):
+def load_preg_dconf(pregfile, pathfile, policy_name, username):
     '''
     Loads the configuration from preg registry into a dictionary
     '''
@@ -490,7 +497,7 @@ def load_preg_dconf(pregfile, pathfile):
             dd_target_win = dd_win_style.setdefault('\\'.join(all_list_key[:-1]),{})
             dd_target_win.setdefault(all_list_key[-1], []).append(i.data)
     # Update the global registry dictionary with the contents of dd
-    add_to_dict(Dconf_registry.global_registry_dict[Dconf_registry._ReadQueue], pathfile)
+    add_to_dict(pathfile, policy_name, username)
     update_dict(Dconf_registry.global_registry_dict, dd)
     update_dict(Dconf_registry.global_registry_dict_win_style, dd_win_style)
 
