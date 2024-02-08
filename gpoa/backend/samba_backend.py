@@ -79,8 +79,8 @@ class samba_backend(applier_backend):
         checked only if working for user's SID.
         '''
         upm = self.storage.get_key_value(self.__user_policy_mode_key)
-        if upm and upm.data:
-            upm = int(upm.data)
+        if upm:
+            upm = int(upm)
             if upm < 0 or upm > 2:
                 upm = 0
         else:
