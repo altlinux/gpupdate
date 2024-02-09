@@ -1,0 +1,27 @@
+_gpupdate()
+{
+    local cur prev words cword split
+    _init_completion -s || return
+
+    case $prev in
+        -u|--user)
+            _filedir
+            return
+            ;;
+        -t|--target)
+            COMPREPLY=($(compgen -W 'ALL USER COMPUTER' -- "$cur"))
+            return
+            ;;
+        -l|--loglevel)
+            COMPREPLY=($(compgen -W '0 1 2 3 4 5' -- "$cur"))
+            return
+            ;;
+        *)
+            COMPREPLY=($(compgen -W '-u --user -t --target -l --loglevel -s --system -h --help' -- "$cur"))
+            return
+            ;;
+    esac
+}
+
+complete -F _gpupdate gpupdate
+
