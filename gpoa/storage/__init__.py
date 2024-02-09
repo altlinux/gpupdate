@@ -19,7 +19,10 @@
 
 from storage.dconf_registry import Dconf_registry
 
-def registry_factory(registry_name='', registry_dir=None):
+def registry_factory(registry_name='', registry_dir=None , username=None):
+    if username:
+        Dconf_registry.username = username
+
     if registry_name == 'dconf':
         return Dconf_registry()
     else:
