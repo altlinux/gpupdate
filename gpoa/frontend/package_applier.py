@@ -119,7 +119,7 @@ class package_applier_user(applier_frontend):
         self.sync_packages_setting = self.storage.filter_hkcu_entries(self.sid, sync_branch)
         self.flagSync = False
 
-        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def user_context_apply(self):
         '''
