@@ -119,6 +119,9 @@ install -Dm0644 dist/%name-remote-policy %buildroot%_sysconfdir/pam.d/%name-remo
 install -Dm0644 dist/%name.ini %buildroot%_sysconfdir/%name/%name.ini
 install -Dm0644 doc/gpoa.1 %buildroot/%_man1dir/gpoa.1
 install -Dm0644 doc/gpupdate.1 %buildroot/%_man1dir/gpupdate.1
+install -Dm0644 completions/gpoa %buildroot/%_datadir/bash-completion/completions/gpoa
+install -Dm0644 completions/gpupdate %buildroot/%_datadir/bash-completion/completions/gpupdate
+install -Dm0644 completions/gpupdate-setup %buildroot/%_datadir/bash-completion/completions/gpupdate-setup
 
 for i in gpupdate-localusers \
 	 gpupdate-group-users \
@@ -165,6 +168,9 @@ fi
 %_unitdir/%name.timer
 %_man1dir/gpoa.1.*
 %_man1dir/gpupdate.1.*
+%_datadir/bash-completion/completions/gpoa
+%_datadir/bash-completion/completions/gpupdate
+%_datadir/bash-completion/completions/gpupdate-setup
 /usr/lib/systemd/user/%name-user.service
 /usr/lib/systemd/user/%name-user.timer
 /usr/lib/systemd/user/%name-scripts-run-user.service
