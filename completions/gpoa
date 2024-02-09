@@ -1,0 +1,22 @@
+_gpoa()
+{
+    local cur prev words cword split
+    _init_completion -s || return
+
+    case $prev in
+        --dc)
+            _filedir
+            return
+            ;;
+        --loglevel)
+            COMPREPLY=($(compgen -W '0 1 2 3 4 5' -- "$cur"))
+            return
+            ;;
+        *)
+            COMPREPLY=($(compgen -W '--dc --nodomain --noupdate --noplugins --list-backends --loglevel --help -h' -- "$cur"))
+            return
+            ;;
+    esac
+}
+
+complete -F _gpoa gpoa
