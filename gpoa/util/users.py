@@ -47,7 +47,6 @@ def username_match_uid(username):
     '''
     Check the passed username matches current process UID.
     '''
-    uid = os.getuid()
     process_username = get_process_user()
 
     if process_username == username:
