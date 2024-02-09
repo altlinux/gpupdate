@@ -73,6 +73,7 @@ class Dconf_registry():
     printers = list()
     scripts = list()
     networkshares = list()
+    username = None
 
     def __init__(self):
         Dconf_registry.__gpt_read_flag = True
