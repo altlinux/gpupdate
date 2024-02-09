@@ -1,0 +1,18 @@
+_gpupdate-setup()
+{
+    local cur prev words cword split
+    _init_completion -s || return
+
+    case $prev in
+        set-backend)
+            COMPREPLY=($(compgen -W 'local samba' -- "$cur"))
+            return
+            ;;
+        *)
+            COMPREPLY=($(compgen -W '-h --help list list-backends status enable disable update write set-backend default-policy active-policy active-backend' -- "$cur"))
+            return
+            ;;
+    esac
+}
+
+complete -F _gpupdate-setup gpupdate-setup
