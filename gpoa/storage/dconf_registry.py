@@ -18,7 +18,7 @@
 
 import subprocess
 from pathlib import Path
-from util.util import string_to_literal_eval, touch_file
+from util.util import string_to_literal_eval, touch_file, get_uid_by_username
 from util.logging import log
 import re
 
@@ -94,9 +94,10 @@ class Dconf_registry():
         if path[0] != '/':
             path = '/' + path
         logdata = dict()
+        envprofile = get_dconf_envprofile(Dconf_registry.username)
         try:
             process = subprocess.Popen(['dconf', 'list', path],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                       env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             logdata['path'] = path
             log('D204', logdata)
             output, error = process.communicate()
@@ -124,9 +125,10 @@ class Dconf_registry():
     @staticmethod
     def get_key_value(key):
         logdata = dict()
+        envprofile = get_dconf_envprofile(Dconf_registry.username)
         try:
             process = subprocess.Popen(['dconf', 'read', key],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                       env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             logdata['key'] = key
             output, error = process.communicate()
 
@@ -555,3 +557,10 @@ def flatten_dictionary(input_dict, result=None, current_key=''):
             result[new_key] = value
 
     return result
+
+def get_dconf_envprofile(user = None):
+    if not user:
+        return {'DCONF_PROFILE': 'system'}
+    else:
+        profile = str(get_uid_by_username(user))
+        return {'DCONF_PROFILE': profile}
