@@ -44,28 +44,21 @@ def is_rpm_installed(rpm_name):
 
 class Pkcon_applier:
 
-    def __init__(self, sid = None):
+    def __init__(self, user = None):
         self.__install_key_name = 'Install'
         self.__remove_key_name = 'Remove'
-        self.__hkcu_branch = '/Software/BaseALT/Policies/Packages'
         self.__hklm_branch = '/Software/BaseALT/Policies/Packages'
         self.__install_command = ['/usr/bin/pkcon', '-y', 'install']
         self.__remove_command = ['/usr/bin/pkcon', '-y', 'remove']
         self.__reinstall_command = ['/usr/bin/pkcon', '-y', 'reinstall']
         self.install_packages = set()
         self.remove_packages = set()
-        self.storage = registry_factory()
+        self.storage = registry_factory(username = user)
         self.storage.filling_storage_from_dconf()
-        if sid:
-            install_branch_user = '{}/{}'.format(self.__hkcu_branch, self.__install_key_name)
-            remove_branch_user = '{}/{}'.format(self.__hkcu_branch, self.__remove_key_name)
-            self.install_packages_setting = self.storage.filter_hkcu_entries(sid, install_branch_user)
-            self.remove_packages_setting = self.storage.filter_hkcu_entries(sid, remove_branch_user)
-        else:
-            install_branch = '{}/{}'.format(self.__hklm_branch, self.__install_key_name)
-            remove_branch = '{}/{}'.format(self.__hklm_branch, self.__remove_key_name)
-            self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
-            self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
+        install_branch = '{}/{}'.format(self.__hklm_branch, self.__install_key_name)
+        remove_branch = '{}/{}'.format(self.__hklm_branch, self.__remove_key_name)
+        self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
+        self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
         for package in self.install_packages_setting:
             if not is_rpm_installed(package.data):
                 self.install_packages.add(package.data)
@@ -138,13 +131,13 @@ if __name__ == '__main__':
     gettext.textdomain('gpoa')
     logger = logging.getLogger()
     parser = argparse.ArgumentParser(description='Package applier')
-    parser.add_argument('--sid', type = str, help = 'sid', nargs = '?', default = None)
+    parser.add_argument('--user', type = str, help = 'user', nargs = '?', default = None)
     parser.add_argument('--loglevel', type = int, help = 'loglevel', nargs = '?', default = 30)
 
     args = parser.parse_args()
     logger.setLevel(args.loglevel)
-    if args.sid:
-        applier = Pkcon_applier(args.sid)
+    if args.user:
+        applier = Pkcon_applier(args.user)
     else:
         applier = Pkcon_applier()
     applier.apply()
