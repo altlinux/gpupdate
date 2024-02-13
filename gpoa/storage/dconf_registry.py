@@ -55,9 +55,12 @@ class Dconf_registry():
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
-    __gpt_read_flag = False
+    _gpt_read_flag = False
     __dconf_dict_flag = False
     __dconf_dict = dict()
+    _username = None
+    _default_envprofile = None
+    _local_envprofile = None
 
     list_keys = list()
     _info = dict()
@@ -73,7 +76,7 @@ class Dconf_registry():
     printers = list()
     scripts = list()
     networkshares = list()
-    username = None
+
 
 
     @classmethod
@@ -91,7 +94,9 @@ class Dconf_registry():
         if path[0] != '/':
             path = '/' + path
         logdata = dict()
-        envprofile = get_dconf_envprofile(Dconf_registry.username)
+        envprofile = get_dconf_envprofile(Dconf_registry._username,
+                                          Dconf_registry._default_envprofile,
+                                          Dconf_registry._local_envprofile)
         try:
             process = subprocess.Popen(['dconf', 'list', path],
                                        env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -122,7 +127,9 @@ class Dconf_registry():
     @staticmethod
     def get_key_value(key):
         logdata = dict()
-        envprofile = get_dconf_envprofile(Dconf_registry.username)
+        envprofile = get_dconf_envprofile(Dconf_registry._username,
+                                          Dconf_registry._default_envprofile,
+                                          Dconf_registry._local_envprofile)
         try:
             process = subprocess.Popen(['dconf', 'read', key],
                                        env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
