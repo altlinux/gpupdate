@@ -133,11 +133,13 @@ class Dconf_registry():
             output, error = process.communicate()
 
             if not error:
-                key = string_to_literal_eval(string_to_literal_eval(output))
+                return string_to_literal_eval(string_to_literal_eval(output))
+            else:
+                return None
         except Exception as exc:
             logdata['exc'] = exc
             log('E70', logdata)
-        return key
+        return None
 
     @staticmethod
     def dconf_update():
@@ -460,7 +462,7 @@ def update_dict(dict1, dict2):
 def add_to_dict(string, policy_name, username):
     if username is None:
         correct_path = '/'.join(string.split('/')[:-2])
-        machine= '{}/Machine/'.format(Dconf_registry._ReadQueue)
+        machine= '{}/Machine'.format(Dconf_registry._ReadQueue)
         dictionary = Dconf_registry.global_registry_dict.setdefault(machine, dict())
     else:
         correct_path = '/'.join(string.split('/')[:-2])
@@ -558,9 +560,15 @@ def flatten_dictionary(input_dict, result=None, current_key=''):
 
     return result
 
-def get_dconf_envprofile(user = None):
+def get_dconf_envprofile(user=None, default=None, local=None):
+    if default:
+        return {'DCONF_PROFILE': 'default'}
+
+    if local:
+        return {'DCONF_PROFILE': 'local'}
+
     if not user:
         return {'DCONF_PROFILE': 'system'}
-    else:
-        profile = str(get_uid_by_username(user))
-        return {'DCONF_PROFILE': profile}
+
+    profile = '/run/dconf/user/{}'.format(get_uid_by_username(user))
+    return {'DCONF_PROFILE': profile}
