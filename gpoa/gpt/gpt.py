@@ -158,6 +158,7 @@ class gpt:
         self.username = username
         self.sid = sid
         self.storage = registry_factory()
+        self.storage.__gpt_read_flag = True
         self.name = ''
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:
