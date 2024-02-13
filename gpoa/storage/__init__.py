@@ -19,9 +19,14 @@
 
 from storage.dconf_registry import Dconf_registry
 
-def registry_factory(registry_name='', registry_dir=None , username=None):
+def registry_factory(registry_name='', envprofile=None , username=None):
     if username:
-        Dconf_registry.username = username
+        Dconf_registry._username = username
+    if envprofile:
+        if envprofile == 'local':
+            Dconf_registry._local_envprofile = True
+        elif envprofile == 'default':
+            Dconf_registry._default_envprofile = True
 
     if registry_name == 'dconf':
         return Dconf_registry()
