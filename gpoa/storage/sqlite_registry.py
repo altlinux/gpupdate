@@ -24,13 +24,11 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    MetaData,
     UniqueConstraint
 )
-from sqlalchemy.orm import (
-    sessionmaker,
-    registry as registry_alch
-)
+
+from sqlalchemy.orm import sessionmaker
+from .sqlite_registry_compat import sqlite_registry_compat
 
 from util.logging import log
 from util.paths import cache_dir
@@ -58,7 +56,8 @@ class sqlite_registry(registry):
             cdir = cache_dir()
         self.db_path = os.path.join('sqlite:///{}/{}.sqlite'.format(cdir, self.db_name))
         self.db_cnt = create_engine(self.db_path, echo=False)
-        self.__metadata = MetaData()
+        self.__compat = sqlite_registry_compat(self.db_cnt)
+        self.__metadata = self.__compat.metadata()
         self.__info = Table(
             'info',
             self.__metadata,
@@ -214,7 +213,7 @@ class sqlite_registry(registry):
         self.__metadata.create_all(self.db_cnt)
         Session = sessionmaker(bind=self.db_cnt)
         self.db_session = Session()
-        mapper_reg = registry_alch()
+        mapper_reg = self.__compat
         try:
             mapper_reg.map_imperatively(info_entry, self.__info)
             mapper_reg.map_imperatively(samba_preg, self.__hklm)
