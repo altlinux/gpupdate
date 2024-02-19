@@ -239,7 +239,7 @@ def expand_windows_var(text, username=None):
     for var in variables.keys():
         result = result.replace('%{}%'.format(var),
                                  variables[var] if variables[var][-1] == '/'
-                                 else variables[var] +'/')
+                                 else variables[var] +'/').replace('//','/')
 
     return result
 
