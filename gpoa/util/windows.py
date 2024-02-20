@@ -147,13 +147,14 @@ class smbcreds (smbopts):
                 logdata['smb_exc'] = str(smb_exc)
                 if not check_scroll_enabled():
                     if self.dc_site_servers:
-                        list_selected_dc.add(self.dc_site_servers.pop())
+                        self.selected_dc = self.dc_site_servers.pop()
                     else:
                         log('F1', logdata)
                         raise smb_exc
                 else:
                     if len(self.dc_site_servers) > 1:
-                        list_selected_dc.add(self.dc_site_servers.pop(0))
+                        self.selected_dc = self.dc_site_servers.pop(0)
+                        list_selected_dc.add(self.selected_dc)
                     else:
                         self.selected_dc = get_dc_hostname(self.creds, self.lp)
                         if self.selected_dc not in list_selected_dc:
@@ -162,7 +163,7 @@ class smbcreds (smbopts):
                             list_selected_dc.add(self.selected_dc)
                         else:
                             if self.dc_site_servers:
-                                list_selected_dc.add(self.dc_site_servers.pop())
+                                self.selected_dc = self.dc_site_servers.pop()
                             else:
                                 log('F1', logdata)
                                 raise smb_exc
