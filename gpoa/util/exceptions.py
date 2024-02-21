@@ -46,3 +46,10 @@ class NotUNCPathError(Exception):
     def __str__(self):
         return self.path
 
+class GetGPOListFail(Exception):
+    def __init__(self, exc):
+        self.exc = exc
+
+    def __str__(self):
+        return self.exc
+
