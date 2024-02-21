@@ -34,6 +34,7 @@ from .xdg import (
       xdg_get_desktop
 )
 from .util import get_homedir
+from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
 from gpoa.storage import registry_factory
@@ -55,6 +56,9 @@ class smbcreds (smbopts):
         self.sDomain =  SiteDomainScanner(self.creds, self.lp, self.selected_dc)
         self.dc_site_servers = self.sDomain.select_site_servers()
         self.all_servers = self.sDomain.select_all_servers()
+        [self.all_servers.remove(element)
+        for element in self.dc_site_servers
+        if element in self.all_servers]
         self.pdc_emulator_server = self.sDomain.select_pdc_emulator_server()
 
     def get_dc(self):
@@ -121,6 +125,8 @@ class smbcreds (smbopts):
                     log('I2', ldata)
 
         except Exception as exc:
+            if self.selected_dc != self.pdc_emulator_server:
+                raise GetGPOListFail(exc)
             logdata = dict({'username': username, 'dc': self.selected_dc})
             log('E17', logdata)
 
@@ -130,14 +136,20 @@ class smbcreds (smbopts):
 
         list_selected_dc = set()
 
+
+
         if self.dc_site_servers:
             self.selected_dc = self.dc_site_servers.pop()
-        else:
-            self.selected_dc = self.all_servers.pop()
 
+        self.all_servers = [dc for dc in self.all_servers if dc != self.selected_dc]
         list_selected_dc.add(self.selected_dc)
 
-        gpos = self.get_gpos(username)
+        try:
+            gpos = self.get_gpos(username)
+
+        except GetGPOListFail:
+            self.selected_dc = self.pdc_emulator_server
+            gpos = self.get_gpos(username)
 
         while list_selected_dc:
             logdata = dict()
@@ -151,8 +163,11 @@ class smbcreds (smbopts):
             except NTSTATUSError as smb_exc:
                 logdata['smb_exc'] = str(smb_exc)
                 if not check_scroll_enabled():
-                    if self.pdc_emulator_server:
+                    if self.pdc_emulator_server and self.selected_dc != self.pdc_emulator_server:
                         self.selected_dc = self.pdc_emulator_server
+                        logdata['action'] = 'Selected pdc'
+                        logdata['pdc'] = self.selected_dc
+                        log('W11', logdata)
                     else:
                         log('F1', logdata)
                         raise smb_exc
@@ -167,6 +182,7 @@ class smbcreds (smbopts):
 
                     if self.selected_dc not in list_selected_dc:
                         logdata['action'] = 'Search another dc'
+                        logdata['another_dc'] = self.selected_dc
                         log('W11', logdata)
                         list_selected_dc.add(self.selected_dc)
                     else:
@@ -263,7 +279,7 @@ class SiteDomainScanner:
             random.shuffle(servers)
             return servers
         except Exception as e:
-            return None
+            return []
 
     def select_all_servers(self):
         try:
@@ -271,7 +287,7 @@ class SiteDomainScanner:
             random.shuffle(servers)
             return servers
         except Exception as e:
-            return None
+            return []
 
     def select_pdc_emulator_server(self):
         return self.pdc_emulator
