@@ -104,8 +104,8 @@ class package_applier_user(applier_frontend):
         self.username = username
         self.fulcmd = list()
         self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
-        self.fulcmd.append('--sid')
-        self.fulcmd.append(self.sid)
+        self.fulcmd.append('--user')
+        self.fulcmd.append(self.username)
         self.fulcmd.append('--loglevel')
         logger = logging.getLogger()
         self.fulcmd.append(str(logger.level))
