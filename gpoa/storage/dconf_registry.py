@@ -258,7 +258,7 @@ class Dconf_registry():
     def get_storage(self,dictionary = None):
         if dictionary:
             result = dictionary
-        elif Dconf_registry.__gpt_read_flag:
+        elif Dconf_registry._gpt_read_flag:
             result = Dconf_registry.global_registry_dict
         else:
             if Dconf_registry.__dconf_dict_flag:
