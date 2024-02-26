@@ -222,7 +222,7 @@ class cifs_applier_user(applier_frontend):
     def check_enable_home_link(self, enable_home_link):
         if self.storage.get_hkcu_entry(self.sid, enable_home_link):
             data = self.storage.get_hkcu_entry(self.sid, enable_home_link).data
-            return bool(int(data))
+            return bool(int(data)) if data else None
         else:
             return False
 
