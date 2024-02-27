@@ -51,7 +51,6 @@ class Dconf_registry():
     '''
     _ReadQueue = 'Software/BaseALT/Policies/ReadQueue'
     global_registry_dict = dict({_ReadQueue:{}})
-    global_registry_dict_win_style = dict()
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
@@ -164,17 +163,17 @@ class Dconf_registry():
             log('E72', logdata)
 
     @classmethod
-    def check_profile_template(self):
-        if Path(self.__template_file).exists():
+    def check_profile_template(cls):
+        if Path(cls.__template_file).exists():
             return True
         else:
             return None
 
     @classmethod
-    def apply_template(self, uid):
+    def apply_template(cls, uid):
         logdata = dict()
-        if uid and self.check_profile_template():
-            with open(self.__template_file, "r") as f:
+        if uid and cls.check_profile_template():
+            with open(cls.__template_file, "r") as f:
                 template = f.read()
             # Replace the "{uid}" placeholder with the actual UID value
             content = template.replace("{{uid}}", str(uid))
@@ -201,8 +200,8 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_policies_from_dconf(self):
-        return self.get_dictionary_from_dconf(self._policies_path, self._policies_win_path)
+    def get_policies_from_dconf(cls):
+        return cls.get_dictionary_from_dconf(cls._policies_path, cls._policies_win_path)
 
 
     @classmethod
@@ -212,25 +211,25 @@ class Dconf_registry():
             dconf_dict = self.get_key_values(self.get_matching_keys(startswith))
             for key, value in dconf_dict.items():
                 keys_tmp = key.split('/')
-                update_dict(output_dict.setdefault('/'.join(keys_tmp[0:-1])[1:], {}), {keys_tmp[-1]: value})
+                update_dict(output_dict.setdefault('/'.join(keys_tmp[:-1])[1:], {}), {keys_tmp[-1]: value})
 
         log('D207')
         return output_dict
 
 
     @classmethod
-    def filter_entries(self, startswith):
+    def filter_entries(cls, startswith):
         if startswith[-1] == '%':
             startswith = startswith[:-1]
             if startswith[-1] == '/' or startswith[-1] == '\\':
                 startswith = startswith[:-1]
-            return filter_dict_keys(startswith, flatten_dictionary(self.global_registry_dict))
-        return filter_dict_keys(startswith, flatten_dictionary(self.global_registry_dict))
+            return filter_dict_keys(startswith, flatten_dictionary(cls.global_registry_dict))
+        return filter_dict_keys(startswith, flatten_dictionary(cls.global_registry_dict))
 
 
     @classmethod
-    def filter_hklm_entries(self, startswith):
-        pregs = self.filter_entries(startswith)
+    def filter_hklm_entries(cls, startswith):
+        pregs = cls.filter_entries(startswith)
         list_entiers = list()
         for keyname, value in pregs.items():
             if isinstance(value, dict):
@@ -250,12 +249,12 @@ class Dconf_registry():
 
 
     @classmethod
-    def filter_hkcu_entries(self, sid, startswith):
-        return self.filter_hklm_entries(startswith)
+    def filter_hkcu_entries(cls, sid, startswith):
+        return cls.filter_hklm_entries(startswith)
 
 
     @classmethod
-    def get_storage(self,dictionary = None):
+    def get_storage(cls,dictionary = None):
         if dictionary:
             result = dictionary
         elif Dconf_registry._gpt_read_flag:
@@ -271,12 +270,12 @@ class Dconf_registry():
 
 
     @classmethod
-    def filling_storage_from_dconf(self):
+    def filling_storage_from_dconf(cls):
         Dconf_registry.global_registry_dict = Dconf_registry.get_storage()
 
 
     @classmethod
-    def get_entry(self, path, dictionary = None):
+    def get_entry(cls, path, dictionary = None):
         logdata = dict()
         result = Dconf_registry.get_storage(dictionary)
 
@@ -294,34 +293,34 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_hkcu_entry(self, sid, hive_key, dictionary = None):
-        return self.get_hklm_entry(hive_key, dictionary)
+    def get_hkcu_entry(cls, sid, hive_key, dictionary = None):
+        return cls.get_hklm_entry(hive_key, dictionary)
 
 
     @classmethod
-    def get_hklm_entry(self, hive_key, dictionary = None):
-        return self.get_entry(hive_key, dictionary)
+    def get_hklm_entry(cls, hive_key, dictionary = None):
+        return cls.get_entry(hive_key, dictionary)
 
 
 
     @classmethod
-    def add_shortcut(self, sid, sc_obj, policy_name):
-        self.shortcuts.append(sc_obj)
+    def add_shortcut(cls, sid, sc_obj, policy_name):
+        cls.shortcuts.append(sc_obj)
 
 
     @classmethod
-    def add_printer(self, sid, pobj, policy_name):
-        self.printers.append(pobj)
+    def add_printer(cls, sid, pobj, policy_name):
+        cls.printers.append(pobj)
 
 
     @classmethod
-    def add_drive(self, sid, dobj, policy_name):
-        self.drives.append(dobj)
+    def add_drive(cls, sid, dobj, policy_name):
+        cls.drives.append(dobj)
 
 
     @classmethod
-    def add_folder(self, sid, fobj, policy_name):
-        self.folders.append(fobj)
+    def add_folder(cls, sid, fobj, policy_name):
+        cls.folders.append(fobj)
 
 
     @classmethod
@@ -330,53 +329,53 @@ class Dconf_registry():
 
 
     @classmethod
-    def add_script(self, sid, scrobj, policy_name):
-        self.scripts.append(scrobj)
+    def add_script(cls, sid, scrobj, policy_name):
+        cls.scripts.append(scrobj)
 
 
     @classmethod
-    def add_file(self, sid, fileobj, policy_name):
-        self.files.append(fileobj)
+    def add_file(cls, sid, fileobj, policy_name):
+        cls.files.append(fileobj)
 
 
     @classmethod
-    def add_ini(self, sid, iniobj, policy_name):
-        self.inifiles.append(iniobj)
+    def add_ini(cls, sid, iniobj, policy_name):
+        cls.inifiles.append(iniobj)
 
 
     @classmethod
-    def add_networkshare(self, sid, networkshareobj, policy_name):
-        self.networkshares.append(networkshareobj)
+    def add_networkshare(cls, sid, networkshareobj, policy_name):
+        cls.networkshares.append(networkshareobj)
 
 
     @classmethod
-    def get_shortcuts(self, sid):
-        return self.shortcuts
+    def get_shortcuts(cls, sid):
+        return cls.shortcuts
 
 
     @classmethod
-    def get_printers(self, sid):
-        return self.printers
+    def get_printers(cls, sid):
+        return cls.printers
 
 
     @classmethod
-    def get_drives(self, sid):
-        return self.drives
+    def get_drives(cls, sid):
+        return cls.drives
 
     @classmethod
-    def get_folders(self, sid):
-        return self.folders
-
-
-    @classmethod
-    def get_envvars(self, sid):
-        return self.environmentvariables
+    def get_folders(cls, sid):
+        return cls.folders
 
 
     @classmethod
-    def get_scripts(self, sid, action):
+    def get_envvars(cls, sid):
+        return cls.environmentvariables
+
+
+    @classmethod
+    def get_scripts(cls, sid, action):
         action_scripts = list()
-        for part in self.scripts:
+        for part in cls.scripts:
             if action == 'LOGON':
                 action_scripts.append(part)
             elif action == 'LOGOFF':
@@ -389,29 +388,28 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_files(self, sid):
-        return self.files
+    def get_files(cls, sid):
+        return cls.files
 
 
     @classmethod
-    def get_networkshare(self, sid):
-        return self.networkshares
+    def get_networkshare(cls, sid):
+        return cls.networkshares
 
 
     @classmethod
-    def get_ini(self, sid):
-        return self.inifiles
+    def get_ini(cls, sid):
+        return cls.inifiles
 
 
     @classmethod
-    def wipe_user(self, sid):
-        self.wipe_hklm()
+    def wipe_user(cls, sid):
+        cls.wipe_hklm()
 
 
     @classmethod
-    def wipe_hklm(self):
-        self.global_registry_dict = dict({self._ReadQueue:{}})
-        self.global_registry_dict_win_style = dict()
+    def wipe_hklm(cls):
+        cls.global_registry_dict = dict({cls._ReadQueue:{}})
 
 
 def filter_dict_keys(starting_string, input_dict):
@@ -423,16 +421,6 @@ def filter_dict_keys(starting_string, input_dict):
             result[key] = input_dict.get(key)
 
     return result
-
-
-def has_single_key_with_value(input_dict):
-
-    if not input_dict or len(input_dict) == 0:
-        return False
-    elif len(input_dict) == 1 and list(input_dict.values())[0] is None:
-        return False
-    else:
-        return True
 
 
 def find_preg_type(argument):
@@ -508,7 +496,6 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username):
     # Update the global registry dictionary with the contents of dd
     add_to_dict(pathfile, policy_name, username)
     update_dict(Dconf_registry.global_registry_dict, dd)
-    update_dict(Dconf_registry.global_registry_dict_win_style, dd_win_style)
 
 
 def create_dconf_ini_file(filename, data):
