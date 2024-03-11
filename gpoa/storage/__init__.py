@@ -22,11 +22,10 @@ from storage.dconf_registry import Dconf_registry
 def registry_factory(registry_name='', envprofile=None , username=None):
     if username:
         Dconf_registry._username = username
+    else:
+        Dconf_registry._envprofile = 'system'
     if envprofile:
-        if envprofile == 'local':
-            Dconf_registry._local_envprofile = True
-        elif envprofile == 'default':
-            Dconf_registry._default_envprofile = True
+        Dconf_registry._envprofile = envprofile
 
     if registry_name == 'dconf':
         return Dconf_registry()

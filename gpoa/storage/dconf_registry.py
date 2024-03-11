@@ -58,8 +58,7 @@ class Dconf_registry():
     __dconf_dict_flag = False
     __dconf_dict = dict()
     _username = None
-    _default_envprofile = None
-    _local_envprofile = None
+    _envprofile = None
 
     list_keys = list()
     _info = dict()
@@ -93,9 +92,7 @@ class Dconf_registry():
         if path[0] != '/':
             path = '/' + path
         logdata = dict()
-        envprofile = get_dconf_envprofile(Dconf_registry._username,
-                                          Dconf_registry._default_envprofile,
-                                          Dconf_registry._local_envprofile)
+        envprofile = get_dconf_envprofile()
         try:
             process = subprocess.Popen(['dconf', 'list', path],
                                        env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -126,9 +123,7 @@ class Dconf_registry():
     @staticmethod
     def get_key_value(key):
         logdata = dict()
-        envprofile = get_dconf_envprofile(Dconf_registry._username,
-                                          Dconf_registry._default_envprofile,
-                                          Dconf_registry._local_envprofile)
+        envprofile = get_dconf_envprofile()
         try:
             process = subprocess.Popen(['dconf', 'read', key],
                                        env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -551,15 +546,17 @@ def flatten_dictionary(input_dict, result=None, current_key=''):
 
     return result
 
-def get_dconf_envprofile(user=None, default=None, local=None):
-    if default:
-        return {'DCONF_PROFILE': 'default'}
+def get_dconf_envprofile():
+    dconf_envprofile = {'default': {'DCONF_PROFILE': 'default'},
+                    'local': {'DCONF_PROFILE': 'local'},
+                    'system': {'DCONF_PROFILE': 'system'}
+                    }
 
-    if local:
-        return {'DCONF_PROFILE': 'local'}
+    if Dconf_registry._envprofile:
+        return dconf_envprofile.get(Dconf_registry._envprofile, dconf_envprofile['system'])
 
-    if not user:
-        return {'DCONF_PROFILE': 'system'}
+    if not Dconf_registry._username:
+        return dconf_envprofile['system']
 
-    profile = '/run/dconf/user/{}'.format(get_uid_by_username(user))
+    profile = '/run/dconf/user/{}'.format(get_uid_by_username(Dconf_registry._username))
     return {'DCONF_PROFILE': profile}
