@@ -51,7 +51,7 @@ def str2bool(boolstr):
 
 class Folder:
     def __init__(self, folder_object, username=None):
-        folder_path = expand_windows_var(folder_object.path, username).replace('\\', '/')
+        folder_path = expand_windows_var(folder_object.path, username).replace('\\', '/').replace('//', '/')
         if username:
             folder_path = folder_path.replace(get_homedir(username), '')
             self.folder_path = Path(get_homedir(username)).joinpath(folder_path if folder_path [0] != '/' else folder_path [1:])
