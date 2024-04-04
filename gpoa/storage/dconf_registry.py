@@ -464,7 +464,6 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username):
     Loads the configuration from preg registry into a dictionary
     '''
     dd = dict()
-    dd_win_style = dict()
     for i in pregfile.entries:
         # Skip this entry if the valuename starts with '**del'
         if i.valuename.startswith('**del'):
@@ -474,11 +473,9 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username):
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):i.data})
-                dd_win_style[i.keyname].update({valuename:i.data})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):i.data}
-                dd_win_style[i.keyname] = {valuename:i.data}
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
@@ -486,8 +483,6 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username):
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
             dd_target.setdefault(all_list_key[-1], []).append(i.data)
 
-            dd_target_win = dd_win_style.setdefault('\\'.join(all_list_key[:-1]),{})
-            dd_target_win.setdefault(all_list_key[-1], []).append(i.data)
     # Update the global registry dictionary with the contents of dd
     add_to_dict(pathfile, policy_name, username)
     update_dict(Dconf_registry.global_registry_dict, dd)
