@@ -469,19 +469,31 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username):
         if i.valuename.startswith('**del'):
             continue
         valuename = convert_string_dconf(i.valuename)
-        if i.valuename != i.data:
+        data = check_data(i.data)
+        if i.valuename != i.data and i.valuename:
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
-                dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):i.data})
+                dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):data})
             else:
                 # If the key does not exist in dd, create a new key-value pair
-                dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):i.data}
+                dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):data}
+
+        elif not i.valuename:
+            keyname_tmp = i.keyname.replace('\\', '/').split('/')
+            keyname = '/'.join(keyname_tmp[:-1])
+            if keyname in dd:
+                # If the key exists in dd, update its value with the new key-value pair
+                dd[keyname].update({keyname_tmp[-1]:data})
+            else:
+                # If the key does not exist in dd, create a new key-value pair
+                dd[keyname] = {keyname_tmp[-1]:data}
+
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
             all_list_key = i.keyname.split('\\')
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
-            dd_target.setdefault(all_list_key[-1], []).append(i.data)
+            dd_target.setdefault(all_list_key[-1], []).append(data)
 
     # Update the global registry dictionary with the contents of dd
     add_to_dict(pathfile, policy_name, username)
@@ -512,6 +524,11 @@ def create_dconf_ini_file(filename, data):
     logdata['path'] = filename
     log('D209', logdata)
     Dconf_registry.dconf_update()
+
+def check_data(data):
+    if isinstance(data, bytes):
+        return None
+    return data
 
 def convert_string_dconf(input_string):
     # Check if the input string contains '%semicolon%'
