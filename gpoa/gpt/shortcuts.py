@@ -273,7 +273,9 @@ class shortcut:
         if self.type == TargetType.URL:
             self.desktop_file.set('URL', desktop_path)
         else:
-            terminal_state = bool(self.desktop_file.get('Terminal'))
+            str2bool_lambda = (lambda boolstr: boolstr if isinstance(boolstr, bool)
+                               else boolstr and boolstr.lower() in ['True', 'true', 'yes', '1'])
+            terminal_state = str2bool_lambda(self.desktop_file.get('Terminal'))
             self.desktop_file.set('Terminal', 'true' if terminal_state else 'false')
             self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.arguments))
             self.desktop_file.set('Comment', self.comment)
