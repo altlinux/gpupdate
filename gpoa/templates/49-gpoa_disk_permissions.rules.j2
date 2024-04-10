@@ -17,7 +17,7 @@
  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #}
 
-{% if Deny_All == '1' %}
+{% if Deny_All == 1 %}
 polkit.addRule(function (action, subject) {
 	if (action.id == "org.freedesktop.udisks2.filesystem-mount" ||
 	    action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
