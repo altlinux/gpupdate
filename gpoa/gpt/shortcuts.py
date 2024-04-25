@@ -265,7 +265,7 @@ class shortcut:
         else:
             self.desktop_file.set('Type', 'Application')
 
-        self.desktop_file.set('Name', self.name)
+        self.desktop_file.set('Name', self.name, locale=True)
 
         desktop_path = self.path
         if self.expanded_path:
@@ -278,7 +278,7 @@ class shortcut:
             terminal_state = str2bool_lambda(self.desktop_file.get('Terminal'))
             self.desktop_file.set('Terminal', 'true' if terminal_state else 'false')
             self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.arguments))
-            self.desktop_file.set('Comment', self.comment)
+            self.desktop_file.set('Comment', self.comment, locale=True)
 
         if self.icon:
             self.desktop_file.set('Icon', self.icon)
