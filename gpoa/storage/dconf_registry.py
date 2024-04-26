@@ -446,7 +446,7 @@ def update_dict(dict1, dict2):
             dict1[key] = value
 
 
-def add_to_dict(string, policy_name, username):
+def add_to_dict(string, policy_name, username, version):
     if username is None:
         correct_path = '/'.join(string.split('/')[:-2])
         machine= '{}/Machine'.format(Dconf_registry._ReadQueue)
@@ -456,10 +456,10 @@ def add_to_dict(string, policy_name, username):
         user = '{}/User'.format(Dconf_registry._ReadQueue)
         dictionary = Dconf_registry.global_registry_dict.setdefault(user, dict())
 
-    dictionary[len(dictionary)] = (policy_name, correct_path)
+    dictionary[len(dictionary)] = (policy_name, correct_path, version)
 
 
-def load_preg_dconf(pregfile, pathfile, policy_name, username):
+def load_preg_dconf(pregfile, pathfile, policy_name, username, version=None):
     '''
     Loads the configuration from preg registry into a dictionary
     '''
@@ -496,7 +496,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username):
             dd_target.setdefault(all_list_key[-1], []).append(data)
 
     # Update the global registry dictionary with the contents of dd
-    add_to_dict(pathfile, policy_name, username)
+    add_to_dict(pathfile, policy_name, username, version)
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
