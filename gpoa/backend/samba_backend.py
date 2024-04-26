@@ -174,9 +174,9 @@ class samba_backend(applier_backend):
                 log('D30', slogdata)
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
                 if self._is_machine_username:
-                    obj = gpt(gpt_abspath, sid, None)
+                    obj = gpt(gpt_abspath, sid, None, version=gpo.version)
                 else:
-                    obj = gpt(gpt_abspath, sid, self.username)
+                    obj = gpt(gpt_abspath, sid, self.username, version=gpo.version)
                 obj.set_name(gpo.display_name)
                 gpts.append(obj)
             else:
