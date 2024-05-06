@@ -149,6 +149,7 @@ class shortcut:
         self.comment = ''
         self.is_in_user_context = self.set_usercontext()
         self.type = ttype
+        self.desktop_file_template = None
 
     def replace_slashes(self, input_path):
         if input_path.startswith('%'):
@@ -247,11 +248,10 @@ class shortcut:
         if dest:
             self.desktop_file = DesktopEntry(dest)
         else:
-            self.desktop_file = find_desktop_entry(self.path)
-            if not self.desktop_file:
-                self.desktop_file = DesktopEntry()
-                self.desktop_file.addGroup('Desktop Entry')
-                self.desktop_file.set('Version', '1.0')
+            self.desktop_file_template = find_desktop_entry(self.path)
+            self.desktop_file = DesktopEntry()
+            self.desktop_file.addGroup('Desktop Entry')
+            self.desktop_file.set('Version', '1.0')
         self._update_desktop()
 
         return self.desktop_file
@@ -265,7 +265,7 @@ class shortcut:
         else:
             self.desktop_file.set('Type', 'Application')
 
-        self.desktop_file.set('Name', self.name, locale=True)
+        self.desktop_file.set('Name', self.name)
 
         desktop_path = self.path
         if self.expanded_path:
@@ -275,13 +275,16 @@ class shortcut:
         else:
             str2bool_lambda = (lambda boolstr: boolstr if isinstance(boolstr, bool)
                                else boolstr and boolstr.lower() in ['True', 'true', 'yes', '1'])
-            terminal_state = str2bool_lambda(self.desktop_file.get('Terminal'))
-            self.desktop_file.set('Terminal', 'true' if terminal_state else 'false')
+            if self.desktop_file_template:
+                terminal_state = str2bool_lambda(self.desktop_file_template.get('Terminal'))
+                self.desktop_file.set('Terminal', 'true' if terminal_state else 'false')
             self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.arguments))
-            self.desktop_file.set('Comment', self.comment, locale=True)
+            self.desktop_file.set('Comment', self.comment)
 
         if self.icon:
             self.desktop_file.set('Icon', self.icon)
+        elif self.desktop_file_template and self.desktop_file_template.get('Icon', False):
+            self.desktop_file.set('Icon', self.desktop_file_template.get('Icon'))
 
     def _write_desktop(self, dest, create_only=False, read_firstly=False):
         '''
