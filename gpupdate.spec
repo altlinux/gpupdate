@@ -33,7 +33,7 @@
 %add_python3_req_skip util.gpoa_ini_parsing
 
 Name: gpupdate
-Version: 0.9.13.9
+Version: 0.10.0
 Release: alt1
 
 Summary: GPT applier
@@ -54,6 +54,7 @@ Requires: libnss-role >= 0.5.0
 Requires: local-policy >= 0.4.9
 Requires: pam-config >= 1.9.0
 Requires: autofs
+Requires: dconf-profile
 # This is needed by shortcuts_applier
 Requires: desktop-file-utils
 # This is needed for smb file cache support
@@ -184,6 +185,11 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Mon May 13 2024 Valery Sinelnikov <greh@altlinux.org> 0.10.0-alt1
+- A method for storing registry keys obtained from GPOs (Group Policy Objects)
+  has undergone significant repairs. We have switched from using SQLite
+  to using Dconf to improve data storage efficiency
+
 * Wed Mar 13 2024 Valery Sinelnikov <greh@altlinux.org> 0.9.13.9-alt1
 - Fixed premature removal of double slash
 
