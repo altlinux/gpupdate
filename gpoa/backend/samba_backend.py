@@ -173,10 +173,16 @@ class samba_backend(applier_backend):
                 slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
                 log('D30', slogdata)
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
+                gpo_version=None
+                try:
+                    gpo_version=gpo.version
+                except:
+                    log('D210')
+
                 if self._is_machine_username:
-                    obj = gpt(gpt_abspath, sid, None, version=gpo.version)
+                    obj = gpt(gpt_abspath, sid, None, version=gpo_version)
                 else:
-                    obj = gpt(gpt_abspath, sid, self.username, version=gpo.version)
+                    obj = gpt(gpt_abspath, sid, self.username, version=gpo_version)
                 obj.set_name(gpo.display_name)
                 gpts.append(obj)
             else:
