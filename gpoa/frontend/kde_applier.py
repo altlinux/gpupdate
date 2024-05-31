@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2023 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -141,7 +141,7 @@ def apply(all_kde_settings, locks_dict, username = None):
             if os.path.exists(file_to_remove):
                 os.remove(file_to_remove)
         for file_name, sections in all_kde_settings.items():
-            file_path = f'{system_path_settings{file_name}'
+            file_path = f'{system_path_settings}{file_name}'
             with open(file_path, 'w') as file:
                 for section, keys in sections.items():
                     section = section.replace(')(', '][')
