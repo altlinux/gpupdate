@@ -126,8 +126,6 @@ def apply(all_kde_settings, locks_dict, username = None):
     if username is None:
         for file_name, sections in all_kde_settings.items():
             file_path = f'/etc/xdg/{file_name}'
-            if os.path.exists(file_path):
-                os.remove(file_path)
             with open(file_path, 'w') as file:
                 for section, keys in sections.items():
                     section = section.replace(')(', '][')
