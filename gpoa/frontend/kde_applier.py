@@ -124,8 +124,24 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
 def apply(all_kde_settings, locks_dict, username = None):
     logdata = dict()
     if username is None:
+        system_path_settings = '/etc/xdg/'
+        system_files = [
+            "baloofilerc",
+            "kcminputrc",
+            "kded_device_automounterrc",
+            "kdeglobals",
+            "ksplashrc",
+            "kwinrc",
+            "plasma-localerc",
+            "plasmarc",
+            "powermanagementprofilesrc"
+        ]
+        for file in system_files:
+            file_to_remove = f'{system_path_settings}{file}'
+            if os.path.exists(file_to_remove):
+                os.remove(file_to_remove)
         for file_name, sections in all_kde_settings.items():
-            file_path = f'/etc/xdg/{file_name}'
+            file_path = f'{system_path_settings{file_name}'
             with open(file_path, 'w') as file:
                 for section, keys in sections.items():
                     section = section.replace(')(', '][')
