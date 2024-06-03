@@ -24,7 +24,7 @@ from util.logging import log
 from util.config import GPConfig
 from util.util import get_uid_by_username, touch_file
 from util.paths import get_dconf_config_path
-from storage.dconf_registry import Dconf_registry, create_dconf_ini_file
+from storage.dconf_registry import Dconf_registry, create_dconf_ini_file, add_preferences_to_global_registry_dict
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''
@@ -70,4 +70,5 @@ def save_dconf(username, is_machine):
     target_file = get_dconf_config_path(uid)
     touch_file(target_file)
     Dconf_registry.apply_template(uid)
+    add_preferences_to_global_registry_dict(username, is_machine)
     create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict)
