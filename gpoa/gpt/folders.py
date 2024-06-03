@@ -19,7 +19,6 @@
 
 from enum import Enum
 from .base_preference import Parent_preference
-from util.arguments import FileAction, action_letter2enum
 
 from util.xml import get_xml_root
 
@@ -46,8 +45,9 @@ def read_folders(folders_file):
 
     for fld in get_xml_root(folders_file):
         props = fld.find('Properties')
-        fld_obj = folderentry(props.get('path'))
-        fld_obj.set_action(action_letter2enum(props.get('action', default='C')))
+        path = props.get('path')
+        action = props.get('action', default='C')
+        fld_obj = folderentry(path, action)
         fld_obj.set_delete_folder(folder_int2bool(props.get('deleteFolder', default=1)))
         fld_obj.set_delete_sub_folders(folder_int2bool(props.get('deleteSubFolders', default=1)))
         fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles', default=1)))
@@ -64,9 +64,9 @@ def merge_folders(storage, sid, folder_objects, policy_name):
 
 
 class folderentry(Parent_preference):
-    def __init__(self, path):
+    def __init__(self, path, action):
         self.path = path
-        self.action = FileAction.CREATE
+        self.action = action
         self.delete_folder = False
         self.delete_sub_folders = False
         self.delete_files = False

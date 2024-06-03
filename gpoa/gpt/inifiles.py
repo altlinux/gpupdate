@@ -28,7 +28,7 @@ def read_inifiles(inifiles_file):
         ini_obj.set_section(prors.get('section', default=None))
         ini_obj.set_property(prors.get('property', default=None))
         ini_obj.set_value(prors.get('value', default=None))
-        ini_obj.set_action(prors.get('action'))
+        ini_obj.set_action(prors.get('action', default='C'))
 
         inifiles.append(ini_obj)
 

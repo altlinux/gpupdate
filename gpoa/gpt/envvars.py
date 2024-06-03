@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from util.arguments import FileAction, action_letter2enum
 from .base_preference import Parent_preference
 
 
@@ -28,8 +27,8 @@ def read_envvars(envvars_file):
         props = var.find('Properties')
         name = props.get('name')
         value = props.get('value')
-        var_obj = envvar(name, value)
-        var_obj.set_action(action_letter2enum(props.get('action', default='C')))
+        action = props.get('action', default='C')
+        var_obj = envvar(name, value, action)
 
         variables.append(var_obj)
 
@@ -40,11 +39,8 @@ def merge_envvars(storage, sid, envvar_objects, policy_name):
         storage.add_envvar(sid, envv, policy_name)
 
 class envvar(Parent_preference):
-    def __init__(self, name, value):
+    def __init__(self, name, value, action):
         self.name = name
         self.value = value
-        self.action = FileAction.CREATE
-
-    def set_action(self, action):
         self.action = action
 
