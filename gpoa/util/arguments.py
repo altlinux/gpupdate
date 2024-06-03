@@ -18,7 +18,7 @@
 
 import logging
 import logging.handlers
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 from messages import message_with_code
 from .logging import slogm
@@ -84,3 +84,20 @@ class ExitCodeUpdater(IntEnum):
     FAIL_GPUPDATE_USER_NOREPLY = 3
     EXIT_SIGINT = 130
 
+class FileAction(Enum):
+    CREATE = 'C'
+    REPLACE = 'R'
+    UPDATE = 'U'
+    DELETE = 'D'
+
+    def __str__(self):
+        return self.value
+
+def action_letter2enum(letter):
+    if letter in ['C', 'R', 'U', 'D']:
+        if letter == 'C': return FileAction.CREATE
+        if letter == 'R': return FileAction.REPLACE
+        if letter == 'U': return FileAction.UPDATE
+        if letter == 'D': return FileAction.DELETE
+
+    return FileAction.CREATE
