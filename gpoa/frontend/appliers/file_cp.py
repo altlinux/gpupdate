@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from gpt.folders import (
+from util.arguments import (
       FileAction
     , action_letter2enum
 )

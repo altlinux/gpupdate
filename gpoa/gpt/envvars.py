@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from util.util import FileAction, action_letter2enum
+from util.arguments import FileAction, action_letter2enum
 from .base_preference import Parent_preference
 
 

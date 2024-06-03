@@ -17,9 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess
-import threading
-import logging
-from util.logging import slogm, log
+from util.logging import log
 
 def control_subst(preg_name):
     '''
@@ -101,14 +99,14 @@ class control:
             if status == None:
                 logdata = dict()
                 logdata['control'] = self.control_name
-                logdata['inpossible values'] = self.self.control_value
+                logdata['inpossible values'] = self.control_value
                 log('E42', logdata)
                 return
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
                 logdata = dict()
                 logdata['control'] = self.control_name
-                logdata['inpossible values'] = self.self.control_value
+                logdata['inpossible values'] = self.control_value
                 log('E59', logdata)
                 return
             status = self.control_value

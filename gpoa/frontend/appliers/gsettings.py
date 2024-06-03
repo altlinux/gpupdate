@@ -18,10 +18,9 @@
 
 import configparser
 import os
-import logging
 from gi.repository import Gio, GLib
 
-from util.logging import slogm, log
+from util.logging import log
 
 class system_gsetting:
     def __init__(self, schema, path, value, lock, helper_function=None):

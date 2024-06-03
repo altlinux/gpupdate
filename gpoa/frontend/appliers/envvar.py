@@ -17,18 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from os.path import isfile
-from util.logging import slogm
-import logging
 
-from gpt.envvars import (
+from util.arguments import (
       FileAction
     , action_letter2enum
 )
 from util.windows import expand_windows_var
-from util.util import (
-        get_homedir,
-        homedir_exists
-)
+from util.util import get_homedir
 
 class Envvar:
     def __init__(self, envvars, username=''):

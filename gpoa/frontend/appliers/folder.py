@@ -20,7 +20,7 @@
 from pathlib import Path
 
 
-from gpt.folders import (
+from util.arguments import (
       FileAction
     , action_letter2enum
 )
