@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from .base_preference import Parent_preference
 
 from enum import Enum
 
@@ -54,7 +55,7 @@ def merge_envvars(storage, sid, envvar_objects, policy_name):
     for envv in envvar_objects:
         storage.add_envvar(sid, envv, policy_name)
 
-class envvar:
+class envvar(Parent_preference):
     def __init__(self, name, value):
         self.name = name
         self.value = value

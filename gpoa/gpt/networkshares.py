@@ -18,6 +18,7 @@
 
 from util.xml import get_xml_root
 from storage.dconf_registry import Dconf_registry
+from .base_preference import Parent_preference
 
 def read_networkshares(networksharesxml):
     networkshares = list()
@@ -39,7 +40,7 @@ def merge_networkshares(storage, sid, networkshares_objects, policy_name):
     for networkshareobj in networkshares_objects:
         storage.add_networkshare(sid, networkshareobj, policy_name)
 
-class networkshare:
+class networkshare(Parent_preference):
     def __init__(self, name):
         self.name = name
 

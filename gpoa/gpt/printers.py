@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+from .base_preference import Parent_preference
 
 from util.xml import get_xml_root
 
@@ -60,7 +61,7 @@ def json2printer(json_str):
 
     return prn
 
-class printer:
+class printer(Parent_preference):
     def __init__(self, ptype, name, status):
         '''
         ptype may be one of:

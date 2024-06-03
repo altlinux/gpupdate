@@ -19,7 +19,7 @@
 import json
 from base64 import b64decode
 from Crypto.Cipher import AES
-
+from .base_preference import Parent_preference
 from util.xml import get_xml_root
 
 def decrypt_pass(cpassword):
@@ -93,7 +93,7 @@ def json2drive(json_str):
 
     return drive_obj
 
-class drivemap:
+class drivemap(Parent_preference):
     def __init__(self):
         self.login = None
         self.password = None

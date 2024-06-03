@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from .base_preference import Parent_preference
 
 def read_files(filesxml):
     files = list()
@@ -39,7 +40,7 @@ def merge_files(storage, sid, file_objects, policy_name):
     for fileobj in file_objects:
         storage.add_file(sid, fileobj, policy_name)
 
-class fileentry:
+class fileentry(Parent_preference):
     def __init__(self, fromPath):
         self.fromPath = fromPath
 
