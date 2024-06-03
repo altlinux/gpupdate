@@ -21,6 +21,7 @@ from pathlib import Path
 from util.util import string_to_literal_eval, touch_file, get_uid_by_username
 from util.logging import log
 import re
+from collections import OrderedDict
 
 
 class PregDconf():
@@ -589,3 +590,36 @@ def get_dconf_envprofile():
 
     profile = '/run/dconf/user/{}'.format(get_uid_by_username(Dconf_registry._username))
     return {'DCONF_PROFILE': profile}
+
+
+def convert_to_strings(elements):
+    return list(map(lambda x: dict(x), elements))
+
+def remove_duplicate_dicts_in_list(list_dict):
+    return convert_to_strings(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))
+
+def add_preferences_to_global_registry_dict(username, is_machine):
+    if is_machine:
+        prefix = 'Software/BaseALT/Policies/Preferences/Machine'
+    else:
+        prefix = f'Software/BaseALT/Policies/Preferences/{username}'
+
+    preferences_global = [('Shortcuts',remove_duplicate_dicts_in_list(Dconf_registry.shortcuts)),
+                            ('Folders',remove_duplicate_dicts_in_list(Dconf_registry.folders)),
+                            ('Files',remove_duplicate_dicts_in_list(Dconf_registry.files)),
+                            ('Drives',remove_duplicate_dicts_in_list(Dconf_registry.drives)),
+                            ('Scheduledtasks',remove_duplicate_dicts_in_list(Dconf_registry.scheduledtasks)),
+                            ('Environmentvariables',remove_duplicate_dicts_in_list(Dconf_registry.environmentvariables)),
+                            ('Inifiles',remove_duplicate_dicts_in_list(Dconf_registry.inifiles)),
+                            ('Services',remove_duplicate_dicts_in_list(Dconf_registry.services)),
+                            ('Printers',remove_duplicate_dicts_in_list(Dconf_registry.printers)),
+                            ('Scripts',remove_duplicate_dicts_in_list(Dconf_registry.scripts)),
+                            ('Networkshares',remove_duplicate_dicts_in_list(Dconf_registry.networkshares))]
+
+    preferences_global_dict = dict()
+    preferences_global_dict[prefix] = dict()
+
+    for key, val in preferences_global:
+        preferences_global_dict[prefix].update({key:val})
+
+    update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)
