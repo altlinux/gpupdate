@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from storage.dconf_registry import Dconf_registry
 from .base_preference import Parent_preference
 
 def read_networkshares(networksharesxml):

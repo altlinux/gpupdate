@@ -18,7 +18,6 @@
 
 from pathlib import Path
 import stat
-import logging
 from enum import Enum
 
 from xml.etree import ElementTree
