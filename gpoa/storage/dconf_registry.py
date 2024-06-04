@@ -469,7 +469,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, version=None):
         if i.valuename.startswith('**del'):
             continue
         valuename = convert_string_dconf(i.valuename)
-        data = check_data(i.data)
+        data = check_data(i.data, i.type)
         if i.valuename != i.data and i.valuename:
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
@@ -525,9 +525,11 @@ def create_dconf_ini_file(filename, data):
     log('D209', logdata)
     Dconf_registry.dconf_update()
 
-def check_data(data):
+def check_data(data, t_data):
     if isinstance(data, bytes):
         return None
+    elif t_data > 1:
+        return str(data)
     return data
 
 def convert_string_dconf(input_string):
