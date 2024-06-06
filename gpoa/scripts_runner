@@ -104,7 +104,7 @@ class Scripts_runner:
 
     def run_cmd_subprocess(self, cmd):
         try:
-            subprocess.Popen(cmd)
+            subprocess.run(cmd)
             return 'Script run: {}'.format(cmd)
         except Exception as exc:
             return exc
