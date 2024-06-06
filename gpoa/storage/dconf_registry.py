@@ -525,12 +525,20 @@ def create_dconf_ini_file(filename, data):
     log('D209', logdata)
     Dconf_registry.dconf_update()
 
+def clean_data(data):
+    try:
+        cleaned_string = data.replace('\n', '').replace('\r', '')
+        cleaned_string = cleaned_string.replace('"', "'")
+        return cleaned_string
+    except:
+        return None
+
 def check_data(data, t_data):
     if isinstance(data, bytes):
         return None
-    elif t_data > 1:
-        return str(data)
-    return data
+    elif t_data == 4:
+        return data
+    return clean_data(data)
 
 def convert_string_dconf(input_string):
     # Check if the input string contains '%semicolon%'
