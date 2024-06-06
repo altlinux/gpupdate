@@ -92,6 +92,8 @@ class Envvar:
                 value = value.replace('\\', '/')
             exist_line = None
             for line in lines:
+                if line == '\n':
+                    continue
                 if line.split()[0] == name:
                     exist_line = line
                     break
