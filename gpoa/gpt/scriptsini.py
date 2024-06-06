@@ -18,7 +18,7 @@
 
 import configparser
 import os
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 def read_scripts(scripts_file):
     scripts = Scripts_lists()
@@ -115,7 +115,7 @@ class Scripts_lists:
             self.get_shutdown_scripts().append(script)
 
 
-class Script(Parent_preference):
+class Script(DynamicAttributes):
     __logon_counter = 0
     __logoff_counter = 0
     __startup_counter = 0

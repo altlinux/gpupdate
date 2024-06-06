@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
-class GpoDconf(Parent_preference):
+class GpoInfoDconf(DynamicAttributes):
     def __init__(self, gpo) -> None:
         self.display_name = None
         self.name = None

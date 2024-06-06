@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 
 def read_envvars(envvars_file):
@@ -38,7 +38,7 @@ def merge_envvars(storage, sid, envvar_objects, policy_name):
     for envv in envvar_objects:
         storage.add_envvar(sid, envv, policy_name)
 
-class envvar(Parent_preference):
+class envvar(DynamicAttributes):
     def __init__(self, name, value, action):
         self.name = name
         self.value = value

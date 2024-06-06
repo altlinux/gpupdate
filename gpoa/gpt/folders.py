@@ -18,7 +18,7 @@
 
 
 from enum import Enum
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 from util.xml import get_xml_root
 
@@ -63,7 +63,7 @@ def merge_folders(storage, sid, folder_objects, policy_name):
         storage.add_folder(sid, folder, policy_name)
 
 
-class folderentry(Parent_preference):
+class folderentry(DynamicAttributes):
     def __init__(self, path, action):
         self.path = path
         self.action = action

@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 def read_services(service_file):
     '''
@@ -44,7 +44,7 @@ def merge_services(storage, sid, service_objects, policy_name):
     for srv in service_objects:
         pass
 
-class service(Parent_preference):
+class service(DynamicAttributes):
     def __init__(self, name):
         self.unit = name
         self.servname = None

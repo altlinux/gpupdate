@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 def read_networkshares(networksharesxml):
     networkshares = list()
@@ -39,7 +39,7 @@ def merge_networkshares(storage, sid, networkshares_objects, policy_name):
     for networkshareobj in networkshares_objects:
         storage.add_networkshare(sid, networkshareobj, policy_name)
 
-class networkshare(Parent_preference):
+class networkshare(DynamicAttributes):
     def __init__(self, name):
         self.name = name
 

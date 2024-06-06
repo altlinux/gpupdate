@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 def read_inifiles(inifiles_file):
     inifiles = list()
@@ -38,7 +38,7 @@ def merge_inifiles(storage, sid, inifile_objects, policy_name):
     for iniobj in inifile_objects:
         storage.add_ini(sid, iniobj, policy_name)
 
-class inifile(Parent_preference):
+class inifile(DynamicAttributes):
     def __init__(self, path):
         self.path = path
 
