@@ -40,6 +40,7 @@ from util.logging import log
 
 class samba_backend(applier_backend):
     __user_policy_mode_key = '/SOFTWARE/Policies/Microsoft/Windows/System/UserPolicyMode'
+    __user_policy_mode_key_win = '/Software/Policies/Microsoft/Windows/System/UserPolicyMode'
 
     def __init__(self, sambacreds, username, domain, is_machine):
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
@@ -78,7 +79,9 @@ class samba_backend(applier_backend):
         is possible to work with user's part of GPT. This value is
         checked only if working for user's SID.
         '''
-        upm = self.storage.get_key_value(self.__user_policy_mode_key)
+        upm_key = self.storage.get_key_value(self.__user_policy_mode_key)
+        upm_win_key = self.storage.get_key_value(self.__user_policy_mode_key_win)
+        upm = upm_key if upm_key else upm_win_key
         if upm:
             upm = int(upm)
             if upm < 0 or upm > 2:
