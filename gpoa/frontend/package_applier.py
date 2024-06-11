@@ -62,8 +62,7 @@ class package_applier(applier_frontend):
         )
     def run(self):
         for flag in self.sync_packages_setting:
-            if flag.data:
-                self.flagSync = bool(int(flag.data))
+            self.flagSync = bool(flag.data)
 
         if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
             if self.flagSync:
