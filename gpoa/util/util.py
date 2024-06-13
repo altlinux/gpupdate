@@ -175,6 +175,16 @@ def string_to_literal_eval(string):
         literaleval = string
     return literaleval
 
+def try_dict_to_literal_eval(string):
+    try:
+        literaleval = ast.literal_eval(string)
+        if isinstance(literaleval ,dict):
+            return literaleval
+        else:
+            return None
+    except:
+        return None
+
 def touch_file(filename):
     path = Path(filename)
     path.parent.mkdir(parents=True, exist_ok=True)
