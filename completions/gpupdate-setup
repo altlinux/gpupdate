@@ -9,7 +9,7 @@ _gpupdate-setup()
             return
             ;;
         *)
-            COMPREPLY=($(compgen -W '-h --help list list-backends status enable disable update write set-backend default-policy active-policy active-backend' -- "$cur"))
+            COMPREPLY=($(compgen -W 'list list-backends status enable disable update write set-backend default-policy active-policy active-backend' -- "$cur"))
             return
             ;;
     esac
