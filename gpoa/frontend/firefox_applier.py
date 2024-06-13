@@ -33,7 +33,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from util.logging import log
-from util.util import is_machine_name
+from util.util import is_machine_name, try_dict_to_literal_eval
 
 class firefox_applier(applier_frontend):
     __module_name = 'FirefoxApplier'
@@ -83,6 +83,10 @@ class firefox_applier(applier_frontend):
             try:
                 if type(it_data.data) is bytes:
                     it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
+                json_data = try_dict_to_literal_eval(it_data.data)
+                if json_data:
+                    it_data.data = json_data
+                    it_data.type = 7
                 #Cases when it is necessary to create nested dictionaries
                 if it_data.valuename != it_data.data:
                     parts = self.get_parts(it_data.hive_key)
@@ -95,6 +99,8 @@ class firefox_applier(applier_frontend):
                             branch[parts[-1]] = int(it_data.data)
                         else:
                             branch[parts[-1]] = self.get_boolean(it_data.data)
+                    elif it_data.type == 7:
+                        branch[parts[-1]] = it_data.data
                     else:
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
                 #Cases when it is necessary to create lists in a dictionary
