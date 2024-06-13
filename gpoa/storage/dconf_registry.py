@@ -536,7 +536,7 @@ def clean_data(data):
 def check_data(data, t_data):
     if isinstance(data, bytes):
         if t_data == 7:
-            clean_data(data.decode('utf-16').replace('\x00',''))
+            return clean_data(data.decode('utf-16').replace('\x00',''))
         else:
             return None
     elif t_data == 4:
