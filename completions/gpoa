@@ -13,7 +13,7 @@ _gpoa()
             return
             ;;
         *)
-            COMPREPLY=($(compgen -W '--dc --nodomain --noupdate --noplugins --list-backends --loglevel --help -h' -- "$cur"))
+            COMPREPLY=($(compgen -W '--dc --nodomain --noupdate --noplugins --list-backends --loglevel --help' -- "$cur"))
             return
             ;;
     esac
