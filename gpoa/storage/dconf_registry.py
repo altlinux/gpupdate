@@ -549,13 +549,12 @@ def convert_string_dconf(input_string):
         ';': '%semicolon%',
         '//': '%doubleslash%'
     }
-    # Check if the input string contains '%semicolon%'
-    if '%semicolon%' in input_string:
-        # If it contains, replace '%semicolon%' with ';'
-        output_string = input_string.replace('%semicolon%', ';')
-    else:
-        # If it doesn't contain, replace ';' with '%semicolon%'
-        output_string = input_string.replace(';', '%semicolon%')
+    output_string = input_string
+    for key, value in macros.items():
+        if key in input_string:
+            output_string = input_string.replace(key, value)
+        elif value in input_string:
+            output_string = input_string.replace(value, key)
 
     return output_string
 
