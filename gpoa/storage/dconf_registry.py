@@ -544,6 +544,11 @@ def check_data(data, t_data):
     return clean_data(data)
 
 def convert_string_dconf(input_string):
+    macros = {
+        '#': '%sharp%',
+        ';': '%semicolon%',
+        '//': '%doubleslash%'
+    }
     # Check if the input string contains '%semicolon%'
     if '%semicolon%' in input_string:
         # If it contains, replace '%semicolon%' with ';'
