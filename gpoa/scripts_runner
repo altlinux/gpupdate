@@ -21,6 +21,8 @@ import subprocess
 import argparse
 import os
 from pathlib import Path
+import psutil
+import time
 
 class Scripts_runner:
     '''
@@ -109,7 +111,34 @@ class Scripts_runner:
         except Exception as exc:
             return exc
 
+def find_process_by_name_and_script(name, script_path):
 
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            # Check if the process name matches and the script path is in the command line arguments
+            if proc.info['name'] == name and script_path in proc.info['cmdline']:
+                return proc
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return None
+
+def wait_for_process(name, script_path, check_interval=1):
+
+    process = find_process_by_name_and_script(name, script_path)
+    if not process:
+        print(f"Process with name {name} and script path {script_path} not found.")
+        return
+
+    try:
+        # Loop to wait for the process to finish
+        while process.is_running():
+            print(f"Waiting for process {name} with PID {process.pid} to finish...")
+            time.sleep(check_interval)
+        print(f"Process {name} with PID {process.pid} has finished.")
+        return
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        print(f"Process {name} with PID {process.pid} is no longer accessible.")
+        return
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Scripts runner')
@@ -117,6 +146,9 @@ if __name__ == '__main__':
     parser.add_argument('--user', type = str, help = 'User name ', nargs = '?', default = None)
     parser.add_argument('--action', type = str, help = 'MACHINE : [STARTUP or SHUTDOWN], USER : [LOGON or LOGOFF]', nargs = '?', default = None)
 
+    process_name = "python3"
+    script_path = "/usr/sbin/gpoa"
+    wait_for_process(process_name, script_path)
     args = parser.parse_args()
     try:
         Scripts_runner(args.mode, args.user, args.action)
