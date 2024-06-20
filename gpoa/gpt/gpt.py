@@ -153,13 +153,13 @@ def get_merger(preference_type):
     return mergers[preference_type]
 
 class gpt:
-    def __init__(self, gpt_path, sid, username='Machine', version=None):
+    def __init__(self, gpt_path, sid, username='Machine', gpo_info=None):
         self.path = gpt_path
         self.username = username
         self.sid = sid
         self.storage = registry_factory()
         self.storage._gpt_read_flag = True
-        self.version = version
+        self.gpo_info = gpo_info
         self.name = ''
         self.guid = self.path.rpartition('/')[2]
         if 'default' == self.guid:
@@ -217,7 +217,7 @@ class gpt:
             if self.settings['machine']['regpol']:
                 mlogdata = dict({'polfile': self.settings['machine']['regpol']})
                 log('D34', mlogdata)
-                util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name, version=self.version)
+                util.preg.merge_polfile(self.settings['machine']['regpol'], policy_name=self.name, gpo_info=self.gpo_info)
             # Merge machine preferences to registry if possible
             for preference_name, preference_path in self.settings['machine'].items():
                 if preference_path:
@@ -247,7 +247,7 @@ class gpt:
                                         sid=self.sid,
                                         policy_name=self.name,
                                         username=self.username,
-                                        version=self.version)
+                                        gpo_info=self.gpo_info)
             # Merge user preferences to registry if possible
             for preference_name, preference_path in self.settings['user'].items():
                 if preference_path:

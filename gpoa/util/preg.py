@@ -81,12 +81,12 @@ def preg_keymap(preg):
     return keymap
 
 
-def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_name='Unknown', username='Machine', version=None):
+def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_name='Unknown', username='Machine', gpo_info=None):
     pregfile = load_preg(preg)
     if sid is None and username == 'Machine':
-        load_preg_dconf(pregfile, preg, policy_name, None, version)
+        load_preg_dconf(pregfile, preg, policy_name, None, gpo_info)
     else:
-        load_preg_dconf(pregfile, preg, policy_name, username, version)
+        load_preg_dconf(pregfile, preg, policy_name, username, gpo_info)
     logdata = dict({'pregfile': preg})
     log('D32', logdata)
     #log dconf

@@ -22,6 +22,7 @@ from util.util import string_to_literal_eval, touch_file, get_uid_by_username
 from util.logging import log
 import re
 from collections import OrderedDict
+import itertools
 
 
 class PregDconf():
@@ -63,6 +64,7 @@ class Dconf_registry():
 
     list_keys = list()
     _info = dict()
+    _counter_gpt = itertools.count(0)
 
     shortcuts = list()
     folders = list()
@@ -87,6 +89,9 @@ class Dconf_registry():
     def get_info(cls, key):
         return cls._info.setdefault(key, None)
 
+    @staticmethod
+    def get_next_number():
+        return next(Dconf_registry._counter_gpt)
 
     @staticmethod
     def get_matching_keys(path):
@@ -447,7 +452,7 @@ def update_dict(dict1, dict2):
             dict1[key] = value
 
 
-def add_to_dict(string, policy_name, username, version):
+def add_to_dict(string, policy_name, username, gpo_info):
     if username is None:
         correct_path = '/'.join(string.split('/')[:-2])
         machine= '{}/Machine'.format(Dconf_registry._ReadQueue)
@@ -456,11 +461,11 @@ def add_to_dict(string, policy_name, username, version):
         correct_path = '/'.join(string.split('/')[:-2])
         user = '{}/User'.format(Dconf_registry._ReadQueue)
         dictionary = Dconf_registry.global_registry_dict.setdefault(user, dict())
-
+    version = gpo_info.version if gpo_info else None
     dictionary[len(dictionary)] = (policy_name, correct_path, version)
 
 
-def load_preg_dconf(pregfile, pathfile, policy_name, username, version=None):
+def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     '''
     Loads the configuration from preg registry into a dictionary
     '''
@@ -497,7 +502,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, version=None):
             dd_target.setdefault(all_list_key[-1], []).append(data)
 
     # Update the global registry dictionary with the contents of dd
-    add_to_dict(pathfile, policy_name, username, version)
+    add_to_dict(pathfile, policy_name, username, gpo_info)
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
@@ -620,6 +625,6 @@ def add_preferences_to_global_registry_dict(username, is_machine):
     preferences_global_dict[prefix] = dict()
 
     for key, val in preferences_global:
-        preferences_global_dict[prefix].update({key:val})
+        preferences_global_dict[prefix].update({key:clean_data(str(val))})
 
     update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)

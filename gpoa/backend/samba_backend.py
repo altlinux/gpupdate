@@ -26,6 +26,7 @@ except ImportError:
 from .applier_backend import applier_backend
 from storage import registry_factory
 from gpt.gpt import gpt, get_local_gpt
+from gpt.gpo_dconf_mapping import GpoInfoDconf
 from util.util import (
     get_machine_name,
     is_machine_name
@@ -176,16 +177,12 @@ class samba_backend(applier_backend):
                 slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
                 log('D30', slogdata)
                 gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
-                gpo_version=None
-                try:
-                    gpo_version=gpo.version
-                except:
-                    log('D210')
+
 
                 if self._is_machine_username:
-                    obj = gpt(gpt_abspath, sid, None, version=gpo_version)
+                    obj = gpt(gpt_abspath, sid, None, GpoInfoDconf(gpo))
                 else:
-                    obj = gpt(gpt_abspath, sid, self.username, version=gpo_version)
+                    obj = gpt(gpt_abspath, sid, self.username, GpoInfoDconf(gpo))
                 obj.set_name(gpo.display_name)
                 gpts.append(obj)
             else:
