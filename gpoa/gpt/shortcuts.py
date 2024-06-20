@@ -27,7 +27,7 @@ import json
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
 from util.paths import get_desktop_files_directory
-from .base_preference import Parent_preference
+from .dynamic_attributes import DynamicAttributes
 
 class TargetType(Enum):
     FILESYSTEM = 'FILESYSTEM'
@@ -129,7 +129,7 @@ def find_desktop_entry(binary_path):
     return None
 
 
-class shortcut(Parent_preference):
+class shortcut(DynamicAttributes):
     def __init__(self, dest, path, arguments, name=None, action=None, ttype=TargetType.FILESYSTEM):
         '''
         :param dest: Path to resulting file on file system
