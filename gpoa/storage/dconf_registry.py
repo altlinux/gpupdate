@@ -51,7 +51,7 @@ class Dconf_registry():
     '''
     A class variable that represents a global registry dictionary shared among instances of the class
     '''
-    _ReadQueue = 'Software/BaseALT/Policies/ReadQueue'
+    _ReadQueue = 'Software/BaseALT/Policies/GpoPriority'
     global_registry_dict = dict({_ReadQueue:{}})
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
@@ -453,16 +453,31 @@ def update_dict(dict1, dict2):
 
 
 def add_to_dict(string, policy_name, username, gpo_info):
+    if gpo_info:
+        counter = gpo_info.counter
+        display_name = gpo_info.display_name
+        name = gpo_info.name
+        version = gpo_info.version
+    else:
+        counter = 0
+        display_name = policy_name
+        name = None
+        version = None
+
     if username is None:
         correct_path = '/'.join(string.split('/')[:-2])
-        machine= '{}/Machine'.format(Dconf_registry._ReadQueue)
+        machine= '{}/Machine/{}'.format(Dconf_registry._ReadQueue, counter)
         dictionary = Dconf_registry.global_registry_dict.setdefault(machine, dict())
     else:
         correct_path = '/'.join(string.split('/')[:-2])
-        user = '{}/User'.format(Dconf_registry._ReadQueue)
+        user = '{}/User/{}'.format(Dconf_registry._ReadQueue, counter)
         dictionary = Dconf_registry.global_registry_dict.setdefault(user, dict())
-    version = gpo_info.version if gpo_info else None
-    dictionary[len(dictionary)] = (policy_name, correct_path, version)
+
+    dictionary['display_name'] = display_name
+    dictionary['name'] = name
+    dictionary['version'] = version
+    dictionary['correct_path'] = correct_path
+
 
 
 def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
