@@ -19,7 +19,10 @@
 from .dynamic_attributes import DynamicAttributes
 
 class GpoInfoDconf(DynamicAttributes):
+    _counter = 0
     def __init__(self, gpo) -> None:
+        GpoInfoDconf._counter += 1
+        self.counter = GpoInfoDconf._counter
         self.display_name = None
         self.name = None
         self.version = None
