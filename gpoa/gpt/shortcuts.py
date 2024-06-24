@@ -33,6 +33,9 @@ class TargetType(Enum):
     FILESYSTEM = 'FILESYSTEM'
     URL = 'URL'
 
+    def __str__(self):
+        return self.value
+
 def get_ttype(targetstr):
     '''
     Validation function for targetType property

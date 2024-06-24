@@ -15,11 +15,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+from enum import Enum
 
 class DynamicAttributes:
     def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
+
+    def __setattr__(self, key, value):
+        if isinstance(value, Enum):
+            value = str(value)
+        self.__dict__[key] = value
 
     def items(self):
         return self.__dict__.items()
