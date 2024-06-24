@@ -922,8 +922,8 @@ msgstr "Не удалось скопировать файл"
 msgid "Failed to create KDE settings list"
 msgstr "Не удалось создать список настроек KDE"
 
-msgid "Could not find application tools"
-msgstr "Не удалось найти инструменты применения"
+msgid "Could not find tools to configure KDE"
+msgstr "Не удалось найти инструменты для настройки KDE"
 
 msgid "Failed to open KDE settings"
 msgstr "Не удалось открыть настройки KDE"

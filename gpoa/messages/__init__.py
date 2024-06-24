@@ -320,7 +320,7 @@ def debug_code(code):
     debug_ids[207] = 'Creating a dictionary with keys and values from the dconf database'
     debug_ids[208] = 'No entry found for the specified path'
     debug_ids[209] = 'Creating an ini file with policies for dconf'
-    debug_ids[210] = 'GPO version was not found'
+    #debug_ids[210] = 'GPO version was not found'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -348,7 +348,7 @@ def warning_code(code):
     warning_ids[14] = 'Could not create a valid list of keys'
     warning_ids[15] = 'Failed to copy file'
     warning_ids[16] = 'Failed to create KDE settings list'
-    warning_ids[17] = 'Could not find application tools'
+    warning_ids[17] = 'Could not find tools to configure KDE'
     warning_ids[18] = 'Failed to open KDE settings'
     warning_ids[19] = 'Failed to change KDE configuration file'
     warning_ids[20] = 'Error connecting to server'
