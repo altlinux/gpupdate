@@ -484,6 +484,8 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     '''
     Loads the configuration from preg registry into a dictionary
     '''
+    # Prefix for storing key data
+    source_pre = "Source"
     dd = dict()
     for i in pregfile.entries:
         # Skip this entry if the valuename starts with '**del'
@@ -495,26 +497,34 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):data})
+                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')].update({valuename.replace('\\', '/'):(policy_name, i.type)})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):data}
+                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')] = {valuename.replace('\\', '/'):(policy_name, i.type)}
 
         elif not i.valuename:
             keyname_tmp = i.keyname.replace('\\', '/').split('/')
             keyname = '/'.join(keyname_tmp[:-1])
+            print('elif', 'keyname' , keyname, 'valuename', valuename)
             if keyname in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[keyname].update({keyname_tmp[-1]:data})
+                dd[f"{source_pre}{keyname}"].update({keyname_tmp[-1]:(policy_name, i.type)})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[keyname] = {keyname_tmp[-1]:data}
+                dd[f"{source_pre}{keyname}"] = {keyname_tmp[-1]:(policy_name, i.type)}
 
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
             all_list_key = i.keyname.split('\\')
             dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
+            key_d ='/'.join(all_list_key[:-1])
+            dd_target_source = dd.setdefault(f"Source/{key_d}",{})
             dd_target.setdefault(all_list_key[-1], []).append(data)
+            dd_target_source.setdefault(all_list_key[-1], (policy_name, i.type))
 
     # Update the global registry dictionary with the contents of dd
     add_to_dict(pathfile, policy_name, username, gpo_info)
