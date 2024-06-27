@@ -36,8 +36,8 @@ def check_windows_mapping_enabled(storage):
     flag = storage.get_key_value(windows_mapping_enable_flag)
 
     result = True
-
-    if flag and '0' == str(flag):
+    flag = str(flag)
+    if flag and '0' == flag:
         result = False
 
     return result
@@ -48,9 +48,9 @@ def check_module_enabled(storage, module_name):
     flag = storage.get_key_value(gpupdate_module_flag)
 
     result = None
-
+    flag = str(flag)
     if flag:
-        if '1' == str(flag):
+        if '1' == flag:
             result =  True
         else:
             result =  False
