@@ -371,13 +371,13 @@ class Dconf_registry():
     def get_scripts(cls, sid, action):
         action_scripts = list()
         for part in cls.scripts:
-            if action == 'LOGON':
+            if action == 'LOGON' and part.action == 'LOGON':
                 action_scripts.append(part)
-            elif action == 'LOGOFF':
+            elif action == 'LOGOFF' and part.action == 'LOGOFF':
                 action_scripts.append(part)
-            elif action == 'STARTUP':
+            elif action == 'STARTUP' and part.action == 'STARTUP':
                 action_scripts.append(part)
-            elif action == 'SHUTDOWN':
+            elif action == 'SHUTDOWN' and part.action == 'SHUTDOWN':
                 action_scripts.append(part)
         return action_scripts
 
