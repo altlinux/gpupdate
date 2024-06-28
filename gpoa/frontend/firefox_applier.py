@@ -87,6 +87,8 @@ class firefox_applier(applier_frontend):
                 if json_data:
                     it_data.data = json_data
                     it_data.type = 7
+                else:
+                    it_data.data = clean_data_firefox(it_data.data)
                 #Cases when it is necessary to create nested dictionaries
                 if it_data.valuename != it_data.data:
                     parts = self.get_parts(it_data.hive_key)
@@ -180,3 +182,6 @@ def dict_item_to_list(dictionary:dict) -> dict:
             else:
                 dict_item_to_list(dictionary[key])
     return dictionary
+
+def clean_data_firefox(data):
+    return data.replace("'", '\"')
