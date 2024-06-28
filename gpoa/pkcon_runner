@@ -20,15 +20,13 @@
 import rpm
 import subprocess
 from gpoa.storage import registry_factory
+from util.gpoa_ini_parsing import GpoaConfigObj
+from util.util import get_uid_by_username
 import logging
 from util.logging import log
 import argparse
 import gettext
 import locale
-from messages import message_with_code
-from util.arguments import (
-    set_loglevel
-)
 
 
 def is_rpm_installed(rpm_name):
@@ -53,12 +51,17 @@ class Pkcon_applier:
         self.__reinstall_command = ['/usr/bin/pkcon', '-y', 'reinstall']
         self.install_packages = set()
         self.remove_packages = set()
-        self.storage = registry_factory(username=user)
-        self.storage.filling_storage_from_dconf()
-        install_branch = '{}/{}'.format(self.__hklm_branch, self.__install_key_name)
-        remove_branch = '{}/{}'.format(self.__hklm_branch, self.__remove_key_name)
-        self.install_packages_setting = self.storage.get_key_value(install_branch)
-        self.remove_packages_setting = self.storage.get_key_value(remove_branch)
+        if user:
+            pid = get_uid_by_username(user)
+            packages_dict = GpoaConfigObj(f'/etc/dconf/db/policy{pid}.d/policy{pid}.ini')
+            self.install_packages_setting = packages_dict[self.__hklm_branch[1:]][self.__install_key_name]
+            self.remove_packages_setting = packages_dict[self.__hklm_branch[1:]][self.__remove_key_name]
+        else:
+            storage = registry_factory(username=user)
+            install_branch = '{}/{}'.format(self.__hklm_branch, self.__install_key_name)
+            remove_branch = '{}/{}'.format(self.__hklm_branch, self.__remove_key_name)
+            self.install_packages_setting = storage.get_key_value(install_branch)
+            self.remove_packages_setting = storage.get_key_value(remove_branch)
         for package in self.install_packages_setting:
             if not is_rpm_installed(package):
                 self.install_packages.add(package)
