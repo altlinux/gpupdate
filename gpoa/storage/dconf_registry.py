@@ -466,7 +466,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, version=None):
     dd = dict()
     for i in pregfile.entries:
         # Skip this entry if the valuename starts with '**del'
-        if i.valuename.startswith('**del'):
+        if i.valuename.lower().startswith('**del'):
             continue
         valuename = convert_string_dconf(i.valuename)
         data = check_data(i.data, i.type)
