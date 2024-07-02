@@ -21,7 +21,7 @@ import rpm
 import subprocess
 from gpoa.storage import registry_factory
 from util.gpoa_ini_parsing import GpoaConfigObj
-from util.util import get_uid_by_username
+from util.util import get_uid_by_username, string_to_literal_eval
 import logging
 from util.logging import log
 import argparse
@@ -53,9 +53,16 @@ class Pkcon_applier:
         self.remove_packages = set()
         if user:
             pid = get_uid_by_username(user)
-            packages_dict = GpoaConfigObj(f'/etc/dconf/db/policy{pid}.d/policy{pid}.ini')
-            self.install_packages_setting = packages_dict[self.__hklm_branch[1:]][self.__install_key_name]
-            self.remove_packages_setting = packages_dict[self.__hklm_branch[1:]][self.__remove_key_name]
+            #TODO: It is necessary to redo reading from the GVariant database file policy{pid}
+            try:
+                packages_dict = GpoaConfigObj(f'/etc/dconf/db/policy{pid}.d/policy{pid}.ini')
+            except:
+                packages_dict = {}
+
+            self.install_packages_setting = string_to_literal_eval(
+                packages_dict.get(self.__hklm_branch[1:], {}).get(self.__install_key_name, {}))
+            self.remove_packages_setting = string_to_literal_eval(
+                packages_dict.get(self.__hklm_branch[1:], {}).get(self.__remove_key_name, {}))
         else:
             storage = registry_factory(username=user)
             install_branch = '{}/{}'.format(self.__hklm_branch, self.__install_key_name)
