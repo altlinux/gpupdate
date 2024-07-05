@@ -23,6 +23,7 @@ from util.logging import log
 import re
 from collections import OrderedDict
 import itertools
+from gpt.dynamic_attributes import RegistryKeyMetadata
 
 
 class PregDconf():
@@ -432,7 +433,7 @@ def find_preg_type(argument):
         return 1
 
 
-def update_dict(dict1, dict2):
+def update_dict(dict1, dict2, save_key=None):
     '''
     Updates dict1 with the key-value pairs from dict2
     '''
@@ -440,14 +441,21 @@ def update_dict(dict1, dict2):
         if key in dict1:
             # If both values are dictionaries, recursively call the update_dict function
             if isinstance(dict1[key], dict) and isinstance(value, dict):
-                update_dict(dict1[key], value)
+                save_key = key
+                update_dict(dict1[key], value, save_key)
             # If the value in dict1 is a list, extend it with unique values from value
             elif isinstance(dict1[key], list):
                 dict1[key].extend(set(value) - set(dict1[key]))
             else:
                 # If the value in dict1 is not a dictionary or the value in dict2 is not a dictionary,
                 # replace the value in dict1 with the value from dict2
-                dict1[key] = value
+                if save_key.startswith('Source'):
+                    value.reloaded_with_policy_key = [dict1[key].policy_name]
+                    if dict1[key].reloaded_with_policy_key:
+                        value.reloaded_with_policy_key += dict1[key].reloaded_with_policy_key
+                    dict1[key] = value
+                else:
+                    dict1[key] = value
         else:
             # If the key does not exist in dict1, add the key-value pair from dict2 to dict1
             dict1[key] = value
@@ -498,11 +506,11 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):data})
-                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')].update({valuename.replace('\\', '/'):(policy_name, i.type)})
+                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')].update({valuename.replace('\\', '/'):RegistryKeyMetadata(policy_name, i.type)})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):data}
-                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')] = {valuename.replace('\\', '/'):(policy_name, i.type)}
+                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')] = {valuename.replace('\\', '/'):RegistryKeyMetadata(policy_name, i.type)}
 
         elif not i.valuename:
             keyname_tmp = i.keyname.replace('\\', '/').split('/')
@@ -510,11 +518,11 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
             if keyname in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[keyname].update({keyname_tmp[-1]:data})
-                dd[f"{source_pre}{keyname}"].update({keyname_tmp[-1]:(policy_name, i.type)})
+                dd[f"{source_pre}{keyname}"].update({keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type)})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[keyname] = {keyname_tmp[-1]:data}
-                dd[f"{source_pre}{keyname}"] = {keyname_tmp[-1]:(policy_name, i.type)}
+                dd[f"{source_pre}{keyname}"] = {keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type)}
 
         else:
             # If the value name is the same as the data,
@@ -524,7 +532,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
             key_d ='/'.join(all_list_key[:-1])
             dd_target_source = dd.setdefault(f"Source/{key_d}",{})
             dd_target.setdefault(all_list_key[-1], []).append(data)
-            dd_target_source.setdefault(all_list_key[-1], (policy_name, i.type))
+            dd_target_source.setdefault(all_list_key[-1], RegistryKeyMetadata(policy_name, i.type))
 
     # Update the global registry dictionary with the contents of dd
     add_to_dict(pathfile, policy_name, username, gpo_info)
