@@ -321,6 +321,7 @@ class Dconf_registry():
 
     @classmethod
     def add_folder(cls, sid, fobj, policy_name):
+        #fobj.policy_name = policy_name
         cls.folders.append(fobj)
 
 
@@ -506,7 +507,6 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
         elif not i.valuename:
             keyname_tmp = i.keyname.replace('\\', '/').split('/')
             keyname = '/'.join(keyname_tmp[:-1])
-            print('elif', 'keyname' , keyname, 'valuename', valuename)
             if keyname in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[keyname].update({keyname_tmp[-1]:data})
@@ -622,11 +622,11 @@ def get_dconf_envprofile():
     return {'DCONF_PROFILE': profile}
 
 
-def convert_to_strings(elements):
+def convert_elements_to_list_dicts(elements):
     return list(map(lambda x: dict(x), elements))
 
 def remove_duplicate_dicts_in_list(list_dict):
-    return convert_to_strings(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))
+    return convert_elements_to_list_dicts(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))
 
 def add_preferences_to_global_registry_dict(username, is_machine):
     if is_machine:
