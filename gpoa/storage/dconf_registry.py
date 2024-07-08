@@ -234,7 +234,7 @@ class Dconf_registry():
             elif isinstance(value, list):
                 for data in value:
                     list_entiers.append(PregDconf(
-                        keyname, convert_string_dconf(data), find_preg_type(data), data))
+                        keyname, data, find_preg_type(data), data))
             else:
                 list_entiers.append(PregDconf(
                         '/'.join(keyname.split('/')[:-1]), convert_string_dconf(keyname.split('/')[-1]), find_preg_type(value), value))
