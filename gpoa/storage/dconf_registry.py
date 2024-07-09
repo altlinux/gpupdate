@@ -52,8 +52,8 @@ class Dconf_registry():
     '''
     A class variable that represents a global registry dictionary shared among instances of the class
     '''
-    _ReadQueue = 'Software/BaseALT/Policies/GpoPriority'
-    global_registry_dict = dict({_ReadQueue:{}})
+    _GpoPriority = 'Software/BaseALT/Policies/GpoPriority'
+    global_registry_dict = dict({_GpoPriority:{}})
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
@@ -412,7 +412,7 @@ class Dconf_registry():
 
     @classmethod
     def wipe_hklm(cls):
-        cls.global_registry_dict = dict({cls._ReadQueue:{}})
+        cls.global_registry_dict = dict({cls._GpoPriority:{}})
 
 
 def filter_dict_keys(starting_string, input_dict):
@@ -475,11 +475,11 @@ def add_to_dict(string, policy_name, username, gpo_info):
 
     if username is None:
         correct_path = '/'.join(string.split('/')[:-2])
-        machine= '{}/Machine/{}'.format(Dconf_registry._ReadQueue, counter)
+        machine= '{}/Machine/{}'.format(Dconf_registry._GpoPriority, counter)
         dictionary = Dconf_registry.global_registry_dict.setdefault(machine, dict())
     else:
         correct_path = '/'.join(string.split('/')[:-2])
-        user = '{}/User/{}'.format(Dconf_registry._ReadQueue, counter)
+        user = '{}/User/{}'.format(Dconf_registry._GpoPriority, counter)
         dictionary = Dconf_registry.global_registry_dict.setdefault(user, dict())
 
     dictionary['display_name'] = display_name
