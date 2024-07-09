@@ -532,7 +532,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
             key_d ='/'.join(all_list_key[:-1])
             dd_target_source = dd.setdefault(f"Source/{key_d}",{})
             dd_target.setdefault(all_list_key[-1], []).append(data)
-            dd_target_source.setdefault(all_list_key[-1], RegistryKeyMetadata(policy_name, i.type))
+            dd_target_source.setdefault(all_list_key[-1], RegistryKeyMetadata(policy_name, i.type, True))
 
     # Update the global registry dictionary with the contents of dd
     add_to_dict(pathfile, policy_name, username, gpo_info)
