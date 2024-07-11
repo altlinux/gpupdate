@@ -19,6 +19,7 @@ from enum import Enum
 
 class DynamicAttributes:
     def __init__(self, **kwargs):
+        self.policy_name = None
         for key, value in kwargs.items():
             self.__setattr__(key, value)
 
