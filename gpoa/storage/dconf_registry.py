@@ -307,47 +307,55 @@ class Dconf_registry():
 
     @classmethod
     def add_shortcut(cls, sid, sc_obj, policy_name):
+        sc_obj.policy_name = policy_name
         cls.shortcuts.append(sc_obj)
 
 
     @classmethod
     def add_printer(cls, sid, pobj, policy_name):
+        pobj.policy_name = policy_name
         cls.printers.append(pobj)
 
 
     @classmethod
     def add_drive(cls, sid, dobj, policy_name):
+        dobj.policy_name = policy_name
         cls.drives.append(dobj)
 
 
     @classmethod
     def add_folder(cls, sid, fobj, policy_name):
-        #fobj.policy_name = policy_name
+        fobj.policy_name = policy_name
         cls.folders.append(fobj)
 
 
     @classmethod
     def add_envvar(self, sid, evobj, policy_name):
+        evobj.policy_name = policy_name
         self.environmentvariables.append(evobj)
 
 
     @classmethod
     def add_script(cls, sid, scrobj, policy_name):
+        scrobj.policy_name = policy_name
         cls.scripts.append(scrobj)
 
 
     @classmethod
     def add_file(cls, sid, fileobj, policy_name):
+        fileobj.policy_name = policy_name
         cls.files.append(fileobj)
 
 
     @classmethod
     def add_ini(cls, sid, iniobj, policy_name):
+        iniobj.policy_name = policy_name
         cls.inifiles.append(iniobj)
 
 
     @classmethod
     def add_networkshare(cls, sid, networkshareobj, policy_name):
+        networkshareobj.policy_name = policy_name
         cls.networkshares.append(networkshareobj)
 
 
