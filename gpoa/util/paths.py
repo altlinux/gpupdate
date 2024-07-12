@@ -93,7 +93,7 @@ def local_policy_cache():
 
     return lpcache
 
-def get_dconf_config_path(uid = None):
+def get_dconf_config_file(uid = None):
     if uid:
         return f'/etc/dconf/db/policy{uid}.d/policy{uid}.ini'
     else:
