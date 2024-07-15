@@ -25,6 +25,7 @@ from gi.repository import (
       Gio
     , GLib
 )
+from storage.dconf_registry import Dconf_registry
 
 from .applier_frontend import (
       applier_frontend
@@ -137,10 +138,7 @@ class gsettings_applier(applier_frontend):
             log('E48')
 
         # Update desktop configuration system backend
-        try:
-            proc = subprocess.run(args=['/usr/bin/dconf', "update"], capture_output=True, check=True)
-        except Exception as exc:
-            log('E49')
+        Dconf_registry.dconf_update()
 
     def apply(self):
         if self.__module_enabled:

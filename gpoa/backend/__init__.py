@@ -71,4 +71,4 @@ def save_dconf(username, is_machine):
     touch_file(target_file)
     Dconf_registry.apply_template(uid)
     add_preferences_to_global_registry_dict(username, is_machine)
-    create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict)
+    create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict, uid)

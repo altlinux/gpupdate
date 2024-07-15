@@ -19,6 +19,7 @@
 import subprocess
 from pathlib import Path
 from util.util import string_to_literal_eval, touch_file, get_uid_by_username
+from util.paths import get_dconf_config_path
 from util.logging import log
 import re
 from collections import OrderedDict
@@ -147,10 +148,12 @@ class Dconf_registry():
         return None
 
     @staticmethod
-    def dconf_update():
+    def dconf_update(uid=None):
         logdata = dict()
+        path_dconf_config = get_dconf_config_path(uid)
+        db_file = path_dconf_config[:-3]
         try:
-            process = subprocess.Popen(['dconf', 'update'],
+            process = subprocess.Popen(['dconf', 'compile', db_file, path_dconf_config],
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             output, error = process.communicate()
 
@@ -547,7 +550,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
-def create_dconf_ini_file(filename, data):
+def create_dconf_ini_file(filename, data, uid):
     '''
     Create an ini-file based on a dictionary of dictionaries.
     Args:
@@ -570,7 +573,7 @@ def create_dconf_ini_file(filename, data):
     logdata = dict()
     logdata['path'] = filename
     log('D209', logdata)
-    Dconf_registry.dconf_update()
+    Dconf_registry.dconf_update(uid)
 
 def clean_data(data):
     try:
