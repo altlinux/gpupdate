@@ -460,7 +460,7 @@ def update_dict(dict1, dict2, save_key=None):
             else:
                 # If the value in dict1 is not a dictionary or the value in dict2 is not a dictionary,
                 # replace the value in dict1 with the value from dict2
-                if save_key.startswith('Source'):
+                if save_key and save_key.startswith('Source'):
                     value.reloaded_with_policy_key = [dict1[key].policy_name]
                     if dict1[key].reloaded_with_policy_key:
                         value.reloaded_with_policy_key += dict1[key].reloaded_with_policy_key
