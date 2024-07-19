@@ -25,6 +25,10 @@ import re
 from collections import OrderedDict
 import itertools
 from gpt.dynamic_attributes import RegistryKeyMetadata
+import gi
+gi.require_version("Gvdb", "1.0")
+gi.require_version("GLib", "2.0")
+from gi.repository import Gvdb, GLib
 
 
 class PregDconf():
@@ -62,7 +66,9 @@ class Dconf_registry():
     __dconf_dict_flag = False
     __dconf_dict = dict()
     _username = None
+    _uid = None
     _envprofile = None
+    _path_bin_system = "/etc/dconf/db/policy"
 
     list_keys = list()
     _info = dict()
@@ -223,13 +229,42 @@ class Dconf_registry():
 
 
     @classmethod
-    def filter_entries(cls, startswith):
+    def get_dictionary_from_dconf_file_db(self, uid=None):
+        if not uid:
+            path_bin = self._path_bin_system
+        else:
+            path_bin = self._path_bin_system+uid
+
+        if (GLib.file_get_contents(path_bin)[0]):
+            bytes1 = GLib.Bytes.new(GLib.file_get_contents(path_bin)[1])
+            table = Gvdb.Table.new_from_bytes(bytes1, True)
+
+            name_list = Gvdb.Table.get_names(table)
+            output_dict = {}
+            for name in name_list:
+                value = Gvdb.Table.get_value(table, name)
+                if not value:
+                    continue
+                list_path = name.split('/')
+                if value.is_of_type(GLib.VariantType('s')):
+                    part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
+                    part[list_path[-1]] = value.get_string()
+                elif value.is_of_type(GLib.VariantType('i')):
+                    part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
+                    part[list_path[-1]] = value.get_int32()
+        return output_dict
+
+
+    @classmethod
+    def filter_entries(cls, startswith, registry_dict = None):
+        if not registry_dict:
+            registry_dict = cls.global_registry_dict
         if startswith[-1] == '%':
             startswith = startswith[:-1]
             if startswith[-1] == '/' or startswith[-1] == '\\':
                 startswith = startswith[:-1]
-            return filter_dict_keys(startswith, flatten_dictionary(cls.global_registry_dict))
-        return filter_dict_keys(startswith, flatten_dictionary(cls.global_registry_dict))
+            return filter_dict_keys(startswith, flatten_dictionary(registry_dict))
+        return filter_dict_keys(startswith, flatten_dictionary(registry_dict))
 
 
     @classmethod
@@ -672,3 +707,15 @@ def add_preferences_to_global_registry_dict(username, is_machine):
         preferences_global_dict[prefix].update({key:clean_data(str(val))})
 
     update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)
+
+def extract_display_name_version(data:dict):
+    result = {}
+    tmp = {}
+    for key in data.keys():
+        if key.startswith(Dconf_registry._GpoPriority+'/'):
+            tmp[key] = data[key]
+    if isinstance(data, dict):
+        for value in tmp.values():
+            if isinstance(value, dict) and value.get('version', '')!='None' and value.get('display_name'):
+                result[value['display_name']] = value['version']
+    return result
