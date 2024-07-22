@@ -65,6 +65,7 @@ class Dconf_registry():
     _gpt_read_flag = False
     __dconf_dict_flag = False
     __dconf_dict = dict()
+    _dict_gpo_name_version_cache = dict()
     _username = None
     _uid = None
     _envprofile = None
@@ -708,14 +709,15 @@ def add_preferences_to_global_registry_dict(username, is_machine):
 
     update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)
 
-def extract_display_name_version(data:dict):
+def extract_display_name_version(data):
     result = {}
     tmp = {}
-    for key in data.keys():
-        if key.startswith(Dconf_registry._GpoPriority+'/'):
-            tmp[key] = data[key]
     if isinstance(data, dict):
+        for key in data.keys():
+            if key.startswith(Dconf_registry._GpoPriority+'/'):
+                tmp[key] = data[key]
         for value in tmp.values():
             if isinstance(value, dict) and value.get('version', '')!='None' and value.get('display_name'):
-                result[value['display_name']] = value['version']
+                result[value['display_name']] = (value['version'], value['correct_path'])
+    Dconf_registry._dict_gpo_name_version_cache = result
     return result
