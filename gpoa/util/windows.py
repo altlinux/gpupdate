@@ -28,12 +28,13 @@ except ImportError:
     from samba.gp.gpclass import get_dc_hostname, check_refresh_gpo_list
 
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
+from storage.dconf_registry import Dconf_registry, extract_display_name_version
 import samba.gpo
 
 from .xdg import (
       xdg_get_desktop
 )
-from .util import get_homedir
+from .util import get_homedir, get_uid_by_username
 from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
@@ -109,7 +110,11 @@ class smbcreds (smbopts):
         hostname
         '''
         gpos = list()
-
+        if Dconf_registry.get_info('machine_name') == username:
+            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db()
+        else:
+            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username))
+        dict_gpo_name_version = extract_display_name_version(dconf_dict)
         try:
             log('D48')
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
@@ -121,6 +126,11 @@ class smbcreds (smbopts):
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
+                    if gpo.display_name in dict_gpo_name_version.keys() and dict_gpo_name_version[gpo.display_name] == gpo.version:
+                        gpo.file_sys_path = ''
+                        ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': gpo.file_sys_path})
+                        log('I2', ldata)
+                        continue
                     ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path})
                     log('I2', ldata)
 
