@@ -234,7 +234,7 @@ class Dconf_registry():
         if not uid:
             path_bin = self._path_bin_system
         else:
-            path_bin = self._path_bin_system+uid
+            path_bin = self._path_bin_system + str(uid)
 
         if (GLib.file_get_contents(path_bin)[0]):
             bytes1 = GLib.Bytes.new(GLib.file_get_contents(path_bin)[1])
