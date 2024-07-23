@@ -870,6 +870,9 @@ msgstr "Создание ini-файла с политиками для  dconf"
 msgid "GPO version was not found"
 msgstr "Версия GPO не найдена"
 
+msgid "SYSVOL entry found in cache"
+msgstr "Запись SYSVOL найдена в кеше"
+
 # Debug_end
 
 # Warning

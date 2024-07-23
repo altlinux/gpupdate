@@ -320,6 +320,7 @@ def debug_code(code):
     debug_ids[207] = 'Creating a dictionary with keys and values from the dconf database'
     debug_ids[208] = 'No entry found for the specified path'
     debug_ids[209] = 'Creating an ini file with policies for dconf'
+    debug_ids[211] = 'SYSVOL entry found in cache'
     #debug_ids[210] = 'GPO version was not found'
 
     return debug_ids.get(code, 'Unknown debug code')
