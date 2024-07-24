@@ -67,6 +67,9 @@ class samba_backend(applier_backend):
         self.sambacreds = sambacreds
 
         self.cache_dir = self.sambacreds.get_cache_dir()
+        self.gpo_cache_part ='gpo_cache'
+        self._cached = False
+        self.storage.set_info('cache_dir', os.path.join(self.cache_dir, self.gpo_cache_part))
         logdata = dict({'cachedir': self.cache_dir})
         log('D7', logdata)
 
@@ -155,11 +158,13 @@ class samba_backend(applier_backend):
         '''
         Check if there is SYSVOL path for GPO assigned
         '''
+        self._cached = False
         if not gpo.file_sys_path:
             # GPO named "Local Policy" has no entry by its nature so
             # no reason to print warning.
             if gpo.display_name in self.storage._dict_gpo_name_version_cache.keys():
                 gpo.file_sys_path = self.storage._dict_gpo_name_version_cache[gpo.display_name][1]
+                self._cached = True
                 return True
             elif 'Local Policy' != gpo.name:
                 logdata = dict({'gponame': gpo.name})
@@ -176,12 +181,14 @@ class samba_backend(applier_backend):
         log('D46')
         for gpo in gpos:
             if self._check_sysvol_present(gpo):
-                path = check_safe_path(gpo.file_sys_path).upper()
-                slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
-                log('D30', slogdata)
-                gpt_abspath = os.path.join(self.cache_dir, 'gpo_cache', path)
-
-
+                if not self._cached:
+                    path = check_safe_path(gpo.file_sys_path).upper()
+                    slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
+                    log('D30', slogdata)
+                    gpt_abspath = os.path.join(self.cache_dir, self.gpo_cache_part, path)
+                else:
+                    gpt_abspath = gpo.file_sys_path
+                    log('D211', {'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name})
                 if self._is_machine_username:
                     obj = gpt(gpt_abspath, sid, None, GpoInfoDconf(gpo))
                 else:
