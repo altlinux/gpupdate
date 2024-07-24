@@ -65,6 +65,10 @@ msgstr "Установка свойств  для пользователя"
 msgid "The line in the configuration file was cleared"
 msgstr "В конфигурационном файле была очищена строка"
 
+msgid "Found GPT in cache"
+msgstr "Найден GPT в кеше"
+
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
