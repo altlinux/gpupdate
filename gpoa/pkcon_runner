@@ -43,32 +43,24 @@ def is_rpm_installed(rpm_name):
 class Pkcon_applier:
 
     def __init__(self, user = None):
-        self.__install_key_name = 'Install'
-        self.__remove_key_name = 'Remove'
-        self.__hklm_branch = '/Software/BaseALT/Policies/Packages'
+        install_key_name = 'Install'
+        remove_key_name = 'Remove'
+        hklm_branch = 'Software/BaseALT/Policies/Packages'
         self.__install_command = ['/usr/bin/pkcon', '-y', 'install']
         self.__remove_command = ['/usr/bin/pkcon', '-y', 'remove']
         self.__reinstall_command = ['/usr/bin/pkcon', '-y', 'reinstall']
         self.install_packages = set()
         self.remove_packages = set()
+        self.storage = registry_factory()
         if user:
-            pid = get_uid_by_username(user)
-            #TODO: It is necessary to redo reading from the GVariant database file policy{pid}
-            try:
-                packages_dict = GpoaConfigObj(f'/etc/dconf/db/policy{pid}.d/policy{pid}.ini')
-            except:
-                packages_dict = {}
-
-            self.install_packages_setting = string_to_literal_eval(
-                packages_dict.get(self.__hklm_branch[1:], {}).get(self.__install_key_name, {}))
-            self.remove_packages_setting = string_to_literal_eval(
-                packages_dict.get(self.__hklm_branch[1:], {}).get(self.__remove_key_name, {}))
+            uid = get_uid_by_username(user)
+            dict_dconf_db = self.storage.get_dictionary_from_dconf_file_db(uid)
         else:
-            storage = registry_factory(username=user)
-            install_branch = '{}/{}'.format(self.__hklm_branch, self.__install_key_name)
-            remove_branch = '{}/{}'.format(self.__hklm_branch, self.__remove_key_name)
-            self.install_packages_setting = storage.get_key_value(install_branch)
-            self.remove_packages_setting = storage.get_key_value(remove_branch)
+            dict_dconf_db = self.storage.get_dictionary_from_dconf_file_db()
+        dict_packages = dict_dconf_db.get(hklm_branch,{})
+        self.install_packages_setting = dict_packages.get(install_key_name,[])
+        self.remove_packages_setting = dict_packages.get(remove_key_name,[])
+
         for package in self.install_packages_setting:
             if not is_rpm_installed(package):
                 self.install_packages.add(package)
