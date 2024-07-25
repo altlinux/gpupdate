@@ -163,7 +163,7 @@ class samba_backend(applier_backend):
             # GPO named "Local Policy" has no entry by its nature so
             # no reason to print warning.
             if gpo.display_name in self.storage._dict_gpo_name_version_cache.keys():
-                gpo.file_sys_path = self.storage._dict_gpo_name_version_cache[gpo.display_name][1]
+                gpo.file_sys_path = self.storage._dict_gpo_name_version_cache.get(gpo.display_name, {}).get('correct_path')
                 self._cached = True
                 return True
             elif 'Local Policy' != gpo.name:

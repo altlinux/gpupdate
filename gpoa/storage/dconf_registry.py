@@ -718,6 +718,6 @@ def extract_display_name_version(data):
                 tmp[key] = data[key]
         for value in tmp.values():
             if isinstance(value, dict) and value.get('version', '')!='None' and value.get('display_name'):
-                result[value['display_name']] = (value['version'], value['correct_path'])
+                result[value['display_name']] = {'version': value['version'], 'correct_path': value['correct_path']}
     Dconf_registry._dict_gpo_name_version_cache = result
     return result
