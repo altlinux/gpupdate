@@ -58,8 +58,8 @@ class Pkcon_applier:
         else:
             dict_dconf_db = self.storage.get_dictionary_from_dconf_file_db()
         dict_packages = dict_dconf_db.get(hklm_branch,{})
-        self.install_packages_setting = dict_packages.get(install_key_name,[])
-        self.remove_packages_setting = dict_packages.get(remove_key_name,[])
+        self.install_packages_setting = string_to_literal_eval(dict_packages.get(install_key_name,[]))
+        self.remove_packages_setting = string_to_literal_eval(dict_packages.get(remove_key_name,[]))
 
         for package in self.install_packages_setting:
             if not is_rpm_installed(package):
