@@ -633,7 +633,8 @@ def convert_string_dconf(input_string):
     macros = {
         '#': '%sharp%',
         ';': '%semicolon%',
-        '//': '%doubleslash%'
+        '//': '%doubleslash%',
+        '/': '%oneslash%'
     }
     output_string = input_string
     for key, value in macros.items():
@@ -717,7 +718,7 @@ def extract_display_name_version(data):
             if key.startswith(Dconf_registry._GpoPriority+'/'):
                 tmp[key] = data[key]
         for value in tmp.values():
-            if isinstance(value, dict) and value.get('version', '')!='None' and value.get('display_name'):
+            if isinstance(value, dict) and value.get('version', 'None')!='None' and value.get('display_name'):
                 result[value['display_name']] = {'version': value['version'], 'correct_path': value['correct_path']}
     Dconf_registry._dict_gpo_name_version_cache = result
     return result
