@@ -95,7 +95,6 @@ class scripts_applier_user(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
-        self.filling_cache()
 
     def cleaning_cache(self):
         log('D161')
