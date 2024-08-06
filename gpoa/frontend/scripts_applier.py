@@ -142,7 +142,9 @@ def install_script(storage_script_entry, script_dir, access_permissions):
     '''
     dir_cr = Path(script_dir)
     dir_cr.mkdir(parents=True, exist_ok=True)
-    script_name = str(int(storage_script_entry.number)).zfill(5) + '_' + os.path.basename(storage_script_entry.path)
+    if storage_script_entry.number is None:
+        return
+    script_name = str(storage_script_entry.number).zfill(5) + '_' + os.path.basename(storage_script_entry.path)
     script_file = os.path.join(script_dir, script_name)
     shutil.copyfile(storage_script_entry.path, script_file)
 
