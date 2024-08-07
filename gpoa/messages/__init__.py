@@ -108,6 +108,7 @@ def error_code(code):
     error_ids[70] = 'Error getting key value'
     error_ids[71] = 'Failed to update dconf database'
     error_ids[72] = 'Exception occurred while updating dconf database'
+    error_ids[73] = 'Failed to retrieve data from dconf database'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):

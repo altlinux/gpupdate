@@ -256,6 +256,9 @@ msgstr "Не удалось обновить базу данных dconf"
 msgid "Exception occurred while updating dconf database"
 msgstr "Возникло исключение при обновлении базы данных dconf"
 
+msgid "Failed to retrieve data from dconf database"
+msgstr "Не удалось получить данные из базы dconf"
+
 # Error_end
 
 # Debug

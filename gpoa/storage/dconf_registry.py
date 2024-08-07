@@ -231,28 +231,34 @@ class Dconf_registry():
 
     @classmethod
     def get_dictionary_from_dconf_file_db(self, uid=None):
+        logdata = dict()
         if not uid:
             path_bin = self._path_bin_system
         else:
             path_bin = self._path_bin_system + str(uid)
+        output_dict = {}
+        try:
+            if (GLib.file_get_contents(path_bin)[0]):
+                bytes1 = GLib.Bytes.new(GLib.file_get_contents(path_bin)[1])
+                table = Gvdb.Table.new_from_bytes(bytes1, True)
 
-        if (GLib.file_get_contents(path_bin)[0]):
-            bytes1 = GLib.Bytes.new(GLib.file_get_contents(path_bin)[1])
-            table = Gvdb.Table.new_from_bytes(bytes1, True)
+                name_list = Gvdb.Table.get_names(table)
+                for name in name_list:
+                    value = Gvdb.Table.get_value(table, name)
+                    if not value:
+                        continue
+                    list_path = name.split('/')
+                    if value.is_of_type(GLib.VariantType('s')):
+                        part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
+                        part[list_path[-1]] = value.get_string()
+                    elif value.is_of_type(GLib.VariantType('i')):
+                        part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
+                        part[list_path[-1]] = value.get_int32()
+        except Exception as exc:
+            logdata['exc'] = exc
+            logdata['path_bin'] = path_bin
+            log('E73', logdata)
 
-            name_list = Gvdb.Table.get_names(table)
-            output_dict = {}
-            for name in name_list:
-                value = Gvdb.Table.get_value(table, name)
-                if not value:
-                    continue
-                list_path = name.split('/')
-                if value.is_of_type(GLib.VariantType('s')):
-                    part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
-                    part[list_path[-1]] = value.get_string()
-                elif value.is_of_type(GLib.VariantType('i')):
-                    part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
-                    part[list_path[-1]] = value.get_int32()
         return output_dict
 
 
