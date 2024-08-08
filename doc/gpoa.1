@@ -45,6 +45,9 @@ Don't run plugins.
 .TP
 \fB--loglevel \fILOGLEVEL\fP
 Set logging verbosity from 0 to 5.
+.TP
+\fB--force\fP
+Force GPT download.
 .
 .SH FILES
 \fB/usr/sbin/gpoa\fR utility uses \fB/usr/share/local-policy/default\fR
@@ -55,8 +58,10 @@ All data is located in \fB/var/cache/gpupdate\fR. Also domain GPTs are
 taken from Samba's \fB/var/cache/samba\fR.
 .
 The settings read from Samba are stored in
-\fB/var/cache/gpupdate/registry.sqlite\fR and "Local Policy" settings
-read from \fB/usr/local/share/local-policy/default\fR are converted
+Dconf. Machine policies are stored in the \fB/etc/dconf/db/policy.d/policy.ini\fR file,
+user policies are stored in the \fB/etc/dconf/db/policy<UID>.d/policy<UID>.ini\fR file
+(where UID is the user ID in the system)."Local Policy" settings
+read from \fB/usr/share/local-policy/\fR are converted
 into GPT and stored as \fB/var/cache/gpupdate/local-policy\fR.
 .SH "SEE ALSO"
 gpupdate(1)
