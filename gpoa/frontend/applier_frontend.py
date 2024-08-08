@@ -49,7 +49,7 @@ def check_module_enabled(storage, module_name):
 
     result = None
     flag = str(flag)
-    if flag:
+    if flag and flag!='None':
         if '1' == flag:
             result =  True
         else:
