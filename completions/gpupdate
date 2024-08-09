@@ -17,7 +17,7 @@ _gpupdate()
             return
             ;;
         *)
-            COMPREPLY=($(compgen -W '--user --target --loglevel --system --help' -- "$cur"))
+            COMPREPLY=($(compgen -W '--user --target --loglevel --system --help --force' -- "$cur"))
             return
             ;;
     esac
