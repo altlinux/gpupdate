@@ -63,6 +63,7 @@ class Dconf_registry():
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
     _gpt_read_flag = False
+    _force = False
     __dconf_dict_flag = False
     __dconf_dict = dict()
     _dict_gpo_name_version_cache = dict()
@@ -717,6 +718,8 @@ def add_preferences_to_global_registry_dict(username, is_machine):
     update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)
 
 def extract_display_name_version(data):
+    if Dconf_registry._force:
+        return {}
     result = {}
     tmp = {}
     if isinstance(data, dict):
