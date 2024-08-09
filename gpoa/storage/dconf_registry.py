@@ -718,7 +718,8 @@ def add_preferences_to_global_registry_dict(username, is_machine):
     update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)
 
 def extract_display_name_version(data):
-    if Dconf_registry._force:
+    policy_force = data.get('Software/BaseALT/Policies/GPUpdate', {}).get('Force', False)
+    if Dconf_registry._force or policy_force:
         return {}
     result = {}
     tmp = {}
