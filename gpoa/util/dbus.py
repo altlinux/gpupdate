@@ -121,7 +121,6 @@ class dbus_runner:
                     timeout=self._synchronous_timeout)
                 print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
-                print(exc)
                 logdata = dict({'error': str(exc)})
                 log('E22', logdata)
                 raise exc
