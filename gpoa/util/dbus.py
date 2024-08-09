@@ -20,6 +20,7 @@ import dbus
 
 from .logging import log
 from .users import is_root
+from storage import Dconf_registry
 
 
 class dbus_runner:
@@ -72,6 +73,7 @@ class dbus_runner:
         if self.username:
             logdata = dict({'username': self.username})
             log('D6', logdata)
+            gpupdate = 'gpupdate' if not Dconf_registry._force else 'gpupdate_force'
             if is_root():
                 # oddjobd-gpupdate's ACL allows access to this method
                 # only for superuser. This method is called via PAM
@@ -95,7 +97,7 @@ class dbus_runner:
                     result = self.system_bus.call_blocking(self.bus_name,
                         self._object_path,
                         self.interface_name,
-                        'gpupdate',
+                        gpupdate,
                         None,
                         [],
                         timeout=self._synchronous_timeout)
@@ -106,11 +108,12 @@ class dbus_runner:
                     raise exc
         else:
             log('D11')
+            gpupdate_computer = 'gpupdate_computer' if not Dconf_registry._force else 'gpupdate_computer_force'
             try:
                 result = self.system_bus.call_blocking(self.bus_name,
                     self._object_path,
                     self.interface_name,
-                    'gpupdate_computer',
+                    gpupdate_computer,
                     None,
                     # The following positional parameter is called "args".
                     # There is no official documentation for it.

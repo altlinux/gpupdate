@@ -25,6 +25,7 @@ import os
 import sys
 import pwd
 import signal
+from storage import Dconf_registry
 
 from util.users import (
     is_root
@@ -83,6 +84,11 @@ def parse_cli_arguments():
         type=int,
         default=5,
         help='Set logging verbosity level')
+    argparser.add_argument('-f',
+        '--force',
+        action='store_true',
+        default=False,
+        help='Force GPT download')
     argparser.add_argument('-s',
         '--system',
         action='store_true',
@@ -165,6 +171,7 @@ def main():
     gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
     gettext.textdomain('gpoa')
     set_loglevel(args.loglevel)
+    Dconf_registry._force = args.force
     gpo_appliers = runner_factory(args, process_target(args.target))
 
     if gpo_appliers:
