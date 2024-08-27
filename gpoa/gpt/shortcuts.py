@@ -46,7 +46,7 @@ def get_ttype(targetstr):
     '''
     ttype = TargetType.FILESYSTEM
 
-    if targetstr == 'URL':
+    if targetstr == 'URL'or targetstr == TargetType.URL:
         ttype = TargetType.URL
 
     return ttype
@@ -221,7 +221,7 @@ class shortcut(DynamicAttributes):
         '''
         Update desktop file object from internal data.
         '''
-        if self.type == TargetType.URL:
+        if get_ttype(self.type) == TargetType.URL:
             self.desktop_file.set('Type', 'Link')
         else:
             self.desktop_file.set('Type', 'Application')
@@ -231,7 +231,7 @@ class shortcut(DynamicAttributes):
         desktop_path = self.path
         if self.expanded_path:
             desktop_path = self.expanded_path
-        if self.type == TargetType.URL:
+        if get_ttype(self.type) == TargetType.URL:
             self.desktop_file.set('URL', desktop_path)
         else:
             str2bool_lambda = (lambda boolstr: boolstr if isinstance(boolstr, bool)
