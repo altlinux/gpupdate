@@ -23,9 +23,8 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from gpt.shortcuts import json2sc
 from util.windows import expand_windows_var
-from util.logging import slogm, log
+from util.logging import log
 from util.util import (
         get_homedir,
         homedir_exists

@@ -100,24 +100,6 @@ def merge_shortcuts(storage, sid, shortcut_objects, policy_name):
     for shortcut in shortcut_objects:
         storage.add_shortcut(sid, shortcut, policy_name)
 
-def json2sc(json_str):
-    '''
-    Build shortcut out of string-serialized JSON
-    '''
-    json_obj = json.loads(json_str)
-    link_type = get_ttype(json_obj['type'])
-
-    sc = shortcut(json_obj['dest'], json_obj['path'], json_obj['arguments'], json_obj['name'], json_obj['action'], link_type)
-    sc.set_changed(json_obj['changed'])
-    sc.set_clsid(json_obj['clsid'])
-    sc.set_guid(json_obj['guid'])
-    sc.set_usercontext(json_obj['is_in_user_context'])
-    if 'comment' in json_obj:
-        sc.set_comment(json_obj['comment'])
-    if 'icon' in json_obj:
-        sc.set_icon(json_obj['icon'])
-
-    return sc
 
 def find_desktop_entry(binary_path):
     desktop_dir = get_desktop_files_directory()
@@ -219,30 +201,6 @@ class shortcut(DynamicAttributes):
 
     def is_usercontext(self):
         return self.is_in_user_context
-
-    def to_json(self):
-        '''
-        Return shortcut's JSON for further serialization.
-        '''
-        content = dict()
-        content['dest'] = self.dest
-        content['path'] = self.path
-        content['name'] = self.name
-        content['arguments'] = self.arguments
-        content['clsid'] = self.clsid
-        content['guid'] = self.guid
-        content['changed'] = self.changed
-        content['action'] = self.action
-        content['is_in_user_context'] = self.is_in_user_context
-        content['type'] = ttype2str(self.type)
-        if self.icon:
-            content['icon'] = self.icon
-        if self.comment:
-            content['comment'] = self.comment
-        result = self.desktop()
-        result.content.update(content)
-
-        return json.dumps(result.content)
 
     def desktop(self, dest=None):
         '''
