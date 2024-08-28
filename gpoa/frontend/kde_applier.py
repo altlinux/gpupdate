@@ -162,6 +162,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                 pass
             for section, keys in sections.items():
                 for key, value in keys.items():
+                    value = str(value)
                     lock = f"{file_name}.{section}.{key}"
                     if lock in locks_dict and locks_dict[lock] == 1:
                         command = [
@@ -228,9 +229,9 @@ def apply_for_wallpaper(data, file_cache, username):
     try:
         try:
             file_cache.store(data)
-            data = file_cache.get(data)
+            data = str(file_cache.get(data))
         except NotUNCPathError:
-            data = data
+            data = str(data)
         os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
             #Variable for system detection of directories before files with .colors extension
         os.environ["DISPLAY"] = ":0"
