@@ -23,6 +23,7 @@ from enum import Enum, unique
 from samba.gp_parse.gp_pol import GPPolParser
 
 from storage import registry_factory
+from storage.dconf_registry import add_to_dict
 
 from .polfile import (
       read_polfile
@@ -154,6 +155,7 @@ def get_merger(preference_type):
 
 class gpt:
     def __init__(self, gpt_path, sid, username='Machine', gpo_info=None):
+        add_to_dict(gpt_path, username, gpo_info)
         self.path = gpt_path
         self.username = username
         self.sid = sid

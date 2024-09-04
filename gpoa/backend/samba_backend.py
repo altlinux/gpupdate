@@ -108,8 +108,6 @@ class samba_backend(applier_backend):
             raise exc
 
         if self._is_machine_username:
-            self.storage.wipe_hklm()
-            self.storage.wipe_user(self.storage.get_info('machine_sid'))
             for gptobj in machine_gpts:
                 try:
                     gptobj.merge_machine()
@@ -127,7 +125,6 @@ class samba_backend(applier_backend):
             except Exception as exc:
                 log('F3')
                 raise exc
-            self.storage.wipe_user(self.sid)
 
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
