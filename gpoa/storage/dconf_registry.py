@@ -623,7 +623,7 @@ def clean_data(data):
     try:
         cleaned_string = data.replace('\n', '').replace('\r', '')
         cleaned_string = cleaned_string.replace('"', "'")
-        return cleaned_string
+        return re.escape(cleaned_string)
     except:
         return None
 
