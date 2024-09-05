@@ -540,7 +540,7 @@ def add_to_dict(string, username, gpo_info):
 
     dictionary['display_name'] = display_name
     dictionary['name'] = name
-    dictionary['version'] = version
+    dictionary['version'] = str(version)
     dictionary['correct_path'] = string
 
 
