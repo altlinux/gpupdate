@@ -88,6 +88,12 @@ class Dconf_registry():
     printers = list()
     scripts = list()
     networkshares = list()
+    trans_table = str.maketrans({
+                        '\n': '',
+                        '\r': '',
+                        '"': "'",
+                        '\\': '\\\\'
+                    })
 
 
 
@@ -621,9 +627,8 @@ def create_dconf_ini_file(filename, data, uid):
 
 def clean_data(data):
     try:
-        cleaned_string = data.replace('\n', '').replace('\r', '')
-        cleaned_string = cleaned_string.replace('"', "'")
-        return re.escape(cleaned_string)
+        cleaned_string = data.translate(Dconf_registry.trans_table)
+        return cleaned_string
     except:
         return None
 
