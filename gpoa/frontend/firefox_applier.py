@@ -59,80 +59,13 @@ class firefox_applier(applier_frontend):
             , self.__module_experimental
         )
 
-    def get_boolean(self,data):
-        if data in ['0', 'false', None, 'none', 0]:
-            return False
-        if data in ['1', 'true', 1]:
-            return True
-
-    def get_parts(self, hivekeyname):
-        '''
-        Parse registry path string and leave key parameters
-        '''
-        parts = hivekeyname.replace(self.__registry_branch, '').split('/')
-        return parts
-
-    def create_dict(self, firefox_keys):
-        '''
-        Collect dictionaries from registry keys into a general dictionary
-        '''
-        excp = ['SOCKSVersion']
-        counts = dict()
-        for it_data in firefox_keys:
-            branch = counts
-            try:
-                if type(it_data.data) is bytes:
-                    it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
-                json_data = try_dict_to_literal_eval(it_data.data)
-                if json_data:
-                    it_data.data = json_data
-                    it_data.type = 7
-                else:
-                    if it_data.type == 1:
-                        it_data.data = clean_data_firefox(it_data.data)
-                #Cases when it is necessary to create nested dictionaries
-                if it_data.valuename != it_data.data:
-                    parts = self.get_parts(it_data.hive_key)
-                    #creating a nested dictionary from elements
-                    for part in parts[:-1]:
-                        branch = branch.setdefault(part, {})
-                    #dictionary key value initialization
-                    if it_data.type == 4:
-                        if it_data.valuename in excp:
-                            branch[parts[-1]] = int(it_data.data)
-                        else:
-                            branch[parts[-1]] = self.get_boolean(it_data.data)
-                    elif it_data.type == 7:
-                        branch[parts[-1]] = it_data.data
-                    else:
-                        branch[parts[-1]] = str(it_data.data).replace('\\', '/')
-                #Cases when it is necessary to create lists in a dictionary
-                else:
-                    parts = self.get_parts(it_data.keyname)
-                    for part in parts[:-1]:
-                        branch = branch.setdefault(part, {})
-                    if branch.get(parts[-1]) is None:
-                        branch[parts[-1]] = list()
-                    if it_data.type == 4:
-                        branch[parts[-1]].append(self.get_boolean(it_data.data))
-                    else:
-                        if os.path.isdir(str(it_data.data).replace('\\', '/')):
-                            branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
-                        else:
-                            branch[parts[-1]].append(str(it_data.data))
-            except Exception as exc:
-                logdata = dict()
-                logdata['Exception'] = exc
-                logdata['keyname'] = it_data.keyname
-                log('W14', logdata)
-
-        self.policies_json = {'policies': dict_item_to_list(counts)}
 
     def machine_apply(self):
         '''
         Write policies.json to Firefox installdir.
         '''
-        self.create_dict(self.firefox_keys)
+        excp = ['SOCKSVersion']
+        self.policies_json = create_dict(self.firefox_keys, self.__registry_branch, excp)
         destfile = os.path.join(self.__firefox_installdir1, 'policies.json')
 
         os.makedirs(self.__firefox_installdir1, exist_ok=True)
@@ -186,3 +119,62 @@ def dict_item_to_list(dictionary:dict) -> dict:
 
 def clean_data_firefox(data):
     return data.replace("'", '\"')
+
+
+
+def create_dict(firefox_keys, registry_branch, excp=list()):
+    '''
+    Collect dictionaries from registry keys into a general dictionary
+    '''
+    get_boolean = lambda data: data in ['0', 'false', None, 'none', 0] if isinstance(data, (str, int)) else False
+    get_parts = lambda hivekey, registry: hivekey.replace(registry, '').split('/')
+    counts = dict()
+    for it_data in firefox_keys:
+        branch = counts
+        try:
+            if type(it_data.data) is bytes:
+                it_data.data = it_data.data.decode(encoding='utf-16').replace('\x00','')
+            json_data = try_dict_to_literal_eval(it_data.data)
+            if json_data:
+                it_data.data = json_data
+                it_data.type = 7
+            else:
+                if it_data.type == 1:
+                    it_data.data = clean_data_firefox(it_data.data)
+            #Cases when it is necessary to create nested dictionaries
+            if it_data.valuename != it_data.data:
+                parts = get_parts(it_data.hive_key, registry_branch)
+                #creating a nested dictionary from elements
+                for part in parts[:-1]:
+                    branch = branch.setdefault(part, {})
+                #dictionary key value initialization
+                if it_data.type == 4:
+                    if it_data.valuename in excp:
+                        branch[parts[-1]] = int(it_data.data)
+                    else:
+                        branch[parts[-1]] = get_boolean(it_data.data)
+                elif it_data.type == 7:
+                    branch[parts[-1]] = it_data.data
+                else:
+                    branch[parts[-1]] = str(it_data.data).replace('\\', '/')
+            #Cases when it is necessary to create lists in a dictionary
+            else:
+                parts = get_parts(it_data.keyname, registry_branch)
+                for part in parts[:-1]:
+                    branch = branch.setdefault(part, {})
+                if branch.get(parts[-1]) is None:
+                    branch[parts[-1]] = list()
+                if it_data.type == 4:
+                    branch[parts[-1]].append(get_boolean(it_data.data))
+                else:
+                    if os.path.isdir(str(it_data.data).replace('\\', '/')):
+                        branch[parts[-1]].append(str(it_data.data).replace('\\', '/'))
+                    else:
+                        branch[parts[-1]].append(str(it_data.data))
+        except Exception as exc:
+            logdata = dict()
+            logdata['Exception'] = exc
+            logdata['keyname'] = it_data.keyname
+            log('W14', logdata)
+
+    return {'policies': dict_item_to_list(counts)}
