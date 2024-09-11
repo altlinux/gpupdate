@@ -39,8 +39,7 @@ class chromium_applier(applier_frontend):
         self.sid = sid
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
-        chromium_filter = '{}%'.format(self.__registry_branch)
-        self.chromium_keys = self.storage.filter_hklm_entries(chromium_filter)
+        self.chromium_keys = self.storage.filter_hklm_entries(self.__registry_branch)
 
         self.policies_json = dict()
 

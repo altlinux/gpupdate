@@ -40,8 +40,7 @@ class firefox_applier(applier_frontend):
     __module_experimental = False
     __module_enabled = True
     __registry_branch = 'Software/Policies/Mozilla/Firefox'
-    __firefox_installdir1 = '/usr/lib64/firefox/distribution'
-    __firefox_installdir2 = '/etc/firefox/policies'
+    __firefox_policies = '/etc/firefox/policies'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -50,8 +49,7 @@ class firefox_applier(applier_frontend):
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()
         self.policies_json = dict({ 'policies': self.policies })
-        firefox_filter = '{}%'.format(self.__registry_branch)
-        self.firefox_keys = self.storage.filter_hklm_entries(firefox_filter)
+        self.firefox_keys = self.storage.filter_hklm_entries(self.__registry_branch)
         self.policies_gen = dict()
         self.__module_enabled = check_enabled(
               self.storage
@@ -62,21 +60,13 @@ class firefox_applier(applier_frontend):
 
     def machine_apply(self):
         '''
-        Write policies.json to Firefox installdir.
+        Write policies.json to Firefox.
         '''
         excp = ['SOCKSVersion']
         self.policies_json = create_dict(self.firefox_keys, self.__registry_branch, excp)
-        destfile = os.path.join(self.__firefox_installdir1, 'policies.json')
 
-        os.makedirs(self.__firefox_installdir1, exist_ok=True)
-        with open(destfile, 'w') as f:
-            json.dump(self.policies_json, f)
-            logdata = dict()
-            logdata['destfile'] = destfile
-            log('D91', logdata)
-
-        destfile = os.path.join(self.__firefox_installdir2, 'policies.json')
-        os.makedirs(self.__firefox_installdir2, exist_ok=True)
+        destfile = os.path.join(self.__firefox_policies, 'policies.json')
+        os.makedirs(self.__firefox_policies, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
             logdata = dict()

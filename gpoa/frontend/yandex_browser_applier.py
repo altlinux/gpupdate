@@ -39,8 +39,7 @@ class yandex_browser_applier(applier_frontend):
         self.sid = sid
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
-        yandex_filter = '{}%'.format(self.__registry_branch)
-        self.yandex_keys = self.storage.filter_hklm_entries(yandex_filter)
+        self.yandex_keys = self.storage.filter_hklm_entries(self.__registry_branch)
 
         self.policies_json = dict()
 
