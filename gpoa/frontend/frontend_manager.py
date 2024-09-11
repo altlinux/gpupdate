@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ from .polkit_applier import (
 )
 from .systemd_applier import systemd_applier
 from .firefox_applier import firefox_applier
+from .thunderbird_applier import thunderbird_applier
 from .chromium_applier import chromium_applier
 from .cups_applier import cups_applier
 from .package_applier import (
@@ -147,6 +148,7 @@ class frontend_manager:
         self.machine_appliers['polkit'] = polkit_applier(self.storage)
         self.machine_appliers['systemd'] = systemd_applier(self.storage)
         self.machine_appliers['firefox'] = firefox_applier(self.storage, self.sid, self.username)
+        self.machine_appliers['thunderbird'] = thunderbird_applier(self.storage, self.sid, self.username)
         self.machine_appliers['chromium'] = chromium_applier(self.storage, self.sid, self.username)
         self.machine_appliers['yandex_browser'] = yandex_browser_applier(self.storage, self.sid, self.username)
         self.machine_appliers['shortcuts'] = shortcut_applier(self.storage)
