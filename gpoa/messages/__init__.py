@@ -323,7 +323,9 @@ def debug_code(code):
     debug_ids[208] = 'No entry found for the specified path'
     debug_ids[209] = 'Creating an ini file with policies for dconf'
     debug_ids[211] = 'SYSVOL entry found in cache'
-    #debug_ids[210] = 'GPO version was not found'
+    debug_ids[212] = 'Wrote Thunderbird preferences to'
+    debug_ids[213] = 'Running Thunderbird applier for machine'
+    debug_ids[214] = 'Thunderbird applier for machine will not be started'
 
     return debug_ids.get(code, 'Unknown debug code')
 

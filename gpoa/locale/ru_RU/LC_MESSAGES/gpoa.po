@@ -880,6 +880,15 @@ msgstr "Версия GPO не найдена"
 msgid "SYSVOL entry found in cache"
 msgstr "Запись SYSVOL найдена в кеше"
 
+msgid "Wrote Thunderbird preferences to"
+msgstr "Настройки Thunderbird записаны в"
+
+msgid "Running Thunderbird applier for machine"
+msgstr "Запуск применение настроек Thunderbird для машины"
+
+msgid "Thunderbird applier for machine will not be started"
+msgstr "Применение настроек Thunderbird для компьютера не запускается"
+
 # Debug_end
 
 # Warning
