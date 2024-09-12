@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 from abc import ABC
 
-from util.logging import log
 
 def check_experimental_enabled(storage):
     experimental_enable_flag = '/Software/BaseALT/Policies/GPUpdate/GlobalExperimental'

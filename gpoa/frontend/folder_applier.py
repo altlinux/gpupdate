@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pathlib import Path
 
 from .applier_frontend import (
       applier_frontend

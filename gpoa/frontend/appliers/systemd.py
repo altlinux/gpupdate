@@ -17,9 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import dbus
-import logging
 
-from util.logging import slogm, log
+from util.logging import log
 
 class systemd_unit:
     def __init__(self, unit_name, state):

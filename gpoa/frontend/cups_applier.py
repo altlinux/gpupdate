@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,19 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-import os
 import json
-
 import cups
-
 from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
 from gpt.printers import json2printer
 from util.rpm import is_rpm_installed
-from util.logging import slogm, log
+from util.logging import log
 
 def storage_get_printers(storage, sid):
     '''
@@ -115,7 +111,7 @@ class cups_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
-            , self.__module_enabled
+            , self.__module_experimental
         )
 
     def user_context_apply(self):

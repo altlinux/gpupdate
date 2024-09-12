@@ -21,10 +21,7 @@ import os
 import pwd
 import subprocess
 
-from gi.repository import (
-      Gio
-    , GLib
-)
+from gi.repository import Gio
 from storage.dconf_registry import Dconf_registry
 
 from .applier_frontend import (
@@ -36,7 +33,7 @@ from .appliers.gsettings import (
     system_gsettings,
     user_gsettings
 )
-from util.logging import slogm ,log
+from util.logging import log
 
 def uri_fetch(schema, path, value, cache):
     '''

@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,9 +21,8 @@ from .applier_frontend import (
     , check_enabled
 )
 from .appliers.envvar import Envvar
-from util.logging import slogm, log
+from util.logging import log
 
-import logging
 
 class envvar_applier(applier_frontend):
     __module_name = 'EnvvarsApplier'
@@ -34,7 +33,7 @@ class envvar_applier(applier_frontend):
         self.storage = storage
         self.sid = sid
         self.envvars = self.storage.get_envvars(self.sid)
-        #self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_enabled)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def apply(self):
         if self.__module_enabled:
@@ -54,7 +53,7 @@ class envvar_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
         self.envvars = self.storage.get_envvars(self.sid)
-        #self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
+        self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def admin_context_apply(self):
         pass

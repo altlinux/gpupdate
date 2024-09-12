@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,12 +18,7 @@
 
 import logging
 import subprocess
-from util.logging import slogm, log
-from util.rpm import (
-      update
-    , install_rpm
-    , remove_rpm
-)
+from util.logging import log
 
 from .applier_frontend import (
       applier_frontend
