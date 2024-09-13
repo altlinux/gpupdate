@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 
 from xml.etree import ElementTree
-from storage import registry_factory
 from storage.dconf_registry import load_preg_dconf
 
 from samba.gp_parse.gp_pol import GPPolParser
@@ -89,14 +88,7 @@ def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_nam
         load_preg_dconf(pregfile, preg, policy_name, username, gpo_info)
     logdata = dict({'pregfile': preg})
     log('D32', logdata)
-    #log dconf
-    return
-    storage = registry_factory(reg_name, reg_path)
-    for entry in pregfile.entries:
-        if not sid:
-            storage.add_hklm_entry(entry, policy_name)
-        else:
-            storage.add_hkcu_entry(entry, sid, policy_name)
+
 
 
 class entry:
