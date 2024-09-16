@@ -326,6 +326,8 @@ def debug_code(code):
     debug_ids[212] = 'Wrote Thunderbird preferences to'
     debug_ids[213] = 'Running Thunderbird applier for machine'
     debug_ids[214] = 'Thunderbird applier for machine will not be started'
+    debug_ids[215] = 'The environment file has been cleaned'
+    debug_ids[216] = 'Cleanup of file environment failed'
 
     return debug_ids.get(code, 'Unknown debug code')
 

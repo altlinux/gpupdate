@@ -33,6 +33,7 @@ class envvar_applier(applier_frontend):
         self.storage = storage
         self.sid = sid
         self.envvars = self.storage.get_envvars(self.sid)
+        Envvar.clear_envvar_file()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def apply(self):
@@ -53,6 +54,7 @@ class envvar_applier_user(applier_frontend):
         self.sid = sid
         self.username = username
         self.envvars = self.storage.get_envvars(self.sid)
+        Envvar.clear_envvar_file(username)
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def admin_context_apply(self):

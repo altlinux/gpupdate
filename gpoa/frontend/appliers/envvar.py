@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,15 +24,33 @@ from util.arguments import (
 )
 from util.windows import expand_windows_var
 from util.util import get_homedir
+from util.logging import log
 
 class Envvar:
+    __envvar_file_path = '/etc/gpupdate/environment'
+    __envvar_file_path_user = '/.gpupdate_environment'
+
     def __init__(self, envvars, username=''):
         self.username = username
         self.envvars = envvars
         if self.username == 'root':
-            self.envvar_file_path = '/etc/gpupdate/environment'
+            self.envvar_file_path = Envvar.__envvar_file_path
         else:
-            self.envvar_file_path = get_homedir(self.username) + '/.gpupdate_environment'
+            self.envvar_file_path = get_homedir(self.username) + Envvar.__envvar_file_path_user
+
+    @staticmethod
+    def clear_envvar_file(username = False):
+        if username:
+            file_path = get_homedir(username) + Envvar.__envvar_file_path_user
+        else:
+            file_path = Envvar.__envvar_file_path
+
+        try:
+            with open(file_path, 'w') as file:
+                file.write('')
+            log('D215', {'path':file_path})
+        except Exception as exc:
+            log('D216', {'path': file_path, 'exc': exc})
 
     def _open_envvar_file(self):
         fd = None

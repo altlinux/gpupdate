@@ -889,6 +889,12 @@ msgstr "Запуск применение настроек Thunderbird для м
 msgid "Thunderbird applier for machine will not be started"
 msgstr "Применение настроек Thunderbird для компьютера не запускается"
 
+msgid "The environment file has been cleaned"
+msgstr "Файл environment очищен"
+
+msgid  "Cleanup of file environment failed"
+msgstr "Очистка файла environment не удалась"
+
 # Debug_end
 
 # Warning
