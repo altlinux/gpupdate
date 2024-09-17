@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,18 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-import os
 
 from .applier_backend import applier_backend
 from storage import registry_factory
-from gpt.gpt import gpt, get_local_gpt
+from gpt.gpt import get_local_gpt
 from util.util import (
     get_machine_name
 )
 from util.sid import get_sid
-import util.preg
-from util.logging import slogm
 
 class nodomain_backend(applier_backend):
 
