@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2021 BaseALT Ltd. <org@basealt.ru>
+# Copyright (C) 2021-2024 BaseALT Ltd. <org@basealt.ru>
 # Copyright (C) 2021 Igor Chudov <nir@nir.org.ru>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -27,13 +27,14 @@ import smbc
 from util.logging import log
 from util.paths import file_cache_dir, file_cache_path_home, UNCPath
 from util.exceptions import NotUNCPathError
-
+from util.util import get_uid_by_username
 
 class fs_file_cache:
     __read_blocksize = 4096
 
     def __init__(self, cache_name, username = None):
         self.cache_name = cache_name
+        self.username = username
         if username:
             try:
                 self.storage_uri = file_cache_path_home(username)
@@ -72,6 +73,8 @@ class fs_file_cache:
             destfile = Path('{}/{}/{}'.format(self.storage_uri,
                 uri_path.get_domain(),
                 uri_path.get_path()))
+
+        self.check_destfile(destfile)
 
         try:
             fd, tmpfile = tempfile.mkstemp('', str(destfile))
@@ -123,3 +126,11 @@ class fs_file_cache:
             logdata = dict({'exception': str(exc)})
             log('W12', logdata)
             return None
+
+    def check_destfile(self, destfile):
+        if self.username and self.username not in ['root', 'machine']:
+            if destfile.parent.owner() == 'root':
+                for parent in destfile.parents:
+                    os.chown(parent, get_uid_by_username(self.username), 0)
+                    if parent == self.storage_uri:
+                        return
