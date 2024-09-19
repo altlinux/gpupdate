@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@ import logging
 import logging.handlers
 from enum import IntEnum, Enum
 
-from messages import message_with_code
-from .logging import slogm
+from .logging import log
 
 
 def set_loglevel(loglevel_num=None):
@@ -70,7 +69,7 @@ def process_target(target_name=None):
         target = target_name
 
     logdata = dict({'target': target})
-    logging.debug(slogm(message_with_code('D10'), logdata))
+    log('D10', logdata)
 
     return target.upper()
 
