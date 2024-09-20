@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2021 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,6 +49,8 @@ def uri_fetch(schema, path, value, cache):
     logdata['src'] = value
     try:
         retval = cache.get(value)
+        if not retval:
+            retval = ''
         logdata['dst'] = retval
         log('D90', logdata)
     except Exception as exc:
