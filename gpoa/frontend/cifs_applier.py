@@ -152,8 +152,10 @@ class cifs_applier_user(applier_frontend):
     __template_auto = 'autofs_auto.j2'
     __template_mountpoints_hide = 'autofs_mountpoints_hide.j2'
     __template_auto_hide = 'autofs_auto_hide.j2'
-    __enable_home_link = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHome'
-    __enable_home_link_user = 'Software\\BaseALT\\Policies\\GPUpdate\\DriveMapsHomeUser'
+    __enable_home_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHome'
+    __enable_home_link_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeUser'
+    _timeout_user_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutUser'
+    _timeout_key = '/Software/BaseALT/Policies/GPUpdate/Timeout'
     __target_mountpoint = '/media/gpupdate'
     __target_mountpoint_user = '/run/media'
     __mountpoint_dirname = 'drives.system'
@@ -277,6 +279,11 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             autofs_settings = dict()
+            if self.username:
+                timeout = self.storage.get_entry(self._timeout_user_key)
+            else:
+                timeout = self.storage.get_entry(self._timeout_key)
+            autofs_settings['timeout'] = int(timeout) if timeout else 120
             autofs_settings['home_dir'] = self.home
             autofs_settings['mntTarget'] = self.mntTarget
             autofs_settings['mount_file'] = self.user_config.resolve()
