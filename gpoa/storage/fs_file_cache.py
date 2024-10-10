@@ -27,14 +27,15 @@ import smbc
 from util.logging import log
 from util.paths import file_cache_dir, file_cache_path_home, UNCPath
 from util.exceptions import NotUNCPathError
-
+from util.util import get_machine_name
 
 class fs_file_cache:
     __read_blocksize = 4096
 
     def __init__(self, cache_name, username = None):
         self.cache_name = cache_name
-        if username:
+        self.username = username
+        if username and username != get_machine_name():
             try:
                 self.storage_uri = file_cache_path_home(username)
             except:
