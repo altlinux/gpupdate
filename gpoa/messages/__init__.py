@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -359,7 +359,7 @@ def warning_code(code):
     warning_ids[22] = 'The user setting was not installed, conflict with computer setting'
     warning_ids[23] = 'Action for ini file failed'
     warning_ids[24] = 'Couldn\'t get the uid'
-
+    warning_ids[25] = 'Failed to load content from remote host'
 
     return warning_ids.get(code, 'Unknown warning code')
 
