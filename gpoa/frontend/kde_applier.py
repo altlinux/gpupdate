@@ -83,7 +83,16 @@ class kde_applier_user(applier_frontend):
         )
 
     def admin_context_apply(self):
-        pass
+        try:
+            for setting in self.kde_settings:
+                file_name = setting.keyname.split("/")[-2]
+                if file_name == 'wallpaper':
+                    data = setting.data
+                    break
+            self.file_cache.store(data)
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
 
     def user_context_apply(self):
         '''
@@ -228,7 +237,6 @@ def apply_for_wallpaper(data, file_cache, username):
     path_to_wallpaper = f'{get_homedir(username)}/.config/plasma-org.kde.plasma.desktop-appletsrc'
     try:
         try:
-            file_cache.store(data)
             data = str(file_cache.get(data))
         except NotUNCPathError:
             data = str(data)

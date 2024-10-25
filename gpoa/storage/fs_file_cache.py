@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2021 BaseALT Ltd. <org@basealt.ru>
+# Copyright (C) 2021-2024 BaseALT Ltd. <org@basealt.ru>
 # Copyright (C) 2021 Igor Chudov <nir@nir.org.ru>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -86,7 +86,9 @@ class fs_file_cache:
             df.close()
             os.rename(tmpfile, destfile)
             os.chmod(destfile, 0o644)
-        except:
+        except Exception as exc:
+            logdata = dict({'exception': str(exc)})
+            log('W25', logdata)
             tmppath = Path(tmpfile)
             if tmppath.exists():
                 tmppath.unlink()
@@ -107,8 +109,10 @@ class fs_file_cache:
             logdata = dict({'exception': str(exc)})
             log('E36', logdata)
             raise exc
-
-        return str(destfile)
+        if destfile.exists():
+            return str(destfile)
+        else:
+            return None
 
     def get_ls_smbdir(self, uri):
         type_file_smb = 8
