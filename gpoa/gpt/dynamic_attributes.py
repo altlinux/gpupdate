@@ -26,6 +26,10 @@ class DynamicAttributes:
     def __setattr__(self, key, value):
         if isinstance(value, Enum):
             value = str(value)
+        if isinstance(value, str):
+            for q in ["'", "\""]:
+                if any(q in ch for ch in value):
+                    value = value.replace(q, "″")
         self.__dict__[key] = value
 
     def items(self):
