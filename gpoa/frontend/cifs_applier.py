@@ -154,8 +154,10 @@ class cifs_applier_user(applier_frontend):
     __template_auto_hide = 'autofs_auto_hide.j2'
     __enable_home_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHome'
     __enable_home_link_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeUser'
-    _timeout_user_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutUser'
-    _timeout_key = '/Software/BaseALT/Policies/GPUpdate/Timeout'
+    __name_home_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeName'
+    __name_home_link_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeNameUser'
+    __timeout_user_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofsUser'
+    __timeout_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofs'
     __target_mountpoint = '/media/gpupdate'
     __target_mountpoint_user = '/run/media'
     __mountpoint_dirname = 'drives.system'
@@ -170,10 +172,12 @@ class cifs_applier_user(applier_frontend):
 
         if username:
             self.home = self.__target_mountpoint_user + '/' + username
-            self.state_home_link = self.check_enable_home_link(self.__enable_home_link)
-            self.state_home_link_user = self.check_enable_home_link(self.__enable_home_link_user)
+            self.state_home_link = self.storage.check_enable_dconf_key(self.__enable_home_link, self.storage)
+            self.state_home_link_user = self.storage.check_enable_dconf_key(self.__enable_home_link_user, self.storage)
+            self.timeout = self.storage.get_key_value(self.__timeout_user_key)
         else:
             self.home = self.__target_mountpoint
+            self.timeout = self.storage.get_key_value(self.__timeout_key)
 
         conf_file = '{}.conf'.format(sid)
         conf_hide_file = '{}_hide.conf'.format(sid)
@@ -221,12 +225,6 @@ class cifs_applier_user(applier_frontend):
             , self.__module_experimental
         )
 
-    def check_enable_home_link(self, enable_home_link):
-        if self.storage.get_hkcu_entry(self.sid, enable_home_link):
-            data = self.storage.get_hkcu_entry(self.sid, enable_home_link).data
-            return bool(int(data)) if data else None
-        else:
-            return False
 
     def user_context_apply(self):
         '''
@@ -258,6 +256,7 @@ class cifs_applier_user(applier_frontend):
             drive_settings['label'] = remove_escaped_quotes(drv.label)
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
+            drive_settings['timeout'] = self.timeout if self.timeout else 120
 
             drive_list.append(drive_settings)
 
@@ -279,11 +278,6 @@ class cifs_applier_user(applier_frontend):
                 f.flush()
 
             autofs_settings = dict()
-            if self.username:
-                timeout = self.storage.get_entry(self._timeout_user_key)
-            else:
-                timeout = self.storage.get_entry(self._timeout_key)
-            autofs_settings['timeout'] = int(timeout) if timeout else 120
             autofs_settings['home_dir'] = self.home
             autofs_settings['mntTarget'] = self.mntTarget
             autofs_settings['mount_file'] = self.user_config.resolve()
