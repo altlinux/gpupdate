@@ -94,6 +94,18 @@ class Dconf_registry():
                         '"': "'",
                         '\\': '\\\\'
                     })
+    _true_strings = [
+        "True",
+        "true",
+        "TRUE",
+        "yes",
+        "Yes",
+        "enabled",
+        "enable",
+        "Enabled",
+        "Enable",
+        '1'
+    ]
 
 
 
@@ -346,6 +358,17 @@ class Dconf_registry():
             log('D208', logdata)
             return None
 
+    @classmethod
+    def check_enable_dconf_key(cls ,key):
+        data = cls.get_key_value(key)
+        if data:
+            if isinstance(data, str):
+                return True if data in cls._true_strings else False
+            elif isinstance(data, int):
+                return bool(data)
+            else:
+                return False
+        return False
 
     @classmethod
     def get_hkcu_entry(cls, sid, hive_key, dictionary = None):
