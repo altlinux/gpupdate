@@ -154,8 +154,10 @@ class cifs_applier_user(applier_frontend):
     __template_auto_hide = 'autofs_auto_hide.j2'
     __enable_home_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHome'
     __enable_home_link_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeUser'
-    __name_home_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeName'
-    __name_home_link_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeNameUser'
+    __name_dir = '/Software/BaseALT/Policies/GPUpdate/DriveMapsName'
+    __name_dir_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsNameUser'
+    __name_prefix_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeDisableNet'
+    __name_link_prefix_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeDisableNetUser'
     __timeout_user_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofsUser'
     __timeout_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofs'
     __target_mountpoint = '/media/gpupdate'
@@ -172,13 +174,20 @@ class cifs_applier_user(applier_frontend):
 
         if username:
             self.home = self.__target_mountpoint_user + '/' + username
-            self.state_home_link = self.storage.check_enable_dconf_key(self.__enable_home_link, self.storage)
-            self.state_home_link_user = self.storage.check_enable_dconf_key(self.__enable_home_link_user, self.storage)
-            self.timeout = self.storage.get_key_value(self.__timeout_user_key)
+            self.state_home_link = self.storage.check_enable_dconf_key(self.__enable_home_link)
+            self.state_home_link_disable_net = self.storage.check_enable_dconf_key(self.__name_prefix_link)
+            self.state_home_link_disable_net_user = self.storage.check_enable_dconf_key(self.__name_link_prefix_user)
+            self.state_home_link_user = self.storage.check_enable_dconf_key(self.__enable_home_link_user)
+            self.timeout = self.storage.get_entry(self.__timeout_user_key)
+            dirname = self.storage.get_entry(self.__name_dir_user)
+            mntTarget = dirname.data if dirname and dirname.data else self.__mountpoint_dirname_user
         else:
             self.home = self.__target_mountpoint
-            self.timeout = self.storage.get_key_value(self.__timeout_key)
+            self.timeout = self.storage.get_entry(self.__timeout_key)
+            dirname = self.storage.get_entry(self.__name_dir)
+            mntTarget = dirname.data if dirname and dirname.data else self.__mountpoint_dirname
 
+        self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
         conf_file = '{}.conf'.format(sid)
         conf_hide_file = '{}_hide.conf'.format(sid)
         autofs_file = '{}.autofs'.format(sid)
@@ -201,10 +210,6 @@ class cifs_applier_user(applier_frontend):
             self.user_autofs_hide.unlink()
         self.user_creds = self.auto_master_d / cred_file
 
-        if username:
-            self.mntTarget = self.__mountpoint_dirname_user
-        else:
-            self.mntTarget = self.__mountpoint_dirname
 
         self.mount_dir = Path(os.path.join(self.home))
         self.drives = storage_get_drives(self.storage, self.sid)
@@ -256,7 +261,7 @@ class cifs_applier_user(applier_frontend):
             drive_settings['label'] = remove_escaped_quotes(drv.label)
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
-            drive_settings['timeout'] = self.timeout if self.timeout else 120
+            drive_settings['timeout'] = self.timeout.data if self.timeout and self.timeout.data else 120
 
             drive_list.append(drive_settings)
 
@@ -300,54 +305,85 @@ class cifs_applier_user(applier_frontend):
 
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
+    def unlink_symlink(self, symlink:Path):
+        if symlink.is_symlink() and symlink.owner() == 'root':
+                symlink.unlink()
+
     def update_drivemaps_home_links(self):
-        dUser = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname_user)
-        dUserHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname_user)
+        prefix_net = None
+        if  self.state_home_link_disable_net:
+            prefix = ''
+            prefix_net = 'net.'
+        else:
+            prefix = 'net.'
+        homedir = get_homedir(self.username)
+        dUser = Path(homedir + '/' + prefix + self.__mountpoint_dirname_user)
+        dUserHide = Path(homedir + '/.' + prefix + self.__mountpoint_dirname_user)
 
         if self.state_home_link_user:
             dUserMountpoint = Path(self.home).joinpath(self.__mountpoint_dirname_user)
             dUserMountpointHide = Path(self.home).joinpath('.' + self.__mountpoint_dirname_user)
 
             if not dUser.exists():
+                if prefix_net:
+                    dUser_net = Path(homedir + '/' + prefix_net + self.__mountpoint_dirname_user)
+                    self.unlink_symlink(dUser_net)
                 try:
                     os.symlink(dUserMountpoint, dUser, True)
                 except  Exception as exc:
                     log('D194', {'exc': exc})
 
             if not dUserHide.exists():
+                if prefix_net:
+                    dUserHide_net = Path(homedir + '/.' + prefix_net + self.__mountpoint_dirname_user)
+                    self.unlink_symlink(dUserHide)
                 try:
                     os.symlink(dUserMountpointHide, dUserHide, True)
                 except  Exception as exc:
                     log('D196', {'exc': exc})
         else:
-            if dUser.is_symlink() and dUser.owner() == 'root':
-                dUser.unlink()
-            if dUserHide.is_symlink() and dUserHide.owner() == 'root':
-                dUserHide.unlink()
+            if prefix_net:
+                dUser_net = Path(homedir + '/' + prefix_net + self.__mountpoint_dirname_user)
+                dUserHide_net = Path(homedir + '/.' + prefix_net + self.__mountpoint_dirname_user)
+                self.unlink_symlink(dUser_net)
+                self.unlink_symlink(dUserHide_net)
+            self.unlink_symlink(dUser)
+            self.unlink_symlink(dUserHide)
 
-        dMachine = Path(get_homedir(self.username)+'/net.' + self.__mountpoint_dirname)
-        dMachineHide = Path(get_homedir(self.username)+'/.net.' + self.__mountpoint_dirname)
+
+        dMachine = Path(homedir+'/' + prefix + self.__mountpoint_dirname)
+        dMachineHide = Path(homedir+'/.' + prefix + self.__mountpoint_dirname)
 
         if self.state_home_link:
             dMachineMountpoint = Path(self.__target_mountpoint).joinpath(self.__mountpoint_dirname)
             dMachineMountpointHide = Path(self.__target_mountpoint).joinpath('.' + self.__mountpoint_dirname)
 
             if not dMachine.exists():
+                if prefix_net:
+                    dMachine_net = Path(homedir+'/' + prefix_net + self.__mountpoint_dirname)
+                    self.unlink_symlink(dMachine_net)
                 try:
                     os.symlink(dMachineMountpoint, dMachine, True)
                 except  Exception as exc:
                     log('D195', {'exc': exc})
 
             if not dMachineHide.exists():
+                if prefix_net:
+                    dMachineHide_net = Path(homedir+'/.' + prefix_net + self.__mountpoint_dirname)
+                    self.unlink_symlink(dMachineHide_net)
                 try:
                     os.symlink(dMachineMountpointHide, dMachineHide, True)
                 except  Exception as exc:
                     log('D197', {'exc': exc})
         else:
-            if dMachine.is_symlink() and dMachine.owner() == 'root':
-                dMachine.unlink()
-            if dMachineHide.is_symlink() and dMachineHide.owner() == 'root':
-                dMachineHide.unlink()
+            if prefix_net:
+                dMachine_net = Path(homedir+'/' + prefix_net + self.__mountpoint_dirname)
+                dMachineHide_net = Path(homedir+'/.' + prefix_net + self.__mountpoint_dirname)
+                self.unlink_symlink(dMachine_net)
+                self.unlink_symlink(dMachineHide_net)
+            self.unlink_symlink(dMachine)
+            self.unlink_symlink(dMachineHide)
+
 
     def admin_context_apply(self):
         if self.__module_enabled:
