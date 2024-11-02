@@ -174,18 +174,21 @@ class cifs_applier_user(applier_frontend):
 
         if username:
             self.home = self.__target_mountpoint_user + '/' + username
-            self.state_home_link = self.storage.check_enable_dconf_key(self.__enable_home_link)
-            self.state_home_link_disable_net = self.storage.check_enable_dconf_key(self.__name_prefix_link)
-            self.state_home_link_disable_net_user = self.storage.check_enable_dconf_key(self.__name_link_prefix_user)
-            self.state_home_link_user = self.storage.check_enable_dconf_key(self.__enable_home_link_user)
+            self.state_home_link = self.storage.check_enable_key(self.__enable_home_link)
+            self.state_home_link_disable_net = self.storage.check_enable_key(self.__name_prefix_link)
+            self.state_home_link_disable_net_user = self.storage.check_enable_key(self.__name_link_prefix_user)
+            self.state_home_link_user = self.storage.check_enable_key(self.__enable_home_link_user)
             self.timeout = self.storage.get_entry(self.__timeout_user_key)
             dirname = self.storage.get_entry(self.__name_dir_user)
-            mntTarget = dirname.data if dirname and dirname.data else self.__mountpoint_dirname_user
+            dirname_system = self.storage.get_entry(self.__name_dir)
+            self.__mountpoint_dirname_user = dirname.data if dirname and dirname.data else self.__mountpoint_dirname_user
+            self.__mountpoint_dirname =  dirname_system.data if dirname_system and dirname_system.data else self.__mountpoint_dirname
+            mntTarget = self.__mountpoint_dirname_user
         else:
             self.home = self.__target_mountpoint
             self.timeout = self.storage.get_entry(self.__timeout_key)
-            dirname = self.storage.get_entry(self.__name_dir)
-            mntTarget = dirname.data if dirname and dirname.data else self.__mountpoint_dirname
+            dirname_system = self.storage.get_entry(self.__name_dir)
+            mntTarget = dirname_system.data if dirname_system and dirname_system.data else self.__mountpoint_dirname
 
         self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
         conf_file = '{}.conf'.format(sid)
@@ -261,7 +264,6 @@ class cifs_applier_user(applier_frontend):
             drive_settings['label'] = remove_escaped_quotes(drv.label)
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
-            drive_settings['timeout'] = self.timeout.data if self.timeout and self.timeout.data else 120
 
             drive_list.append(drive_settings)
 
@@ -286,6 +288,8 @@ class cifs_applier_user(applier_frontend):
             autofs_settings['home_dir'] = self.home
             autofs_settings['mntTarget'] = self.mntTarget
             autofs_settings['mount_file'] = self.user_config.resolve()
+            autofs_settings['timeout'] = self.timeout.data if self.timeout and self.timeout.data else 120
+
             autofs_text = self.template_auto.render(**autofs_settings)
 
             with open(self.user_autofs.resolve(), 'w') as f:
@@ -306,7 +310,7 @@ class cifs_applier_user(applier_frontend):
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
 
     def unlink_symlink(self, symlink:Path):
-        if symlink.is_symlink() and symlink.owner() == 'root':
+        if symlink.exists() and symlink.is_symlink() and symlink.owner() == 'root':
                 symlink.unlink()
 
     def update_drivemaps_home_links(self):
