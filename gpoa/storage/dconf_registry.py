@@ -342,7 +342,7 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_entry(cls, path, dictionary = None):
+    def get_entry(cls, path, dictionary = None, preg = True):
         logdata = dict()
         result = Dconf_registry.get_storage(dictionary)
 
@@ -352,15 +352,15 @@ class Dconf_registry():
         if isinstance(result, dict) and key in result.keys():
             data = result.get(key).get(keys[-1])
             return PregDconf(
-                key, convert_string_dconf(keys[-1]), find_preg_type(data), data)
+                key, convert_string_dconf(keys[-1]), find_preg_type(data), data) if preg else data
         else:
             logdata['path'] = path
             log('D208', logdata)
             return None
 
     @classmethod
-    def check_enable_dconf_key(cls ,key):
-        data = cls.get_key_value(key)
+    def check_enable_key(cls ,key):
+        data = cls.get_entry(key, preg = False)
         if data:
             if isinstance(data, str):
                 return True if data in cls._true_strings else False
