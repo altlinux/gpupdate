@@ -250,9 +250,11 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_dictionary_from_dconf_file_db(self, uid=None):
+    def get_dictionary_from_dconf_file_db(self, uid=None, path_bin=None):
         logdata = dict()
-        if not uid:
+        if path_bin:
+            pass
+        elif not uid:
             path_bin = self._path_bin_system
         else:
             path_bin = self._path_bin_system + str(uid)
