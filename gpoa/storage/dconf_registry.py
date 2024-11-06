@@ -19,7 +19,7 @@
 import subprocess
 from pathlib import Path
 from util.util import string_to_literal_eval, touch_file, get_uid_by_username
-from util.paths import get_dconf_config_path
+from util.paths import get_dconf_config_path, get_dconf_config_applier_file
 from util.logging import log
 import re
 from collections import OrderedDict
@@ -174,10 +174,17 @@ class Dconf_registry():
             log('E70', logdata)
         return None
 
+    @classmethod
+    def set_registry_for_applier(cls, applier, dict_applier):
+        filename = get_dconf_config_applier_file(applier)
+        touch_file(filename)
+        create_dconf_ini_file(filename, dict_applier, applier=applier)
+        cls.dconf_update(applier=applier)
+
     @staticmethod
-    def dconf_update(uid=None):
+    def dconf_update(uid=None, applier=None):
         logdata = dict()
-        path_dconf_config = get_dconf_config_path(uid)
+        path_dconf_config = get_dconf_config_path(uid, applier)
         db_file = path_dconf_config[:-3]
         try:
             process = subprocess.Popen(['dconf', 'compile', db_file, path_dconf_config],
@@ -252,8 +259,9 @@ class Dconf_registry():
     @classmethod
     def get_dictionary_from_dconf_file_db(self, uid=None, path_bin=None):
         logdata = dict()
+        error_skip = None
         if path_bin:
-            pass
+            error_skip = True
         elif not uid:
             path_bin = self._path_bin_system
         else:
@@ -279,7 +287,10 @@ class Dconf_registry():
         except Exception as exc:
             logdata['exc'] = exc
             logdata['path_bin'] = path_bin
-            log('E73', logdata)
+            if not error_skip:
+                log('E73', logdata)
+            else:
+                log('D217', logdata)
 
         return output_dict
 
@@ -625,7 +636,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
-def create_dconf_ini_file(filename, data, uid):
+def create_dconf_ini_file(filename, data, uid=None, applier=None):
     '''
     Create an ini-file based on a dictionary of dictionaries.
     Args:
@@ -648,7 +659,7 @@ def create_dconf_ini_file(filename, data, uid):
     logdata = dict()
     logdata['path'] = filename
     log('D209', logdata)
-    Dconf_registry.dconf_update(uid)
+    Dconf_registry.dconf_update(uid, applier)
 
 def clean_data(data):
     try:
