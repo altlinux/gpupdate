@@ -93,13 +93,29 @@ def local_policy_cache():
 
     return lpcache
 
-def get_dconf_config_path(uid = None):
+def get_dconf_config_applier_path(applier):
+    config_path = {
+        'cifs_applier' : '/etc/dconf/db/cifs_applier.d/'
+    }
+    return config_path.get(applier, None)
+
+def get_dconf_config_applier_file(applier):
+    config_file = {
+        'cifs_applier' : '/etc/dconf/db/cifs_applier.d/cifs_applier.ini'
+    }
+    return config_file.get(applier, None)
+
+def get_dconf_config_path(uid = None, applier = None):
+    if applier:
+        return get_dconf_config_applier_path(applier)
     if uid:
         return f'/etc/dconf/db/policy{uid}.d/'
     else:
         return '/etc/dconf/db/policy.d/'
 
-def get_dconf_config_file(uid = None):
+def get_dconf_config_file(uid = None, applier = None):
+    if applier:
+        get_dconf_config_applier_file(applier)
     if uid:
         return f'/etc/dconf/db/policy{uid}.d/policy{uid}.ini'
     else:
