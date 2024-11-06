@@ -27,6 +27,7 @@ from .applier_frontend import (
     , check_enabled
 )
 from util.util import get_homedir
+from util.paths import get_dconf_config_applier_path
 from util.logging import log
 
 def storage_get_drives(storage, sid):
@@ -164,6 +165,10 @@ class cifs_applier_user(applier_frontend):
     __target_mountpoint_user = '/run/media'
     __mountpoint_dirname = 'drives.system'
     __mountpoint_dirname_user = 'drives'
+    __applier = 'cifs_applier'
+    __key_cifs_applier_previous_value = 'Software/BaseALT/Policies/GPUpdate/cifs_applier/previous_value'
+    __name_value = 'DriveMapsName'
+    __name_value_user = 'DriveMapsNameUser'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -171,6 +176,7 @@ class cifs_applier_user(applier_frontend):
         self.username = username
         self.state_home_link = False
         self.state_home_link_user = False
+        self.registry_for_applier = self.storage.get_dictionary_from_dconf_file_db(path_bin=get_dconf_config_applier_path(self.__applier)[:-3])
 
         if username:
             self.home = self.__target_mountpoint_user + '/' + username
@@ -320,9 +326,41 @@ class cifs_applier_user(applier_frontend):
             prefix_net = 'net.'
         else:
             prefix = 'net.'
+        previous_value = self.registry_for_applier.setdefault(
+            self.__key_cifs_applier_previous_value, dict()).setdefault(self.__name_value, self.__mountpoint_dirname)
+        previous_value_user = self.registry_for_applier.setdefault(
+            self.__key_cifs_applier_previous_value, dict()).setdefault(self.__name_value_user, self.__mountpoint_dirname_user)
         homedir = get_homedir(self.username)
         dUser = Path(homedir + '/' + prefix + self.__mountpoint_dirname_user)
         dUserHide = Path(homedir + '/.' + prefix + self.__mountpoint_dirname_user)
+
+        if previous_value_user != self.__mountpoint_dirname_user:
+            dUser_previous = Path(homedir + '/' + previous_value_user)
+            dUserHide_previous = Path(homedir + '/.' + previous_value_user)
+            if prefix_net:
+                dUser_previous_net = Path(homedir + '/' + prefix_net + previous_value_user)
+                dUserHide_previous_net = Path(homedir + '/.' + prefix_net + previous_value_user)
+                self.unlink_symlink(dUser_previous_net)
+                self.unlink_symlink(dUserHide_previous_net)
+            self.unlink_symlink(dUser_previous)
+            self.unlink_symlink(dUserHide_previous)
+
+        if previous_value != self.__mountpoint_dirname:
+            dMachine_previous = Path(homedir + '/' + previous_value)
+            dMachineHide_previous = Path(homedir + '/.' + previous_value)
+            if prefix_net:
+                dMachine_previous_net = Path(homedir + '/' + prefix_net + previous_value)
+                dMachineHide_previous_net = Path(homedir + '/.' + prefix_net + previous_value)
+                self.unlink_symlink(dMachine_previous_net)
+                self.unlink_symlink(dMachineHide_previous_net)
+            self.unlink_symlink(dMachine_previous)
+            self.unlink_symlink(dMachineHide_previous)
+
+        self.storage.set_registry_for_applier(self.__applier,
+                                              {self.__key_cifs_applier_previous_value :
+                                                  {self.__name_value : self.__mountpoint_dirname,
+                                                   self.__name_value_user : self.__mountpoint_dirname_user
+                                                   }})
 
         if self.state_home_link_user:
             dUserMountpoint = Path(self.home).joinpath(self.__mountpoint_dirname_user)
