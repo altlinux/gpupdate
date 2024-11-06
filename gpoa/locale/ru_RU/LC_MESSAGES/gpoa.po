@@ -895,6 +895,9 @@ msgstr "Файл environment очищен"
 msgid  "Cleanup of file environment failed"
 msgstr "Очистка файла environment не удалась"
 
+msgid "Failed to get dictionary"
+msgstr "Не удалось получить словарь"
+
 # Debug_end
 
 # Warning
