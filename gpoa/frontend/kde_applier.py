@@ -29,8 +29,8 @@ class kde_applier(applier_frontend):
     __module_name = 'KdeApplier'
     __module_experimental = True
     __module_enabled = False
-    __hklm_branch = 'Software\\BaseALT\\Policies\\KDE\\'
-    __hklm_lock_branch = 'Software\\BaseALT\\Policies\\KDELocks\\'
+    __hklm_branch = 'Software/BaseALT/Policies/KDE/'
+    __hklm_lock_branch = 'Software/BaseALT/Policies/KDELocks/'
 
     def __init__(self, storage):
         self.storage = storage
@@ -61,8 +61,9 @@ class kde_applier_user(applier_frontend):
     __module_name = 'KdeApplierUser'
     __module_experimental = True
     __module_enabled = False
-    __hkcu_branch = 'Software\\BaseALT\\Policies\\KDE\\'
-    __hkcu_lock_branch = 'Software\\BaseALT\\Policies\\KDELocks\\'
+    __hkcu_branch = 'Software/BaseALT/Policies/KDE'
+    __hkcu_lock_branch = 'Software/BaseALT/Policies/KDELocks'
+    __plasma_update_entry = 'Software/BaseALT/Policies/KDE/Plasma/Update'
 
     def __init__(self, storage, sid=None, username=None, file_cache = None):
         self.storage = storage
@@ -75,6 +76,7 @@ class kde_applier_user(applier_frontend):
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
+        self.plasma_update = self.storage.get_entry(self.__plasma_update_entry)
         self.kde_settings = self.storage.filter_hkcu_entries(self.sid, kde_filter)
         self.__module_enabled = check_enabled(
             self.storage,
@@ -100,12 +102,12 @@ class kde_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D200')
-            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username)
+            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update.data)
             apply(self.all_kde_settings, self.locks_dict, self.username)
         else:
             log('D201')
 
-def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None, username = None):
+def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None, username = None, plasmaupdate = False):
         for locks in locks_settings:
             locks_dict[locks.valuename] = locks.data
         for setting in kde_settings:
@@ -113,7 +115,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 file_name, section, value = setting.keyname.split("/")[-2], setting.keyname.split("/")[-1], setting.valuename
                 data = setting.data
                 if file_name == 'wallpaper':
-                    apply_for_wallpaper(data, file_cache, username)
+                    apply_for_wallpaper(data, file_cache, username, plasmaupdate)
                 else:
                     if file_name not in all_kde_settings:
                         all_kde_settings[file_name] = {}
@@ -229,17 +231,29 @@ def clear_locks_settings(username, file_name, key):
             logdata['line'] = line.strip()
             log('I10', logdata)
 
-def apply_for_wallpaper(data, file_cache, username):
+def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
     '''
     Method to change wallpaper
     '''
     logdata = dict()
     path_to_wallpaper = f'{get_homedir(username)}/.config/plasma-org.kde.plasma.desktop-appletsrc'
+    id_desktop = get_id_desktop(path_to_wallpaper)
     try:
         try:
             data = str(file_cache.get(data))
         except NotUNCPathError:
             data = str(data)
+
+        with open(path_to_wallpaper, 'r') as file:
+            current_wallpaper = file.read()
+        match = re.search(rf'\[Containments\]\[{id_desktop}\]\[Wallpaper\]\[org\.kde\.image\]\[General\]\s+Image=(.*)', current_wallpaper)
+        if match:
+            current_wallpaper_path = match.group(1)
+            flag = (current_wallpaper_path == data)
+        else:
+            flag = False
+
+        os.environ["LANGUAGE"] = os.environ["LANG"].split(".")[0]
         os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
             #Variable for system detection of directories before files with .colors extension
         os.environ["DISPLAY"] = ":0"
@@ -248,32 +262,33 @@ def apply_for_wallpaper(data, file_cache, username):
         os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
         os.environ["PATH"] = "/usr/lib/kf5/bin:"
             #environment variable for accessing binary files without hard links
-        if os.path.isfile(path_to_wallpaper):
-            id_desktop = get_id_desktop(path_to_wallpaper)
-            command = [
-                'kwriteconfig5',
-                '--file', 'plasma-org.kde.plasma.desktop-appletsrc',
-                '--group', 'Containments',
-                '--group', id_desktop,
-                '--group', 'Wallpaper',
-                '--group', 'org.kde.image',
-                '--group', 'General',
-                '--key', 'Image',
-                 '--type', 'string',
-                data
-                ]
-            try:
-                subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            except:
-                    logdata['command'] = command
-                    log('E68', logdata)
-            try:
-                session_bus = dbus.SessionBus()
-                plasma_shell = session_bus.get_object('org.kde.plasmashell', '/PlasmaShell', introspect='org.kde.PlasmaShell')
-                plasma_shell_iface = dbus.Interface(plasma_shell, 'org.kde.PlasmaShell')
-                plasma_shell_iface.refreshCurrentShell()
-            except:
-                pass
+        if not flag:
+            if os.path.isfile(path_to_wallpaper):
+                command = [
+                    'kwriteconfig5',
+                    '--file', 'plasma-org.kde.plasma.desktop-appletsrc',
+                    '--group', 'Containments',
+                    '--group', id_desktop,
+                    '--group', 'Wallpaper',
+                    '--group', 'org.kde.image',
+                    '--group', 'General',
+                    '--key', 'Image',
+                    '--type', 'string',
+                    data
+                    ]
+                try:
+                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                except:
+                        logdata['command'] = command
+                        log('E68', logdata)
+                if plasmaupdate == 1:
+                    try:
+                        session_bus = dbus.SessionBus()
+                        plasma_shell = session_bus.get_object('org.kde.plasmashell', '/PlasmaShell', introspect='org.kde.PlasmaShell')
+                        plasma_shell_iface = dbus.Interface(plasma_shell, 'org.kde.PlasmaShell')
+                        plasma_shell_iface.refreshCurrentShell()
+                    except:
+                        pass
         else:
             logdata['file'] = path_to_wallpaper
             log('W21', logdata)
