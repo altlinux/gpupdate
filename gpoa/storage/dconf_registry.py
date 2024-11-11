@@ -18,7 +18,10 @@
 
 import subprocess
 from pathlib import Path
-from util.util import string_to_literal_eval, touch_file, get_uid_by_username
+from util.util import (string_to_literal_eval,
+                       touch_file, get_uid_by_username,
+                       add_prefix_to_keys,
+                       remove_keys_with_prefix)
 from util.paths import get_dconf_config_path, get_dconf_config_applier_file
 from util.logging import log
 import re
@@ -210,6 +213,12 @@ class Dconf_registry():
             return None
 
     @classmethod
+    def update_dict_to_previous(cls):
+        dict_clean_previous = remove_keys_with_prefix(cls.__dconf_dict)
+        dict_with_previous = add_prefix_to_keys(dict_clean_previous)
+        update_dict(cls.global_registry_dict, dict_with_previous)
+
+    @classmethod
     def apply_template(cls, uid):
         logdata = dict()
         if uid and cls.check_profile_template():
@@ -292,7 +301,8 @@ class Dconf_registry():
                 log('E73', logdata)
             else:
                 log('D217', logdata)
-
+        Dconf_registry.__dconf_dict_flag = True
+        Dconf_registry.__dconf_dict = output_dict
         return output_dict
 
 
