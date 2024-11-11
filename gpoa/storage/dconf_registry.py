@@ -60,6 +60,7 @@ class Dconf_registry():
     _GpoPriority = 'Software/BaseALT/Policies/GpoPriority'
     _gpo_name = set()
     global_registry_dict = dict({_GpoPriority:{}})
+    previous_global_registry_dict = dict()
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
@@ -94,7 +95,7 @@ class Dconf_registry():
                         '"': "'",
                         '\\': '\\\\'
                     })
-    _true_strings = [
+    _true_strings = {
         "True",
         "true",
         "TRUE",
@@ -105,7 +106,7 @@ class Dconf_registry():
         "Enabled",
         "Enable",
         '1'
-    ]
+    }
 
 
 
