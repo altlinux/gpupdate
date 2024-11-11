@@ -196,3 +196,19 @@ def get_uid_by_username(username):
         return user_info.pw_uid
     except KeyError:
         return None
+
+def add_prefix_to_keys(dictionary: dict, prefix: str='Previous/') -> dict:
+    """
+    Adds a prefix to each key in the dictionary.
+    Args: Input dictionary whose keys need to be modified
+    prefix string to be added to each key. Defaults to 'Previous/'
+    Returns: New dictionary with modified keys having the specified prefix
+    """
+    return {f"{prefix}{key}": value for key, value in dictionary.items()}
+
+def remove_keys_with_prefix(dictionary: dict, prefix: tuple=('Previous/', 'Source/')) -> dict:
+    """
+    Removes all keys that start with the specified prefix from the dictionary.
+    By default, removes keys starting with 'Previous/' and 'Source/' prefix.
+    """
+    return {key: value for key, value in dictionary.items() if not key.startswith(prefix)}
