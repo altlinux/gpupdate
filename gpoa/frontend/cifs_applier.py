@@ -314,16 +314,27 @@ class cifs_applier_user(applier_frontend):
                 f.write(autofs_text)
                 f.flush()
 
+        self.restart_autofs()
         if self.username:
             self.update_drivemaps_home_links()
 
-        subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
+    def restart_autofs(self):
+        try:
+            subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
+        except Exception as exc:
+            log('E74', {'exc': exc})
+
 
     def unlink_symlink(self, symlink:Path, previous=None):
-        if symlink.exists() and symlink.is_symlink() and symlink.owner() == 'root':
-            symlink.unlink()
-        elif previous or symlink.is_symlink() and not symlink.exists():
-            symlink.unlink()
+        try:
+            if symlink.exists() and symlink.is_symlink() and symlink.owner() == 'root':
+                symlink.unlink()
+            elif symlink.is_symlink() and not symlink.exists():
+                symlink.unlink()
+            elif previous:
+                symlink.unlink()
+        except:
+            pass
 
     def del_previous_link(self, previous_value_link , mountpoint_dirname_user):
         if previous_value_link != mountpoint_dirname_user:
@@ -337,14 +348,19 @@ class cifs_applier_user(applier_frontend):
             prefix = ''
         else:
             prefix = 'net.'
+        if self.state_home_link_disable_net_user:
+            prefix_user = ''
+        else:
+            prefix_user = 'net.'
+
         previous_value_link = self.registry_for_applier.setdefault(
             self.__key_cifs_applier_previous_value, dict()).setdefault(self.__name_value_link, self.__mountpoint_dirname)
         previous_value_link_user = self.registry_for_applier.setdefault(
             self.__key_cifs_applier_previous_value, dict()).setdefault(self.__name_value_user_link, self.__mountpoint_dirname_user)
         self.homedir = get_homedir(self.username)
 
-        dUser = Path(self.homedir + '/' + prefix + self.__mountpoint_dirname_user)
-        dUserHide = Path(self.homedir + '/.' + prefix + self.__mountpoint_dirname_user)
+        dUser = Path(self.homedir + '/' + prefix_user + self.__mountpoint_dirname_user)
+        dUserHide = Path(self.homedir + '/.' + prefix_user + self.__mountpoint_dirname_user)
         dMachine = Path(self.homedir+'/' + prefix + self.__mountpoint_dirname)
         dMachineHide = Path(self.homedir+'/.' + prefix + self.__mountpoint_dirname)
 
@@ -356,17 +372,21 @@ class cifs_applier_user(applier_frontend):
             dUserMountpoint = Path(self.home).joinpath(self.__mountpoint_dirname_user)
             dUserMountpointHide = Path(self.home).joinpath('.' + self.__mountpoint_dirname_user)
             self.del_previous_link(previous_value_link_user, dUser.name)
-            if not dUser.exists():
+            if not dUser.exists() and dUserMountpoint.exists():
                 try:
                     os.symlink(dUserMountpoint, dUser, True)
                 except  Exception as exc:
                     log('D194', {'exc': exc})
+            elif dUser.is_symlink() and not dUserMountpoint.exists():
+                self.unlink_symlink(dUser)
 
-            if not dUserHide.exists():
+            if not dUserHide.exists() and dUserMountpointHide.exists():
                 try:
                     os.symlink(dUserMountpointHide, dUserHide, True)
                 except  Exception as exc:
                     log('D196', {'exc': exc})
+            elif dUserHide.is_symlink() and not dUserMountpointHide.exists():
+                self.unlink_symlink(dUserHide)
         else:
             self.del_previous_link(previous_value_link_user, dUser.name)
             self.unlink_symlink(dUser)
@@ -378,17 +398,21 @@ class cifs_applier_user(applier_frontend):
             dMachineMountpointHide = Path(self.__target_mountpoint).joinpath('.' + self.__mountpoint_dirname)
             self.del_previous_link(previous_value_link, dMachine.name)
 
-            if not dMachine.exists():
+            if not dMachine.exists() and dMachineMountpoint.exists():
                 try:
                     os.symlink(dMachineMountpoint, dMachine, True)
                 except  Exception as exc:
                     log('D195', {'exc': exc})
+            elif dMachine.is_symlink() and not dMachineMountpoint.exists():
+                self.unlink_symlink(dMachine)
 
-            if not dMachineHide.exists():
+            if not dMachineHide.exists() and dMachineMountpointHide.exists():
                 try:
                     os.symlink(dMachineMountpointHide, dMachineHide, True)
                 except  Exception as exc:
                     log('D197', {'exc': exc})
+            elif dMachineHide.is_symlink() and not dMachineMountpointHide.exists():
+                self.unlink_symlink(dMachineHide)
         else:
             self.del_previous_link(previous_value_link, dMachine.name)
             self.unlink_symlink(dMachine)

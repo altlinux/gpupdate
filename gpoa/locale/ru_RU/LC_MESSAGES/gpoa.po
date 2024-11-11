@@ -259,6 +259,9 @@ msgstr "Возникло исключение при обновлении баз
 msgid "Failed to retrieve data from dconf database"
 msgstr "Не удалось получить данные из базы dconf"
 
+msgid "Autofs restart failed"
+msgstr "Перезапуск Autofs не удался"
+
 # Error_end
 
 # Debug
