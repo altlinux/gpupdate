@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2021 BaseALT Ltd.
+# Copyright (C) 2021-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import subprocess
 import locale
 from .logging import log
 from .dbus import dbus_session
-
+from storage.dconf_registry import Dconf_registry
 
 def set_privileges(username, uid, gid, groups, home):
     '''
@@ -37,6 +37,7 @@ def set_privileges(username, uid, gid, groups, home):
     os.environ['USERNAME'] = username
     if defaultlocale[0] and defaultlocale[1]:
         os.environ["LANG"] = '.'.join(defaultlocale)
+    os.environ["LANGUAGE"] = Dconf_registry.get_info("LANGUAGE")
 
     try:
         os.setgid(gid)
@@ -126,7 +127,7 @@ def with_privileges(username, func):
         logdata = dict()
         logdata['msg'] = str(exc)
         log('E33', logdata)
-        result = 1;
+        result = 1
     finally:
         logdata = dict()
         logdata['dbus_pid'] = dbus_pid

@@ -20,6 +20,7 @@ from .applier_frontend import applier_frontend, check_enabled
 from util.logging import log
 from util.util import get_homedir
 from util.exceptions import NotUNCPathError
+from storage.dconf_registry import Dconf_registry
 import os
 import subprocess
 import re
@@ -253,7 +254,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
         else:
             flag = False
 
-        os.environ["LANGUAGE"] = os.environ["LANG"].split(".")[0]
+        os.environ["LANGUAGE"] = Dconf_registry.get_info("LANGUAGE")
         os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
             #Variable for system detection of directories before files with .colors extension
         os.environ["DISPLAY"] = ":0"
