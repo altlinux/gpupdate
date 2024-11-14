@@ -2,7 +2,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -126,9 +126,9 @@ def runner_factory(args, target):
     if args.system:
         return try_directly(username, target, args.loglevel)
     else:
-        return try_by_oddjob(username, target)
+        return try_by_oddjob(username, target, args.loglevel, args.force)
 
-def try_by_oddjob(username, target):
+def try_by_oddjob(username, target, *args):
     '''
     Run group policies applying by oddjob service
     '''
@@ -137,10 +137,10 @@ def try_by_oddjob(username, target):
         computer_runner = None
         user_runner = None
         if target == 'ALL' or target == 'COMPUTER':
-            computer_runner = dbus_runner()
+            computer_runner = dbus_runner(args=args)
         if username:
             if target == 'ALL' or target == 'USER':
-                user_runner = dbus_runner(username)
+                user_runner = dbus_runner(username, args)
         return (computer_runner, user_runner)
     else:
         log('W3')

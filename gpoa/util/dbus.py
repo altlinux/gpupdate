@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2024 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@ class dbus_runner:
     # sufficient to replicate and apply all recognizable GPOs.
     _synchronous_timeout = 600000
 
-    def __init__(self, username=None):
+    def __init__(self, username=None, args=None):
+        self.args = args
         self.username = username
         self.system_bus = dbus.SystemBus()
         self.bus_name = self._basealt_bus_name
@@ -70,10 +71,10 @@ class dbus_runner:
         self.system_bus.get_object(self.bus_name, '/')
 
     def run(self):
+        arguments = [f"-l {self.args[0]}{' -f' if self.args[1] or Dconf_registry._force else ''}"]
         if self.username:
             logdata = dict({'username': self.username})
             log('D6', logdata)
-            gpupdate = 'gpupdate' if not Dconf_registry._force else 'gpupdate_force'
             if is_root():
                 # oddjobd-gpupdate's ACL allows access to this method
                 # only for superuser. This method is called via PAM
@@ -97,9 +98,9 @@ class dbus_runner:
                     result = self.system_bus.call_blocking(self.bus_name,
                         self._object_path,
                         self.interface_name,
-                        gpupdate,
+                        'gpupdate_arg',
                         None,
-                        [],
+                        arguments,
                         timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
@@ -108,16 +109,15 @@ class dbus_runner:
                     raise exc
         else:
             log('D11')
-            gpupdate_computer = 'gpupdate_computer' if not Dconf_registry._force else 'gpupdate_computer_force'
             try:
                 result = self.system_bus.call_blocking(self.bus_name,
                     self._object_path,
                     self.interface_name,
-                    gpupdate_computer,
+                    'gpupdate_computer_arg',
                     None,
                     # The following positional parameter is called "args".
                     # There is no official documentation for it.
-                    [],
+                    arguments,
                     timeout=self._synchronous_timeout)
                 print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
