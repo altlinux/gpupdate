@@ -637,11 +637,11 @@ msgstr "Запуск применение настроек Envvar для маш�
 msgid "Envvar applier for machine will not be started"
 msgstr "Применение настроек Envvar для машины не запускается"
 
-msgid "Running Envvar applier for user in user context"
-msgstr "Запуск применение настроек Envvar для пользователя в контексте пользователя"
+msgid "Running Envvar applier for user in admin context"
+msgstr "Запуск применение настроек Envvar для пользователя в контексте администратора"
 
-msgid "Envvar applier for user in user context will not be started"
-msgstr "Применение настроек Envvar для пользователя в контексте пользователя не запускается"
+msgid "Envvar applier for user in admin context will not be started"
+msgstr "Применение настроек Envvar для пользователя в контексте администратора не запускается"
 
 msgid "Running Package applier for machine"
 msgstr "Запуск установки пакетов для машины"

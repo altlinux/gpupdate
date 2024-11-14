@@ -58,13 +58,13 @@ class envvar_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def admin_context_apply(self):
-        pass
-
-    def user_context_apply(self):
         if self.__module_enabled:
             log('D136')
             ev = Envvar(self.envvars, self.username)
             ev.act()
         else:
             log('D137')
+
+    def user_context_apply(self):
+        pass
 
