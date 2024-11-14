@@ -26,8 +26,7 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from util.util import get_homedir
-from util.paths import get_dconf_config_applier_path
+from util.util import get_homedir, get_uid_by_username
 from util.logging import log
 
 def storage_get_drives(storage, sid):
@@ -156,20 +155,19 @@ class cifs_applier_user(applier_frontend):
     __enable_home_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHome'
     __enable_home_link_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeUser'
     __name_dir = '/Software/BaseALT/Policies/GPUpdate'
-    __name_prefix_link = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeDisableNet'
+    __name_link_prefix = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeDisableNet'
     __name_link_prefix_user = '/Software/BaseALT/Policies/GPUpdate/DriveMapsHomeDisableNetUser'
+    __key_link_prefix = 'DriveMapsHomeDisableNet'
+    __key_link_prefix_user = 'DriveMapsHomeDisableNetUser'
     __timeout_user_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofsUser'
     __timeout_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofs'
     __target_mountpoint = '/media/gpupdate'
     __target_mountpoint_user = '/run/media'
     __mountpoint_dirname = 'drives.system'
     __mountpoint_dirname_user = 'drives'
-    __applier = 'cifs_applier'
-    __key_cifs_applier_previous_value = 'Software/BaseALT/Policies/GPUpdate/cifs_applier/previous_value'
+    __key_cifs_previous_value = 'Previous/Software/BaseALT/Policies/GPUpdate'
     __name_value = 'DriveMapsName'
     __name_value_user = 'DriveMapsNameUser'
-    __name_value_link = 'DriveMapsNameHome'
-    __name_value_user_link = 'DriveMapsNameHomeUser'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -177,21 +175,22 @@ class cifs_applier_user(applier_frontend):
         self.username = username
         self.state_home_link = False
         self.state_home_link_user = False
-        self.registry_for_applier = self.storage.get_dictionary_from_dconf_file_db(path_bin=get_dconf_config_applier_path(self.__applier)[:-3])
         self.dict_registry_machine = self.storage.get_dictionary_from_dconf_file_db()
         self.homedir = ''
 
         if username:
+            self.dict_registry_user = self.storage.get_dictionary_from_dconf_file_db(get_uid_by_username(username))
             self.home = self.__target_mountpoint_user + '/' + username
             self.state_home_link = self.storage.check_enable_key(self.__enable_home_link)
-            self.state_home_link_disable_net = self.storage.check_enable_key(self.__name_prefix_link)
+            self.state_home_link_disable_net = self.storage.check_enable_key(self.__name_link_prefix)
             self.state_home_link_disable_net_user = self.storage.check_enable_key(self.__name_link_prefix_user)
+
             self.state_home_link_user = self.storage.check_enable_key(self.__enable_home_link_user)
             self.timeout = self.storage.get_entry(self.__timeout_user_key)
             dirname = self.storage.get_entry(self.__name_dir + '/' + self.__name_value_user)
             dirname_system_from_machine = self.dict_registry_machine.get(self.__name_dir[1:], dict()).get(self.__name_value, None)
             self.__mountpoint_dirname_user = dirname.data if dirname and dirname.data else self.__mountpoint_dirname_user
-            self.__mountpoint_dirname =  dirname_system_from_machine if dirname_system_from_machine else self.__mountpoint_dirname
+            self.__mountpoint_dirname = dirname_system_from_machine if dirname_system_from_machine else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname_user
         else:
             self.home = self.__target_mountpoint
@@ -336,10 +335,10 @@ class cifs_applier_user(applier_frontend):
         except:
             pass
 
-    def del_previous_link(self, previous_value_link , mountpoint_dirname_user):
-        if previous_value_link != mountpoint_dirname_user:
-            d_previous = Path(self.homedir + '/' + previous_value_link)
-            dHide_previous = Path(self.homedir + '/.' + previous_value_link)
+    def del_previous_link(self, previous_value_link , mountpoint_dirname, prefix):
+        d_previous = Path(self.homedir + ('/' if prefix else '/net.') + previous_value_link)
+        if d_previous.name != mountpoint_dirname:
+            dHide_previous = Path(self.homedir + ('/.' if prefix else '/.net.') + previous_value_link)
             self.unlink_symlink(d_previous, True)
             self.unlink_symlink(dHide_previous, True)
 
@@ -352,11 +351,14 @@ class cifs_applier_user(applier_frontend):
             prefix_user = ''
         else:
             prefix_user = 'net.'
+        key_cifs_previous_value_machine = self.dict_registry_machine.get(self.__key_cifs_previous_value,dict())
+        previous_value_link = key_cifs_previous_value_machine.get(self.__name_value, self.__mountpoint_dirname)
 
-        previous_value_link = self.registry_for_applier.setdefault(
-            self.__key_cifs_applier_previous_value, dict()).setdefault(self.__name_value_link, self.__mountpoint_dirname)
-        previous_value_link_user = self.registry_for_applier.setdefault(
-            self.__key_cifs_applier_previous_value, dict()).setdefault(self.__name_value_user_link, self.__mountpoint_dirname_user)
+        key_cifs_previous_value_user = self.dict_registry_user.get(self.__key_cifs_previous_value,dict())
+        previous_state_home_link_disable_net_user = key_cifs_previous_value_user.get(self.__key_link_prefix_user)
+        previous_state_home_link_disable_net = key_cifs_previous_value_user.get(self.__key_link_prefix)
+        previous_value_link_user = key_cifs_previous_value_user.get(self.__name_value_user, self.__mountpoint_dirname_user)
+
         self.homedir = get_homedir(self.username)
 
         dUser = Path(self.homedir + '/' + prefix_user + self.__mountpoint_dirname_user)
@@ -364,14 +366,10 @@ class cifs_applier_user(applier_frontend):
         dMachine = Path(self.homedir+'/' + prefix + self.__mountpoint_dirname)
         dMachineHide = Path(self.homedir+'/.' + prefix + self.__mountpoint_dirname)
 
-        dict_applier_storage = {self.__key_cifs_applier_previous_value :
-                                                  {self.__name_value : self.__mountpoint_dirname,
-                                                   self.__name_value_user : self.__mountpoint_dirname_user
-                                                   }}
         if self.state_home_link_user:
             dUserMountpoint = Path(self.home).joinpath(self.__mountpoint_dirname_user)
             dUserMountpointHide = Path(self.home).joinpath('.' + self.__mountpoint_dirname_user)
-            self.del_previous_link(previous_value_link_user, dUser.name)
+            self.del_previous_link(previous_value_link_user, dUser.name, previous_state_home_link_disable_net_user)
             if not dUser.exists() and dUserMountpoint.exists():
                 try:
                     os.symlink(dUserMountpoint, dUser, True)
@@ -388,7 +386,7 @@ class cifs_applier_user(applier_frontend):
             elif dUserHide.is_symlink() and not dUserMountpointHide.exists():
                 self.unlink_symlink(dUserHide)
         else:
-            self.del_previous_link(previous_value_link_user, dUser.name)
+            self.del_previous_link(previous_value_link_user, dUser.name, previous_state_home_link_disable_net_user)
             self.unlink_symlink(dUser)
             self.unlink_symlink(dUserHide)
 
@@ -396,7 +394,7 @@ class cifs_applier_user(applier_frontend):
         if self.state_home_link:
             dMachineMountpoint = Path(self.__target_mountpoint).joinpath(self.__mountpoint_dirname)
             dMachineMountpointHide = Path(self.__target_mountpoint).joinpath('.' + self.__mountpoint_dirname)
-            self.del_previous_link(previous_value_link, dMachine.name)
+            self.del_previous_link(previous_value_link, dMachine.name, previous_state_home_link_disable_net)
 
             if not dMachine.exists() and dMachineMountpoint.exists():
                 try:
@@ -414,13 +412,11 @@ class cifs_applier_user(applier_frontend):
             elif dMachineHide.is_symlink() and not dMachineMountpointHide.exists():
                 self.unlink_symlink(dMachineHide)
         else:
-            self.del_previous_link(previous_value_link, dMachine.name)
+            self.del_previous_link(previous_value_link, dMachine.name, previous_state_home_link_disable_net)
             self.unlink_symlink(dMachine)
             self.unlink_symlink(dMachineHide)
 
-        dict_applier_storage[self.__key_cifs_applier_previous_value][self.__name_value_user_link] = dUser.name
-        dict_applier_storage[self.__key_cifs_applier_previous_value][self.__name_value_link] = dMachine.name
-        self.storage.set_registry_for_applier(self.__applier, dict_applier_storage)
+
 
 
     def admin_context_apply(self):
