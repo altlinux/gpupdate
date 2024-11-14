@@ -111,9 +111,9 @@ class smbcreds (smbopts):
         '''
         gpos = list()
         if Dconf_registry.get_info('machine_name') == username:
-            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db()
+            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
         else:
-            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username))
+            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
         dict_gpo_name_version = extract_display_name_version(dconf_dict)
         try:
             log('D48')
