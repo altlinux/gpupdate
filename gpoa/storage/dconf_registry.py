@@ -22,7 +22,7 @@ from util.util import (string_to_literal_eval,
                        touch_file, get_uid_by_username,
                        add_prefix_to_keys,
                        remove_keys_with_prefix)
-from util.paths import get_dconf_config_path, get_dconf_config_applier_file
+from util.paths import get_dconf_config_path
 from util.logging import log
 import re
 from collections import OrderedDict
@@ -71,6 +71,7 @@ class Dconf_registry():
     _force = False
     __dconf_dict_flag = False
     __dconf_dict = dict()
+    __dconf_db = dict()
     _dict_gpo_name_version_cache = dict()
     _username = None
     _uid = None
@@ -178,17 +179,10 @@ class Dconf_registry():
             log('E70', logdata)
         return None
 
-    @classmethod
-    def set_registry_for_applier(cls, applier, dict_applier):
-        filename = get_dconf_config_applier_file(applier)
-        touch_file(filename)
-        create_dconf_ini_file(filename, dict_applier, applier=applier)
-        cls.dconf_update(applier=applier)
-
     @staticmethod
-    def dconf_update(uid=None, applier=None):
+    def dconf_update(uid=None):
         logdata = dict()
-        path_dconf_config = get_dconf_config_path(uid, applier)
+        path_dconf_config = get_dconf_config_path(uid)
         db_file = path_dconf_config[:-3]
         try:
             process = subprocess.Popen(['dconf', 'compile', db_file, path_dconf_config],
@@ -214,7 +208,7 @@ class Dconf_registry():
 
     @classmethod
     def update_dict_to_previous(cls):
-        dict_clean_previous = remove_keys_with_prefix(cls.__dconf_dict)
+        dict_clean_previous = remove_keys_with_prefix(cls.__dconf_db)
         dict_with_previous = add_prefix_to_keys(dict_clean_previous)
         update_dict(cls.global_registry_dict, dict_with_previous)
 
@@ -267,7 +261,7 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_dictionary_from_dconf_file_db(self, uid=None, path_bin=None):
+    def get_dictionary_from_dconf_file_db(self, uid=None, path_bin=None, save_dconf_db=False):
         logdata = dict()
         error_skip = None
         if path_bin:
@@ -301,8 +295,8 @@ class Dconf_registry():
                 log('E73', logdata)
             else:
                 log('D217', logdata)
-        Dconf_registry.__dconf_dict_flag = True
-        Dconf_registry.__dconf_dict = output_dict
+        if save_dconf_db:
+            Dconf_registry.__dconf_db = output_dict
         return output_dict
 
 
@@ -670,7 +664,7 @@ def create_dconf_ini_file(filename, data, uid=None, applier=None):
     logdata = dict()
     logdata['path'] = filename
     log('D209', logdata)
-    Dconf_registry.dconf_update(uid, applier)
+    Dconf_registry.dconf_update(uid)
 
 def clean_data(data):
     try:
