@@ -21,7 +21,8 @@ from pathlib import Path
 from util.util import (string_to_literal_eval,
                        touch_file, get_uid_by_username,
                        add_prefix_to_keys,
-                       remove_keys_with_prefix)
+                       remove_keys_with_prefix,
+                       clean_data)
 from util.paths import get_dconf_config_path
 from util.logging import log
 import re
@@ -93,12 +94,7 @@ class Dconf_registry():
     printers = list()
     scripts = list()
     networkshares = list()
-    trans_table = str.maketrans({
-                        '\n': '',
-                        '\r': '',
-                        '"': "'",
-                        '\\': '\\\\'
-                    })
+
     _true_strings = {
         "True",
         "true",
@@ -111,8 +107,6 @@ class Dconf_registry():
         "Enable",
         '1'
     }
-
-
 
     @classmethod
     def set_info(cls, key , data):
@@ -666,12 +660,6 @@ def create_dconf_ini_file(filename, data, uid=None, applier=None):
     log('D209', logdata)
     Dconf_registry.dconf_update(uid)
 
-def clean_data(data):
-    try:
-        cleaned_string = data.translate(Dconf_registry.trans_table)
-        return cleaned_string
-    except:
-        return None
 
 def check_data(data, t_data):
     if isinstance(data, bytes):

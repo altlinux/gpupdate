@@ -204,7 +204,15 @@ def add_prefix_to_keys(dictionary: dict, prefix: str='Previous/') -> dict:
     prefix string to be added to each key. Defaults to 'Previous/'
     Returns: New dictionary with modified keys having the specified prefix
     """
-    return {f"{prefix}{key}": value for key, value in dictionary.items()}
+    result = {}
+    for key, value in dictionary.items():
+        new_key = f'{prefix}{key}'
+        if isinstance(value, dict):
+            result[new_key] = {deep_key:clean_data(val) if isinstance(val, str) else val for deep_key, val in value.items()}
+        else:
+            result[new_key] = value
+    return result
+
 
 def remove_keys_with_prefix(dictionary: dict, prefix: tuple=('Previous/', 'Source/')) -> dict:
     """
@@ -212,3 +220,19 @@ def remove_keys_with_prefix(dictionary: dict, prefix: tuple=('Previous/', 'Sourc
     By default, removes keys starting with 'Previous/' and 'Source/' prefix.
     """
     return {key: value for key, value in dictionary.items() if not key.startswith(prefix)}
+
+
+def get_trans_table():
+    return str.maketrans({
+                    '\n': '',
+                    '\r': '',
+                    '"': "'",
+                    '\\': '\\\\'
+                    })
+
+def clean_data(data):
+    try:
+        cleaned_string = data.translate(get_trans_table())
+        return cleaned_string
+    except:
+        return None
