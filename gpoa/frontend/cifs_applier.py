@@ -166,6 +166,8 @@ class cifs_applier_user(applier_frontend):
     __mountpoint_dirname = 'drives.system'
     __mountpoint_dirname_user = 'drives'
     __key_cifs_previous_value = 'Previous/Software/BaseALT/Policies/GPUpdate'
+    __key_preferences = 'Software/BaseALT/Policies/Preferences/'
+    __key_preferences_previous = 'Previous/Software/BaseALT/Policies/Preferences/'
     __name_value = 'DriveMapsName'
     __name_value_user = 'DriveMapsNameUser'
 
@@ -177,6 +179,7 @@ class cifs_applier_user(applier_frontend):
         self.state_home_link_user = False
         self.dict_registry_machine = self.storage.get_dictionary_from_dconf_file_db()
         self.homedir = ''
+        name_dir = self.__name_dir[1:]
 
         if username:
             self.dict_registry_user = self.storage.get_dictionary_from_dconf_file_db(get_uid_by_username(username))
@@ -188,16 +191,27 @@ class cifs_applier_user(applier_frontend):
             self.state_home_link_user = self.storage.check_enable_key(self.__enable_home_link_user)
             self.timeout = self.storage.get_entry(self.__timeout_user_key)
             dirname = self.storage.get_entry(self.__name_dir + '/' + self.__name_value_user)
-            dirname_system_from_machine = self.dict_registry_machine.get(self.__name_dir[1:], dict()).get(self.__name_value, None)
+            dirname_system_from_machine = self.dict_registry_machine.get(name_dir, dict()).get(self.__name_value, None)
             self.__mountpoint_dirname_user = dirname.data if dirname and dirname.data else self.__mountpoint_dirname_user
             self.__mountpoint_dirname = dirname_system_from_machine if dirname_system_from_machine else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname_user
+
+            self.keys_cifs_previous_values_user = self.dict_registry_user.get(self.__key_cifs_previous_value,dict())
+            self.keys_cifs_values_user = self.dict_registry_user.get(name_dir,dict())
+            self.keys_the_preferences_previous_values_user = self.dict_registry_user.get((self.__key_preferences_previous+self.username),dict()).get('Drives', dict())
+            self.keys_the_preferences_values_user = self.dict_registry_user.get((self.__key_preferences+self.username),dict()).get('Drives', dict())
+
         else:
             self.home = self.__target_mountpoint
             self.timeout = self.storage.get_entry(self.__timeout_key)
             dirname_system = self.storage.get_entry(self.__name_dir + '/' + self.__name_value)
             self.__mountpoint_dirname = dirname_system.data if dirname_system and dirname_system.data else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname
+
+        self.keys_cifs_previous_values_machine = self.dict_registry_machine.get(self.__key_cifs_previous_value,dict())
+        self.keys_cifs_values_machine = self.dict_registry_machine.get(name_dir,dict())
+        self.keys_the_preferences_previous_values = self.dict_registry_machine.get((self.__key_preferences_previous+'Machine'),dict()).get('Drives', dict())
+        self.keys_the_preferences_values = self.dict_registry_machine.get((self.__key_preferences+'Machine'),dict()).get('Drives', dict())
 
         self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
         conf_file = '{}.conf'.format(sid)
@@ -242,6 +256,20 @@ class cifs_applier_user(applier_frontend):
             , self.__module_experimental
         )
 
+
+    def is_mount_point_dirname(self):
+        if self.username:
+            return self.mount_dir.joinpath(self.__mountpoint_dirname_user).is_mount()
+        else:
+            return self.mount_dir.joinpath(self.__mountpoint_dirname).is_mount()
+
+    def is_changed_keys(self):
+        if self.username:
+            return (self.keys_cifs_previous_values_user.get(self.__name_value_user) != self.keys_cifs_values_user.get(self.__name_value_user) or
+                    self.keys_the_preferences_previous_values_user != self.keys_the_preferences_values_user)
+        else:
+            return (self.keys_cifs_previous_values_machine.get(self.__name_value) != self.keys_cifs_values_machine.get(self.__name_value) or
+                    self.keys_the_preferences_previous_values != self.keys_the_preferences_values)
 
     def user_context_apply(self):
         '''
@@ -313,7 +341,9 @@ class cifs_applier_user(applier_frontend):
                 f.write(autofs_text)
                 f.flush()
 
-        self.restart_autofs()
+        if self.is_changed_keys() or not self.is_mount_point_dirname():
+            self.restart_autofs()
+
         if self.username:
             self.update_drivemaps_home_links()
 
@@ -351,13 +381,11 @@ class cifs_applier_user(applier_frontend):
             prefix_user = ''
         else:
             prefix_user = 'net.'
-        key_cifs_previous_value_machine = self.dict_registry_machine.get(self.__key_cifs_previous_value,dict())
-        previous_value_link = key_cifs_previous_value_machine.get(self.__name_value, self.__mountpoint_dirname)
 
-        key_cifs_previous_value_user = self.dict_registry_user.get(self.__key_cifs_previous_value,dict())
-        previous_state_home_link_disable_net_user = key_cifs_previous_value_user.get(self.__key_link_prefix_user)
-        previous_state_home_link_disable_net = key_cifs_previous_value_user.get(self.__key_link_prefix)
-        previous_value_link_user = key_cifs_previous_value_user.get(self.__name_value_user, self.__mountpoint_dirname_user)
+        previous_value_link = self.keys_cifs_previous_values_machine.get(self.__name_value, self.__mountpoint_dirname)
+        previous_state_home_link_disable_net_user = self.keys_cifs_previous_values_user.get(self.__key_link_prefix_user)
+        previous_state_home_link_disable_net = self.keys_cifs_previous_values_user.get(self.__key_link_prefix)
+        previous_value_link_user = self.keys_cifs_previous_values_user.get(self.__name_value_user, self.__mountpoint_dirname_user)
 
         self.homedir = get_homedir(self.username)
 
