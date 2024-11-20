@@ -35,6 +35,6 @@ class plugin_manager:
             logging.warning(slogm(str(exc)))
 
     def run(self):
-        self.plugins.get('adp', plugin('adp')).run()
+        #self.plugins.get('adp', plugin('adp')).run()
         self.plugins.get('roles', plugin('roles')).run()
 
