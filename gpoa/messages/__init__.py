@@ -366,6 +366,7 @@ def warning_code(code):
     warning_ids[23] = 'Action for ini file failed'
     warning_ids[24] = 'Couldn\'t get the uid'
     warning_ids[25] = 'Failed to load content from remote host'
+    warning_ids[26] = 'Force mode activated'
 
     return warning_ids.get(code, 'Unknown warning code')
 

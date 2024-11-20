@@ -980,6 +980,9 @@ msgstr "Не удалось получить uid"
 msgid "Failed to load content from remote host"
 msgstr "Не удалось загрузить контент с удаленного узла"
 
+msgid "Force mode activated"
+msgstr "Режим force задействован"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"

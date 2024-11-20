@@ -755,6 +755,7 @@ def add_preferences_to_global_registry_dict(username, is_machine):
 def extract_display_name_version(data):
     policy_force = data.get('Software/BaseALT/Policies/GPUpdate', {}).get('Force', False)
     if Dconf_registry._force or policy_force:
+        log('W26')
         return {}
     result = {}
     tmp = {}
