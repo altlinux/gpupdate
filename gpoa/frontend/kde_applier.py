@@ -77,6 +77,7 @@ class kde_applier_user(applier_frontend):
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
         self.plasma_update = self.storage.get_entry(self.__plasma_update_entry)
+        self.plasma_update_flag = self.plasma_update.data if self.plasma_update is not None else 0
         self.kde_settings = self.storage.filter_hkcu_entries(self.sid, kde_filter)
         self.__module_enabled = check_enabled(
             self.storage,
@@ -102,7 +103,7 @@ class kde_applier_user(applier_frontend):
         '''
         if self.__module_enabled:
             log('D200')
-            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update.data)
+            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update_flag)
             apply(self.all_kde_settings, self.locks_dict, self.username)
         else:
             log('D201')
