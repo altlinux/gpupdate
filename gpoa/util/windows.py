@@ -126,7 +126,7 @@ class smbcreds (smbopts):
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
-                    if gpo.display_name in dict_gpo_name_version.keys() and dict_gpo_name_version.get(gpo.display_name, {}).get('version') == str(gpo.version):
+                    if gpo.display_name in dict_gpo_name_version.keys() and dict_gpo_name_version.get(gpo.display_name, {}).get('version') == str(getattr(gpo, 'version', None)):
                         if Path(dict_gpo_name_version.get(gpo.display_name, {}).get('correct_path')).exists():
                             gpo.file_sys_path = ''
                             ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True})
@@ -138,7 +138,7 @@ class smbcreds (smbopts):
         except Exception as exc:
             if self.selected_dc != self.pdc_emulator_server:
                 raise GetGPOListFail(exc)
-            logdata = dict({'username': username, 'dc': self.selected_dc})
+            logdata = dict({'username': username, 'dc': self.selected_dc, 'exc': exc})
             log('E17', logdata)
 
         return gpos
