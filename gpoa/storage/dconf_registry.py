@@ -273,7 +273,7 @@ class Dconf_registry():
                 name_list = Gvdb.Table.get_names(table)
                 for name in name_list:
                     value = Gvdb.Table.get_value(table, name)
-                    if not value:
+                    if value is None:
                         continue
                     list_path = name.split('/')
                     if value.is_of_type(GLib.VariantType('s')):
