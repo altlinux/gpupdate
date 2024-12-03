@@ -204,7 +204,7 @@ class Dconf_registry():
     def update_dict_to_previous(cls):
         dict_clean_previous = remove_keys_with_prefix(cls.__dconf_db)
         dict_with_previous = add_prefix_to_keys(dict_clean_previous)
-        update_dict(cls.global_registry_dict, dict_with_previous)
+        cls.global_registry_dict.update(dict_with_previous)
 
     @classmethod
     def apply_template(cls, uid):
@@ -635,7 +635,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
-def create_dconf_ini_file(filename, data, uid=None, applier=None):
+def create_dconf_ini_file(filename, data, uid=None):
     '''
     Create an ini-file based on a dictionary of dictionaries.
     Args:

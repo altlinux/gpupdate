@@ -152,9 +152,9 @@ class gpoa_controller:
                 if back:
                     try:
                         back.retrieve_and_store()
-                        save_dconf(self.username, self.is_machine)
                         # Start frontend only on successful backend finish
                         self.start_frontend()
+                        save_dconf(self.username, self.is_machine)
                     except Exception as exc:
                         logdata = dict({'message': str(exc)})
                         # In case we're handling "E3" - it means that
