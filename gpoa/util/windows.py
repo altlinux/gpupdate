@@ -114,7 +114,7 @@ class smbcreds (smbopts):
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
         else:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
-        dict_gpo_name_version = extract_display_name_version(dconf_dict)
+        dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
         try:
             log('D48')
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
