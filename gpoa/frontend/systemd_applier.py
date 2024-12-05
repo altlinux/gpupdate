@@ -42,15 +42,14 @@ class systemd_applier(applier_frontend):
 
     def run(self):
         for setting in self.systemd_unit_settings:
-            valuename = setting.hive_key.rpartition('/')[2]
             try:
-                self.units.append(systemd_unit(valuename, int(setting.data)))
+                self.units.append(systemd_unit(setting.valuename, int(setting.data)))
                 logdata = dict()
-                logdata['unit'] = format(valuename)
+                logdata['unit'] = format(setting.valuename)
                 log('I4', logdata)
             except Exception as exc:
                 logdata = dict()
-                logdata['unit'] = format(valuename)
+                logdata['unit'] = format(setting.valuename)
                 logdata['exc'] = exc
                 log('I5', logdata)
         for unit in self.units:

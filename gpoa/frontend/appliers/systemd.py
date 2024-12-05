@@ -37,6 +37,9 @@ class systemd_unit:
         if self.desired_state == 1:
             self.manager.UnmaskUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.EnableUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
+            if self.unit_name == 'gpupdate.service':
+                if self.manager.GetUnitFileState(dbus.String(self.unit_name)) == 'enabled':
+                    return
             self.manager.StartUnit(self.unit_name, 'replace')
             logdata = dict()
             logdata['unit'] = self.unit_name
