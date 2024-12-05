@@ -341,7 +341,7 @@ class cifs_applier_user(applier_frontend):
                 f.write(autofs_text)
                 f.flush()
 
-        if self.is_changed_keys() or not self.is_mount_point_dirname():
+        if self.is_changed_keys() or (self.drives and not self.is_mount_point_dirname()):
             self.restart_autofs()
 
         if self.username:
