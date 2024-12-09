@@ -39,11 +39,12 @@ class DynamicAttributes:
         return iter(self.__dict__.items())
 
 class RegistryKeyMetadata(DynamicAttributes):
-    def __init__(self, policy_name, type, is_list=None):
+    def __init__(self, policy_name, type, is_list=None, mod_previous_value=None):
         self.policy_name = policy_name
         self.type = type
         self.reloaded_with_policy_key = None
         self.is_list = is_list
+        self.mod_previous_value = mod_previous_value
 
     def __repr__(self):
         return str(dict(self))
