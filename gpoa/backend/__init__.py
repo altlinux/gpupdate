@@ -62,7 +62,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
 
     return back
 
-def save_dconf(username, is_machine):
+def save_dconf(username, is_machine, nodomain=None):
     if is_machine:
         uid = None
     else:
@@ -72,4 +72,4 @@ def save_dconf(username, is_machine):
     Dconf_registry.apply_template(uid)
     add_preferences_to_global_registry_dict(username, is_machine)
     Dconf_registry.update_dict_to_previous()
-    create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict, uid)
+    create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict, uid, nodomain)

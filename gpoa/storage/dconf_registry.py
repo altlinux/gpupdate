@@ -675,7 +675,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     update_dict(Dconf_registry.global_registry_dict, dd)
 
 
-def create_dconf_ini_file(filename, data, uid=None):
+def create_dconf_ini_file(filename, data, uid=None, nodomain=None):
     '''
     Create an ini-file based on a dictionary of dictionaries.
     Args:
@@ -686,7 +686,7 @@ def create_dconf_ini_file(filename, data, uid=None):
     Raises:
         None
     '''
-    with open(filename, 'w') as file:
+    with open(filename, 'a' if nodomain else 'w') as file:
         for section, section_data in data.items():
             file.write(f'[{section}]\n')
             for key, value in section_data.items():
