@@ -19,6 +19,7 @@
 import subprocess
 from pathlib import Path
 from util.util import (string_to_literal_eval,
+                       try_dict_to_literal_eval,
                        touch_file, get_uid_by_username,
                        add_prefix_to_keys,
                        remove_keys_with_prefix,
@@ -72,7 +73,7 @@ class Dconf_registry():
     _force = False
     __dconf_dict_flag = False
     __dconf_dict = dict()
-    __dconf_db = dict()
+    _dconf_db = dict()
     _dict_gpo_name_version_cache = dict()
     _username = None
     _uid = None
@@ -202,7 +203,7 @@ class Dconf_registry():
 
     @classmethod
     def update_dict_to_previous(cls):
-        dict_clean_previous = remove_keys_with_prefix(cls.__dconf_db)
+        dict_clean_previous = remove_keys_with_prefix(cls._dconf_db)
         dict_with_previous = add_prefix_to_keys(dict_clean_previous)
         cls.global_registry_dict.update(dict_with_previous)
 
@@ -290,7 +291,7 @@ class Dconf_registry():
             else:
                 log('D217', logdata)
         if save_dconf_db:
-            Dconf_registry.__dconf_db = output_dict
+            Dconf_registry._dconf_db = output_dict
         return output_dict
 
 
@@ -584,7 +585,17 @@ def add_to_dict(string, username, gpo_info):
     dictionary['version'] = str(version)
     dictionary['correct_path'] = string
 
+def get_mod_previous_value(key_source, key_valuename):
+    previous_sourc = try_dict_to_literal_eval(Dconf_registry._dconf_db
+            .get(key_source, {})
+            .get(key_valuename, {}))
+    return previous_sourc.get('mod_previous_value') if previous_sourc else None
 
+def get_previous_value(key_source, key_valuename):
+    previous = key_source.replace('Source', 'Previous')
+    return (Dconf_registry._dconf_db
+            .get(previous, {})
+            .get(key_valuename, None))
 
 def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
     '''
@@ -600,36 +611,65 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
         valuename = convert_string_dconf(i.valuename)
         data = check_data(i.data, i.type)
         if i.valuename != i.data and i.valuename:
+            key_registry_source = f"{source_pre}/{i.keyname}".replace('\\', '/')
+            key_registry = f"{i.keyname}".replace('\\', '/')
+            key_valuename = valuename.replace('\\', '/')
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
-                dd[i.keyname.replace('\\', '/')].update({valuename.replace('\\', '/'):data})
-                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')].update({valuename.replace('\\', '/'):RegistryKeyMetadata(policy_name, i.type)})
+                dd[i.keyname.replace('\\', '/')].update({key_valuename:data})
+                mod_previous_value = get_mod_previous_value(key_registry_source, key_valuename)
+                previous_value = get_previous_value(key_registry, key_valuename)
+                if previous_value != data:
+                    (dd[key_registry_source]
+                     .update({key_valuename:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=previous_value)}))
+                else:
+                    (dd[key_registry_source]
+                     .update({key_valuename:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=mod_previous_value)}))
             else:
                 # If the key does not exist in dd, create a new key-value pair
-                dd[i.keyname.replace('\\', '/')] = {valuename.replace('\\', '/'):data}
-                dd[f"{source_pre}/{i.keyname}".replace('\\', '/')] = {valuename.replace('\\', '/'):RegistryKeyMetadata(policy_name, i.type)}
+                dd[i.keyname.replace('\\', '/')] = {key_valuename:data}
+                mod_previous_value = get_mod_previous_value(key_registry_source, key_valuename)
+                previous_value = get_previous_value(key_registry, key_valuename)
+                if previous_value != data:
+                    dd[key_registry_source] = {key_valuename:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=previous_value)}
+                else:
+                    dd[key_registry_source] = {key_valuename:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=mod_previous_value)}
 
         elif not i.valuename:
             keyname_tmp = i.keyname.replace('\\', '/').split('/')
             keyname = '/'.join(keyname_tmp[:-1])
+            mod_previous_value = get_mod_previous_value(f"{source_pre}/{keyname}", keyname_tmp[-1])
+            previous_value = get_previous_value(f"{keyname}", keyname_tmp[-1])
             if keyname in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[keyname].update({keyname_tmp[-1]:data})
-                dd[f"{source_pre}{keyname}"].update({keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type)})
+                if previous_value != data:
+                    dd[f"{source_pre}/{keyname}"].update({keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=previous_value)})
+                else:
+                    dd[f"{source_pre}/{keyname}"].update({keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=mod_previous_value)})
             else:
                 # If the key does not exist in dd, create a new key-value pair
                 dd[keyname] = {keyname_tmp[-1]:data}
-                dd[f"{source_pre}{keyname}"] = {keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type)}
+                if previous_value != data:
+                    dd[f"{source_pre}/{keyname}"] = {keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=previous_value)}
+                else:
+                    dd[f"{source_pre}/{keyname}"] = {keyname_tmp[-1]:RegistryKeyMetadata(policy_name, i.type, mod_previous_value=mod_previous_value)}
 
         else:
             # If the value name is the same as the data,
             # split the keyname and add the data to the appropriate location in dd.
             all_list_key = i.keyname.split('\\')
-            dd_target = dd.setdefault('/'.join(all_list_key[:-1]),{})
             key_d ='/'.join(all_list_key[:-1])
-            dd_target_source = dd.setdefault(f"Source/{key_d}",{})
-            dd_target.setdefault(all_list_key[-1], []).append(data)
-            dd_target_source.setdefault(all_list_key[-1], RegistryKeyMetadata(policy_name, i.type, True))
+            dd_target = dd.setdefault(key_d,{})
+            key_source = f"Source/{key_d}"
+            dd_target_source = dd.setdefault(key_source, {})
+            data_list = dd_target.setdefault(all_list_key[-1], []).append(data)
+            mod_previous_value = get_mod_previous_value(key_source, all_list_key[-1])
+            previous_value = get_previous_value(key_d, all_list_key[-1])
+            if previous_value != str(data_list):
+                dd_target_source[all_list_key[-1]] = RegistryKeyMetadata(policy_name, i.type, is_list=True, mod_previous_value=previous_value)
+            else:
+                dd_target_source[all_list_key[-1]] = RegistryKeyMetadata(policy_name, i.type, is_list=True, mod_previous_value=mod_previous_value)
 
     # Update the global registry dictionary with the contents of dd
     update_dict(Dconf_registry.global_registry_dict, dd)
