@@ -109,7 +109,7 @@ class fs_file_cache:
             logdata = dict({'exception': str(exc)})
             log('E36', logdata)
             raise exc
-        if destfile.exists():
+        if Path(destfile).exists():
             return str(destfile)
         else:
             return None
