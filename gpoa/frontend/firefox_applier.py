@@ -116,7 +116,7 @@ def create_dict(firefox_keys, registry_branch, excp=list()):
     '''
     Collect dictionaries from registry keys into a general dictionary
     '''
-    get_boolean = lambda data: data in ['0', 'false', None, 'none', 0] if isinstance(data, (str, int)) else False
+    get_boolean = lambda data: data in ['1', 'true', 'True', True, 1] if isinstance(data, (str, int)) else False
     get_parts = lambda hivekey, registry: hivekey.replace(registry, '').split('/')
     counts = dict()
     for it_data in firefox_keys:
