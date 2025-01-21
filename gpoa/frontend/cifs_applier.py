@@ -301,6 +301,7 @@ class cifs_applier_user(applier_frontend):
             drive_settings['label'] = remove_escaped_quotes(drv.label)
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
+            drive_settings['username'] = self.username
 
             drive_list.append(drive_settings)
 

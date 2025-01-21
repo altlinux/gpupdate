@@ -19,9 +19,9 @@
 {%- for drv in drives %}
 {% if (drv.thisDrive != 'HIDE') %}
 {% if drv.label %}
-"{{ drv.label }}"	-fstype=cifs,cruid=$USER,sec=krb5,noperm,cifsacl	:{{ drv.path }}
+"{{ drv.label }}" {% if drv.username %}-fstype=cifs,cruid=$USER,sec=krb5,noperm,cifsacl{% else %}-fstype=cifs,cruid=$USER,sec=krb5,noperm,cifsacl,multiuser{% endif %} :{{ drv.path }}
 {% else %}
-"{{ drv.dir }}"	-fstype=cifs,cruid=$USER,sec=krb5,noperm,cifsacl	:{{ drv.path }}
+"{{ drv.dir }}" {% if drv.username %}-fstype=cifs,cruid=$USER,sec=krb5,noperm,cifsacl{% else %}-fstype=cifs,cruid=$USER,sec=krb5,noperm,cifsacl,multiuser{% endif %} :{{ drv.path }}
 {% endif %}
 {% endif %}
 {% endfor %}
