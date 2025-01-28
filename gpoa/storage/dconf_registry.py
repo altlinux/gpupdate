@@ -218,13 +218,15 @@ class Dconf_registry():
 
         elif uid:
             content = f"user-db:user\n" \
+              f"system-db:distr\n" \
               f"system-db:policy\n" \
               f"system-db:policy{uid}\n" \
               f"system-db:local\n" \
               f"system-db:default\n" \
               f"system-db:local\n" \
               f"system-db:policy{uid}\n" \
-              f"system-db:policy\n"
+              f"system-db:policy\n" \
+              f"system-db:distr\n"
         else:
             logdata['uid'] = uid
             log('W24', logdata)
