@@ -118,12 +118,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 if file_name == 'wallpaper':
                     apply_for_wallpaper(data, file_cache, username, plasmaupdate)
                 else:
-                    if file_name not in all_kde_settings:
-                        all_kde_settings[file_name] = {}
-                    if section not in all_kde_settings[file_name]:
-                        all_kde_settings[file_name][section] = {}
-                    all_kde_settings[file_name][section][value] = data
-
+                    all_kde_settings.setdefault(file_name, {}).setdefault(section, {})[value] = data
             except Exception as exc:
                 logdata = dict()
                 logdata['file_name'] = file_name
@@ -160,7 +155,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                     file.write(f'[{section}]\n')
                     for key, value in keys.items():
                         lock = f"{file_name}.{section}.{key}".replace('][', ')(')
-                        if lock in locks_dict and locks_dict[lock] == 1:
+                        if locks_dict.get(lock) == 1:
                             file.write(f'{key}[$i]={value}\n')
                         else:
                             file.write(f'{key}={value}\n')
@@ -309,9 +304,6 @@ def get_id_desktop(path_to_wallpaper):
         with open(path_to_wallpaper, 'r') as file:
             file_content = file.read()
         match = re.search(pattern, file_content)
-        if match:
-            return match.group(1)
-        else:
-            return None
+        return match.group(1) if match else None
     except:
         return None
