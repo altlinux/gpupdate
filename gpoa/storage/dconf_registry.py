@@ -700,7 +700,55 @@ def create_dconf_ini_file(filename, data, uid=None, nodomain=None):
     logdata = dict()
     logdata['path'] = filename
     log('D209', logdata)
+    create_dconf_file_locks(filename, data)
     Dconf_registry.dconf_update(uid)
+
+
+def create_dconf_file_locks(filename_ini, data):
+    """
+    Creates a dconf lock file based on the provided filename and data.
+
+    :param filename_ini: Path to the ini file (str)
+    :param data: Dictionary containing configuration data
+    """
+    # Extract the path parts up to the directory of the ini file
+    tmp_lock = filename_ini.split('/')[:-1]
+
+    # Construct the path to the lock file
+    file_lock = '/'.join(tmp_lock + ['locks', tmp_lock[-1][:-1] + 'pol'])
+
+    # Create an empty lock file
+    touch_file(file_lock)
+
+    # Open the lock file for writing
+    with open(file_lock, 'w') as file:
+        # Iterate over all lock keys obtained from the data
+        for key_lock in get_keys_dconf_locks(data):
+            # Remove the "lock/" prefix from the key and split into parts
+            key = key_lock.split('/')[1:]
+            # Write the cleaned key to the lock file
+            file.write(f'{key}\n')
+
+def get_keys_dconf_locks(data):
+    """
+    Extracts keys from the provided data that start with "Locks/"
+    and have a value of 1.
+
+    :param data: Dictionary containing configuration data
+    :return: List of lock keys (str) without the "Locks/" prefix
+    """
+    result = []
+    # Flatten the nested dictionary into a single-level dictionary
+    flatten_data = flatten_dictionary(data)
+
+    # Iterate through all keys in the flattened dictionary
+    for key in flatten_data:
+        # Check if the key starts with "Locks/" and its value is 1
+        if key.startswith('Locks/') and flatten_data[key] == 1:
+            # Remove the "Locks" prefix and append to the result
+            result.append(key.removeprefix('Locks'))
+
+    return result
 
 
 def check_data(data, t_data):
