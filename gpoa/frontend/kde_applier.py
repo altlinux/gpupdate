@@ -108,6 +108,21 @@ class kde_applier_user(applier_frontend):
         else:
             log('D201')
 
+dbus_methods_mapping = {
+    'kscreenlockerrc': {
+        'dbus_service': 'org.kde.screensaver',
+        'dbus_path': '/ScreenSaver',
+        'dbus_interface': 'org.kde.screensaver',
+        'dbus_method': 'configure'
+    },
+    'wallpaper': {
+        'dbus_service': 'org.kde.plasmashell',
+        'dbus_path': '/PlasmaShell',
+        'dbus_interface': 'org.kde.PlasmaShell',
+        'dbus_method': 'refreshCurrentShell'
+    },
+}
+
 def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None, username = None, plasmaupdate = False):
         for locks in locks_settings:
             locks_dict[locks.valuename] = locks.data
@@ -130,6 +145,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
 
 def apply(all_kde_settings, locks_dict, username = None):
     logdata = dict()
+    modified_files = set()
     if username is None:
         system_path_settings = '/etc/xdg/'
         system_files = [
@@ -160,6 +176,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         else:
                             file.write(f'{key}={value}\n')
                     file.write('\n')
+            modified_files.add(file_name)
     else:
         for file_name, sections in all_kde_settings.items():
             path = f'{get_homedir(username)}/.config/{file_name}'
@@ -209,6 +226,9 @@ def apply(all_kde_settings, locks_dict, username = None):
             except Exception as exc:
                 logdata['exc'] = exc
                 log('W19', logdata)
+            modified_files.add(file_name)
+    for file_name in modified_files:
+        call_dbus_method(file_name)
 
 def clear_locks_settings(username, file_name, key):
     '''
@@ -255,7 +275,6 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
         os.environ["DISPLAY"] = ":0"
             #Variable for command execution plasma-apply-colorscheme
         os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
-        os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
         os.environ["PATH"] = "/usr/lib/kf5/bin:"
             #environment variable for accessing binary files without hard links
         if not flag:
@@ -278,13 +297,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                         logdata['command'] = command
                         log('E68', logdata)
                 if plasmaupdate == 1:
-                    try:
-                        session_bus = dbus.SessionBus()
-                        plasma_shell = session_bus.get_object('org.kde.plasmashell', '/PlasmaShell', introspect='org.kde.PlasmaShell')
-                        plasma_shell_iface = dbus.Interface(plasma_shell, 'org.kde.PlasmaShell')
-                        plasma_shell_iface.refreshCurrentShell()
-                    except:
-                        pass
+                    call_dbus_method("wallpaper")
         else:
             logdata['file'] = path_to_wallpaper
             log('W21', logdata)
@@ -307,3 +320,21 @@ def get_id_desktop(path_to_wallpaper):
         return match.group(1) if match else None
     except:
         return None
+
+def call_dbus_method(file_name):
+    '''
+    Method to call D-Bus method based on the file name
+    '''
+    os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"
+    if file_name in dbus_methods_mapping:
+        config = dbus_methods_mapping[file_name]
+        try:
+            session_bus = dbus.SessionBus()
+            dbus_object = session_bus.get_object(config['dbus_service'], config['dbus_path'])
+            dbus_iface = dbus.Interface(dbus_object, config['dbus_interface'])
+            getattr(dbus_iface, config['dbus_method'])()
+        except dbus.exceptions.DBusException as e:
+            logdata = dict({'error': str(exc)})
+            log('E31', logdata)
+    else:
+        pass
