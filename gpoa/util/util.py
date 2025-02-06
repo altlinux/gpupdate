@@ -221,6 +221,13 @@ def remove_keys_with_prefix(dictionary: dict, prefix: tuple=('Previous/', 'Sourc
     """
     return {key: value for key, value in dictionary.items() if not key.startswith(prefix)}
 
+def remove_prefix_from_keys(dictionary: dict, prefix: str) -> dict:
+    """
+    Removes the specified prefix from the keys of the dictionary.
+    If a key starts with the prefix, it is removed.
+    """
+    return {key[len(prefix):] if key.startswith(prefix) else key: value for key, value in dictionary.items()}
+
 
 def get_trans_table():
     return str.maketrans({
