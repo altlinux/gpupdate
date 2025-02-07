@@ -209,6 +209,7 @@ class smbcreds (smbopts):
 class SiteDomainScanner:
     def __init__(self, smbcreds, lp, dc):
         self.samdb = SamDB(url='ldap://{}'.format(dc), session_info=system_session(), credentials=smbcreds, lp=lp)
+        Dconf_registry.set_info('samdb', self.samdb)
         self.pdc_emulator = self._search_pdc_emulator()
 
     @staticmethod
