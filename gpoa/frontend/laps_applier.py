@@ -100,21 +100,50 @@ class laps_applier(applier_frontend):
         if not isinstance(password_complexity, int) or not (1 <= password_complexity <= 4):
             password_complexity = 4
 
-        complexity_options = [
-            string.ascii_letters + string.digits + string.punctuation,
-            string.ascii_uppercase,
-            string.ascii_lowercase + string.ascii_uppercase,
-            string.ascii_letters + string.digits,
-            string.ascii_letters + string.digits + string.punctuation
-        ]
+        char_sets = {
+            1: string.ascii_uppercase,
+            2: string.ascii_letters,
+            3: string.ascii_letters + string.digits,
+            4: string.ascii_letters + string.digits + string.punctuation
+        }
 
-        chars = complexity_options[password_complexity]
+        char_set = char_sets.get(password_complexity, char_sets[4])
 
+        password = self.generate_password(char_set, password_length)
 
-        password = ''.join(secrets.choice(chars) for _ in range(password_length))
+        if password_complexity >= 3 and not any(c.isdigit() for c in password):
+            digit = secrets.choice(string.digits)
+            position = secrets.randbelow(len(password))
+            password = password[:position] + digit + password[position:]
+
+        if password_complexity == 4 and not any(c in string.punctuation for c in password):
+            special_char = secrets.choice(string.punctuation)
+            position = secrets.randbelow(len(password))
+            password = password[:position] + special_char + password[position:]
         return password
 
 
+    def generate_password(self, char_set, length):
+        password = ''.join(secrets.choice(char_set) for _ in range(length))
+        return password
+
+    def get_last_login_hours_ago(self, username):
+        try:
+            output = subprocess.check_output(["last", "-n", "1", username], text=True).split("\n")[0]
+            parts = output.split()
+
+            if len(parts) < 7:
+                return None
+
+            login_str = f"{parts[4]} {parts[5]} {parts[6]}"
+            last_login_time = datetime.strptime(login_str, "%b %d %H:%M")
+            last_login_time = last_login_time.replace(year=datetime.now().year)
+            time_diff = datetime.now() - last_login_time
+            return time_diff.total_seconds() // 3600
+
+        except Exception as e:
+            print('Dlog', e)
+            return
 
     def __change_root_password(self):
         ...
