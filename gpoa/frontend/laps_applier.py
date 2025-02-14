@@ -38,8 +38,8 @@ class laps_applier(applier_frontend):
     __module_name = 'LapsApplier'
     __module_experimental = True
     __module_enabled = False
-    __all_win_registry = 'SOFTWARE/Microsoft/Windows/CurrentVersion/Policies/LAPS'
-    __registry_branch = 'Software/BaseALT/Policies/Laps'
+    __all_win_registry = 'SOFTWARE/Microsoft/Windows/CurrentVersion/Policies/LAPS/'
+    __registry_branch = 'Software/BaseALT/Policies/Laps/'
     __attr_EncryptedPassword = 'msLAPS-EncryptedPassword'
     __attr_PasswordExpirationTime = 'msLAPS-PasswordExpirationTime'
     __key_passwordLastModified = '/Software/BaseALT/Policies/Laps/passwordLastModified'
@@ -175,9 +175,7 @@ class laps_applier(applier_frontend):
     def get_json_pass(self):
         psw = self.get_password()
         self.hash_psw = self.get_hash_password(psw)
-        password = self.psw.encode("utf-16-le") + b"\x00\x00"
-
-        return f'{{"n":{self.target_user},"t":{self.expiration_date_int},"p":{password}}}'
+        return f'{{"n":"{self.target_user}","t":"{self.expiration_date_int}","p":"{psw}"}}'
 
     def get_expiration_date(self):
         password_age_days = self.all_keys.get('PasswordAgeDays', 0)
@@ -190,7 +188,7 @@ class laps_applier(applier_frontend):
         return int(new_dt.timestamp() * self.__hundreds_of_nanoseconds)
 
     def get_full_blob(self, dpapi_ng_blob):
-        left,right = struct.unpack('<LL',struct.pack('Q',self.dt_now_int))
+        left,right = struct.unpack('<LL',struct.pack('Q', self.dt_now_int))
         packed = struct.pack('<LL',right,left)
         prefix = packed + struct.pack('<i', len(dpapi_ng_blob)) + b'\x00\x00\x00\x00'
         full_blob = prefix + dpapi_ng_blob
@@ -235,14 +233,15 @@ class laps_applier(applier_frontend):
     def update_laps_password(self):
         try:
             psw_json = self.get_json_pass()
-            dpapi_ng_blob = dpapi_ng.ncrypt_protect_secret(psw_json, self.encryption_principal, auth_protocol='kerberos')
+            password = psw_json.encode("utf-16-le") + b"\x00\x00"
+            dpapi_ng_blob = dpapi_ng.ncrypt_protect_secret(password, self.encryption_principal, auth_protocol='kerberos')
             full_blob = self.get_full_blob(dpapi_ng_blob)
             mod_msg = ldb.Message()
             mod_msg.dn = self.computer_dn
             mod_msg[self.__attr_EncryptedPassword] = (ldb.MessageElement
                                             (full_blob, ldb.FLAG_MOD_REPLACE, self.__attr_EncryptedPassword))
             mod_msg[self.__attr_PasswordExpirationTime] = (ldb.MessageElement
-                                            (self.expiration_date_int, ldb.FLAG_MOD_REPLACE, self.__attr_PasswordExpirationTime))
+                                            (str(self.expiration_date_int), ldb.FLAG_MOD_REPLACE, self.__attr_PasswordExpirationTime))
 
             self.samdb.modify(mod_msg)
             #self.__change_root_password()
