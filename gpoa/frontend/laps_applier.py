@@ -136,7 +136,7 @@ class laps_applier(applier_frontend):
 
     def get_last_login_hours_ago(self, username):
         try:
-            output = subprocess.check_output(["last", "-n", "1", username], text=True).split("\n")[0]
+            output = subprocess.check_output(["last", "-n", "1", username], env={'LANG':'C'} ,text=True).split("\n")[0]
             parts = output.split()
 
             if len(parts) < 7:
@@ -146,7 +146,7 @@ class laps_applier(applier_frontend):
             last_login_time = datetime.strptime(login_str, "%b %d %H:%M")
             last_login_time = last_login_time.replace(year=datetime.now().year)
             time_diff = datetime.now() - last_login_time
-            return time_diff.total_seconds() // 3600
+            return int(time_diff.total_seconds() // 3600)
 
         except Exception as e:
             print('Dlog', e)
@@ -231,6 +231,8 @@ class laps_applier(applier_frontend):
 
 
     def update_laps_password(self):
+        if self.get_expiration_time_attr() > self.dt_now_int:
+            return
         try:
             psw_json = self.get_json_pass()
             password = psw_json.encode("utf-16-le") + b"\x00\x00"
@@ -245,7 +247,7 @@ class laps_applier(applier_frontend):
 
             self.samdb.modify(mod_msg)
             #self.__change_root_password()
-            self.write_dconf_pass_last_mod()
+            #self.write_dconf_pass_last_mod()
             print(f"Пароль успешно обновлен")
 
         except Exception as e:
