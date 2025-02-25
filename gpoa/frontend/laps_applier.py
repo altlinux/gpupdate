@@ -53,9 +53,10 @@ class laps_applier(applier_frontend):
         self.all_keys.update(all_alt_keys)
 
         self.backup_directory = self.all_keys.get('BackupDirectory', None)
-        if self.backup_directory != 2:
+        EncryptionEnabled = self.all_keys.get('ADPasswordEncryptionEnabled', 1)
+        if self.backup_directory != 2 and EncryptionEnabled == 1:
             self.__module_enabled = False
-            print('backup_directory', self.backup_directory)
+            print('backup_directory', self.backup_directory, EncryptionEnabled)
             return
         self.samdb = storage.get_info('samdb')
         domain_sid = self.samdb.get_domain_sid()
@@ -137,7 +138,7 @@ class laps_applier(applier_frontend):
 
     def get_last_login_hours_ago(self, username):
         try:
-            output = subprocess.check_output(["last", "-n", "1", username], env={'LANG':'C'} ,text=True).split("\n")[0]
+            output = subprocess.check_output(["last", "-n", "1", username], env={'LANG':'C'}, text=True).split("\n")[0]
             parts = output.split()
 
             if len(parts) < 7:
@@ -179,9 +180,7 @@ class laps_applier(applier_frontend):
                else self.admin_group_sid)
         return sid
 
-    def get_json_pass(self):
-        psw = self.get_password()
-        self.hash_psw = self.get_hash_password(psw)
+    def get_json_pass(self, psw):
         return f'{{"n":"{self.target_user}","t":"{self.expiration_date_int}","p":"{psw}"}}'
 
     def get_expiration_date(self):
@@ -246,7 +245,8 @@ class laps_applier(applier_frontend):
         if self.get_expiration_time_attr() > self.dt_now_int:
             return
         try:
-            psw_json = self.get_json_pass()
+            psw = self.get_password()
+            psw_json = self.get_json_pass(psw)
             password = psw_json.encode("utf-16-le") + b"\x00\x00"
             dpapi_ng_blob = dpapi_ng.ncrypt_protect_secret(password, self.encryption_principal, auth_protocol='kerberos')
             full_blob = self.get_full_blob(dpapi_ng_blob)
@@ -258,8 +258,8 @@ class laps_applier(applier_frontend):
                                             (str(self.expiration_date_int), ldb.FLAG_MOD_REPLACE, self.__attr_PasswordExpirationTime))
 
             self.samdb.modify(mod_msg)
-            #self.__change_root_password()
-            #self.write_dconf_pass_last_mod()
+            #self.__change_root_password(psw)
+            self.write_dconf_pass_last_mod()
             print(f"Пароль успешно обновлен")
 
         except Exception as e:
