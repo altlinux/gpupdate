@@ -31,6 +31,7 @@ import ldb
 import string
 import secrets
 from passlib.hash import bcrypt
+import os
 
 class laps_applier(applier_frontend):
     __epoch_timestamp = 11644473600  # January 1, 1970 as MS file time
@@ -42,7 +43,7 @@ class laps_applier(applier_frontend):
     __registry_branch = 'Software/BaseALT/Policies/Laps/'
     __attr_EncryptedPassword = 'msLAPS-EncryptedPassword'
     __attr_PasswordExpirationTime = 'msLAPS-PasswordExpirationTime'
-    __key_passwordLastModified = '/Software/BaseALT/Policies/Laps/passwordLastModified'
+    __key_passwordLastModified = '/Software/BaseALT/Policies/Laps/PasswordLastModified/'
 
 
     def __init__(self, storage):
@@ -216,15 +217,20 @@ class laps_applier(applier_frontend):
 
     def write_dconf_pass_last_mod(self):
         try:
+            dbus_address = os.getenv("DBUS_SESSION_BUS_ADDRESS")
+            if not dbus_address:
+                result = subprocess.run(["dbus-daemon", "--fork", "--session", "--print-address"], capture_output=True, text=True)
+                dbus_address = result.stdout.strip()
+                os.environ["DBUS_SESSION_BUS_ADDRESS"] = dbus_address
             LastModified = f'"{self.dt_now_int}"'
-            subprocess.check_output(['dconf', 'write', self.__key_passwordLastModified, LastModified])
+            subprocess.check_output(['dconf', 'write', self.__key_passwordLastModified+self.target_user, LastModified])
         except Exception as exc:
             print('Dlog', exc)
 
     def read_dconf_pass_last_mod(self):
         LastModified = None
         try:
-            LastModified = subprocess.check_output(['dconf', 'read', self.__key_passwordLastModified]).split("\n")[0]
+            LastModified = subprocess.check_output(['dconf', 'read', self.__key_passwordLastModified+self.target_user], text=True).split("\n")[0]
         except Exception as exc:
             print('Dlog', exc)
         return LastModified
