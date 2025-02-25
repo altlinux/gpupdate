@@ -153,18 +153,24 @@ class laps_applier(applier_frontend):
             print('Dlog', e)
             return None
 
-    def __change_root_password(self):
+    def get_changed_password_hours_ago(self):
         try:
-            if self.hash_psw:
-                subprocess.check_output(
-                ['usermod', '-p', self.hash_psw, self.target_user],
-                stderr=subprocess.STDOUT, text=True)
-            else:
-                print('Dlog')
-        except subprocess.CalledProcessError as e:
-            print('Dlog', e.output)
+            pass_last_mod = self.read_dconf_pass_last_mod()
+            diff_time =  self.dt_now_int - int(pass_last_mod.strip("'\""))
+            hours_difference = diff_time // 3.6e10
+            return int(hours_difference)
+        except:
+            return None
+
+    def __change_root_password(self, new_password):
+        try:
+            process = subprocess.Popen(
+                ["chpasswd"], stdin=subprocess.PIPE, text=True
+            )
+            process.communicate(f"{self.target_user}:{new_password}")
+            print("Dlog")
         except Exception as e:
-            print('Dlog')
+            print(f"Dlog {e}")
 
     def get_encryption_principal(self):
         encryption_principal = self.all_keys.get('ADPasswordEncryptionPrincipal', None)
