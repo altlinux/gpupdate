@@ -34,8 +34,9 @@ from passlib.hash import bcrypt
 import os
 
 class laps_applier(applier_frontend):
-    __epoch_timestamp = 11644473600  # January 1, 1970 as MS file time
+    __epoch_timestamp = 11644473600
     __hundreds_of_nanoseconds = 10000000
+    __day_float = 8.64e11
     __module_name = 'LapsApplier'
     __module_experimental = True
     __module_enabled = False
@@ -53,22 +54,28 @@ class laps_applier(applier_frontend):
         self.all_keys.update(all_alt_keys)
 
         self.backup_directory = self.all_keys.get('BackupDirectory', None)
-        EncryptionEnabled = self.all_keys.get('ADPasswordEncryptionEnabled', 1)
-        if self.backup_directory != 2 and EncryptionEnabled == 1:
+        encryption_enabled = self.all_keys.get('ADPasswordEncryptionEnabled', 1)
+        if self.backup_directory != 2 and encryption_enabled == 1:
             self.__module_enabled = False
-            print('backup_directory', self.backup_directory, EncryptionEnabled)
+            print('backup_directory', self.backup_directory, encryption_enabled)
             return
+        self.password_expiration_protection = self.all_keys.get('PasswordExpirationProtectionEnabled', 1)
         self.samdb = storage.get_info('samdb')
         domain_sid = self.samdb.get_domain_sid()
         self.domain_dn = self.samdb.domain_dn()
         self.computer_dn = self.get_computer_dn()
         self.admin_group_sid = f'{domain_sid}-{WellKnown21RID.DOMAIN_ADMINS.value}'
+        self.password_age_days = self.all_keys.get('PasswordAgeDays', 30)
         self.expiration_date = self.get_expiration_date()
         self.expiration_date_int = self.get_int_time(self.expiration_date)
         self.dt_now_int = self.get_int_time(datetime.now())
-        self.hash_psw = None
+        self.expiration_time_attr = self.get_expiration_time_attr()
+        self.pass_last_mod_int = self.read_dconf_pass_last_mod()
+        self.post_authentication_actions = self.all_keys.get('PostAuthenticationActions', 1)
+        self.post_authentication_reset_delay = self.all_keys.get('PostAuthenticationResetDelay', 24)
         self.target_user = self.get_target_user()
         self.encryption_principal = self.get_encryption_principal()
+        self.last_login_hours_ago = self.get_last_login_hours_ago(self.target_user)
 
 
         self.__module_enabled = check_enabled(
@@ -142,7 +149,7 @@ class laps_applier(applier_frontend):
             parts = output.split()
 
             if len(parts) < 7:
-                return None
+                return 0
 
             login_str = f"{parts[4]} {parts[5]} {parts[6]}"
             last_login_time = datetime.strptime(login_str, "%b %d %H:%M")
@@ -152,16 +159,15 @@ class laps_applier(applier_frontend):
 
         except Exception as e:
             print('Dlog', e)
-            return None
+            return 0
 
     def get_changed_password_hours_ago(self):
         try:
-            pass_last_mod = self.read_dconf_pass_last_mod()
-            diff_time =  self.dt_now_int - int(pass_last_mod.strip("'\""))
+            diff_time =  self.dt_now_int - self.pass_last_mod_int
             hours_difference = diff_time // 3.6e10
             return int(hours_difference)
         except:
-            return None
+            return 0
 
     def __change_root_password(self, new_password):
         try:
@@ -169,6 +175,7 @@ class laps_applier(applier_frontend):
                 ["chpasswd"], stdin=subprocess.PIPE, text=True
             )
             process.communicate(f"{self.target_user}:{new_password}")
+            self.write_dconf_pass_last_mod()
             print("Dlog")
         except Exception as e:
             print(f"Dlog {e}")
@@ -183,10 +190,13 @@ class laps_applier(applier_frontend):
     def get_json_pass(self, psw):
         return f'{{"n":"{self.target_user}","t":"{self.expiration_date_int}","p":"{psw}"}}'
 
-    def get_expiration_date(self):
-        password_age_days = self.all_keys.get('PasswordAgeDays', 0)
-        return (datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-                + timedelta(days=int(password_age_days)))
+    def get_expiration_date(self, dt = None):
+        if not dt:
+            return (datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                    + timedelta(days=int(self.password_age_days)))
+        else:
+            return(dt.replace(hour=0, minute=0, second=0, microsecond=0)
+                    + timedelta(days=int(self.password_age_days)))
 
     def get_int_time(self, datetime):
         epoch_timedelta = timedelta(seconds=self.__epoch_timestamp)
@@ -233,17 +243,34 @@ class laps_applier(applier_frontend):
             print('Dlog', exc)
 
     def read_dconf_pass_last_mod(self):
-        LastModified = None
         try:
-            LastModified = subprocess.check_output(['dconf', 'read', self.__key_passwordLastModified+self.target_user], text=True).split("\n")[0]
+            last_modified = subprocess.check_output(['dconf', 'read', self.__key_passwordLastModified+self.target_user], text=True).split("\n")[0]
+            last_modified = int(last_modified.strip("'\""))
         except Exception as exc:
-            print('Dlog', exc)
-        return LastModified
+            last_modified = self.dt_now_int
+        return last_modified
 
 
     def update_laps_password(self):
-        if self.get_expiration_time_attr() > self.dt_now_int:
-            return
+        password_rotten = True
+        action = False
+        if not self.password_expiration_protection and self.expiration_time_attr > self.dt_now_int:
+            password_rotten = False
+        elif self.password_expiration_protection:
+            if self.pass_last_mod_int + (self.password_age_days * int(self.__day_float)) > self.dt_now_int:
+                if self.expiration_time_attr > self.dt_now_int:
+                    password_rotten = False
+
+        if not password_rotten:
+            if self.get_changed_password_hours_ago() < self.last_login_hours_ago:
+                return
+            else:
+                if self.last_login_hours_ago < self.post_authentication_reset_delay:
+                    return
+                else:
+                    action = True
+
+
         try:
             psw = self.get_password()
             psw_json = self.get_json_pass(psw)
@@ -258,12 +285,23 @@ class laps_applier(applier_frontend):
                                             (str(self.expiration_date_int), ldb.FLAG_MOD_REPLACE, self.__attr_PasswordExpirationTime))
 
             self.samdb.modify(mod_msg)
-            #self.__change_root_password(psw)
-            self.write_dconf_pass_last_mod()
+            self.__change_root_password(psw)
             print(f"Пароль успешно обновлен")
 
         except Exception as e:
             print(f"Ошибка при работе с LDAP: {str(e)}")
+        if action:
+            self.run_action()
+
+    def run_action(self):
+        if self.post_authentication_actions == 0:
+            return
+        elif self.post_authentication_actions == 1:
+            subprocess.run(["reboot"])
+        elif self.post_authentication_actions == 2:
+            ...
+        elif self.post_authentication_actions == 3:
+            ...
 
     def apply(self):
         if self.__module_enabled:
