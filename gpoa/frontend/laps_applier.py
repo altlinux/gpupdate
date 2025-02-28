@@ -94,7 +94,7 @@ class laps_applier(applier_frontend):
         self._load_configuration()
 
         if not self._check_requirements():
-            print("LAPS requirements not met, module disabled")
+            log('W29')
             return
 
         # Initialize system connections and parameters
@@ -139,8 +139,10 @@ class laps_applier(applier_frontend):
             bool: True if requirements are met, False otherwise
         """
         if self.backup_directory != 2 and self.encryption_enabled == 1:
-            print(f"Requirements not met: backup_directory={self.backup_directory}, "
-                         f"encryption_enabled={self.encryption_enabled}")
+            logdata = dict()
+            logdata['backup_directory'] = self.backup_directory
+            logdata['encryption_enabled'] = self.encryption_enabled
+            log('D223', logdata)
             return False
         return True
 
@@ -213,8 +215,9 @@ class laps_applier(applier_frontend):
                 return principal_name
             except subprocess.CalledProcessError:
                 # Fallback to admin group SID
-                print(f"Could not resolve encryption principal '{principal_name}', "
-                              f"falling back to domain admins")
+                logdata = dict()
+                logdata['principal_name'] = principal_name
+                log('W30', logdata)
                 return self.admin_group_sid
 
     def _get_expiration_date(self, base_time=None):
@@ -261,8 +264,10 @@ class laps_applier(applier_frontend):
                 attrs=[self._ATTR_PASSWORD_EXPIRATION_TIME]
             )
             return int(res[0].get(self._ATTR_PASSWORD_EXPIRATION_TIME, 0)[0])
-        except Exception as e:
-            print(f"Failed to get expiration time: {e}")
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
+            log('W31', logdata)
             return 0
 
     def _read_dconf_pass_last_mod(self):
@@ -279,8 +284,10 @@ class laps_applier(applier_frontend):
                 text=True
             ).strip().strip("'\"")
             return int(last_modified)
-        except Exception as e:
-            print(f"Failed to read password modification time: {e}")
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
+            log('W32', logdata)
             return self.current_time_int
 
     def _write_dconf_pass_last_mod(self):
@@ -295,8 +302,11 @@ class laps_applier(applier_frontend):
             key_path = self._KEY_PASSWORD_LAST_MODIFIED + self.target_user
             last_modified = f'"{self.current_time_int}"'
             subprocess.check_output(['dconf', 'write', key_path, last_modified])
-        except Exception as e:
-            print(f"Failed to write password modification time: {e}")
+            log('D222')
+        except Exception as exc:
+            logdata = dict()
+            logdata['exc'] = exc
+            log('W28', logdata)
 
     def _ensure_dbus_session(self):
         """Ensure a D-Bus session is available for dconf operations."""
@@ -317,6 +327,8 @@ class laps_applier(applier_frontend):
         Returns:
             int: Hours since last login, or 0 if error or no login found
         """
+        logdata = dict()
+        logdata['target_user'] = self.target_user
         try:
             output = subprocess.check_output(
                 ["last", "-n", "1", self.target_user],
@@ -335,9 +347,13 @@ class laps_applier(applier_frontend):
 
             # Calculate hours difference
             time_diff = datetime.now() - last_login_time
-            return int(time_diff.total_seconds() // 3600)
-        except Exception as e:
-            print(f"Failed to get last login time: {e}")
+            hours_ago = int(time_diff.total_seconds() // 3600)
+            logdata['hours_ago'] = hours_ago
+            log('D224', logdata)
+            return hours_ago
+        except Exception as exc:
+            logdata['exc'] = exc
+            log('W33', logdata)
             return 0
 
     def _get_changed_password_hours_ago(self):
@@ -347,12 +363,18 @@ class laps_applier(applier_frontend):
         Returns:
             int: Hours since password was last changed, or 0 if error
         """
+        logdata = dict()
+        logdata['target_user'] = self.target_user
         try:
             diff_time = self.current_time_int - self.pass_last_mod_int
             hours_difference = diff_time // 3.6e10
-            return int(hours_difference)
-        except Exception as e:
-            print(f"Failed to calculate password age: {e}")
+            hours_ago = int(hours_difference)
+            logdata['hours_ago'] = hours_ago
+            log('D225', logdata)
+            return hours_ago
+        except Exception as exc:
+            logdata['exc'] = exc
+            log('W34', logdata)
             return 0
 
     def _generate_password(self):
@@ -459,6 +481,8 @@ class laps_applier(applier_frontend):
         Returns:
             bool: True if password was changed successfully, False otherwise
         """
+        logdata = dict()
+        logdata['target_use'] = self.target_user
         try:
             # Use chpasswd to change the password
             process = subprocess.Popen(
@@ -470,10 +494,11 @@ class laps_applier(applier_frontend):
 
             # Record the time of change
             self._write_dconf_pass_last_mod()
-            print(f"Password changed for {self.target_user}")
+            log('D221', logdata)
             return True
-        except Exception as e:
-            print(f"Failed to change password: {e}")
+        except Exception as exc:
+            logdata['exc'] = exc
+            log('W27', logdata)
             return False
 
     def _update_ldap_password(self, encrypted_blob):
@@ -486,6 +511,8 @@ class laps_applier(applier_frontend):
         Returns:
             bool: True if LDAP was updated successfully, False otherwise
         """
+        logdata = dict()
+        logdata['computer_dn'] = self.computer_dn
         try:
             # Create LDAP modification message
             mod_msg = ldb.Message()
@@ -507,10 +534,11 @@ class laps_applier(applier_frontend):
 
             # Perform the LDAP modification
             self.samdb.modify(mod_msg)
-            print("LDAP updated with new password data")
+            log('D226', logdata)
             return True
-        except Exception as e:
-            print(f"Failed to update LDAP: {e}")
+        except Exception as exc:
+            logdata['exc'] = exc
+            log('E75', logdata)
             return False
 
     def _should_update_password(self):
@@ -576,7 +604,7 @@ class laps_applier(applier_frontend):
         if self.post_authentication_actions == self._ACTION_TERMINATE_SESSIONS:
             self._terminate_user_sessions()
         elif self.post_authentication_actions == self._ACTION_REBOOT:
-            print("Rebooting system after password change")
+            log('D220')
             subprocess.run(["reboot"])
 
     def _terminate_user_sessions(self):
@@ -585,9 +613,10 @@ class laps_applier(applier_frontend):
         """
         # Get active sessions for the target user
         user_sessions = [user for user in psutil.users() if user.name == self.target_user]
-
+        logdata = dict()
+        logdata['target_user'] = self.target_user
         if not user_sessions:
-            print(f"No active sessions found for {self.target_user}")
+            log('D227', logdata)
             return
 
         # Terminate each session
@@ -596,9 +625,12 @@ class laps_applier(applier_frontend):
                 # Get the process and terminate it
                 proc = psutil.Process(session.pid)
                 proc.kill()  # Send SIGKILL
-                print(f"Process {session.pid} ({self.target_user}) terminated")
-            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-                print(f"Failed to terminate process {session.pid}: {e}")
+                logdata['pid'] = session.pid
+                log('D228')
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as exc:
+                logdata['pid'] = session.pid
+                logdata['exc'] = exc
+                log('W35', logdata)
 
     def update_laps_password(self):
         """
@@ -609,7 +641,7 @@ class laps_applier(applier_frontend):
         update_needed, perform_post_action = self._should_update_password()
 
         if not update_needed:
-            print("Password update not needed")
+            log('D229')
             return False
 
         # Generate new password
@@ -622,17 +654,16 @@ class laps_applier(applier_frontend):
         ldap_success = self._update_ldap_password(encrypted_blob)
 
         if not ldap_success:
-            print("Failed to update password in LDAP")
             return False
 
         # Change local user password
         local_success = self._change_user_password(password)
 
         if not local_success:
-            print("Failed to change local user password")
+            log('E76')
             return False
 
-        print(f"Password successfully updated for {self.target_user}")
+        log('D230')
 
         # Perform post-action if configured
         if perform_post_action:
@@ -644,6 +675,7 @@ class laps_applier(applier_frontend):
         Main entry point for the LAPS applier.
         """
         if self.__module_enabled:
+            log('D218')
             self.update_laps_password()
         else:
-            print("LAPS module is disabled")
+            log('D219')
