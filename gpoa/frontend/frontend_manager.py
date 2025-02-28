@@ -73,6 +73,7 @@ from .kde_applier import (
       kde_applier
     , kde_applier_user
 )
+from .laps_applier import laps_applier
 
 from .networkshare_applier import networkshare_applier
 from .yandex_browser_applier import yandex_browser_applier
@@ -144,6 +145,7 @@ class frontend_manager:
             self._init_user_appliers()
 
     def _init_machine_appliers(self):
+        self.machine_appliers['laps_applier'] = laps_applier(self.storage)
         self.machine_appliers['control'] = control_applier(self.storage)
         self.machine_appliers['polkit'] = polkit_applier(self.storage)
         self.machine_appliers['systemd'] = systemd_applier(self.storage)
