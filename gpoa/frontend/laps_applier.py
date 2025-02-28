@@ -32,6 +32,7 @@ import secrets
 import os
 import psutil
 from util.logging import log
+import logging
 
 class laps_applier(applier_frontend):
     """
@@ -449,14 +450,18 @@ class laps_applier(applier_frontend):
         # Create JSON data and encode as UTF-16LE with null terminator
         json_data = self._get_json_password_data(password)
         password_bytes = json_data.encode("utf-16-le") + b"\x00\x00"
-
+        # Save and change loglevel
+        logger = logging.getLogger()
+        old_level = logger.level
+        logger.setLevel(logging.ERROR)
         # Encrypt the password
         dpapi_blob = dpapi_ng.ncrypt_protect_secret(
             password_bytes,
             self.encryption_principal,
             auth_protocol='kerberos'
         )
-
+        # Restoreloglevel
+        logger.setLevel(old_level)
         # Create full blob with metadata
         return self._add_blob_metadata(dpapi_blob)
 
