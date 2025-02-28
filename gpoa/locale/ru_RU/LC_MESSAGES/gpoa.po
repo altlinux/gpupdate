@@ -262,6 +262,12 @@ msgstr "Не удалось получить данные из базы dconf"
 msgid "Autofs restart failed"
 msgstr "Перезапуск Autofs не удался"
 
+msgid "Failed to update LDAP with new password data"
+msgstr "Не удалось обновить LDAP новыми данными пароля"
+
+msgid "Failed to change local user password"
+msgstr "Не удалось изменить пароль локального пользователя"
+
 # Error_end
 
 # Debug
@@ -901,6 +907,45 @@ msgstr "Очистка файла environment не удалась"
 msgid "Failed to get dictionary"
 msgstr "Не удалось получить словарь"
 
+msgid "LAPS applier started"
+msgstr "Запущен обработчик LAPS"
+
+msgid "LAPS applier is disabled"
+msgstr "Обработчик LAPS отключен"
+
+msgid "Rebooting system after password change"
+msgstr "Перезагрузка системы после смены пароля"
+
+msgid "Password changed"
+msgstr "Пароль изменён"
+
+msgid "Writing password changes time"
+msgstr "Запись времени изменения пароля"
+
+msgid "Requirements not met"
+msgstr "Требования не выполнены"
+
+msgid "The number of hours from the moment of the last user entrance"
+msgstr "Количество часов с момента последнего входа пользователя"
+
+msgid "The number of hours since the password has last changed"
+msgstr "Количество часов с момента последнего изменения пароля"
+
+msgid "LDAP updated with new password data"
+msgstr "LDAP обновлён новыми данными пароля"
+
+msgid "No active sessions found"
+msgstr "Активные сеансы не найдены"
+
+msgid "Process terminated"
+msgstr "Процесс завершён"
+
+msgid "Password update not needed"
+msgstr "Обновление пароля не требуется"
+
+msgid "Password successfully updated"
+msgstr "Пароль успешно обновлён"
+
 # Debug_end
 
 # Warning
@@ -982,6 +1027,33 @@ msgstr "Не удалось загрузить контент с удаленн�
 
 msgid "Force mode activated"
 msgstr "Режим force задействован"
+
+msgid "Failed to change password"
+msgstr "Не удалось изменить пароль"
+
+msgid "Failed to write password modification time"
+msgstr "Не удалось записать время изменения пароля"
+
+msgid "LAPS requirements not met, module disabled"
+msgstr "Требования LAPS не выполнены, модуль отключён"
+
+msgid "Could not resolve encryption principal name. Return admin group SID"
+msgstr "Не удалось определить имя шифрования. Возвращён SID группы администраторов"
+
+msgid "Failed to get expiration time from LDAP"
+msgstr "Не удалось получить время истечения срока действия из LDAP"
+
+msgid "Failed to read password modification time from dconf"
+msgstr "Не удалось прочитать время изменения пароля из dconf"
+
+msgid "Failed to get last login time"
+msgstr "Не удалось получить время последнего входа"
+
+msgid "Failed to calculate password age"
+msgstr "Не удалось вычислить возраст пароля"
+
+msgid "Failed to terminate process"
+msgstr "Не удалось завершить процесс"
 
 # Fatal
 msgid "Unable to refresh GPO list"
