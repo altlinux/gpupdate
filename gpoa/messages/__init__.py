@@ -391,6 +391,7 @@ def warning_code(code):
     warning_ids[33] = 'Failed to get last login time'
     warning_ids[34] = 'Failed to calculate password age'
     warning_ids[35] = 'Failed to terminate process'
+    warning_ids[36] = 'The user was not found to change the password'
 
     return warning_ids.get(code, 'Unknown warning code')
 

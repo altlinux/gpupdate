@@ -1055,6 +1055,9 @@ msgstr "Не удалось вычислить возраст пароля"
 msgid "Failed to terminate process"
 msgstr "Не удалось завершить процесс"
 
+msgid "The user was not found to change the password"
+msgstr "Пользователь для изменения пароля не был найден"
+
 # Fatal
 msgid "Unable to refresh GPO list"
 msgstr "Невозможно обновить список объектов групповых политик"
