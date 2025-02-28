@@ -110,6 +110,8 @@ def error_code(code):
     error_ids[72] = 'Exception occurred while updating dconf database'
     error_ids[73] = 'Failed to retrieve data from dconf database'
     error_ids[74] = 'Autofs restart failed'
+    error_ids[75] = 'Failed to update LDAP with new password data'
+    error_ids[76] = 'Failed to change local user password'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -330,6 +332,19 @@ def debug_code(code):
     debug_ids[215] = 'The environment file has been cleaned'
     debug_ids[216] = 'Cleanup of file environment failed'
     debug_ids[217] = 'Failed to get dictionary'
+    debug_ids[218] = 'LAPS applier started'
+    debug_ids[219] = 'LAPS applier is disabled'
+    debug_ids[220] = 'Rebooting system after password change'
+    debug_ids[221] = 'Password changed'
+    debug_ids[222] = 'Writing password changes time'
+    debug_ids[223] = 'Requirements not met'
+    debug_ids[224] = 'The number of hours from the moment of the last user entrance'
+    debug_ids[225] = 'The number of hours since the password has last changed'
+    debug_ids[226] = 'LDAP updated with new password data'
+    debug_ids[227] = 'No active sessions found'
+    debug_ids[228] = 'Process terminated'
+    debug_ids[229] = 'Password update not needed'
+    debug_ids[230] = 'Password successfully updated'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -367,6 +382,15 @@ def warning_code(code):
     warning_ids[24] = 'Couldn\'t get the uid'
     warning_ids[25] = 'Failed to load content from remote host'
     warning_ids[26] = 'Force mode activated'
+    warning_ids[27] = 'Failed to change password'
+    warning_ids[28] = 'Failed to write password modification time'
+    warning_ids[29] = 'LAPS requirements not met, module disabled'
+    warning_ids[30] = 'Could not resolve encryption principal name. Return admin group SID'
+    warning_ids[31] = 'Failed to get expiration time from LDAP'
+    warning_ids[32] = 'Failed to read password modification time from dconf'
+    warning_ids[33] = 'Failed to get last login time'
+    warning_ids[34] = 'Failed to calculate password age'
+    warning_ids[35] = 'Failed to terminate process'
 
     return warning_ids.get(code, 'Unknown warning code')
 
