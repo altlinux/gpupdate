@@ -243,3 +243,14 @@ def clean_data(data):
         return cleaned_string
     except:
         return None
+
+def check_local_user_exists(username):
+    """
+    Checks if a local user with the given username exists on a Linux system.
+    """
+    try:
+        # Try to get user information from the password database
+        pwd.getpwnam(username)
+        return True
+    except:
+        return False
