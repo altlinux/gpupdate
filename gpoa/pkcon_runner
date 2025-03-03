@@ -62,9 +62,11 @@ class Pkcon_applier:
         self.remove_packages_setting = string_to_literal_eval(dict_packages.get(remove_key_name,[]))
 
         for package in self.install_packages_setting:
+            package = package.strip()
             if not is_rpm_installed(package):
                 self.install_packages.add(package)
         for package in self.remove_packages_setting:
+            package = package.strip()
             if package in self.install_packages:
                 self.install_packages.remove(package)
             if is_rpm_installed(package):
