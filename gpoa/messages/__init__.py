@@ -345,6 +345,7 @@ def debug_code(code):
     debug_ids[228] = 'Process terminated'
     debug_ids[229] = 'Password update not needed'
     debug_ids[230] = 'Password successfully updated'
+    debug_ids[231] = 'Cleaning the autofs catalog'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -392,6 +393,7 @@ def warning_code(code):
     warning_ids[34] = 'Failed to calculate password age'
     warning_ids[35] = 'Failed to terminate process'
     warning_ids[36] = 'The user was not found to change the password'
+    warning_ids[37] = 'Error while cleaning the autofs catalog'
 
     return warning_ids.get(code, 'Unknown warning code')
 

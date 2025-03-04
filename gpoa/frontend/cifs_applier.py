@@ -124,14 +124,26 @@ class cifs_applier(applier_frontend):
     __module_name = 'CIFSApplier'
     __module_enabled = True
     __module_experimental = False
+    __dir4clean = '/etc/auto.master.gpupdate.d'
 
     def __init__(self, storage, sid):
+        self.clear_directory_auto_dir()
         self.applier_cifs = cifs_applier_user(storage, sid, None)
         self.__module_enabled = check_enabled(
               storage
             , self.__module_name
             , self.__module_experimental
         )
+    def clear_directory_auto_dir(self):
+        path = Path(self.__dir4clean)
+
+        for item in path.iterdir():
+            try:
+                if item.is_file() or item.is_symlink():
+                    item.unlink()
+            except Exception as exc:
+                log('W37', {'exc': exc})
+        log('D231')
 
     def apply(self):
         if self.__module_enabled:

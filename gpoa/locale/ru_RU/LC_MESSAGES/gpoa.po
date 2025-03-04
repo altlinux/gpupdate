@@ -946,6 +946,9 @@ msgstr "Обновление пароля не требуется"
 msgid "Password successfully updated"
 msgstr "Пароль успешно обновлён"
 
+msgid "Cleaning the autofs catalog"
+msgstr "Очистка каталога autofs"
+
 # Debug_end
 
 # Warning
@@ -1057,6 +1060,9 @@ msgstr "Не удалось завершить процесс"
 
 msgid "The user was not found to change the password"
 msgstr "Пользователь для изменения пароля не был найден"
+
+msgid "Error while cleaning the autofs catalog"
+msgstr "Ошибка при очистке каталога autofs"
 
 # Fatal
 msgid "Unable to refresh GPO list"
