@@ -174,6 +174,7 @@ class cifs_applier_user(applier_frontend):
     __key_link_prefix_user = 'DriveMapsHomeDisableNetUser'
     __timeout_user_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofsUser'
     __timeout_key = '/Software/BaseALT/Policies/GPUpdate/TimeoutAutofs'
+    __cifsacl_key = '/Software/BaseALT/Policies/GPUpdate/CifsaclDisable'
     __target_mountpoint = '/media/gpupdate'
     __target_mountpoint_user = '/run/media'
     __mountpoint_dirname = 'drives.system'
@@ -225,6 +226,7 @@ class cifs_applier_user(applier_frontend):
         self.keys_cifs_values_machine = self.dict_registry_machine.get(name_dir,dict())
         self.keys_the_preferences_previous_values = self.dict_registry_machine.get((self.__key_preferences_previous+'Machine'),dict()).get('Drives', dict())
         self.keys_the_preferences_values = self.dict_registry_machine.get((self.__key_preferences+'Machine'),dict()).get('Drives', dict())
+        self.cifsacl_disable = self.storage.get_entry(self.__cifsacl_key, preg=False)
 
         self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
         conf_file = '{}.conf'.format(sid)
@@ -319,6 +321,7 @@ class cifs_applier_user(applier_frontend):
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
             drive_settings['username'] = self.username
+            drive_settings['cifsacl'] = False if self.cifsacl_disable else True
 
             drive_list.append(drive_settings)
 
