@@ -18,6 +18,7 @@
 
 import jinja2
 import os
+import pwd
 import subprocess
 from pathlib import Path
 import string
@@ -294,6 +295,10 @@ class cifs_applier_user(applier_frontend):
         self.auto_master_d.mkdir(parents=True, exist_ok=True)
         # Create user's destination mount directory
         self.mount_dir.mkdir(parents=True, exist_ok=True)
+        uid = pwd.getpwnam(self.username).pw_uid if self.username else None
+        if uid:
+            os.chown(self.mount_dir, uid=uid, gid=-1)
+            self.mount_dir.chmod(0o700)
 
         # Add pointer to /etc/auto.master.gpiupdate.d in /etc/auto.master
         auto_destdir = '+dir:{}'.format(self.__auto_dir)
