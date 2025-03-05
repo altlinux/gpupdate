@@ -38,6 +38,12 @@ class DynamicAttributes:
     def __iter__(self):
         return iter(self.__dict__.items())
 
+    def get_original_value(self, key):
+        value = self.__dict__.get(key)
+        if isinstance(value, str):
+            value = value.replace("″", "'")
+        return value
+
 class RegistryKeyMetadata(DynamicAttributes):
     def __init__(self, policy_name, type, is_list=None, mod_previous_value=None):
         self.policy_name = policy_name

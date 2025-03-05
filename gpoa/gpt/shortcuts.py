@@ -238,7 +238,7 @@ class shortcut(DynamicAttributes):
             if self.desktop_file_template:
                 terminal_state = str2bool_lambda(self.desktop_file_template.get('Terminal'))
                 self.desktop_file.set('Terminal', 'true' if terminal_state else 'false')
-            self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.arguments))
+            self.desktop_file.set('Exec', '{} {}'.format(desktop_path, self.get_original_value('arguments')))
             self.desktop_file.set('Comment', self.comment)
 
         if self.icon:
