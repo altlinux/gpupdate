@@ -114,6 +114,8 @@ def find_desktop_entry(binary_path):
 
 
 class shortcut(DynamicAttributes):
+    _ignore_fields = {"desktop_file_template", "desktop_file"}
+
     def __init__(self, dest, path, arguments, name=None, action=None, ttype=TargetType.FILESYSTEM):
         '''
         :param dest: Path to resulting file on file system
@@ -134,6 +136,14 @@ class shortcut(DynamicAttributes):
         self.is_in_user_context = self.set_usercontext()
         self.type = ttype
         self.desktop_file_template = None
+
+
+    def items(self):
+        return ((k, v) for k, v in super().items() if k not in self._ignore_fields)
+
+    def __iter__(self):
+        return iter(self.items())
+
 
     def replace_slashes(self, input_path):
         if input_path.startswith('%'):
