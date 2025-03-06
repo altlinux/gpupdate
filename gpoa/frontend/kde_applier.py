@@ -24,6 +24,7 @@ import os
 import subprocess
 import re
 import dbus
+import shutil
 
 class kde_applier(applier_frontend):
     __module_name = 'KdeApplier'
@@ -61,6 +62,7 @@ class kde_applier_user(applier_frontend):
     __module_name = 'KdeApplierUser'
     __module_experimental = True
     __module_enabled = False
+    kde_version = None
     __hkcu_branch = 'Software/BaseALT/Policies/KDE'
     __hkcu_lock_branch = 'Software/BaseALT/Policies/KDELocks'
     __plasma_update_entry = 'Software/BaseALT/Policies/KDE/Plasma/Update'
@@ -73,6 +75,7 @@ class kde_applier_user(applier_frontend):
         self.locks_dict = {}
         self.locks_data_dict = {}
         self.all_kde_settings = {}
+        kde_applier_user.kde_version = get_kde_version()
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
@@ -116,12 +119,28 @@ dbus_methods_mapping = {
         'dbus_method': 'configure'
     },
     'wallpaper': {
-        'dbus_service': 'org.kde.plasmashell',
-        'dbus_path': '/PlasmaShell',
-        'dbus_interface': 'org.kde.PlasmaShell',
-        'dbus_method': 'refreshCurrentShell'
-    },
+        'dbus_service': 'org.freedesktop.systemd1',
+        'dbus_path': '/org/freedesktop/systemd1',
+        'dbus_interface': 'org.freedesktop.systemd1.Manager',
+        'dbus_method': 'RestartUnit',
+        'dbus_args': ['plasma-plasmashell.service', 'replace']
+    }
 }
+
+def get_kde_version():
+    try:
+        kinfo_path = shutil.which("kinfo", path="/usr/lib/kf5/bin:/usr/bin")
+        if not kinfo_path:
+            raise FileNotFoundError("Unable to find kinfo")
+        output = subprocess.check_output([kinfo_path], text=True, env={'LANG':'C'})
+        for line in output.splitlines():
+            if "KDE Frameworks Version" in line:
+                frameworks_version = line.split(":", 1)[1].strip()
+                major_frameworks_version = int(frameworks_version.split(".")[0])
+                return major_frameworks_version
+    except:
+        return None
+
 
 def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None, username = None, plasmaupdate = False):
         for locks in locks_settings:
@@ -190,7 +209,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                     lock = f"{file_name}.{section}.{key}"
                     if lock in locks_dict and locks_dict[lock] == 1:
                         command = [
-                            'kwriteconfig5',
+                            f'kwriteconfig{kde_applier_user.kde_version}',
                             '--file', file_name,
                             '--group', section,
                             '--key', key +'/$i/',
@@ -199,7 +218,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         ]
                     else:
                         command = [
-                            'kwriteconfig5',
+                            f'kwriteconfig{kde_applier_user.kde_version}',
                             '--file', file_name,
                             '--group', section,
                             '--key', key,
@@ -208,7 +227,9 @@ def apply(all_kde_settings, locks_dict, username = None):
                         ]
                     try:
                         clear_locks_settings(username, file_name, key)
-                        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        env_path = dict(os.environ)
+                        env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
+                        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
                     except:
                             logdata['command'] = command
                             log('W22', logdata)
@@ -276,11 +297,14 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
             #Variable for command execution plasma-apply-colorscheme
         os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
         os.environ["PATH"] = "/usr/lib/kf5/bin:"
+        os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
+        env_path = dict(os.environ)
+        env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
             #environment variable for accessing binary files without hard links
         if not flag:
             if os.path.isfile(path_to_wallpaper):
                 command = [
-                    'kwriteconfig5',
+                    f'kwriteconfig{kde_applier_user.kde_version}',
                     '--file', 'plasma-org.kde.plasma.desktop-appletsrc',
                     '--group', 'Containments',
                     '--group', id_desktop,
@@ -292,7 +316,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                     data
                     ]
                 try:
-                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
                 except:
                         logdata['command'] = command
                         log('E68', logdata)
@@ -332,7 +356,10 @@ def call_dbus_method(file_name):
             session_bus = dbus.SessionBus()
             dbus_object = session_bus.get_object(config['dbus_service'], config['dbus_path'])
             dbus_iface = dbus.Interface(dbus_object, config['dbus_interface'])
-            getattr(dbus_iface, config['dbus_method'])()
+            if 'dbus_args' in config:
+                getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
+            else:
+                getattr(dbus_iface, config['dbus_method'])()
         except dbus.exceptions.DBusException as e:
             logdata = dict({'error': str(exc)})
             log('E31', logdata)
