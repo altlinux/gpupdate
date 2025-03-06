@@ -26,15 +26,19 @@ from util.windows import expand_windows_var
 from util.logging import log
 from util.util import (
         get_homedir,
-        homedir_exists
+        homedir_exists,
+        string_to_literal_eval
 )
+from gpt.shortcuts import shortcut, get_ttype
 
-def storage_get_shortcuts(storage, sid, username=None):
+def storage_get_shortcuts(storage, sid, username=None, shortcuts_machine=None):
     '''
     Query storage for shortcuts' rows for specified SID.
     '''
     shortcut_objs = storage.get_shortcuts(sid)
     shortcuts = list()
+    if username and shortcuts_machine:
+        shortcut_objs += shortcuts_machine
 
     for sc in shortcut_objs:
         if username:
@@ -134,6 +138,8 @@ class shortcut_applier_user(applier_frontend):
     __module_name = 'ShortcutsApplierUser'
     __module_experimental = False
     __module_enabled = True
+    __REGISTRY_PATH_SHORTCATSMERGE= '/Software/BaseALT/Policies/GPUpdate/ShortcutsMerge'
+    __DCONF_REGISTRY_PATH_PREFERENCES_MACHINE = 'Software/BaseALT/Policies/Preferences/Machine'
 
     def __init__(self, storage, sid, username):
         self.storage = storage
@@ -141,8 +147,37 @@ class shortcut_applier_user(applier_frontend):
         self.username = username
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
+    def get_machine_shortcuts(self):
+        result = list()
+        try:
+            storage_machine_dict =  self.storage.get_dictionary_from_dconf_file_db()
+            machine_shortcuts = storage_machine_dict.get(
+                self.__DCONF_REGISTRY_PATH_PREFERENCES_MACHINE, dict()).get('Shortcuts')
+            shortcut_objs =  string_to_literal_eval(machine_shortcuts)
+            for obj in shortcut_objs:
+                shortcut_machine =shortcut(
+                    obj.get('dest'),
+                    obj.get('path'),
+                    obj.get('arguments'),
+                    obj.get('name'),
+                    obj.get('action'),
+                    get_ttype(obj.get('target_type')))
+                shortcut_machine.set_usercontext(1)
+                result.append(shortcut_machine)
+        except:
+            return None
+        return result
+
+
+
+    def check_enabled_shortcuts_merge(self):
+        return self.storage.get_key_value(self.__REGISTRY_PATH_SHORTCATSMERGE)
+
     def run(self, in_usercontext):
-        shortcuts = storage_get_shortcuts(self.storage, self.sid, self.username)
+        shortcuts_machine = None
+        if self.check_enabled_shortcuts_merge():
+            shortcuts_machine = self.get_machine_shortcuts()
+        shortcuts = storage_get_shortcuts(self.storage, self.sid, self.username, shortcuts_machine)
 
         if shortcuts:
             for sc in shortcuts:
