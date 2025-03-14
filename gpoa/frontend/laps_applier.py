@@ -134,7 +134,7 @@ class laps_applier(applier_frontend):
         self.post_authentication_actions = self.config.get('PostAuthenticationActions', 3)
         self.post_authentication_reset_delay = self.config.get('PostAuthenticationResetDelay', 24)
         name = self.config.get('AdministratorAccountName', 'root')
-        if check_local_user_exists(name):
+        if name and check_local_user_exists(name):
             self.target_user = name
         else:
             log('W36')
@@ -148,7 +148,7 @@ class laps_applier(applier_frontend):
         Returns:
             bool: True if requirements are met, False otherwise
         """
-        if self.backup_directory != 2 and self.encryption_enabled == 1:
+        if self.backup_directory != 2 or not self.encryption_enabled:
             logdata = dict()
             logdata['backup_directory'] = self.backup_directory
             logdata['encryption_enabled'] = self.encryption_enabled
