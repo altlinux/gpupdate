@@ -137,6 +137,8 @@ class cifs_applier(applier_frontend):
         )
     def clear_directory_auto_dir(self):
         path = Path(self.__dir4clean)
+        if not path.exists():
+            return
 
         for item in path.iterdir():
             try:
