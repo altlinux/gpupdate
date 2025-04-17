@@ -360,7 +360,7 @@ def call_dbus_method(file_name):
                 getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
             else:
                 getattr(dbus_iface, config['dbus_method'])()
-        except dbus.exceptions.DBusException as e:
+        except dbus.exceptions.DBusException as exc:
             logdata = dict({'error': str(exc)})
             log('E31', logdata)
     else:
