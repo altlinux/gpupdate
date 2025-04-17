@@ -51,14 +51,18 @@ class KdeApplier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            log("D198")
-            create_dict(
-                self.kde_settings,
-                self.all_kde_settings,
-                self.locks_settings,
-                self.locks_dict,
-            )
-            apply(self.all_kde_settings, self.locks_dict)
+            try:
+                log("D198")
+                create_dict(
+                    self.kde_settings,
+                    self.all_kde_settings,
+                    self.locks_settings,
+                    self.locks_dict,
+                )
+                apply(self.all_kde_settings, self.locks_dict)
+            except Exception as exc:
+                logdata = dict()
+                logdata["exc"] = exc
         else:
             log("D199")
 
