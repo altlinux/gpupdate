@@ -97,7 +97,7 @@ class KdeApplierUser(applier_frontend):
                     break
             self.file_cache.store(data)
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['exc'] = exc
 
     def user_context_apply(self):
@@ -154,7 +154,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 else:
                     all_kde_settings.setdefault(file_name, {}).setdefault(section, {})[value] = data
             except Exception as exc:
-                logdata = dict()
+                logdata = {}
                 logdata['file_name'] = file_name
                 logdata['section'] = section
                 logdata['value'] = value
@@ -163,7 +163,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 log('W16', logdata)
 
 def apply(all_kde_settings, locks_dict, username = None):
-    logdata = dict()
+    logdata = {}
     modified_files = set()
     if username is None:
         system_path_settings = '/etc/xdg/'
@@ -264,7 +264,7 @@ def clear_locks_settings(username, file_name, key):
                 file.write(line)
     for line in lines:
         if f'{key}[$i]=' in line:
-            logdata = dict()
+            logdata = {}
             logdata['line'] = line.strip()
             log('I10', logdata)
 
@@ -272,7 +272,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
     '''
     Method to change wallpaper
     '''
-    logdata = dict()
+    logdata = {}
     path_to_wallpaper = f'{get_homedir(username)}/.config/plasma-org.kde.plasma.desktop-appletsrc'
     id_desktop = get_id_desktop(path_to_wallpaper)
     try:
