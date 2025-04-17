@@ -70,8 +70,8 @@ from .ini_applier import (
 )
 
 from .kde_applier import (
-      kde_applier
-    , kde_applier_user
+      KdeApplier
+    , KdeApplierUser
 )
 from .laps_applier import laps_applier
 
@@ -171,7 +171,7 @@ class frontend_manager:
         self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
         self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
         self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)
-        self.machine_appliers['kde'] = kde_applier(self.storage)
+        self.machine_appliers['kde'] = KdeApplier(self.storage)
         self.machine_appliers['package'] = package_applier(self.storage)
 
     def _init_user_appliers(self):
@@ -193,7 +193,7 @@ class frontend_manager:
         self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
         self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
         self.user_appliers['ini'] = ini_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['kde'] = kde_applier_user(self.storage, self.sid, self.username, self.file_cache)
+        self.user_appliers['kde'] = KdeApplierUser(self.storage, self.sid, self.username, self.file_cache)
         self.user_appliers['package'] = package_applier_user(self.storage, self.sid, self.username)
 
     def machine_apply(self):

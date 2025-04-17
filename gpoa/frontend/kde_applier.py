@@ -26,7 +26,7 @@ from util.exceptions import NotUNCPathError
 from util.dbus import dbus
 from .applier_frontend import applier_frontend, check_enabled
 
-class kde_applier(applier_frontend):
+class KdeApplier(applier_frontend):
     __module_name = 'KdeApplier'
     __module_experimental = True
     __module_enabled = False
@@ -58,7 +58,7 @@ class kde_applier(applier_frontend):
         else:
             log('D199')
 
-class kde_applier_user(applier_frontend):
+class KdeApplierUser(applier_frontend):
     __module_name = 'KdeApplierUser'
     __module_experimental = True
     __module_enabled = False
@@ -75,7 +75,7 @@ class kde_applier_user(applier_frontend):
         self.locks_dict = {}
         self.locks_data_dict = {}
         self.all_kde_settings = {}
-        kde_applier_user.kde_version = get_kde_version()
+        KdeApplierUser.kde_version = get_kde_version()
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
@@ -209,7 +209,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                     lock = f"{file_name}.{section}.{key}"
                     if lock in locks_dict and locks_dict[lock] == 1:
                         command = [
-                            f'kwriteconfig{kde_applier_user.kde_version}',
+                            f'kwriteconfig{KdeApplierUser.kde_version}',
                             '--file', file_name,
                             '--group', section,
                             '--key', key +'/$i/',
@@ -218,7 +218,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         ]
                     else:
                         command = [
-                            f'kwriteconfig{kde_applier_user.kde_version}',
+                            f'kwriteconfig{KdeApplierUser.kde_version}',
                             '--file', file_name,
                             '--group', section,
                             '--key', key,
@@ -304,7 +304,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
         if not flag:
             if os.path.isfile(path_to_wallpaper):
                 command = [
-                    f'kwriteconfig{kde_applier_user.kde_version}',
+                    f'kwriteconfig{KdeApplierUser.kde_version}',
                     '--file', 'plasma-org.kde.plasma.desktop-appletsrc',
                     '--group', 'Containments',
                     '--group', id_desktop,
