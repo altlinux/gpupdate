@@ -46,6 +46,7 @@ import ldb
 import ipaddress
 import netifaces
 import random
+import re
 
 class smbcreds (smbopts):
 
@@ -327,9 +328,11 @@ def expand_windows_var(text, username=None):
 
     result = text
     for var in variables.keys():
-        result = result.replace('%{}%'.format(var),
-                                 variables[var] if variables[var][-1] == '/'
-                                 else variables[var] +'/')
+        if var in result:
+            result = result.replace('%{}%'.format(var), variables[var] if variables[var][-1] == '/' else variables[var] +'/')
+        else:
+            default_path = re.sub(r'%[^%]+%', f"%{var}%", result)
+            return default_path.replace('%{}%'.format(var), variables['DesktopDir'] if variables['DesktopDir'][-1] == '/' else variables['DesktopDir'] +'/')
 
     return result
 
