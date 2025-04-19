@@ -49,11 +49,9 @@ def check_module_enabled(storage, module_name):
     gpupdate_module_enable_branch = "/Software/BaseALT/Policies/GPUpdate"
     gpupdate_module_flag = "{}/{}".format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_key_value(gpupdate_module_flag)
- 
     flag = str(flag)
     if flag is not None:
         return bool(int(flag))
-    
     return False
 
 
@@ -65,9 +63,7 @@ def check_enabled(storage, module_name, is_experimental):
         return True
     if module_enabled and not is_experimental:
         return True
-    
     return False
-
 
 class ApplierFrontend(ABC):
     @classmethod
