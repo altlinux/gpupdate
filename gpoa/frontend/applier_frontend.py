@@ -56,14 +56,12 @@ def check_enabled(storage, module_name, is_experimental):
     module_enabled = check_module_enabled(storage, module_name)
     exp_enabled = check_experimental_enabled(storage)
 
-    if module_enabled is None:
-        return False
-    elif module_enabled and is_experimental and exp_enabled:
+    if module_enabled and is_experimental and exp_enabled:
         return True
-    elif module_enabled and not is_experimental:
+    if module_enabled and not is_experimental:
         return True
-    else:
-        return False
+    
+    return False
 
 class applier_frontend(ABC):
     @classmethod
