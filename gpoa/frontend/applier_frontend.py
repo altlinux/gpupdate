@@ -20,41 +20,46 @@ from abc import ABC
 
 
 def check_experimental_enabled(storage):
-    experimental_enable_flag = '/Software/BaseALT/Policies/GPUpdate/GlobalExperimental'
+    experimental_enable_flag = "/Software/BaseALT/Policies/GPUpdate/GlobalExperimental"
     flag = storage.get_key_value(experimental_enable_flag)
 
     result = False
 
-    if flag and '1' == str(flag):
+    if flag and "1" == str(flag):
         result = True
 
     return result
 
+
 def check_windows_mapping_enabled(storage):
-    windows_mapping_enable_flag = '/Software/BaseALT/Policies/GPUpdate/WindowsPoliciesMapping'
+    windows_mapping_enable_flag = (
+        "/Software/BaseALT/Policies/GPUpdate/WindowsPoliciesMapping"
+    )
     flag = storage.get_key_value(windows_mapping_enable_flag)
 
     result = True
     flag = str(flag)
-    if flag and '0' == flag:
+    if flag and "0" == flag:
         result = False
 
     return result
 
+
 def check_module_enabled(storage, module_name):
-    gpupdate_module_enable_branch = '/Software/BaseALT/Policies/GPUpdate'
-    gpupdate_module_flag = '{}/{}'.format(gpupdate_module_enable_branch, module_name)
+    gpupdate_module_enable_branch = "/Software/BaseALT/Policies/GPUpdate"
+    gpupdate_module_flag = "{}/{}".format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_key_value(gpupdate_module_flag)
 
     result = None
     flag = str(flag)
-    if flag and flag!='None':
-        if '1' == flag:
-            result =  True
+    if flag and flag != "None":
+        if "1" == flag:
+            result = True
         else:
-            result =  False
+            result = False
 
     return result
+
 
 def check_enabled(storage, module_name, is_experimental):
     module_enabled = check_module_enabled(storage, module_name)
@@ -69,6 +74,7 @@ def check_enabled(storage, module_name, is_experimental):
     else:
         return False
 
+
 class applier_frontend(ABC):
     @classmethod
     def __init__(self, regobj):
@@ -77,4 +83,3 @@ class applier_frontend(ABC):
     @classmethod
     def apply(self):
         pass
-
