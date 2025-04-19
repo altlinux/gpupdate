@@ -420,6 +420,9 @@ def transform_windows_path(text):
 
 
 def check_scroll_enabled():
+    """
+    Checks whether the ScrollSysvolDC policy is enabled
+    """
     storage = registry_factory()
     enable_scroll = "/Software/BaseALT/Policies/GPUpdate/ScrollSysvolDC"
     if storage.get_key_value(enable_scroll):
