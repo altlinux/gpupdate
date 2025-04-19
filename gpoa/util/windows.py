@@ -110,7 +110,7 @@ class SmbCreds(smbopts):
         Get GPO list for the specified username for the specified DC
         hostname
         """
-        gpos = list()
+        gpos = []
         if Dconf_registry.get_info("machine_name") == username:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(
                 save_dconf_db=True
