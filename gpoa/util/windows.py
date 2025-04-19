@@ -132,7 +132,7 @@ class SmbCreds(smbopts):
                     # These setters are taken from libgpo/pygpo.c
                     # print(gpo.ds_path) # LDAP entry
                     if (
-                        gpo.display_name in dict_gpo_name_version.keys()
+                        gpo.display_name in dict_gpo_name_version
                         and dict_gpo_name_version.get(gpo.display_name, {}).get(
                             "version"
                         )
@@ -391,7 +391,7 @@ def expand_windows_var(text, username=None):
         )
 
     result = text
-    for var in variables.keys():
+    for var in variables:
         if var in result:
             result = result.replace(
                 "%{}%".format(var),
