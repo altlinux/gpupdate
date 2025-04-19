@@ -19,14 +19,14 @@
 
 from .appliers.file_cp import Files_cp, Execution_check
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.logging import log
 
 
 
-class file_applier(applier_frontend):
+class file_applier(ApplierFrontend):
     __module_name = 'FilesApplier'
     __module_experimental = True
     __module_enabled = False
@@ -50,7 +50,7 @@ class file_applier(applier_frontend):
         else:
             log('D168')
 
-class file_applier_user(applier_frontend):
+class file_applier_user(ApplierFrontend):
     __module_name = 'FilesApplierUser'
     __module_experimental = True
     __module_enabled = False

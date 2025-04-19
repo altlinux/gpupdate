@@ -18,12 +18,12 @@
 
 from .appliers.netshare import Networkshare
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.logging import log
 
-class networkshare_applier(applier_frontend):
+class networkshare_applier(ApplierFrontend):
     __module_name = 'NetworksharesApplier'
     __module_name_user = 'NetworksharesApplierUser'
     __module_experimental = True

@@ -24,7 +24,7 @@ from pathlib import Path
 import string
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.util import get_homedir, get_uid_by_username
@@ -121,7 +121,7 @@ class Drive_list:
     def len(self):
         return len(self.dict_drives)
 
-class cifs_applier(applier_frontend):
+class cifs_applier(ApplierFrontend):
     __module_name = 'CIFSApplier'
     __module_enabled = True
     __module_experimental = False
@@ -155,7 +155,7 @@ class cifs_applier(applier_frontend):
         else:
             log('D180')
 
-class cifs_applier_user(applier_frontend):
+class cifs_applier_user(ApplierFrontend):
     __module_name = 'CIFSApplierUser'
     __module_enabled = True
     __module_experimental = False

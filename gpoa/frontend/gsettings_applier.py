@@ -25,7 +25,7 @@ from gi.repository import Gio
 from storage.dconf_registry import Dconf_registry
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
     , check_windows_mapping_enabled
 )
@@ -55,7 +55,7 @@ def uri_fetch(schema, path, value, cache):
 
     return retval
 
-class gsettings_applier(applier_frontend):
+class gsettings_applier(ApplierFrontend):
     __module_name = 'GSettingsApplier'
     __module_experimental = False
     __module_enabled = True
@@ -177,7 +177,7 @@ class GSettingsMapping:
         '''
         pass
 
-class gsettings_applier_user(applier_frontend):
+class gsettings_applier_user(ApplierFrontend):
     __module_name = 'GSettingsApplierUser'
     __module_experimental = False
     __module_enabled = True

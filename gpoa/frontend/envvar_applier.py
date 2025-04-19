@@ -17,14 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from .appliers.envvar import Envvar
 from util.logging import log
 
 
-class envvar_applier(applier_frontend):
+class envvar_applier(ApplierFrontend):
     __module_name = 'EnvvarsApplier'
     __module_experimental = False
     __module_enabled = True
@@ -44,7 +44,7 @@ class envvar_applier(applier_frontend):
         else:
             log('D135')
 
-class envvar_applier_user(applier_frontend):
+class envvar_applier_user(ApplierFrontend):
     __module_name = 'EnvvarsApplierUser'
     __module_experimental = False
     __module_enabled = True

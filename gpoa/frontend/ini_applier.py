@@ -19,12 +19,12 @@
 
 from .appliers.ini_file import Ini_file
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.logging import log
 
-class ini_applier(applier_frontend):
+class ini_applier(ApplierFrontend):
     __module_name = 'InifilesApplier'
     __module_experimental = True
     __module_enabled = False
@@ -46,7 +46,7 @@ class ini_applier(applier_frontend):
         else:
             log('D172')
 
-class ini_applier_user(applier_frontend):
+class ini_applier_user(ApplierFrontend):
     __module_name = 'InifilesApplierUser'
     __module_experimental = True
     __module_enabled = False

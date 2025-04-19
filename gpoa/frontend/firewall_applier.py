@@ -21,12 +21,12 @@ import subprocess
 
 from util.logging import log
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from .appliers.firewall_rule import FirewallRule
 
-class firewall_applier(applier_frontend):
+class firewall_applier(ApplierFrontend):
     __module_name = 'FirewallApplier'
     __module_experimental = True
     __module_enabled = False

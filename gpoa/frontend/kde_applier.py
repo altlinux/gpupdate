@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import ApplierFrontend, check_enabled
 from util.logging import log
 from util.util import get_homedir
 from util.exceptions import NotUNCPathError
@@ -26,7 +26,7 @@ import re
 import dbus
 import shutil
 
-class kde_applier(applier_frontend):
+class kde_applier(ApplierFrontend):
     __module_name = 'KdeApplier'
     __module_experimental = True
     __module_enabled = False
@@ -58,7 +58,7 @@ class kde_applier(applier_frontend):
         else:
             log('D199')
 
-class kde_applier_user(applier_frontend):
+class kde_applier_user(ApplierFrontend):
     __module_name = 'KdeApplierUser'
     __module_experimental = True
     __module_enabled = False

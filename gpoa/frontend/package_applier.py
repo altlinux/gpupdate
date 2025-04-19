@@ -21,11 +21,11 @@ import subprocess
 from util.logging import log
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 
-class package_applier(applier_frontend):
+class package_applier(ApplierFrontend):
     __module_name = 'PackagesApplier'
     __module_experimental = True
     __module_enabled = False
@@ -83,7 +83,7 @@ class package_applier(applier_frontend):
             log('D139')
 
 
-class package_applier_user(applier_frontend):
+class package_applier_user(ApplierFrontend):
     __module_name = 'PackagesApplierUser'
     __module_experimental = True
     __module_enabled = False
