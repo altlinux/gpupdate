@@ -23,11 +23,11 @@ from pathlib import Path
 from util.logging import log
 from .appliers.folder import remove_dir_tree
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 
-class scripts_applier(applier_frontend):
+class scripts_applier(ApplierFrontend):
     __module_name = 'ScriptsApplier'
     __module_experimental = True
     __module_enabled = False
@@ -78,7 +78,7 @@ class scripts_applier(applier_frontend):
         else:
             log('D157')
 
-class scripts_applier_user(applier_frontend):
+class scripts_applier_user(ApplierFrontend):
     __module_name = 'ScriptsApplierUser'
     __module_experimental = True
     __module_enabled = False

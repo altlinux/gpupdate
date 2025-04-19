@@ -17,14 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from .appliers.control import control
 from util.logging import log
 
 
-class control_applier(applier_frontend):
+class control_applier(ApplierFrontend):
     __module_name = 'ControlApplier'
     __module_experimental = False
     __module_enabled = True

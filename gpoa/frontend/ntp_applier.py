@@ -23,7 +23,7 @@ from enum import Enum
 
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.logging import log
@@ -33,7 +33,7 @@ class NTPServerType(Enum):
     NTP = 'NTP'
 
 
-class ntp_applier(applier_frontend):
+class ntp_applier(ApplierFrontend):
     __module_name = 'NTPApplier'
     __module_experimental = True
     __module_enabled = False

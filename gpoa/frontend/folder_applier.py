@@ -18,7 +18,7 @@
 
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from .appliers.folder import Folder
@@ -26,7 +26,7 @@ from util.logging import log
 from util.windows import expand_windows_var
 import re
 
-class folder_applier(applier_frontend):
+class folder_applier(ApplierFrontend):
     __module_name = 'FoldersApplier'
     __module_experimental = False
     __module_enabled = True
@@ -52,7 +52,7 @@ class folder_applier(applier_frontend):
         else:
             log('D108')
 
-class folder_applier_user(applier_frontend):
+class folder_applier_user(ApplierFrontend):
     __module_name = 'FoldersApplierUser'
     __module_experimental = False
     __module_enabled = True

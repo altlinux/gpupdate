@@ -19,7 +19,7 @@
 import subprocess
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.windows import expand_windows_var
@@ -98,7 +98,7 @@ def apply_shortcut(shortcut, username=None):
     log('D106', logdata)
     shortcut.apply_desktop(dest_abspath)
 
-class shortcut_applier(applier_frontend):
+class shortcut_applier(ApplierFrontend):
     __module_name = 'ShortcutsApplier'
     __module_experimental = False
     __module_enabled = True
@@ -134,7 +134,7 @@ class shortcut_applier(applier_frontend):
         else:
             log('D99')
 
-class shortcut_applier_user(applier_frontend):
+class shortcut_applier_user(ApplierFrontend):
     __module_name = 'ShortcutsApplierUser'
     __module_experimental = False
     __module_enabled = True

@@ -17,14 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from .appliers.systemd import systemd_unit
 from util.logging import log
 
 
-class systemd_applier(applier_frontend):
+class systemd_applier(ApplierFrontend):
     __module_name = 'SystemdApplier'
     __module_experimental = False
     __module_enabled = True
@@ -70,7 +70,7 @@ class systemd_applier(applier_frontend):
         else:
             log('D79')
 
-class systemd_applier_user(applier_frontend):
+class systemd_applier_user(ApplierFrontend):
     __module_name = 'SystemdApplierUser'
     __module_experimental = False
     __module_enabled = True

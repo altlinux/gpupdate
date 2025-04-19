@@ -75,7 +75,7 @@ def check_enabled(storage, module_name, is_experimental):
         return False
 
 
-class applier_frontend(ABC):
+class ApplierFrontend(ABC):
     @classmethod
     def __init__(self, regobj):
         pass

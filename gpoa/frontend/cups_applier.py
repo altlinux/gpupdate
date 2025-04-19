@@ -19,7 +19,7 @@
 import json
 import cups
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from gpt.printers import json2printer
@@ -60,7 +60,7 @@ def connect_printer(connection, prn):
         #filename=printer_driver
     )
 
-class cups_applier(applier_frontend):
+class cups_applier(ApplierFrontend):
     __module_name = 'CUPSApplier'
     __module_experimental = True
     __module_enabled = False
@@ -99,7 +99,7 @@ class cups_applier(applier_frontend):
         else:
             log('D114')
 
-class cups_applier_user(applier_frontend):
+class cups_applier_user(ApplierFrontend):
     __module_name = 'CUPSApplierUser'
     __module_experimental = True
     __module_enabled = False

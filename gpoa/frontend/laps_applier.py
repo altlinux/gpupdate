@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .applier_frontend import (
-    applier_frontend,
+    ApplierFrontend,
     check_enabled
 )
 import struct
@@ -34,7 +34,7 @@ import psutil
 from util.logging import log
 import logging
 
-class laps_applier(applier_frontend):
+class laps_applier(ApplierFrontend):
     """
     LAPS (Local Administrator Password Solution) implementation for managing
     and automatically rotating administrator passwords.

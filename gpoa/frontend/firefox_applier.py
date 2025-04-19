@@ -29,13 +29,13 @@ import json
 import os
 
 from .applier_frontend import (
-      applier_frontend
+      ApplierFrontend
     , check_enabled
 )
 from util.logging import log
 from util.util import is_machine_name, try_dict_to_literal_eval
 
-class firefox_applier(applier_frontend):
+class firefox_applier(ApplierFrontend):
     __module_name = 'FirefoxApplier'
     __module_experimental = False
     __module_enabled = True
