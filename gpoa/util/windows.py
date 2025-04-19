@@ -47,7 +47,7 @@ import random
 import re
 
 
-class smbcreds(smbopts):
+class SmbCreds(smbopts):
     def __init__(self, dc_fqdn=None):
         smbopts.__init__(self, "GPO Applier")
         self.credopts = options.CredentialsOptions(self.parser)

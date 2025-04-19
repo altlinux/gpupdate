@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from util.windows import smbcreds
+from util.windows import SmbCreds
 from .samba_backend import samba_backend
 from .nodomain_backend import nodomain_backend
 from util.logging import log
@@ -42,7 +42,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
             if dc:
                 ld = dict({'dc': dc})
                 log('D52', ld)
-        sc = smbcreds(dc)
+        sc = SmbCreds(dc)
         domain = sc.get_domain()
         ldata = dict({'domain': domain, "username": username, 'is_machine': is_machine})
         log('D9', ldata)
