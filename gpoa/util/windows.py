@@ -55,7 +55,7 @@ class SmbCreds(smbopts):
         self.s_domain = SiteDomainScanner(self.creds, self.lp, self.selected_dc)
         self.dc_site_servers = self.s_domain.select_site_servers()
         self.all_servers = self.s_domain.select_all_servers()
-        [
+        self.all_servers = [
             self.all_servers.remove(element)
             for element in self.dc_site_servers
             if element in self.all_servers
