@@ -67,9 +67,9 @@ def check_enabled(storage, module_name, is_experimental):
 
 class ApplierFrontend(ABC):
     @classmethod
-    def __init__(self, regobj):
+    def __init__(cls, regobj):
         pass
 
     @classmethod
-    def apply(self):
+    def apply(cls):
         pass
