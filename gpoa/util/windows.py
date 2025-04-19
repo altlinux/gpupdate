@@ -19,6 +19,9 @@
 
 import os
 from pathlib import Path
+import ipaddress
+import random
+import re
 from samba import getopt as options
 from samba import NTSTATUSError
 
@@ -30,20 +33,16 @@ except ImportError:
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
 import samba.gpo
-
+from samba.samdb import SamDB
+from samba.auth import system_session
+import ldb
+import netifaces
+from gpoa.storage import registry_factory
 from .xdg import xdg_get_desktop
 from .util import get_homedir, get_uid_by_username
 from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
-from gpoa.storage import registry_factory
-from samba.samdb import SamDB
-from samba.auth import system_session
-import ldb
-import ipaddress
-import netifaces
-import random
-import re
 
 
 class SmbCreds(smbopts):
