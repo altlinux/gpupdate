@@ -52,15 +52,15 @@ class SmbCreds(smbopts):
         self.credopts = options.CredentialsOptions(self.parser)
         self.creds = self.credopts.get_credentials(self.lp, fallback_machine=True)
         self.set_dc(dc_fqdn)
-        self.sDomain = SiteDomainScanner(self.creds, self.lp, self.selected_dc)
-        self.dc_site_servers = self.sDomain.select_site_servers()
-        self.all_servers = self.sDomain.select_all_servers()
+        self.s_domain = SiteDomainScanner(self.creds, self.lp, self.selected_dc)
+        self.dc_site_servers = self.s_domain.select_site_servers()
+        self.all_servers = self.s_domain.select_all_servers()
         [
             self.all_servers.remove(element)
             for element in self.dc_site_servers
             if element in self.all_servers
         ]
-        self.pdc_emulator_server = self.sDomain.select_pdc_emulator_server()
+        self.pdc_emulator_server = self.s_domain.select_pdc_emulator_server()
 
     def get_dc(self):
         return self.selected_dc
