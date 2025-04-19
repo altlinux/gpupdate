@@ -247,15 +247,15 @@ class SiteDomainScanner:
     def _get_ldb_single_message_attr(ldb_message, attr_name, encoding="utf8"):
         if attr_name in ldb_message:
             return ldb_message[attr_name][0].decode(encoding)
-        else:
-            return None
+        
+        return None
 
     @staticmethod
     def _get_ldb_single_result_attr(ldb_result, attr_name, encoding="utf8"):
         if len(ldb_result) == 1 and attr_name in ldb_result[0]:
             return ldb_result[0][attr_name][0].decode(encoding)
-        else:
-            return None
+        
+        return None
 
     def _get_server_hostname(self, ds_service_name):
         ds_service_name_dn = ldb.Dn(self.samdb, ds_service_name)
@@ -427,5 +427,4 @@ def check_scroll_enabled():
     if storage.get_key_value(enable_scroll):
         data = storage.get_hklm_entry(enable_scroll).data
         return bool(int(data))
-    else:
-        return False
+    return False
