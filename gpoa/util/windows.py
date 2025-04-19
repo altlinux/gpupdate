@@ -39,7 +39,6 @@ from .samba import smbopts
 from gpoa.storage import registry_factory
 from samba.samdb import SamDB
 from samba.auth import system_session
-import optparse
 import ldb
 import ipaddress
 import netifaces
