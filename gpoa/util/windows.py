@@ -74,7 +74,7 @@ class SmbCreds(smbopts):
 
         try:
             if dc_fqdn is not None:
-                logdata = dict()
+                logdata = {}
                 logdata["user_dc"] = dc_fqdn
                 log("D38", logdata)
 
@@ -82,7 +82,7 @@ class SmbCreds(smbopts):
             else:
                 self.selected_dc = get_dc_hostname(self.creds, self.lp)
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata["msg"] = str(exc)
             log("E10", logdata)
             raise exc
@@ -97,7 +97,7 @@ class SmbCreds(smbopts):
             # Look and python/samba/netcmd/domain.py for more examples
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
-            logdata = dict({"domain": dns_domainname})
+            logdata = {"domain": dns_domainname}
             log("D18", logdata)
         except Exception as exc:
             log("E15")
@@ -187,7 +187,7 @@ class SmbCreds(smbopts):
             gpos = self.get_gpos(username)
 
         while list_selected_dc:
-            logdata = dict()
+            logdata = {}
             logdata["username"] = username
             logdata["dc"] = self.selected_dc
             try:
@@ -372,7 +372,7 @@ def expand_windows_var(text, username=None):
     """
     Scan the line for percent-encoded variables and expand them.
     """
-    variables = dict()
+    variables = {}
     variables["HOME"] = "/etc/skel"
     variables["HOMEPATH"] = "/etc/skel"
     variables["HOMEDRIVE"] = "/"
