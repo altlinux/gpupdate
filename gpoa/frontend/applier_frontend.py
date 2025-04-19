@@ -45,16 +45,12 @@ def check_module_enabled(storage, module_name):
     gpupdate_module_enable_branch = '/Software/BaseALT/Policies/GPUpdate'
     gpupdate_module_flag = '{}/{}'.format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_key_value(gpupdate_module_flag)
-
-    result = None
+ 
     flag = str(flag)
-    if flag and flag!='None':
-        if '1' == flag:
-            result =  True
-        else:
-            result =  False
-
-    return result
+    if flag is not None:
+        return bool(int(flag))
+    
+    return False
 
 def check_enabled(storage, module_name, is_experimental):
     module_enabled = check_module_enabled(storage, module_name)
