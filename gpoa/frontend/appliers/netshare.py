@@ -24,6 +24,7 @@ from util.arguments import (
 )
 from util.logging import log
 from util.windows import expand_windows_var
+from configparser import ConfigParser
 
 
 class Networkshare:
@@ -40,7 +41,9 @@ class Networkshare:
         self.comment = networkshare_obj.comment
         self.limitUsers = networkshare_obj.limitUsers
         self.abe = networkshare_obj.abe
-        self._guest = 'guest_ok=y'
+        self.user_share_config = ConfigParser()
+        self.user_share_config.read("/etc/samba/usershares.conf")
+        self._guest = f'guest_ok={self.user_share_config["global"]["usershare owner only"]}'
         self.acl = 'Everyone:'
         self.act()
 
