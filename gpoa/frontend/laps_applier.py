@@ -33,6 +33,16 @@ import os
 import psutil
 from util.logging import log
 import logging
+import re
+from datetime import timezone
+from dateutil import tz
+
+_DATEUTIL_AVAILABLE = False
+try:
+    from dateutil import tz
+    _DATEUTIL_AVAILABLE = True
+except ImportError:
+    pass
 
 class laps_applier(applier_frontend):
     """
@@ -149,7 +159,7 @@ class laps_applier(applier_frontend):
             bool: True if requirements are met, False otherwise
         """
         if self.backup_directory != 2 or not self.encryption_enabled:
-            logdata = dict()
+            logdata = {}
             logdata['backup_directory'] = self.backup_directory
             logdata['encryption_enabled'] = self.encryption_enabled
             log('D223', logdata)
@@ -174,7 +184,7 @@ class laps_applier(applier_frontend):
         self.expiration_time_attr = self._get_expiration_time_attr()
         self.pass_last_mod_int = self._read_dconf_pass_last_mod()
         self.encryption_principal = self._get_encryption_principal()
-        self.last_login_hours_ago = self._get_last_login_hours_ago()
+        self.last_login_hours_ago = self._get_admin_login_hours_ago_after_timestamp()
 
     def _get_computer_dn(self):
         """
@@ -225,7 +235,7 @@ class laps_applier(applier_frontend):
                 return principal_name
             except subprocess.CalledProcessError:
                 # Fallback to admin group SID
-                logdata = dict()
+                logdata = {}
                 logdata['principal_name'] = principal_name
                 log('W30', logdata)
                 return self.admin_group_sid
@@ -330,41 +340,6 @@ class laps_applier(applier_frontend):
             dbus_address = result.stdout.strip()
             os.environ["DBUS_SESSION_BUS_ADDRESS"] = dbus_address
 
-    def _get_last_login_hours_ago(self):
-        """
-        Get the number of hours since the user's last login.
-
-        Returns:
-            int: Hours since last login, or 0 if error or no login found
-        """
-        logdata = dict()
-        logdata['target_user'] = self.target_user
-        try:
-            output = subprocess.check_output(
-                ["last", "-n", "1", self.target_user],
-                env={'LANG':'C'},
-                text=True
-            ).split("\n")[0]
-
-            parts = output.split()
-            if len(parts) < 7:
-                return 0
-
-            # Parse login time
-            login_str = f"{parts[4]} {parts[5]} {parts[6]}"
-            last_login_time = datetime.strptime(login_str, "%b %d %H:%M")
-            last_login_time = last_login_time.replace(year=datetime.now().year)
-
-            # Calculate hours difference
-            time_diff = datetime.now() - last_login_time
-            hours_ago = int(time_diff.total_seconds() // 3600)
-            logdata['hours_ago'] = hours_ago
-            log('D224', logdata)
-            return hours_ago
-        except Exception as exc:
-            logdata['exc'] = exc
-            log('W33', logdata)
-            return 0
 
     def _get_changed_password_hours_ago(self):
         """
@@ -373,7 +348,7 @@ class laps_applier(applier_frontend):
         Returns:
             int: Hours since password was last changed, or 0 if error
         """
-        logdata = dict()
+        logdata = {}
         logdata['target_user'] = self.target_user
         try:
             diff_time = self.current_time_int - self.pass_last_mod_int
@@ -683,7 +658,6 @@ class laps_applier(applier_frontend):
         if perform_post_action:
             self._perform_post_action()
 
-
     def apply(self):
         """
         Main entry point for the LAPS applier.
@@ -693,3 +667,95 @@ class laps_applier(applier_frontend):
             self.update_laps_password()
         else:
             log('D219')
+
+    def _parse_login_time_from_last_line(self, line: str) -> datetime | None:
+        match_login_dt = re.search(
+            r"((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4})",
+            line
+        )
+
+        if not match_login_dt:
+            return None
+
+        login_dt_str = match_login_dt.group(1)
+        try:
+            dt_naive = datetime.strptime(login_dt_str, "%a %b %d %H:%M:%S %Y")
+            login_dt_utc: datetime
+            if _DATEUTIL_AVAILABLE:
+                local_tz = tz.tzlocal()
+                dt_local = dt_naive.replace(tzinfo=local_tz)
+                login_dt_utc = dt_local.astimezone(timezone.utc)
+            else:
+                system_local_tz = datetime.now().astimezone().tzinfo
+                if system_local_tz:
+                    dt_local = dt_naive.replace(tzinfo=system_local_tz)
+                    login_dt_utc = dt_local.astimezone(timezone.utc)
+                else:
+                    login_dt_utc = dt_naive.replace(tzinfo=timezone.utc)
+                    log('W40')
+            return login_dt_utc
+        except ValueError:
+            return None
+
+    def _get_user_login_datetimes_utc(self) -> list[datetime]:
+        command = ["last", "-F", "-w", self.target_user]
+        env = os.environ.copy()
+        env["LC_TIME"] = "C"
+        login_datetimes = []
+
+        try:
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+            if process.returncode != 0 and not ("no login record" in process.stderr.lower() or "no users logged in" in process.stdout.lower()):
+                log('W38')
+                return []
+            output_lines = process.stdout.splitlines()
+        except FileNotFoundError:
+            log('W39')
+            return []
+        except Exception as e:
+            log('W40')
+            return []
+
+        for line in output_lines:
+            if not line.strip() or "wtmp begins" in line or "btmp begins" in line:
+                continue
+            if not line.startswith(self.target_user):
+                continue
+            login_dt_utc = self._parse_login_time_from_last_line(line)
+            if login_dt_utc:
+                login_datetimes.append(login_dt_utc)
+
+        return login_datetimes
+
+    def _get_admin_login_hours_ago_after_timestamp(self) -> int:
+        # Convert Windows FileTime to datetime
+        reference_dt_utc = datetime.fromtimestamp(
+            (self.pass_last_mod_int / self._HUNDREDS_OF_NANOSECONDS) - self._EPOCH_TIMESTAMP,
+            tz=timezone.utc
+        )
+
+        if not (reference_dt_utc.tzinfo is timezone.utc or
+                (reference_dt_utc.tzinfo is not None and reference_dt_utc.tzinfo.utcoffset(reference_dt_utc) == timedelta(0))):
+            log('W41')
+            return 0
+
+        user_login_times_utc = self._get_user_login_datetimes_utc()
+        if not user_login_times_utc:
+            log('D232')
+            return 0
+
+        most_recent_login_after_reference_utc = None
+        for login_time_utc in user_login_times_utc:
+            if login_time_utc >= reference_dt_utc:
+                most_recent_login_after_reference_utc = login_time_utc
+                break
+
+        if most_recent_login_after_reference_utc:
+            now_utc = datetime.now(timezone.utc)
+            time_delta_seconds = (now_utc - most_recent_login_after_reference_utc).total_seconds()
+            hours_ago = int(time_delta_seconds / 3600.0)
+            log('D231')
+            return hours_ago
+        else:
+            log('D233')
+            return 0
