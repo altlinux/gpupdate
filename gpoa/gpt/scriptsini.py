@@ -23,10 +23,10 @@ from .dynamic_attributes import DynamicAttributes
 def read_scripts(scripts_file):
     scripts = Scripts_lists()
 
-    logon_scripts = dict()
-    logoff_scripts = dict()
-    startup_scripts = dict()
-    shutdown_scripts = dict()
+    logon_scripts = {}
+    logoff_scripts = {}
+    startup_scripts = {}
+    shutdown_scripts = {}
 
     config = configparser.ConfigParser()
     config.read(scripts_file, encoding = 'utf-16')
@@ -90,10 +90,10 @@ def merge_scripts(storage, sid, scripts_objects, policy_name):
 
 class Scripts_lists:
     def __init__ (self):
-        self.__logon_scripts = list()
-        self.__logoff_scripts = list()
-        self.__startup_scripts = list()
-        self.__shutdown_scripts = list()
+        self.__logon_scripts = []
+        self.__logoff_scripts = []
+        self.__startup_scripts = []
+        self.__shutdown_scripts = []
 
     def get_logon_scripts(self):
         return self.__logon_scripts

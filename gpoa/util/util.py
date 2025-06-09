@@ -138,7 +138,7 @@ def get_policy_entries(directory):
     '''
     Get list of directories representing "Local Policy" templates.
     '''
-    filtered_entries = list()
+    filtered_entries = []
     if os.path.isdir(directory):
         entries = [os.path.join(directory, entry) for entry in os.listdir(directory)]
 
@@ -162,7 +162,7 @@ def get_policy_variants():
     system_policies = get_policy_entries(policy_dir)
     user_policies = get_policy_entries(etc_policy_dir)
 
-    general_listing = list()
+    general_listing = []
     general_listing.extend(system_policies)
     general_listing.extend(user_policies)
 

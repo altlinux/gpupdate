@@ -28,7 +28,7 @@ from util.windows import expand_windows_var
 from util.util import get_homedir
 
 def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_folders=False):
-    content = list()
+    content = []
     for entry in path.iterdir():
         content.append(entry)
         if entry.is_file() and delete_files:
@@ -77,9 +77,10 @@ class Folder:
                 self.delete_folder,
                 self.delete_sub_folders)
 
+
     def act(self):
         if self.hidden_folder == True and str(self.folder_path.name)[0] != '.':
-            path_components = list(self.folder_path.parts)
+            path_components = [*self.folder_path.parts]
             path_components[-1] = '.' + path_components[-1]
             new_folder_path = Path(*path_components)
             self.folder_path = new_folder_path

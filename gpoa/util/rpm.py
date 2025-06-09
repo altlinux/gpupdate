@@ -116,7 +116,7 @@ def install_rpms(rpm_names):
     '''
     Install set of RPMs sequentially
     '''
-    result = list()
+    result = []
 
     for package in rpm_names:
         result.append(install_rpm(package))
@@ -127,7 +127,7 @@ def remove_rpms(rpm_names):
     '''
     Remove set of RPMs requentially
     '''
-    result = list()
+    result = []
 
     for package in rpm_names:
         result.append(remove_rpm(package))

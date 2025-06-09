@@ -28,7 +28,7 @@ def get_roles(role_dir):
     '''
     Return list of directories in /etc/role named after role plus '.d'
     '''
-    directories = list()
+    directories = []
     try:
         for item in role_dir.iterdir():
             if item.is_dir():
@@ -45,7 +45,7 @@ def read_groups(role_file_path):
     '''
     Read list of whitespace-separated groups from file
     '''
-    groups = list()
+    groups = []
 
     with open(role_file_path, 'r') as role_file:
         lines = role_file.readlines()
@@ -54,7 +54,7 @@ def read_groups(role_file_path):
             print(linegroups)
             groups.extend(linegroups)
 
-    return set(groups)
+    return {*groups}
 
 
 def get_rolegroups(roledir):
@@ -63,16 +63,16 @@ def get_rolegroups(roledir):
     '''
     roledir_path = pathlib.Path(roledir)
 
-    group_files = list()
+    group_files = []
     for item in roledir_path.iterdir():
         if item.is_file():
             group_files.append(item)
 
-    groups = list()
+    groups = []
     for item in group_files:
         groups.extend(read_groups(item))
 
-    return set(groups)
+    return {*groups}
 
 def create_role(role_name, privilege_list):
     '''

@@ -47,7 +47,7 @@ def decrypt_pass(cpassword):
     # decrypt() returns byte array which is immutable and we need to
     # strip padding, then convert UTF-16LE to UTF-8
     binstr = decrypter.decrypt(password)
-    by = list()
+    by = []
     for item in binstr:
         if item != 16:
             by.append(item)
@@ -57,7 +57,7 @@ def decrypt_pass(cpassword):
     return utf8str.decode()
 
 def read_drives(drives_file):
-    drives = list()
+    drives = []
 
     for drive in get_xml_root(drives_file):
         drive_obj = drivemap()
@@ -141,13 +141,13 @@ class drivemap(DynamicAttributes):
         self.useLetter = useLetter
 
     def to_json(self):
-        drive = dict()
+        drive = {}
         drive['login'] = self.login
         drive['password'] = self.password
         drive['dir'] = self.dir
         drive['path'] = self.path
 
-        contents = dict()
+        contents = {}
         contents['drive'] = drive
 
         return json.dumps(contents)
