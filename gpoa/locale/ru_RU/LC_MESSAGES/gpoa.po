@@ -949,6 +949,18 @@ msgstr "Пароль успешно обновлён"
 msgid "Cleaning the autofs catalog"
 msgstr "Очистка каталога autofs"
 
+msgid "No user login records found"
+msgstr "Не найдены записи о входе пользователя"
+
+msgid "Calculating time since last user login"
+msgstr "Расчет времени с момента последнего входа пользователя"
+
+msgid "No logins found after password change"
+msgstr "Не найдены входы после изменения пароля"
+
+msgid "Unknown message type, no message assigned"
+msgstr "Неизвестный тип сообщения"
+
 # Debug_end
 
 # Warning
@@ -1063,6 +1075,23 @@ msgstr "Пользователь для изменения пароля не б�
 
 msgid "Error while cleaning the autofs catalog"
 msgstr "Ошибка при очистке каталога autofs"
+
+msgid "Problem with timezone detection"
+msgstr "Проблема с определением часового пояса"
+
+msgid "Error executing last command"
+msgstr "Ошибка выполнения команды last"
+
+msgid "Last command not found"
+msgstr "Команда last не найдена"
+
+msgid "Error getting user login times"
+msgstr "Ошибка получения времени входа пользователя"
+
+msgid "Invalid timezone in reference datetime"
+msgstr "Некорректный часовой пояс в reference datetime"
+
+# Warning_end
 
 # Fatal
 msgid "Unable to refresh GPO list"

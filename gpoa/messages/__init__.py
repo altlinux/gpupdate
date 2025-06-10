@@ -346,6 +346,9 @@ def debug_code(code):
     debug_ids[229] = 'Password update not needed'
     debug_ids[230] = 'Password successfully updated'
     debug_ids[231] = 'Cleaning the autofs catalog'
+    debug_ids[232] = 'No user login records found'
+    debug_ids[233] = 'Calculating time since last user login'
+    debug_ids[234] = 'No logins found after password change'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -394,6 +397,11 @@ def warning_code(code):
     warning_ids[35] = 'Failed to terminate process'
     warning_ids[36] = 'The user was not found to change the password'
     warning_ids[37] = 'Error while cleaning the autofs catalog'
+    warning_ids[38] = 'Problem with timezone detection'
+    warning_ids[39] = 'Error executing last command'
+    warning_ids[40] = 'Last command not found'
+    warning_ids[41] = 'Error getting user login times'
+    warning_ids[42] = 'Invalid timezone in reference datetime'
 
     return warning_ids.get(code, 'Unknown warning code')
 

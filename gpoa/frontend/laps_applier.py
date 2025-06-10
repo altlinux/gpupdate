@@ -692,7 +692,7 @@ class laps_applier(applier_frontend):
                     login_dt_utc = dt_local.astimezone(timezone.utc)
                 else:
                     login_dt_utc = dt_naive.replace(tzinfo=timezone.utc)
-                    log('W40')
+                    log('W38')
             return login_dt_utc
         except ValueError:
             return None
@@ -706,14 +706,14 @@ class laps_applier(applier_frontend):
         try:
             process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
             if process.returncode != 0 and not ("no login record" in process.stderr.lower() or "no users logged in" in process.stdout.lower()):
-                log('W38')
+                log('W39')
                 return []
             output_lines = process.stdout.splitlines()
         except FileNotFoundError:
-            log('W39')
+            log('W40')
             return []
         except Exception as e:
-            log('W40')
+            log('W41')
             return []
 
         for line in output_lines:
@@ -736,7 +736,7 @@ class laps_applier(applier_frontend):
 
         if not (reference_dt_utc.tzinfo is timezone.utc or
                 (reference_dt_utc.tzinfo is not None and reference_dt_utc.tzinfo.utcoffset(reference_dt_utc) == timedelta(0))):
-            log('W41')
+            log('W42')
             return 0
 
         user_login_times_utc = self._get_user_login_datetimes_utc()
@@ -754,8 +754,8 @@ class laps_applier(applier_frontend):
             now_utc = datetime.now(timezone.utc)
             time_delta_seconds = (now_utc - most_recent_login_after_reference_utc).total_seconds()
             hours_ago = int(time_delta_seconds / 3600.0)
-            log('D231')
+            log('D233')
             return hours_ago
         else:
-            log('D233')
+            log('D234')
             return 0
