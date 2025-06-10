@@ -68,7 +68,7 @@ def process_target(target_name=None):
     if target_name:
         target = target_name
 
-    logdata = dict({'target': target})
+    logdata = {'target': target}
     log('D10', logdata)
 
     return target.upper()

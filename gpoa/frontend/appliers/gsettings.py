@@ -53,8 +53,8 @@ class system_gsettings:
     __profile_data = 'user-db:user\nsystem-db:policy\nsystem-db:local\n'
 
     def __init__(self, override_file_path):
-        self.gsettings = list()
-        self.locks = list()
+        self.gsettings = []
+        self.locks = []
         self.override_file_path = override_file_path
 
     def append(self, schema, path, data, lock, helper):
@@ -132,7 +132,7 @@ def check_existing_gsettings (schema, path):
 
 class user_gsettings:
     def __init__(self):
-        self.gsettings = list()
+        self.gsettings = []
 
     def append(self, schema, path, value, helper=None):
         if check_existing_gsettings(schema, path):

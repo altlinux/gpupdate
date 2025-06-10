@@ -23,7 +23,7 @@ def read_services(service_file):
     '''
     Read Services.xml from GPT.
     '''
-    services = list()
+    services = []
 
     for srv in get_xml_root(service_file):
         srv_obj = service(srv.get('name'))

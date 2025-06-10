@@ -47,10 +47,10 @@ class firefox_applier(applier_frontend):
         self.sid = sid
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
-        self.policies = dict()
-        self.policies_json = dict({ 'policies': self.policies })
+        self.policies = {}
+        self.policies_json = {'policies': self.policies}
         self.firefox_keys = self.storage.filter_hklm_entries(self.__registry_branch)
-        self.policies_gen = dict()
+        self.policies_gen = {}
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -112,13 +112,13 @@ def clean_data_firefox(data):
 
 
 
-def create_dict(firefox_keys, registry_branch, excp=list()):
+def create_dict(firefox_keys, registry_branch, excp=[]):
     '''
     Collect dictionaries from registry keys into a general dictionary
     '''
     get_boolean = lambda data: data in ['1', 'true', 'True', True, 1] if isinstance(data, (str, int)) else False
     get_parts = lambda hivekey, registry: hivekey.replace(registry, '').split('/')
-    counts = dict()
+    counts = {}
     for it_data in firefox_keys:
         branch = counts
         try:
@@ -153,7 +153,7 @@ def create_dict(firefox_keys, registry_branch, excp=list()):
                 for part in parts[:-1]:
                     branch = branch.setdefault(part, {})
                 if branch.get(parts[-1]) is None:
-                    branch[parts[-1]] = list()
+                    branch[parts[-1]] = []
                 if it_data.type == 4:
                     branch[parts[-1]].append(get_boolean(it_data.data))
                 else:

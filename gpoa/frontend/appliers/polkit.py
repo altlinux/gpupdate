@@ -57,12 +57,12 @@ class polkit:
             with open(self.outfile, 'w') as f:
                 f.write(text)
 
-            logdata = dict()
+            logdata = {}
             logdata['file'] = self.outfile
             logdata['arguments'] = self.args
             log('D77', logdata)
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['file'] = self.outfile
             logdata['arguments'] = self.args
             log('E44', logdata)

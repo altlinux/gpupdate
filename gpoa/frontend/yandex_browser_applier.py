@@ -41,7 +41,7 @@ class yandex_browser_applier(applier_frontend):
         self._is_machine_name = is_machine_name(self.username)
         self.yandex_keys = self.storage.filter_hklm_entries(self.__registry_branch)
 
-        self.policies_json = dict()
+        self.policies_json = {}
 
         self.__module_enabled = check_enabled(
               self.storage
@@ -159,7 +159,7 @@ class yandex_browser_applier(applier_frontend):
         '''
         Collect dictionaries from registry keys into a general dictionary
         '''
-        counts = dict()
+        counts = {}
         #getting the list of keys to read as an integer
         valuename_typeint = self.get_valuename_typeint()
         for it_data in yandex_keys:

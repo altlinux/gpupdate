@@ -55,7 +55,7 @@ def set_privileges(username, uid, gid, groups, home):
 
     os.chdir(home)
 
-    logdata = dict()
+    logdata = {}
     logdata['uid'] = uid
     logdata['gid'] = gid
     logdata['username'] = username
@@ -123,12 +123,12 @@ def with_privileges(username, func):
             pass
 
     except Exception as exc:
-        logdata = dict()
+        logdata = {}
         logdata['msg'] = str(exc)
         log('E33', logdata)
         result = 1;
     finally:
-        logdata = dict()
+        logdata = {}
         logdata['dbus_pid'] = dbus_pid
         logdata['dconf_pid'] = dconf_pid
         log('D56', logdata)

@@ -25,7 +25,7 @@ def read_printers(printers_file):
     '''
     Read printer configurations from Printer.xml
     '''
-    printers = list()
+    printers = []
 
     for prn in get_xml_root(printers_file):
         prn_obj = printer(prn.tag, prn.get('name'), prn.get('status'))
@@ -101,7 +101,7 @@ class printer(DynamicAttributes):
         '''
         Return string-serialized JSON representation of the object.
         '''
-        printer = dict()
+        printer = {}
         printer['type'] = self.printer_type
         printer['name'] = self.name
         printer['status'] = self.status
@@ -113,7 +113,7 @@ class printer(DynamicAttributes):
 
         # Nesting JSON object into JSON object makes it easier to add
         # metadata if needed.
-        config = dict()
+        config = {}
         config['printer'] = printer
 
         return json.dumps(config)

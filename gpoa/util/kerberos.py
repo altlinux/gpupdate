@@ -80,11 +80,11 @@ def check_krb_ticket():
         subprocess.check_call(['klist', '-s'])
         output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
         result = True
-        logdata = dict()
+        logdata = {}
         logdata['output'] = output
         log('D17', logdata)
     except Exception as exc:
-        logdata = dict()
+        logdata = {}
         logdata['krb-exc'] = exc
         log('E14', logdata)
 

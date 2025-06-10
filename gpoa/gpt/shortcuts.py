@@ -69,7 +69,7 @@ def read_shortcuts(shortcuts_file):
 
     :shortcuts_file: Location of Shortcuts.xml
     '''
-    shortcuts = list()
+    shortcuts = []
 
     for link in get_xml_root(shortcuts_file):
         props = link.find('Properties')

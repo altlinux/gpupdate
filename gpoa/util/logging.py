@@ -40,15 +40,13 @@ class slogm(object):
     '''
     Structured log message class
     '''
-    def __init__(self, message, kwargs=dict()):
+    def __init__(self, message, kwargs={}):
         self.message = message
-        self.kwargs = kwargs
-        if not self.kwargs:
-            self.kwargs = dict()
+        self.kwargs = {}
 
     def __str__(self):
         now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))
-        args = dict()
+        args = {}
         args.update(self.kwargs)
         result = '{}|{}|{}'.format(now, self.message, args)
 

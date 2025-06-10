@@ -110,7 +110,7 @@ def get_preftype(path_to_file):
     return None
 
 def pref_parsers():
-    parsers = dict()
+    parsers = {}
 
     parsers[FileType.PREG] = read_polfile
     parsers[FileType.SHORTCUTS] = read_shortcuts
@@ -132,7 +132,7 @@ def get_parser(preference_type):
     return parsers[preference_type]
 
 def pref_mergers():
-    mergers = dict()
+    mergers = {}
 
     mergers[FileType.PREG] = merge_polfile
     mergers[FileType.SHORTCUTS] = merge_shortcuts

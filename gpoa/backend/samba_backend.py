@@ -68,7 +68,7 @@ class samba_backend(applier_backend):
         self.gpo_cache_part ='gpo_cache'
         self._cached = False
         self.storage.set_info('cache_dir', os.path.join(self.cache_dir, self.gpo_cache_part))
-        logdata = dict({'cachedir': self.cache_dir})
+        logdata = {'cachedir': self.cache_dir}
         log('D7', logdata)
 
     def __del__(self):
@@ -98,7 +98,7 @@ class samba_backend(applier_backend):
         Retrieve settings and strore it in a database
         '''
         # Get policies for machine at first.
-        machine_gpts = list()
+        machine_gpts = []
         try:
             machine_gpts = self._get_gpts(get_machine_name(), self.storage.get_info('machine_sid'))
         except Exception as exc:
@@ -110,14 +110,14 @@ class samba_backend(applier_backend):
                 try:
                     gptobj.merge_machine()
                 except Exception as exc:
-                    logdata = dict()
+                    logdata = {}
                     logdata['msg'] = str(exc)
                     log('E26', logdata)
 
         # Load user GPT values in case user's name specified
         # This is a buggy implementation and should be tested more
         else:
-            user_gpts = list()
+            user_gpts = []
             try:
                 user_gpts = self._get_gpts(self.username, self.sid)
             except Exception as exc:
@@ -127,7 +127,7 @@ class samba_backend(applier_backend):
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
             policy_mode = self.get_policy_mode()
-            logdata = dict({'mode': upm2str(policy_mode), 'sid': self.sid})
+            logdata = {'mode': upm2str(policy_mode), 'sid': self.sid}
             log('D152', logdata)
 
             if policy_mode < 2:
@@ -135,7 +135,7 @@ class samba_backend(applier_backend):
                     try:
                         gptobj.merge_user()
                     except Exception as exc:
-                        logdata = dict()
+                        logdata = {}
                         logdata['msg'] = str(exc)
                         log('E27', logdata)
 
@@ -145,7 +145,7 @@ class samba_backend(applier_backend):
                         gptobj.sid = self.sid
                         gptobj.merge_user()
                     except Exception as exc:
-                        logdata = dict()
+                        logdata = {}
                         logdata['msg'] = str(exc)
                         log('E63', logdata)
 
@@ -162,13 +162,13 @@ class samba_backend(applier_backend):
                 self._cached = True
                 return True
             elif 'Local Policy' != gpo.name:
-                logdata = dict({'gponame': gpo.name})
+                logdata = {'gponame': gpo.name}
                 log('W4', logdata)
             return False
         return True
 
     def _get_gpts(self, username, sid):
-        gpts = list()
+        gpts = []
 
         log('D45', {'username': username, 'sid': sid})
         # util.windows.smbcreds
@@ -178,7 +178,7 @@ class samba_backend(applier_backend):
             if self._check_sysvol_present(gpo):
                 if not self._cached:
                     path = check_safe_path(gpo.file_sys_path).upper()
-                    slogdata = dict({'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path})
+                    slogdata = {'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name, 'gpo_path': path}
                     log('D30', slogdata)
                     gpt_abspath = os.path.join(self.cache_dir, self.gpo_cache_part, path)
                 else:

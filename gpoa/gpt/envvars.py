@@ -21,7 +21,7 @@ from .dynamic_attributes import DynamicAttributes
 
 
 def read_envvars(envvars_file):
-    variables = list()
+    variables = []
 
     for var in get_xml_root(envvars_file):
         props = var.find('Properties')

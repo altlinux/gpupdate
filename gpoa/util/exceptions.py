@@ -27,13 +27,13 @@ def geterr():
     '''
     etype, evalue, etrace = sys.exc_info()
 
-    traceinfo = dict({
+    traceinfo = {
           'file': etrace.tb_frame.f_code.co_filename
         , 'line': etrace.tb_lineno
         , 'name': etrace.tb_frame.f_code.co_name
         , 'type': etype.__name__
         , 'message': evalue
-    })
+    }
 
     del(etype, evalue, etrace)
 

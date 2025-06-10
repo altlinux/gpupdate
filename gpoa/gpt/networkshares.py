@@ -20,7 +20,7 @@ from util.xml import get_xml_root
 from .dynamic_attributes import DynamicAttributes
 
 def read_networkshares(networksharesxml):
-    networkshares = list()
+    networkshares = []
 
     for share in get_xml_root(networksharesxml):
         props = share.find('Properties')

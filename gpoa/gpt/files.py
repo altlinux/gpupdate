@@ -20,7 +20,7 @@ from util.xml import get_xml_root
 from .dynamic_attributes import DynamicAttributes
 
 def read_files(filesxml):
-    files = list()
+    files = []
 
     for fil in get_xml_root(filesxml):
         props = fil.find('Properties')

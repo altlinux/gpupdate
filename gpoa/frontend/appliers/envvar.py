@@ -64,7 +64,7 @@ class Envvar:
 
     def _create_action(self, create_dict, envvar_file):
         lines_old = envvar_file.readlines()
-        lines_new = list()
+        lines_new = []
         for name in create_dict:
             exist = False
             for line in lines_old:
@@ -93,7 +93,7 @@ class Envvar:
             with open(self.envvar_file_path, 'r') as f:
                 lines = f.readlines()
         else:
-            lines = list()
+            lines = []
 
         file_changed = False
         for envvar_object in self.envvars:

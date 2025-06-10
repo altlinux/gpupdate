@@ -20,7 +20,7 @@
 import gettext
 
 def info_code(code):
-    info_ids = dict()
+    info_ids = {}
     info_ids[1] = 'Got GPO list for username'
     info_ids[2] = 'Got GPO'
     info_ids[3] = 'Working with control'
@@ -36,7 +36,7 @@ def info_code(code):
     return info_ids.get(code, 'Unknown info code')
 
 def error_code(code):
-    error_ids = dict()
+    error_ids = {}
     error_ids[1] = 'Insufficient permissions to run gpupdate'
     error_ids[2] = 'gpupdate will not be started'
     error_ids[3] = 'Backend execution error'
@@ -115,7 +115,7 @@ def error_code(code):
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
-    debug_ids = dict()
+    debug_ids = {}
     debug_ids[1] = 'The GPOA process was started for user'
     debug_ids[2] = 'Username is not specified - will use username of the current process'
     debug_ids[3] = 'Initializing plugin manager'
@@ -353,7 +353,7 @@ def debug_code(code):
     return debug_ids.get(code, 'Unknown debug code')
 
 def warning_code(code):
-    warning_ids = dict()
+    warning_ids = {}
     warning_ids[1] = (
         'Unable to perform gpupdate for non-existent user, '
         'will update machine settings'
@@ -406,7 +406,7 @@ def warning_code(code):
     return warning_ids.get(code, 'Unknown warning code')
 
 def fatal_code(code):
-    fatal_ids = dict()
+    fatal_ids = {}
     fatal_ids[1] = 'Unable to refresh GPO list'
     fatal_ids[2] = 'Error getting GPTs for machine'
     fatal_ids[3] = 'Error getting GPTs for user'

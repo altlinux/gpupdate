@@ -31,7 +31,7 @@ def storage_get_printers(storage, sid):
     Query printers configuration from storage
     '''
     printer_objs = storage.get_printers(sid)
-    printers = list()
+    printers = []
 
     for prnj in printer_objs:
         printers.append(prnj)
@@ -80,8 +80,8 @@ class cups_applier(applier_frontend):
         try:
             self.cups_connection = cups.Connection()
         except Exception as exc:
-            logdata = dict()
-            logdata['exc', exc]
+            logdata = {}
+            logdata['exc'] = exc
             log('W20', logdata)
         self.printers = storage_get_printers(self.storage, self.storage.get_info('machine_sid'))
 

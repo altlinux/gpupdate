@@ -40,7 +40,7 @@ def folder_int2bool(val):
 
 
 def read_folders(folders_file):
-    folders = list()
+    folders = []
 
     for fld in get_xml_root(folders_file):
         props = fld.find('Properties')

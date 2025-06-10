@@ -31,7 +31,7 @@ class Networkshare:
     def __init__(self, networkshare_obj, username = None):
         self.net_full_cmd = ['/usr/bin/net', 'usershare']
         self.net_cmd_check = ['/usr/bin/net', 'usershare', 'list']
-        self.cmd = list()
+        self.cmd = []
         self.name = networkshare_obj.name
         self.path = expand_windows_var(networkshare_obj.path, username).replace('\\', '/') if networkshare_obj.path else None
 
@@ -52,7 +52,7 @@ class Networkshare:
             return exc
 
     def _run_net_full_cmd(self):
-        logdata = dict()
+        logdata = {}
         try:
             res = subprocess.check_output(self.net_full_cmd, stderr=subprocess.DEVNULL, encoding='utf-8')
             if res:

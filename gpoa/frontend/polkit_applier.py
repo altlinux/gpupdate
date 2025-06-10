@@ -53,7 +53,7 @@ class polkit_applier(applier_frontend):
         template_vars_all = self.__polkit_map[self.__registry_branch][1]
         template_file_all_lock = self.__polkit_map[self.__registry_locks_branch][0]
         template_vars_all_lock = self.__polkit_map[self.__registry_locks_branch][1]
-        locks = list()
+        locks = []
         for lock in self.polkit_locks:
             if bool(int(lock.data)):
                 locks.append(lock.valuename)
@@ -77,7 +77,7 @@ class polkit_applier(applier_frontend):
             self.__polkit_map[self.__registry_locks_branch][1][key] = item[1]
 
         if deny_all_win:
-            logdata = dict()
+            logdata = {}
             logdata['Deny_All_win'] = deny_all_win.data
             log('D69', logdata)
             self.__polkit_map[self.__deny_all_win][1]['Deny_All'] = deny_all_win.data
@@ -146,7 +146,7 @@ class polkit_applier_user(applier_frontend):
             self.__polkit_map[self.__registry_branch][1][key] = item
 
         if deny_all_win:
-            logdata = dict()
+            logdata = {}
             logdata['user'] = self.username
             logdata['Deny_All_win'] = deny_all_win.data
             log('D70', logdata)

@@ -54,7 +54,7 @@ class Ini_file:
         if self.path.is_dir():
             return
         if self.section not in self.config:
-            self.config[self.section] = dict()
+            self.config[self.section] = {}
 
         self.config[self.section][self.key] = self.value
         self.config.write()
@@ -85,7 +85,7 @@ class Ini_file:
             if self.action == FileAction.REPLACE:
                 self._create_action()
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['action'] = self.action
             logdata['exc'] = exc
             log('W23', logdata)

@@ -27,7 +27,7 @@ from messages import message_with_code
 
 class plugin_manager:
     def __init__(self):
-        self.plugins = dict()
+        self.plugins = {}
         logging.debug(slogm(message_with_code('D3')))
         try:
             self.plugins['adp'] = adp()

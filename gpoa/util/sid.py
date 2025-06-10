@@ -65,10 +65,10 @@ def get_sid(domain, username, is_machine = False):
     try:
         sid = wbinfo_getsid(domain, username)
     except:
-        logdata = dict({'sid': sid})
+        logdata = {'sid': sid}
         log('E16', logdata)
 
-    logdata = dict({'sid': sid})
+    logdata = {'sid': sid}
     log('D21', logdata)
 
     return sid
@@ -203,7 +203,7 @@ def is_sid(sid):
         pass
 
 def sid2descr(sid):
-    sids = dict()
+    sids = {}
     sids['S-1-0']    = 'Null Authority'
     sids['S-1-0-0']  = 'Nobody'
     sids['S-1-1']    = 'World Authority'

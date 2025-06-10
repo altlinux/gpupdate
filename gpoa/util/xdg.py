@@ -27,8 +27,7 @@ def xdg_get_desktop(username, homedir = None):
         homedir = get_homedir(username)
     if not homedir:
         msgtext = message_with_code('E18')
-        logdata = dict()
-        logdata['username'] = username
+        logdata = {}
         log('E18', logdata)
         raise Exception(msgtext)
 

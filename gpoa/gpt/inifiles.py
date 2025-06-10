@@ -20,7 +20,7 @@ from util.xml import get_xml_root
 from .dynamic_attributes import DynamicAttributes
 
 def read_inifiles(inifiles_file):
-    inifiles = list()
+    inifiles = []
 
     for ini in get_xml_root(inifiles_file):
         prors = ini.find('Properties')

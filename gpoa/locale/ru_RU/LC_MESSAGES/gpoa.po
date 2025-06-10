@@ -1106,7 +1106,5 @@ msgstr "Не удалось получить GPT для пользователя
 msgid "Unknown fatal code"
 msgstr "Неизвестный код фатальной ошибки"
 
-# get_message
-msgid "Unknown message type, no message assigned"
-msgstr "Неизвестный тип сообщения"
+
 

@@ -24,7 +24,7 @@ def control_subst(preg_name):
     This is a workaround for control names which can't be used in
     PReg/ADMX files.
     '''
-    control_triggers = dict()
+    control_triggers = {}
     control_triggers['dvd_rw-format'] = 'dvd+rw-format'
     control_triggers['dvd_rw-mediainfo'] = 'dvd+rw-mediainfo'
     control_triggers['dvd_rw-booktype'] = 'dvd+rw-booktype'
@@ -50,7 +50,7 @@ class control:
         Query possible values from control in order to perform check of
         parameter passed to constructor.
         '''
-        values = list()
+        values = []
 
         popen_call = ['/usr/sbin/control', self.control_name, 'list']
         with subprocess.Popen(popen_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
@@ -68,7 +68,7 @@ class control:
         try:
             str_status = self.possible_values[int_status]
         except IndexError as exc:
-            logdata = dict()
+            logdata = {}
             logdata['control'] = self.control_name
             logdata['value from'] = self.possible_values
             logdata['by index'] = int_status
@@ -97,20 +97,20 @@ class control:
         if type(self.control_value) == int:
             status = self._map_control_status(self.control_value)
             if status == None:
-                logdata = dict()
+                logdata = {}
                 logdata['control'] = self.control_name
                 logdata['inpossible values'] = self.control_value
                 log('E42', logdata)
                 return
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
-                logdata = dict()
+                logdata = {}
                 logdata['control'] = self.control_name
                 logdata['inpossible values'] = self.control_value
                 log('E59', logdata)
                 return
             status = self.control_value
-        logdata = dict()
+        logdata = {}
         logdata['control'] = self.control_name
         logdata['status'] = status
         log('D68', logdata)
@@ -120,7 +120,7 @@ class control:
             with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
                 proc.wait()
         except:
-            logdata = dict()
+            logdata = {}
             logdata['control'] = self.control_name
             logdata['status'] = status
             log('E43', logdata)

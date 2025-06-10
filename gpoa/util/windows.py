@@ -76,7 +76,7 @@ class smbcreds (smbopts):
 
         try:
             if dc_fqdn is not None:
-                logdata = dict()
+                logdata = {}
                 logdata['user_dc'] = dc_fqdn
                 log('D38', logdata)
 
@@ -84,7 +84,7 @@ class smbcreds (smbopts):
             else:
                 self.selected_dc = get_dc_hostname(self.creds, self.lp)
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['msg'] = str(exc)
             log('E10', logdata)
             raise exc
@@ -99,7 +99,7 @@ class smbcreds (smbopts):
             # Look and python/samba/netcmd/domain.py for more examples
             res = netcmd_get_domain_infos_via_cldap(self.lp, None, self.selected_dc)
             dns_domainname = res.dns_domain
-            logdata = dict({'domain': dns_domainname})
+            logdata = {'domain': dns_domainname}
             log('D18', logdata)
         except Exception as exc:
             log('E15')
@@ -112,7 +112,7 @@ class smbcreds (smbopts):
         Get GPO list for the specified username for the specified DC
         hostname
         '''
-        gpos = list()
+        gpos = []
         if Dconf_registry.get_info('machine_name') == username:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
         else:
@@ -124,7 +124,7 @@ class smbcreds (smbopts):
             if ads.connect():
                 log('D47')
                 gpos = ads.get_gpo_list(username)
-                logdata = dict({'username': username})
+                logdata = {'username': username}
                 log('I1', logdata)
                 for gpo in gpos:
                     # These setters are taken from libgpo/pygpo.c
@@ -132,16 +132,16 @@ class smbcreds (smbopts):
                     if gpo.display_name in dict_gpo_name_version.keys() and dict_gpo_name_version.get(gpo.display_name, {}).get('version') == str(getattr(gpo, 'version', None)):
                         if Path(dict_gpo_name_version.get(gpo.display_name, {}).get('correct_path')).exists():
                             gpo.file_sys_path = ''
-                            ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True})
+                            ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True}
                             log('I11', ldata)
                             continue
-                    ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path})
+                    ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path}
                     log('I2', ldata)
 
         except Exception as exc:
             if self.selected_dc != self.pdc_emulator_server:
                 raise GetGPOListFail(exc)
-            logdata = dict({'username': username, 'dc': self.selected_dc, 'exc': exc})
+            logdata = {'username': username, 'dc': self.selected_dc, 'exc': exc}
             log('E17', logdata)
 
         return gpos
@@ -166,7 +166,7 @@ class smbcreds (smbopts):
             gpos = self.get_gpos(username)
 
         while list_selected_dc:
-            logdata = dict()
+            logdata = {}
             logdata['username'] = username
             logdata['dc'] = self.selected_dc
             try:
@@ -311,7 +311,7 @@ def expand_windows_var(text, username=None):
     '''
     Scan the line for percent-encoded variables and expand them.
     '''
-    variables = dict()
+    variables = {}
     variables['HOME'] = '/etc/skel'
     variables['HOMEPATH'] = '/etc/skel'
     variables['HOMEDRIVE'] = '/'

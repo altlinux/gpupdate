@@ -20,7 +20,7 @@ from enum import Enum
 import subprocess
 
 def getprops(param_list):
-    props = dict()
+    props = {}
 
     for entry in param_list:
         lentry = entry.lower()
@@ -35,7 +35,7 @@ def getprops(param_list):
 
 
 def get_ports(param_list):
-    portlist = list()
+    portlist = []
 
     for entry in param_list:
         lentry = entry.lower()

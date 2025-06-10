@@ -49,7 +49,7 @@ class Files_cp:
         self.suppress = str2bool(file_obj.suppress)
         self.executable = str2bool(file_obj.executable)
         self.username = username
-        self.fromPathFiles = list()
+        self.fromPathFiles = []
         if self.fromPath:
             if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
                 self.isTargetPathDirectory = True
@@ -254,8 +254,8 @@ class Execution_check():
         marker_usage_path_branch = '{}\\{}%'.format(self.__hklm_branch, self.__marker_usage_path_key_name)
         self.etension_marker = storage.filter_hklm_entries(etension_marker_branch)
         self.marker_usage_path = storage.filter_hklm_entries(marker_usage_path_branch)
-        self.list_paths = list()
-        self.list_markers = list()
+        self.list_paths = []
+        self.list_markers = []
         for marker in self.etension_marker:
             self.list_markers.append(marker.data)
         for usage_path in self.marker_usage_path:

@@ -71,7 +71,7 @@ class dbus_runner:
 
     def run(self):
         if self.username:
-            logdata = dict({'username': self.username})
+            logdata = {'username': self.username}
             log('D6', logdata)
             gpupdate = 'gpupdate' if not Dconf_registry._force else 'gpupdate_force'
             if is_root():
@@ -88,8 +88,7 @@ class dbus_runner:
                         timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
-                    logdata = dict()
-                    logdata['username'] = self.username
+                    logdata = {'username': self.username}
                     log('E23', logdata)
                     raise exc
             else:
@@ -103,7 +102,7 @@ class dbus_runner:
                         timeout=self._synchronous_timeout)
                     print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
-                    logdata = dict({'error': str(exc)})
+                    logdata = {'error': str(exc)}
                     log('E21', logdata)
                     raise exc
         else:
@@ -121,7 +120,7 @@ class dbus_runner:
                     timeout=self._synchronous_timeout)
                 print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
-                logdata = dict({'error': str(exc)})
+                logdata = {'error': str(exc)}
                 log('E22', logdata)
                 raise exc
 
@@ -194,7 +193,7 @@ def print_dbus_result(result):
     '''
     exitcode = result[0]
     message = result[1:]
-    logdata = dict({'retcode': exitcode})
+    logdata = {'retcode': exitcode}
     log('D12', logdata)
 
     for line in message:
@@ -208,7 +207,7 @@ class dbus_session:
             self.session_dbus = self.session_bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
             self.session_iface = dbus.Interface(self.session_dbus, 'org.freedesktop.DBus')
         except dbus.exceptions.DBusException as exc:
-            logdata = dict({'error': str(exc)})
+            logdata = {'error': str(exc)}
             log('E31', logdata)
             raise exc
 
@@ -219,7 +218,7 @@ class dbus_session:
             log('D57', {"pid": pid})
         except dbus.exceptions.DBusException as exc:
             if exc.get_dbus_name() != 'org.freedesktop.DBus.Error.NameHasNoOwner':
-                logdata = dict({'error': str(exc)})
+                logdata = {'error': str(exc)}
                 log('E32', logdata)
                 raise exc
             log('D58', {'connection': connection})

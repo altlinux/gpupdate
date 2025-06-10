@@ -39,7 +39,7 @@ def load_xml_preg(xml_path):
     '''
     Parse XML/PReg file and return its preg object
     '''
-    logdata = dict({'polfile': xml_path})
+    logdata = {'polfile': xml_path}
     log('D36', logdata)
     gpparser = GPPolParser()
     xml_root = ElementTree.parse(xml_path).getroot()
@@ -53,14 +53,14 @@ def load_pol_preg(polfile):
     '''
     Parse PReg file and return its preg object
     '''
-    logdata = dict({'polfile': polfile})
+    logdata = {'polfile': polfile}
     log('D31', logdata)
     gpparser = GPPolParser()
     data = None
 
     with open(polfile, 'rb') as f:
         data = f.read()
-        logdata = dict({'polfile': polfile, 'length': len(data)})
+        logdata = {'polfile': polfile, 'length': len(data)}
         log('D33', logdata)
         gpparser.parse(data)
 
@@ -71,7 +71,7 @@ def load_pol_preg(polfile):
 
 def preg_keymap(preg):
     pregfile = load_preg(preg)
-    keymap = dict()
+    keymap = {}
 
     for entry in pregfile.entries:
         hive_key = '{}\\{}'.format(entry.keyname, entry.valuename)
@@ -86,7 +86,7 @@ def merge_polfile(preg, sid=None, reg_name='registry', reg_path=None, policy_nam
         load_preg_dconf(pregfile, preg, policy_name, None, gpo_info)
     else:
         load_preg_dconf(pregfile, preg, policy_name, username, gpo_info)
-    logdata = dict({'pregfile': preg})
+    logdata = {'pregfile': preg}
     log('D32', logdata)
 
 
@@ -97,16 +97,12 @@ class entry:
         self.valuename = e_valuename
         self.type = e_type
         self.data = e_data
-        logdata = dict()
-        logdata['keyname'] = self.keyname
-        logdata['valuename'] = self.valuename
-        logdata['type'] = self.type
-        logdata['data'] = self.data
+        logdata = {'keyname': self.keyname, 'valuename': self.valuename, 'type': self.type, 'data': self.data}
         log('D22', logdata)
 
 class pentries:
     def __init__(self):
-        self.entries = list()
+        self.entries = []
 
 
 def preg2entries(preg_obj):
