@@ -471,7 +471,7 @@ class laps_applier(applier_frontend):
             bool: True if password was changed successfully, False otherwise
         """
         logdata = dict()
-        logdata['target_use'] = self.target_user
+        logdata['target_user'] = self.target_user
         try:
             # Use chpasswd to change the password
             process = subprocess.Popen(
