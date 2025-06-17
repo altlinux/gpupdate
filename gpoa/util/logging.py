@@ -42,7 +42,9 @@ class slogm(object):
     '''
     def __init__(self, message, kwargs={}):
         self.message = message
-        self.kwargs = {}
+        self.kwargs = kwargs
+        if not self.kwargs:
+            self.kwargs = {}
 
     def __str__(self):
         now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))

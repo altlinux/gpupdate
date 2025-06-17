@@ -668,7 +668,7 @@ class laps_applier(applier_frontend):
         else:
             log('D219')
 
-    def _parse_login_time_from_last_line(self, line: str) -> datetime | None:
+    def _parse_login_time_from_last_line(self, line: str) -> datetime:
         match_login_dt = re.search(
             r"((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4})",
             line
@@ -745,7 +745,7 @@ class laps_applier(applier_frontend):
             return 0
 
         most_recent_login_after_reference_utc = None
-        for login_time_utc in user_login_times_utc:
+        for login_time_utc in user_login_times_utc[::-1]:
             if login_time_utc >= reference_dt_utc:
                 most_recent_login_after_reference_utc = login_time_utc
                 break
