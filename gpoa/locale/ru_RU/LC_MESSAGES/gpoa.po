@@ -952,8 +952,8 @@ msgstr "Очистка каталога autofs"
 msgid "No user login records found"
 msgstr "Не найдены записи о входе пользователя"
 
-msgid "Calculating time since last user login"
-msgstr "Расчет времени с момента последнего входа пользователя"
+msgid "Calculating time since the first user login after their password change"
+msgstr "Расчет времени с момента первого входа пользователя после изменения их пароля"
 
 msgid "No logins found after password change"
 msgstr "Не найдены входы после изменения пароля"

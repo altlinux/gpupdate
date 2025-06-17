@@ -347,7 +347,7 @@ def debug_code(code):
     debug_ids[230] = 'Password successfully updated'
     debug_ids[231] = 'Cleaning the autofs catalog'
     debug_ids[232] = 'No user login records found'
-    debug_ids[233] = 'Calculating time since last user login'
+    debug_ids[233] = 'Calculating time since the first user login after their password change'
     debug_ids[234] = 'No logins found after password change'
 
     return debug_ids.get(code, 'Unknown debug code')
