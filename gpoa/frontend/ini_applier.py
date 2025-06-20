@@ -26,8 +26,8 @@ from util.logging import log
 
 class ini_applier(applier_frontend):
     __module_name = 'InifilesApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
 
     def __init__(self, storage, sid):
         self.storage = storage
@@ -48,8 +48,8 @@ class ini_applier(applier_frontend):
 
 class ini_applier_user(applier_frontend):
     __module_name = 'InifilesApplierUser'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
 
     def __init__(self, storage, sid, username):
         self.sid = sid
