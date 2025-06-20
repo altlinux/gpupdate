@@ -62,8 +62,8 @@ def connect_printer(connection, prn):
 
 class cups_applier(applier_frontend):
     __module_name = 'CUPSApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
 
     def __init__(self, storage):
         self.storage = storage
@@ -101,8 +101,8 @@ class cups_applier(applier_frontend):
 
 class cups_applier_user(applier_frontend):
     __module_name = 'CUPSApplierUser'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
 
     def __init__(self, storage, sid, username):
         self.storage = storage
