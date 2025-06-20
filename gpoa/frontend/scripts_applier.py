@@ -29,8 +29,8 @@ from .applier_frontend import (
 
 class scripts_applier(applier_frontend):
     __module_name = 'ScriptsApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __cache_scripts = '/var/cache/gpupdate_scripts_cache/machine/'
 
     def __init__(self, storage, sid):
@@ -80,8 +80,8 @@ class scripts_applier(applier_frontend):
 
 class scripts_applier_user(applier_frontend):
     __module_name = 'ScriptsApplierUser'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __cache_scripts = '/var/cache/gpupdate_scripts_cache/users/'
 
     def __init__(self, storage, sid, username):
