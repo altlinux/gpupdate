@@ -28,8 +28,8 @@ from util.logging import log
 
 class file_applier(applier_frontend):
     __module_name = 'FilesApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
 
     def __init__(self, storage, file_cache, sid):
         self.storage = storage
@@ -52,8 +52,8 @@ class file_applier(applier_frontend):
 
 class file_applier_user(applier_frontend):
     __module_name = 'FilesApplierUser'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
 
     def __init__(self, storage, file_cache, sid, username):
         self.storage = storage
