@@ -27,8 +27,8 @@ from .applier_frontend import (
 
 class package_applier(applier_frontend):
     __module_name = 'PackagesApplier'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __install_key_name = 'Install'
     __remove_key_name = 'Remove'
     __sync_key_name = 'Sync'
@@ -85,8 +85,8 @@ class package_applier(applier_frontend):
 
 class package_applier_user(applier_frontend):
     __module_name = 'PackagesApplierUser'
-    __module_experimental = True
-    __module_enabled = False
+    __module_experimental = False
+    __module_enabled = True
     __install_key_name = 'Install'
     __remove_key_name = 'Remove'
     __sync_key_name = 'Sync'
