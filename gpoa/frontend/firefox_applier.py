@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,9 +42,8 @@ class firefox_applier(applier_frontend):
     __registry_branch = 'Software/Policies/Mozilla/Firefox'
     __firefox_policies = '/etc/firefox/policies'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
         self.policies = {}

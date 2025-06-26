@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2023 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -331,7 +331,7 @@ class Dconf_registry():
 
 
     @classmethod
-    def filter_hkcu_entries(cls, sid, startswith):
+    def filter_hkcu_entries(cls, startswith):
         return cls.filter_hklm_entries(startswith)
 
 
@@ -386,7 +386,7 @@ class Dconf_registry():
         return False
 
     @classmethod
-    def get_hkcu_entry(cls, sid, hive_key, dictionary = None):
+    def get_hkcu_entry(cls, hive_key, dictionary = None):
         return cls.get_hklm_entry(hive_key, dictionary)
 
 
@@ -397,85 +397,85 @@ class Dconf_registry():
 
 
     @classmethod
-    def add_shortcut(cls, sid, sc_obj, policy_name):
+    def add_shortcut(cls, sc_obj, policy_name):
         sc_obj.policy_name = policy_name
         cls.shortcuts.append(sc_obj)
 
 
     @classmethod
-    def add_printer(cls, sid, pobj, policy_name):
+    def add_printer(cls, pobj, policy_name):
         pobj.policy_name = policy_name
         cls.printers.append(pobj)
 
 
     @classmethod
-    def add_drive(cls, sid, dobj, policy_name):
+    def add_drive(cls, dobj, policy_name):
         dobj.policy_name = policy_name
         cls.drives.append(dobj)
 
 
     @classmethod
-    def add_folder(cls, sid, fobj, policy_name):
+    def add_folder(cls, fobj, policy_name):
         fobj.policy_name = policy_name
         cls.folders.append(fobj)
 
 
     @classmethod
-    def add_envvar(self, sid, evobj, policy_name):
+    def add_envvar(self, evobj, policy_name):
         evobj.policy_name = policy_name
         self.environmentvariables.append(evobj)
 
 
     @classmethod
-    def add_script(cls, sid, scrobj, policy_name):
+    def add_script(cls, scrobj, policy_name):
         scrobj.policy_name = policy_name
         cls.scripts.append(scrobj)
 
 
     @classmethod
-    def add_file(cls, sid, fileobj, policy_name):
+    def add_file(cls, fileobj, policy_name):
         fileobj.policy_name = policy_name
         cls.files.append(fileobj)
 
 
     @classmethod
-    def add_ini(cls, sid, iniobj, policy_name):
+    def add_ini(cls, iniobj, policy_name):
         iniobj.policy_name = policy_name
         cls.inifiles.append(iniobj)
 
 
     @classmethod
-    def add_networkshare(cls, sid, networkshareobj, policy_name):
+    def add_networkshare(cls, networkshareobj, policy_name):
         networkshareobj.policy_name = policy_name
         cls.networkshares.append(networkshareobj)
 
 
     @classmethod
-    def get_shortcuts(cls, sid):
+    def get_shortcuts(cls):
         return cls.shortcuts
 
 
     @classmethod
-    def get_printers(cls, sid):
+    def get_printers(cls):
         return cls.printers
 
 
     @classmethod
-    def get_drives(cls, sid):
+    def get_drives(cls):
         return cls.drives
 
     @classmethod
-    def get_folders(cls, sid):
+    def get_folders(cls):
         return cls.folders
 
 
     @classmethod
-    def get_envvars(cls, sid):
+    def get_envvars(cls):
         return cls.environmentvariables
 
 
     @classmethod
-    def get_scripts(cls, sid, action):
+    def get_scripts(cls, action):
         action_scripts = list()
         for part in cls.scripts:
             if action == 'LOGON' and part.action == 'LOGON':
@@ -490,22 +490,22 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_files(cls, sid):
+    def get_files(cls):
         return cls.files
 
 
     @classmethod
-    def get_networkshare(cls, sid):
+    def get_networkshare(cls):
         return cls.networkshares
 
 
     @classmethod
-    def get_ini(cls, sid):
+    def get_ini(cls):
         return cls.inifiles
 
 
     @classmethod
-    def wipe_user(cls, sid):
+    def wipe_user(cls):
         cls.wipe_hklm()
 
 

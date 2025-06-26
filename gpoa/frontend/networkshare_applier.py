@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2022 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,11 +29,10 @@ class networkshare_applier(applier_frontend):
     __module_experimental = True
     __module_enabled = False
 
-    def __init__(self, storage, sid, username = None):
+    def __init__(self, storage, username = None):
         self.storage = storage
-        self.sid = sid
         self.username = username
-        self.networkshare_info = self.storage.get_networkshare(self.sid)
+        self.networkshare_info = self.storage.get_networkshare()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.__module_enabled_user = check_enabled(self.storage, self.__module_name_user, self.__module_experimental)
 

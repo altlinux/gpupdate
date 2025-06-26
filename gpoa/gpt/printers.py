@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,9 +42,9 @@ def read_printers(printers_file):
 
     return printers
 
-def merge_printers(storage, sid, printer_objects, policy_name):
+def merge_printers(storage, printer_objects, policy_name):
     for device in printer_objects:
-        storage.add_printer(sid, device, policy_name)
+        storage.add_printer(device, policy_name)
 
 def json2printer(json_str):
     '''

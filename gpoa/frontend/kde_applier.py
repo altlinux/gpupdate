@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -67,10 +67,9 @@ class kde_applier_user(applier_frontend):
     __hkcu_lock_branch = 'Software/BaseALT/Policies/KDELocks'
     __plasma_update_entry = 'Software/BaseALT/Policies/KDE/Plasma/Update'
 
-    def __init__(self, storage, sid=None, username=None, file_cache = None):
+    def __init__(self, storage, username=None, file_cache = None):
         self.storage = storage
         self.username = username
-        self.sid = sid
         self.file_cache = file_cache
         self.locks_dict = {}
         self.locks_data_dict = {}
@@ -78,10 +77,10 @@ class kde_applier_user(applier_frontend):
         kde_applier_user.kde_version = get_kde_version()
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
-        self.locks_settings = self.storage.filter_hkcu_entries(self.sid, locks_filter)
+        self.locks_settings = self.storage.filter_hkcu_entries(locks_filter)
         self.plasma_update = self.storage.get_entry(self.__plasma_update_entry)
         self.plasma_update_flag = self.plasma_update.data if self.plasma_update is not None else 0
-        self.kde_settings = self.storage.filter_hkcu_entries(self.sid, kde_filter)
+        self.kde_settings = self.storage.filter_hkcu_entries(kde_filter)
         self.__module_enabled = check_enabled(
             self.storage,
             self.__module_name,

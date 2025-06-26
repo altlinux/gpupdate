@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,9 +35,9 @@ def read_networkshares(networksharesxml):
 
     return networkshares
 
-def merge_networkshares(storage, sid, networkshares_objects, policy_name):
+def merge_networkshares(storage, networkshares_objects, policy_name):
     for networkshareobj in networkshares_objects:
-        storage.add_networkshare(sid, networkshareobj, policy_name)
+        storage.add_networkshare(networkshareobj, policy_name)
 
 class networkshare(DynamicAttributes):
     def __init__(self, name):

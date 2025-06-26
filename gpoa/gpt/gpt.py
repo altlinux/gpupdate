@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -154,11 +154,10 @@ def get_merger(preference_type):
     return mergers[preference_type]
 
 class gpt:
-    def __init__(self, gpt_path, sid, username='Machine', gpo_info=None):
+    def __init__(self, gpt_path, username='Machine', gpo_info=None):
         add_to_dict(gpt_path, username, gpo_info)
         self.path = gpt_path
         self.username = username
-        self.sid = sid
         self.storage = registry_factory()
         self.storage._gpt_read_flag = True
         self.gpo_info = gpo_info
@@ -224,12 +223,12 @@ class gpt:
             for preference_name, preference_path in self.settings['machine'].items():
                 if preference_path:
                     preference_type = get_preftype(preference_path)
-                    logdata = {'pref': preference_type.value, 'sid': self.sid}
+                    logdata = {'pref': preference_type.value}
                     log('D28', logdata)
                     preference_parser = get_parser(preference_type)
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
-                    preference_merger(self.storage, self.sid, preference_objects, self.name)
+                    preference_merger(self.storage, preference_objects, self.name)
         except Exception as exc:
             logdata = {}
             logdata['gpt'] = self.name
@@ -246,7 +245,6 @@ class gpt:
                 mulogdata = {'polfile': self.settings['user']['regpol']}
                 log('D35', mulogdata)
                 util.preg.merge_polfile(self.settings['user']['regpol'],
-                                        sid=self.sid,
                                         policy_name=self.name,
                                         username=self.username,
                                         gpo_info=self.gpo_info)
@@ -254,12 +252,12 @@ class gpt:
             for preference_name, preference_path in self.settings['user'].items():
                 if preference_path:
                     preference_type = get_preftype(preference_path)
-                    logdata = {'pref': preference_type.value, 'sid': self.sid}
+                    logdata = {'pref': preference_type.value}
                     log('D29', logdata)
                     preference_parser = get_parser(preference_type)
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
-                    preference_merger(self.storage, self.sid, preference_objects, self.name)
+                    preference_merger(self.storage, preference_objects, self.name)
         except Exception as exc:
             logdata = {}
             logdata['gpt'] = self.name
@@ -354,13 +352,13 @@ def lp2gpt():
     # Write PReg
     polparser.write_binary(os.path.join(destdir, 'Registry.pol'))
 
-def get_local_gpt(sid):
+def get_local_gpt():
     '''
     Convert default policy to GPT and create object out of it.
     '''
     log('D25')
     lp2gpt()
-    local_policy = gpt(str(local_policy_cache()), sid)
+    local_policy = gpt(str(local_policy_cache()))
     local_policy.set_name('Local Policy')
 
     return local_policy

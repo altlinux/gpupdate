@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 def read_tasks(filename):
     pass
 
-def merge_tasks(storage, sid, task_objects, policy_name):
+def merge_tasks(storage, task_objects, policy_name):
     for task in task_objects:
         pass
 

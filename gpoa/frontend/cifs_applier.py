@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2022 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,11 +27,11 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
-from util.util import get_homedir, get_uid_by_username
+from util.util import get_homedir, get_uid_by_username, get_machine_name
 from util.logging import log
 
-def storage_get_drives(storage, sid):
-    drives = storage.get_drives(sid)
+def storage_get_drives(storage):
+    drives = storage.get_drives()
     drive_list = list()
 
     for drv_obj in drives:
@@ -127,9 +127,9 @@ class cifs_applier(applier_frontend):
     __module_experimental = False
     __dir4clean = '/etc/auto.master.gpupdate.d'
 
-    def __init__(self, storage, sid):
+    def __init__(self, storage):
         self.clear_directory_auto_dir()
-        self.applier_cifs = cifs_applier_user(storage, sid, None)
+        self.applier_cifs = cifs_applier_user(storage, None)
         self.__module_enabled = check_enabled(
               storage
             , self.__module_name
@@ -187,9 +187,8 @@ class cifs_applier_user(applier_frontend):
     __name_value = 'DriveMapsName'
     __name_value_user = 'DriveMapsNameUser'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         self.state_home_link = False
         self.state_home_link_user = False
@@ -231,11 +230,12 @@ class cifs_applier_user(applier_frontend):
         self.cifsacl_disable = self.storage.get_entry(self.__cifsacl_key, preg=False)
 
         self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
-        conf_file = '{}.conf'.format(sid)
-        conf_hide_file = '{}_hide.conf'.format(sid)
-        autofs_file = '{}.autofs'.format(sid)
-        autofs_hide_file = '{}_hide.autofs'.format(sid)
-        cred_file = '{}.creds'.format(sid)
+        file_name = username if username else get_machine_name()
+        conf_file = '{}.conf'.format(file_name)
+        conf_hide_file = '{}_hide.conf'.format(file_name)
+        autofs_file = '{}.autofs'.format(file_name)
+        autofs_hide_file = '{}_hide.autofs'.format(file_name)
+        cred_file = '{}.creds'.format(file_name)
 
         self.auto_master_d = Path(self.__auto_dir)
 
@@ -255,7 +255,7 @@ class cifs_applier_user(applier_frontend):
 
 
         self.mount_dir = Path(os.path.join(self.home))
-        self.drives = storage_get_drives(self.storage, self.sid)
+        self.drives = storage_get_drives(self.storage)
 
         self.template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
         self.template_env = jinja2.Environment(loader=self.template_loader)
@@ -466,8 +466,6 @@ class cifs_applier_user(applier_frontend):
             self.del_previous_link(previous_value_link, dMachine.name, previous_state_home_link_disable_net)
             self.unlink_symlink(dMachine)
             self.unlink_symlink(dMachineHide)
-
-
 
 
     def admin_context_apply(self):

@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ class samba_backend(applier_backend):
         # Get policies for machine at first.
         machine_gpts = []
         try:
-            machine_gpts = self._get_gpts(get_machine_name(), self.storage.get_info('machine_sid'))
+            machine_gpts = self._get_gpts(get_machine_name())
         except Exception as exc:
             log('F2')
             raise exc
@@ -119,7 +119,7 @@ class samba_backend(applier_backend):
         else:
             user_gpts = []
             try:
-                user_gpts = self._get_gpts(self.username, self.sid)
+                user_gpts = self._get_gpts(self.username)
             except Exception as exc:
                 log('F3')
                 raise exc
@@ -127,7 +127,7 @@ class samba_backend(applier_backend):
             # Merge user settings if UserPolicyMode set accordingly
             # and user settings (for HKCU) are exist.
             policy_mode = self.get_policy_mode()
-            logdata = {'mode': upm2str(policy_mode), 'sid': self.sid}
+            logdata = {'mode': upm2str(policy_mode)}
             log('D152', logdata)
 
             if policy_mode < 2:
@@ -142,7 +142,6 @@ class samba_backend(applier_backend):
             if policy_mode > 0:
                 for gptobj in machine_gpts:
                     try:
-                        gptobj.sid = self.sid
                         gptobj.merge_user()
                     except Exception as exc:
                         logdata = {}
@@ -167,10 +166,10 @@ class samba_backend(applier_backend):
             return False
         return True
 
-    def _get_gpts(self, username, sid):
+    def _get_gpts(self, username):
         gpts = []
 
-        log('D45', {'username': username, 'sid': sid})
+        log('D45', {'username': username})
         # util.windows.smbcreds
         gpos = self.sambacreds.update_gpos(username)
         log('D46')
@@ -185,14 +184,14 @@ class samba_backend(applier_backend):
                     gpt_abspath = gpo.file_sys_path
                     log('D211', {'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name})
                 if self._is_machine_username:
-                    obj = gpt(gpt_abspath, sid, None, GpoInfoDconf(gpo))
+                    obj = gpt(gpt_abspath, None, GpoInfoDconf(gpo))
                 else:
-                    obj = gpt(gpt_abspath, sid, self.username, GpoInfoDconf(gpo))
+                    obj = gpt(gpt_abspath, self.username, GpoInfoDconf(gpo))
                 obj.set_name(gpo.display_name)
                 gpts.append(obj)
             else:
                 if 'Local Policy' == gpo.name:
-                    gpts.append(get_local_gpt(sid))
+                    gpts.append(get_local_gpt())
 
         return gpts
 

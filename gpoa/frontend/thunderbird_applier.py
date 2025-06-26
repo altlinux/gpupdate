@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2024 BaseALT Ltd.
+# Copyright (C) 2024-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,9 +32,8 @@ class thunderbird_applier(applier_frontend):
     __registry_branch = 'Software/Policies/Mozilla/Thunderbird'
     __thunderbird_policies = '/etc/thunderbird/policies'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
         self.policies = dict()

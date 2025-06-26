@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@ from gpt.printers import json2printer
 from util.rpm import is_rpm_installed
 from util.logging import log
 
-def storage_get_printers(storage, sid):
+def storage_get_printers(storage):
     '''
     Query printers configuration from storage
     '''
-    printer_objs = storage.get_printers(sid)
+    printer_objs = storage.get_printers()
     printers = []
 
     for prnj in printer_objs:
@@ -83,7 +83,7 @@ class cups_applier(applier_frontend):
             logdata = {}
             logdata['exc'] = exc
             log('W20', logdata)
-        self.printers = storage_get_printers(self.storage, self.storage.get_info('machine_sid'))
+        self.printers = storage_get_printers(self.storage)
 
         if self.printers:
             for prn in self.printers:
@@ -104,9 +104,8 @@ class cups_applier_user(applier_frontend):
     __module_experimental = False
     __module_enabled = True
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         self.__module_enabled = check_enabled(
               self.storage
@@ -127,7 +126,7 @@ class cups_applier_user(applier_frontend):
             return
 
         self.cups_connection = cups.Connection()
-        self.printers = storage_get_printers(self.storage, self.sid)
+        self.printers = storage_get_printers(self.storage)
 
         if self.printers:
             for prn in self.printers:

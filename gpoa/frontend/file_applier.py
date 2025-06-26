@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2022 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,12 +31,11 @@ class file_applier(applier_frontend):
     __module_experimental = False
     __module_enabled = True
 
-    def __init__(self, storage, file_cache, sid):
+    def __init__(self, storage, file_cache):
         self.storage = storage
         self.exe_check = Execution_check(storage)
-        self.sid = sid
         self.file_cache = file_cache
-        self.files = self.storage.get_files(self.sid)
+        self.files = self.storage.get_files()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def run(self):
@@ -55,13 +54,12 @@ class file_applier_user(applier_frontend):
     __module_experimental = False
     __module_enabled = True
 
-    def __init__(self, storage, file_cache, sid, username):
+    def __init__(self, storage, file_cache, username):
         self.storage = storage
         self.file_cache = file_cache
-        self.sid = sid
         self.username = username
         self.exe_check = Execution_check(storage)
-        self.files = self.storage.get_files(self.sid)
+        self.files = self.storage.get_files()
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name

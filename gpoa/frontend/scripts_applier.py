@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2022 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,11 +33,10 @@ class scripts_applier(applier_frontend):
     __module_enabled = True
     __cache_scripts = '/var/cache/gpupdate_scripts_cache/machine/'
 
-    def __init__(self, storage, sid):
+    def __init__(self, storage):
         self.storage = storage
-        self.sid = sid
-        self.startup_scripts = self.storage.get_scripts(self.sid, 'STARTUP')
-        self.shutdown_scripts = self.storage.get_scripts(self.sid, 'SHUTDOWN')
+        self.startup_scripts = self.storage.get_scripts('STARTUP')
+        self.shutdown_scripts = self.storage.get_scripts('SHUTDOWN')
         self.folder_path = Path(self.__cache_scripts)
         self.__module_enabled = check_enabled(self.storage
             , self.__module_name
@@ -84,11 +83,10 @@ class scripts_applier_user(applier_frontend):
     __module_enabled = True
     __cache_scripts = '/var/cache/gpupdate_scripts_cache/users/'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
-        self.logon_scripts = self.storage.get_scripts(self.sid, 'LOGON')
-        self.logoff_scripts = self.storage.get_scripts(self.sid, 'LOGOFF')
+        self.logon_scripts = self.storage.get_scripts('LOGON')
+        self.logoff_scripts = self.storage.get_scripts('LOGOFF')
         self.username = username
         self.folder_path = Path(self.__cache_scripts + self.username)
         self.__module_enabled = check_enabled(self.storage

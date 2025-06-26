@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,9 +78,9 @@ def read_drives(drives_file):
 
     return drives
 
-def merge_drives(storage, sid, drive_objects, policy_name):
+def merge_drives(storage, drive_objects, policy_name):
     for drive in drive_objects:
-        storage.add_drive(sid, drive, policy_name)
+        storage.add_drive(drive, policy_name)
 
 def json2drive(json_str):
     json_obj = json.loads(json_str)

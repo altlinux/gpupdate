@@ -92,9 +92,8 @@ class package_applier_user(applier_frontend):
     __sync_key_name = 'Sync'
     __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         self.fulcmd = list()
         self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
@@ -108,9 +107,9 @@ class package_applier_user(applier_frontend):
         remove_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__remove_key_name)
         sync_branch = '{}\\{}%'.format(self.__hkcu_branch, self.__sync_key_name)
 
-        self.install_packages_setting = self.storage.filter_hkcu_entries(self.sid, install_branch)
-        self.remove_packages_setting = self.storage.filter_hkcu_entries(self.sid, remove_branch)
-        self.sync_packages_setting = self.storage.filter_hkcu_entries(self.sid, sync_branch)
+        self.install_packages_setting = self.storage.filter_hkcu_entries(install_branch)
+        self.remove_packages_setting = self.storage.filter_hkcu_entries(remove_branch)
+        self.sync_packages_setting = self.storage.filter_hkcu_entries(sync_branch)
         self.flagSync = False
 
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)

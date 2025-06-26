@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,9 +36,9 @@ def read_files(filesxml):
 
     return files
 
-def merge_files(storage, sid, file_objects, policy_name):
+def merge_files(storage, file_objects, policy_name):
     for fileobj in file_objects:
-        storage.add_file(sid, fileobj, policy_name)
+        storage.add_file(fileobj, policy_name)
 
 class fileentry(DynamicAttributes):
     def __init__(self, fromPath):

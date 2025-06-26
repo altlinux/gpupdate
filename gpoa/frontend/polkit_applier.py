@@ -115,15 +115,14 @@ class polkit_applier_user(applier_frontend):
             __registry_branch : ['48-alt_group_policy_permissions_user', {'User': ''}]
     }
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         deny_all_win = None
         if check_windows_mapping_enabled(self.storage):
-            deny_all_win = storage.filter_hkcu_entries(self.sid, self.__deny_all_win).first()
+            deny_all_win = storage.filter_hkcu_entries(self.__deny_all_win).first()
         polkit_filter = '{}%'.format(self.__registry_branch)
-        self.polkit_keys = self.storage.filter_hkcu_entries(self.sid, polkit_filter)
+        self.polkit_keys = self.storage.filter_hkcu_entries(polkit_filter)
         # Deny_All hook: initialize defaults
         template_file = self.__polkit_map[self.__deny_all_win][0]
         template_vars = self.__polkit_map[self.__deny_all_win][1]

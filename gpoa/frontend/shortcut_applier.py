@@ -31,11 +31,11 @@ from util.util import (
 )
 from gpt.shortcuts import shortcut, get_ttype
 
-def storage_get_shortcuts(storage, sid, username=None, shortcuts_machine=None):
+def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
     '''
-    Query storage for shortcuts' rows for specified SID.
+    Query storage for shortcuts' rows for username.
     '''
-    shortcut_objs = storage.get_shortcuts(sid)
+    shortcut_objs = storage.get_shortcuts()
     shortcuts = list()
     if username and shortcuts_machine:
         shortcut_objs += shortcuts_machine
@@ -112,7 +112,7 @@ class shortcut_applier(applier_frontend):
         )
 
     def run(self):
-        shortcuts = storage_get_shortcuts(self.storage, self.storage.get_info('machine_sid'))
+        shortcuts = storage_get_shortcuts(self.storage)
         if shortcuts:
             for sc in shortcuts:
                 apply_shortcut(sc)
@@ -123,9 +123,7 @@ class shortcut_applier(applier_frontend):
                 # /usr/local/share/applications
                 subprocess.check_call(['/usr/bin/update-desktop-database'])
         else:
-            logdata = dict()
-            logdata['machine_sid'] = self.storage.get_info('machine_sid')
-            log('D100', logdata)
+            log('D100')
 
     def apply(self):
         if self.__module_enabled:
@@ -141,9 +139,8 @@ class shortcut_applier_user(applier_frontend):
     __REGISTRY_PATH_SHORTCATSMERGE= '/Software/BaseALT/Policies/GPUpdate/ShortcutsMerge'
     __DCONF_REGISTRY_PATH_PREFERENCES_MACHINE = 'Software/BaseALT/Policies/Preferences/Machine'
 
-    def __init__(self, storage, sid, username):
+    def __init__(self, storage, username):
         self.storage = storage
-        self.sid = sid
         self.username = username
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
@@ -177,7 +174,7 @@ class shortcut_applier_user(applier_frontend):
         shortcuts_machine = None
         if self.check_enabled_shortcuts_merge():
             shortcuts_machine = self.get_machine_shortcuts()
-        shortcuts = storage_get_shortcuts(self.storage, self.sid, self.username, shortcuts_machine)
+        shortcuts = storage_get_shortcuts(self.storage, self.username, shortcuts_machine)
 
         if shortcuts:
             for sc in shortcuts:
@@ -187,7 +184,7 @@ class shortcut_applier_user(applier_frontend):
                     apply_shortcut(sc, self.username)
         else:
             logdata = dict()
-            logdata['sid'] = self.sid
+            logdata['username'] = self.username
             log('D100', logdata)
 
     def user_context_apply(self):

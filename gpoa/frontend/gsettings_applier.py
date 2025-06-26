@@ -185,13 +185,12 @@ class gsettings_applier_user(applier_frontend):
     __wallpaper_entry = 'Software/BaseALT/Policies/gsettings/org.mate.background.picture-filename'
     __vino_authentication_methods_entry = 'Software/BaseALT/Policies/gsettings/org.gnome.Vino.authentication-methods'
 
-    def __init__(self, storage, file_cache, sid, username):
+    def __init__(self, storage, file_cache, username):
         self.storage = storage
         self.file_cache = file_cache
-        self.sid = sid
         self.username = username
         gsettings_filter = '{}%'.format(self.__registry_branch)
-        self.gsettings_keys = self.storage.filter_hkcu_entries(self.sid, gsettings_filter)
+        self.gsettings_keys = self.storage.filter_hkcu_entries(gsettings_filter)
         self.gsettings = user_gsettings()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
@@ -232,7 +231,7 @@ class gsettings_applier_user(applier_frontend):
 
     def windows_mapping_append(self):
         for setting_key in self.__windows_settings.keys():
-            value = self.storage.get_hkcu_entry(self.sid, setting_key)
+            value = self.storage.get_hkcu_entry(setting_key)
             if value:
                 logdata = dict()
                 logdata['setting_key'] = setting_key
@@ -280,7 +279,7 @@ class gsettings_applier_user(applier_frontend):
         # Cache files on remote locations
         try:
             entry = self.__wallpaper_entry
-            filter_result = self.storage.get_hkcu_entry(self.sid, entry)
+            filter_result = self.storage.get_hkcu_entry(entry)
             if filter_result and filter_result.data:
                 self.file_cache.store(filter_result.data)
         except NotUNCPathError:

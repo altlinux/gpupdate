@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@ def read_inifiles(inifiles_file):
 
     return inifiles
 
-def merge_inifiles(storage, sid, inifile_objects, policy_name):
+def merge_inifiles(storage, inifile_objects, policy_name):
     for iniobj in inifile_objects:
-        storage.add_ini(sid, iniobj, policy_name)
+        storage.add_ini(iniobj, policy_name)
 
 class inifile(DynamicAttributes):
     def __init__(self, path):

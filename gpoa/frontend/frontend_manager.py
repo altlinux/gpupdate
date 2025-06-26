@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,7 +78,6 @@ from .laps_applier import laps_applier
 from .networkshare_applier import networkshare_applier
 from .yandex_browser_applier import yandex_browser_applier
 
-from util.sid import get_sid
 from util.users import (
     is_root,
     get_process_user,
@@ -134,7 +133,6 @@ class frontend_manager:
         self.storage = registry_factory('dconf', username=self.username)
         self.is_machine = is_machine
         self.process_uname = get_process_user()
-        self.sid = get_sid(self.storage.get_info('domain'), self.username, is_machine)
         self.file_cache = fs_file_cache('file_cache', self.username)
 
         self.machine_appliers = dict()
@@ -149,14 +147,14 @@ class frontend_manager:
         self.machine_appliers['control'] = control_applier(self.storage)
         self.machine_appliers['polkit'] = polkit_applier(self.storage)
         self.machine_appliers['systemd'] = systemd_applier(self.storage)
-        self.machine_appliers['firefox'] = firefox_applier(self.storage, self.sid, self.username)
-        self.machine_appliers['thunderbird'] = thunderbird_applier(self.storage, self.sid, self.username)
-        self.machine_appliers['chromium'] = chromium_applier(self.storage, self.sid, self.username)
-        self.machine_appliers['yandex_browser'] = yandex_browser_applier(self.storage, self.sid, self.username)
+        self.machine_appliers['firefox'] = firefox_applier(self.storage, self.username)
+        self.machine_appliers['thunderbird'] = thunderbird_applier(self.storage, self.username)
+        self.machine_appliers['chromium'] = chromium_applier(self.storage, self.username)
+        self.machine_appliers['yandex_browser'] = yandex_browser_applier(self.storage, self.username)
         self.machine_appliers['shortcuts'] = shortcut_applier(self.storage)
         self.machine_appliers['gsettings'] = gsettings_applier(self.storage, self.file_cache)
         try:
-            self.machine_appliers['cifs'] = cifs_applier(self.storage, self.sid)
+            self.machine_appliers['cifs'] = cifs_applier(self.storage)
         except Exception as exc:
             logdata = dict()
             logdata['applier_name'] = 'cifs'
@@ -164,37 +162,37 @@ class frontend_manager:
             log('E24', logdata)
         self.machine_appliers['cups'] = cups_applier(self.storage)
         self.machine_appliers['firewall'] = firewall_applier(self.storage)
-        self.machine_appliers['folders'] = folder_applier(self.storage, self.sid)
+        self.machine_appliers['folders'] = folder_applier(self.storage)
         self.machine_appliers['ntp'] = ntp_applier(self.storage)
-        self.machine_appliers['envvar'] = envvar_applier(self.storage, self.sid)
-        self.machine_appliers['networkshare'] = networkshare_applier(self.storage, self.sid)
-        self.machine_appliers['scripts'] = scripts_applier(self.storage, self.sid)
-        self.machine_appliers['files'] = file_applier(self.storage, self.file_cache, self.sid)
-        self.machine_appliers['ini'] = ini_applier(self.storage, self.sid)
+        self.machine_appliers['envvar'] = envvar_applier(self.storage)
+        self.machine_appliers['networkshare'] = networkshare_applier(self.storage)
+        self.machine_appliers['scripts'] = scripts_applier(self.storage)
+        self.machine_appliers['files'] = file_applier(self.storage, self.file_cache)
+        self.machine_appliers['ini'] = ini_applier(self.storage)
         self.machine_appliers['kde'] = kde_applier(self.storage)
         self.machine_appliers['package'] = package_applier(self.storage)
 
     def _init_user_appliers(self):
         # User appliers are expected to work with user-writable
         # files and settings, mostly in $HOME.
-        self.user_appliers['shortcuts'] = shortcut_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['folders'] = folder_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.file_cache, self.sid, self.username)
+        self.user_appliers['shortcuts'] = shortcut_applier_user(self.storage, self.username)
+        self.user_appliers['folders'] = folder_applier_user(self.storage, self.username)
+        self.user_appliers['gsettings'] = gsettings_applier_user(self.storage, self.file_cache, self.username)
         try:
-            self.user_appliers['cifs'] = cifs_applier_user(self.storage, self.sid, self.username)
+            self.user_appliers['cifs'] = cifs_applier_user(self.storage, self.username)
         except Exception as exc:
             logdata = dict()
             logdata['applier_name'] = 'cifs'
             logdata['msg'] = str(exc)
             log('E25', logdata)
-        self.user_appliers['polkit'] = polkit_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['envvar'] = envvar_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['networkshare'] = networkshare_applier(self.storage, self.sid, self.username)
-        self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.sid, self.username)
-        self.user_appliers['ini'] = ini_applier_user(self.storage, self.sid, self.username)
-        self.user_appliers['kde'] = kde_applier_user(self.storage, self.sid, self.username, self.file_cache)
-        self.user_appliers['package'] = package_applier_user(self.storage, self.sid, self.username)
+        self.user_appliers['polkit'] = polkit_applier_user(self.storage, self.username)
+        self.user_appliers['envvar'] = envvar_applier_user(self.storage, self.username)
+        self.user_appliers['networkshare'] = networkshare_applier(self.storage, self.username)
+        self.user_appliers['scripts'] = scripts_applier_user(self.storage, self.username)
+        self.user_appliers['files'] = file_applier_user(self.storage, self.file_cache, self.username)
+        self.user_appliers['ini'] = ini_applier_user(self.storage, self.username)
+        self.user_appliers['kde'] = kde_applier_user(self.storage, self.username, self.file_cache)
+        self.user_appliers['package'] = package_applier_user(self.storage, self.username)
 
     def machine_apply(self):
         '''

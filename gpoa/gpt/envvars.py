@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@ def read_envvars(envvars_file):
 
     return variables
 
-def merge_envvars(storage, sid, envvar_objects, policy_name):
+def merge_envvars(storage, envvar_objects, policy_name):
     for envv in envvar_objects:
-        storage.add_envvar(sid, envv, policy_name)
+        storage.add_envvar(envv, policy_name)
 
 class envvar(DynamicAttributes):
     def __init__(self, name, value, action):
