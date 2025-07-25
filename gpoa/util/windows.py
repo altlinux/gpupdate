@@ -19,7 +19,7 @@
 
 import os
 from pathlib import Path
-from samba import getopt as options
+from samba.credentials import Credentials
 from samba import NTSTATUSError
 
 try:
@@ -51,10 +51,13 @@ class smbcreds (smbopts):
 
     def __init__(self, dc_fqdn=None):
         smbopts.__init__(self, 'GPO Applier')
-        self.credopts = options.CredentialsOptions(self.parser)
-        self.creds = self.credopts.get_credentials(self.lp, fallback_machine=True)
+
+        self.creds = Credentials()
+        self.creds.guess(self.lp)
+        self.creds.set_machine_account()
+
         self.set_dc(dc_fqdn)
-        self.sDomain =  SiteDomainScanner(self.creds, self.lp, self.selected_dc)
+        self.sDomain = SiteDomainScanner(self.creds, self.lp, self.selected_dc)
         self.dc_site_servers = self.sDomain.select_site_servers()
         self.all_servers = self.sDomain.select_all_servers()
         [self.all_servers.remove(element)
