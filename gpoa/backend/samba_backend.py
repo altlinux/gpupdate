@@ -30,10 +30,6 @@ from gpt.gpo_dconf_mapping import GpoInfoDconf
 from util.util import (
     get_machine_name
 )
-from util.kerberos import (
-      machine_kinit
-    , machine_kdestroy
-)
 from util.sid import get_sid
 from util.logging import log
 
@@ -42,10 +38,6 @@ class samba_backend(applier_backend):
     __user_policy_mode_key_win = '/Software/Policies/Microsoft/Windows/System/UserPolicyMode'
 
     def __init__(self, sambacreds, username, domain, is_machine):
-        self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
-        self.__kinit_successful = machine_kinit(self.cache_path)
-        if not self.__kinit_successful:
-            raise Exception('kinit is not successful')
         self.storage = registry_factory()
         self.storage.set_info('domain', domain)
         machine_name = get_machine_name()
@@ -72,8 +64,7 @@ class samba_backend(applier_backend):
         log('D7', logdata)
 
     def __del__(self):
-        if self.__kinit_successful:
-            machine_kdestroy()
+        pass
 
     def get_policy_mode(self):
         '''
