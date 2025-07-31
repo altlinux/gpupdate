@@ -59,7 +59,7 @@ class samba_backend(applier_backend):
         if is_machine:
             self.sid = machine_sid
         else:
-            self.sid = get_sid(self.storage.get_info('domain'), self.username)
+            self.sid = get_sid(self.storage.get_info('domain'), self.username, self.storage)
 
         # Samba objects - LoadParm() and CredentialsOptions()
         self.sambacreds = sambacreds

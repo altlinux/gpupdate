@@ -1091,6 +1091,8 @@ msgstr "Ошибка получения времени входа пользов
 msgid "Invalid timezone in reference datetime"
 msgstr "Некорректный часовой пояс в reference datetime"
 
+msgid "wbinfo SID lookup failed; will try as trusted domain user"
+msgstr "Ошибка получения SID через wbinfo; будет предпринята попытка как для пользователя доверенного домена"
 # Warning_end
 
 # Fatal

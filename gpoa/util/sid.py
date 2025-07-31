@@ -25,7 +25,7 @@ import pysss_nss_idmap
 
 from .logging import log
 
-def wbinfo_getsid(domain, user):
+def wbinfo_getsid(domain, user, storage = None):
     '''
     Get SID using wbinfo
     '''
@@ -38,17 +38,26 @@ def wbinfo_getsid(domain, user):
 
     # This part works only on DC
     wbinfo_cmd = ['wbinfo', '-n', username]
-    output = subprocess.check_output(wbinfo_cmd)
-    sid = output.split()[0].decode('utf-8')
-
-    return sid
+    try:
+        output = subprocess.check_output(wbinfo_cmd)
+        return output.split()[0].decode('utf-8')
+    except:
+        log('W43')
+    try:
+        wbinfo_cmd[-1] = user
+        output = subprocess.check_output(wbinfo_cmd)
+        if storage:
+            storage.set_info('tust', True)
+    except Exception as exc:
+        raise exc
+    return output.split()[0].decode('utf-8')
 
 
 def get_local_sid_prefix():
     return "S-1-5-21-0-0-0"
 
 
-def get_sid(domain, username, is_machine = False):
+def get_sid(domain, username, is_machine = False, storage = None):
     '''
     Lookup SID not only using wbinfo or sssd but also using own cache
     '''
@@ -63,7 +72,7 @@ def get_sid(domain, username, is_machine = False):
 
     # domain user
     try:
-        sid = wbinfo_getsid(domain, username)
+        sid = wbinfo_getsid(domain, username, storage)
     except:
         logdata = {'sid': sid}
         log('E16', logdata)

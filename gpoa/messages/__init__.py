@@ -402,6 +402,7 @@ def warning_code(code):
     warning_ids[40] = 'Last command not found'
     warning_ids[41] = 'Error getting user login times'
     warning_ids[42] = 'Invalid timezone in reference datetime'
+    warning_ids[43] = 'wbinfo SID lookup failed; will try as trusted domain user'
 
     return warning_ids.get(code, 'Unknown warning code')
 
