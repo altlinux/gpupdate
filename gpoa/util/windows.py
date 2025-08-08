@@ -25,7 +25,7 @@ from samba import NTSTATUSError
 try:
     from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
 except ImportError:
-    from samba.gp.gpclass import get_dc_hostname, check_refresh_gpo_list
+    from samba.gp.gpclass import get_dc_hostname, check_refresh_gpo_list, get_gpo_list
 
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
@@ -115,8 +115,13 @@ class smbcreds (smbopts):
         gpos = []
         if Dconf_registry.get_info('machine_name') == username:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
+            self.is_machine = True
         else:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
+            self.is_machine = False
+        if not self.is_machine and Dconf_registry.get_info('tust'):
+            pass
+
         dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
         try:
             log('D48')

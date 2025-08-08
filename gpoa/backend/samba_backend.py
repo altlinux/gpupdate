@@ -55,11 +55,11 @@ class samba_backend(applier_backend):
 
         # User SID to work with HKCU hive
         self.username = username
-        self._is_machine_username = is_machine
+        self._is_machine = is_machine
         if is_machine:
             self.sid = machine_sid
         else:
-            self.sid = get_sid(self.storage.get_info('domain'), self.username, self.storage)
+            self.sid = get_sid(self.storage.get_info('domain'), self.username)
 
         # Samba objects - LoadParm() and CredentialsOptions()
         self.sambacreds = sambacreds
@@ -100,12 +100,12 @@ class samba_backend(applier_backend):
         # Get policies for machine at first.
         machine_gpts = []
         try:
-            machine_gpts = self._get_gpts(get_machine_name())
+            machine_gpts = self._get_gpts()
         except Exception as exc:
             log('F2')
             raise exc
 
-        if self._is_machine_username:
+        if self._is_machine:
             for gptobj in machine_gpts:
                 try:
                     gptobj.merge_machine()
@@ -166,9 +166,10 @@ class samba_backend(applier_backend):
             return False
         return True
 
-    def _get_gpts(self, username):
+    def _get_gpts(self, username=None):
         gpts = []
-
+        if not username:
+            username = get_machine_name()
         log('D45', {'username': username})
         # util.windows.smbcreds
         gpos = self.sambacreds.update_gpos(username)
@@ -183,7 +184,7 @@ class samba_backend(applier_backend):
                 else:
                     gpt_abspath = gpo.file_sys_path
                     log('D211', {'sysvol_path': gpo.file_sys_path, 'gpo_name': gpo.display_name})
-                if self._is_machine_username:
+                if self._is_machine:
                     obj = gpt(gpt_abspath, None, GpoInfoDconf(gpo))
                 else:
                     obj = gpt(gpt_abspath, self.username, GpoInfoDconf(gpo))

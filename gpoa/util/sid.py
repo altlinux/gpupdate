@@ -22,10 +22,11 @@ from enum import Enum
 import pwd
 import subprocess
 import pysss_nss_idmap
+from storage.dconf_registry import Dconf_registry
 
 from .logging import log
 
-def wbinfo_getsid(domain, user, storage = None):
+def wbinfo_getsid(domain, user):
     '''
     Get SID using wbinfo
     '''
@@ -40,14 +41,14 @@ def wbinfo_getsid(domain, user, storage = None):
     wbinfo_cmd = ['wbinfo', '-n', username]
     try:
         output = subprocess.check_output(wbinfo_cmd)
+        Dconf_registry.set_info('tust', False)
         return output.split()[0].decode('utf-8')
     except:
         log('W43')
     try:
         wbinfo_cmd[-1] = user
         output = subprocess.check_output(wbinfo_cmd)
-        if storage:
-            storage.set_info('tust', True)
+        Dconf_registry.set_info('tust', True)
     except Exception as exc:
         raise exc
     return output.split()[0].decode('utf-8')
@@ -57,7 +58,7 @@ def get_local_sid_prefix():
     return "S-1-5-21-0-0-0"
 
 
-def get_sid(domain, username, is_machine = False, storage = None):
+def get_sid(domain, username, is_machine = False):
     '''
     Lookup SID not only using wbinfo or sssd but also using own cache
     '''
@@ -72,7 +73,7 @@ def get_sid(domain, username, is_machine = False, storage = None):
 
     # domain user
     try:
-        sid = wbinfo_getsid(domain, username, storage)
+        sid = wbinfo_getsid(domain, username)
     except:
         logdata = {'sid': sid}
         log('E16', logdata)
