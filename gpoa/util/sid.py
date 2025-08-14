@@ -40,7 +40,7 @@ def wbinfo_getsid(domain, user):
     # This part works only on DC
     wbinfo_cmd = ['wbinfo', '-n', username]
     try:
-        output = subprocess.check_output(wbinfo_cmd)
+        output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT)
         Dconf_registry.set_info('tust', False)
         return output.split()[0].decode('utf-8')
     except:
