@@ -41,14 +41,14 @@ def wbinfo_getsid(domain, user):
     wbinfo_cmd = ['wbinfo', '-n', username]
     try:
         output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT)
-        Dconf_registry.set_info('tust', False)
+        Dconf_registry.set_info('trust', False)
         return output.split()[0].decode('utf-8')
     except:
         log('W43')
     try:
         wbinfo_cmd[-1] = user
         output = subprocess.check_output(wbinfo_cmd)
-        Dconf_registry.set_info('tust', True)
+        Dconf_registry.set_info('trust', True)
     except Exception as exc:
         raise exc
     return output.split()[0].decode('utf-8')

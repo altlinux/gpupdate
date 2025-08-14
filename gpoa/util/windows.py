@@ -119,7 +119,7 @@ class smbcreds (smbopts):
         else:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
             self.is_machine = False
-        if not self.is_machine and Dconf_registry.get_info('tust'):
+        if not self.is_machine and Dconf_registry.get_info('trust'):
             pass
 
         dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
