@@ -285,8 +285,7 @@ class laps_applier(applier_frontend):
             )
             return int(res[0].get(self._ATTR_PASSWORD_EXPIRATION_TIME, 0)[0])
         except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('W31', logdata)
             return 0
 
@@ -305,8 +304,7 @@ class laps_applier(applier_frontend):
             ).strip().strip("'\"")
             return int(last_modified)
         except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('W32', logdata)
             return self.current_time_int
 
@@ -324,8 +322,7 @@ class laps_applier(applier_frontend):
             subprocess.check_output(['dconf', 'write', key_path, last_modified])
             log('D222')
         except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('W28', logdata)
 
     def _ensure_dbus_session(self):
@@ -358,7 +355,7 @@ class laps_applier(applier_frontend):
             log('D225', logdata)
             return hours_ago
         except Exception as exc:
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('W34', logdata)
             return 0
 
@@ -470,8 +467,7 @@ class laps_applier(applier_frontend):
         Returns:
             bool: True if password was changed successfully, False otherwise
         """
-        logdata = dict()
-        logdata['target_user'] = self.target_user
+        logdata = {'target_user': self.target_user}
         try:
             # Use chpasswd to change the password
             process = subprocess.Popen(
@@ -486,7 +482,7 @@ class laps_applier(applier_frontend):
             log('D221', logdata)
             return True
         except Exception as exc:
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('W27', logdata)
             return False
 
@@ -500,8 +496,7 @@ class laps_applier(applier_frontend):
         Returns:
             bool: True if LDAP was updated successfully, False otherwise
         """
-        logdata = dict()
-        logdata['computer_dn'] = self.computer_dn
+        logdata = {'computer_dn': self.computer_dn}
         try:
             # Create LDAP modification message
             mod_msg = ldb.Message()
@@ -526,7 +521,7 @@ class laps_applier(applier_frontend):
             log('D226', logdata)
             return True
         except Exception as exc:
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('E75', logdata)
             return False
 
@@ -602,8 +597,7 @@ class laps_applier(applier_frontend):
         """
         # Get active sessions for the target user
         user_sessions = [user for user in psutil.users() if user.name == self.target_user]
-        logdata = dict()
-        logdata['target_user'] = self.target_user
+        logdata = {'target_user': self.target_user}
         if not user_sessions:
             log('D227', logdata)
             return

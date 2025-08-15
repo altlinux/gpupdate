@@ -68,8 +68,7 @@ class firefox_applier(applier_frontend):
         os.makedirs(self.__firefox_policies, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
-            logdata = dict()
-            logdata['destfile'] = destfile
+            logdata = {'destfile': destfile}
             log('D91', logdata)
 
     def apply(self):
@@ -161,9 +160,7 @@ def create_dict(firefox_keys, registry_branch, excp=[]):
                     else:
                         branch[parts[-1]].append(str(it_data.data))
         except Exception as exc:
-            logdata = dict()
-            logdata['Exception'] = exc
-            logdata['keyname'] = it_data.keyname
+            logdata = {'Exception': exc, 'keyname': it_data.keyname}
             log('W14', logdata)
 
     return {'policies': dict_item_to_list(counts)}

@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2022 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ class Files_cp:
                 else:
                     return targetPath.parent.joinpath('.' + targetPath.name)
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['targetPath'] = targetPath
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
@@ -94,7 +94,7 @@ class Files_cp:
             if fromFilePath.exists():
                 targetFile.write_bytes(fromFilePath.read_bytes())
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['targetFile'] = targetFile
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
@@ -125,7 +125,7 @@ class Files_cp:
                 shutil.os.chmod(targetFile, 0o644)
 
     def _create_action(self):
-        logdata = dict()
+        logdata = {}
         for fromFile in self.fromPathFiles:
             targetFile = None
 
@@ -149,7 +149,7 @@ class Files_cp:
         list_target = [self.targetPath.name]
         if self.is_pattern(self.targetPath.name) and self.targetPath.parent.exists() and self.targetPath.parent.is_dir():
             list_target = fnmatch.filter([str(x.name) for x in self.targetPath.parent.iterdir() if x.is_file()], self.targetPath.name)
-        logdata = dict()
+        logdata = {}
         for targetFile in list_target:
             targetFile = self.targetPath.parent.joinpath(targetFile)
             try:
@@ -165,7 +165,7 @@ class Files_cp:
                 log('D165', logdata)
 
     def _update_action(self):
-        logdata = dict()
+        logdata = {}
         for fromFile in self.fromPathFiles:
             targetFile = self.get_target_file(self.targetPath, fromFile)
             try:
@@ -200,7 +200,7 @@ class Files_cp:
             return False
 
     def get_list_files(self):
-        logdata = dict()
+        logdata = {}
         logdata['targetPath'] = str(self.targetPath)
         fromFilePath = Path(self.fromPath)
         if not self.is_pattern(fromFilePath.name):

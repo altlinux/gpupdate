@@ -96,8 +96,7 @@ class kde_applier_user(applier_frontend):
                     break
             self.file_cache.store(data)
         except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
 
     def user_context_apply(self):
         '''
@@ -153,16 +152,15 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 else:
                     all_kde_settings.setdefault(file_name, {}).setdefault(section, {})[value] = data
             except Exception as exc:
-                logdata = dict()
-                logdata['file_name'] = file_name
-                logdata['section'] = section
-                logdata['value'] = value
-                logdata['data'] = data
-                logdata['exc'] = exc
+                logdata = {'file_name': file_name,
+                           'section': section,
+                           'value': value,
+                           'data': data,
+                           'exc': exc}
                 log('W16', logdata)
 
 def apply(all_kde_settings, locks_dict, username = None):
-    logdata = dict()
+    logdata = {}
     modified_files = set()
     if username is None:
         system_path_settings = '/etc/xdg/'
@@ -230,7 +228,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
                     except:
-                            logdata['command'] = command
+                            logdata = {'command': command}
                             log('W22', logdata)
             new_content = []
             file_path = f'{get_homedir(username)}/.config/{file_name}'
@@ -263,15 +261,14 @@ def clear_locks_settings(username, file_name, key):
                 file.write(line)
     for line in lines:
         if f'{key}[$i]=' in line:
-            logdata = dict()
-            logdata['line'] = line.strip()
+            logdata = {'line': line.strip()}
             log('I10', logdata)
 
 def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
     '''
     Method to change wallpaper
     '''
-    logdata = dict()
+    logdata = {}
     path_to_wallpaper = f'{get_homedir(username)}/.config/plasma-org.kde.plasma.desktop-appletsrc'
     id_desktop = get_id_desktop(path_to_wallpaper)
     try:
@@ -317,18 +314,18 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                 try:
                     subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
                 except:
-                        logdata['command'] = command
+                        logdata = {'command': command}
                         log('E68', logdata)
                 if plasmaupdate == 1:
                     call_dbus_method("wallpaper")
         else:
-            logdata['file'] = path_to_wallpaper
+            logdata = {'file': path_to_wallpaper}
             log('W21', logdata)
     except OSError as exc:
-        logdata['exc'] = exc
+        logdata = {'exc': exc}
         log('W17', logdata)
     except Exception as exc:
-        logdata['exc'] = exc
+        logdata = {'exc': exc}
         log('E67', logdata)
 
 def get_id_desktop(path_to_wallpaper):
@@ -359,8 +356,8 @@ def call_dbus_method(file_name):
                 getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
             else:
                 getattr(dbus_iface, config['dbus_method'])()
-        except dbus.exceptions.DBusException as e:
-            logdata = dict({'error': str(exc)})
+        except dbus.exceptions.DBusException as exc:
+            logdata = {'error': str(exc)}
             log('E31', logdata)
     else:
         pass

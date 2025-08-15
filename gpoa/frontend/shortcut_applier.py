@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
     Query storage for shortcuts' rows for username.
     '''
     shortcut_objs = storage.get_shortcuts()
-    shortcuts = list()
+    shortcuts = []
     if username and shortcuts_machine:
         shortcut_objs += shortcuts_machine
 
@@ -56,9 +56,7 @@ def apply_shortcut(shortcut, username=None):
     dest_abspath = shortcut.dest
     if not dest_abspath.startswith('/') and not dest_abspath.startswith('%'):
         dest_abspath = '%HOME%/' + dest_abspath
-    logdata = dict()
-    logdata['shortcut'] = dest_abspath
-    logdata['for'] = username
+    logdata = {'shortcut': dest_abspath, 'for': username}
     log('D105', logdata)
     dest_abspath = expand_windows_var(dest_abspath, username).replace('\\', '/') + '.desktop'
 
@@ -69,31 +67,24 @@ def apply_shortcut(shortcut, username=None):
         if dest_abspath.startswith(get_homedir(username)):
             # Don't try to operate on non-existent directory
             if not homedir_exists(username):
-                logdata = dict()
-                logdata['user'] = username
-                logdata['dest_abspath'] = dest_abspath
+                logdata = {'user': username, 'dest_abspath': dest_abspath}
                 log('W7', logdata)
                 return None
         else:
-            logdata = dict()
-            logdata['user'] = username
-            logdata['bad path'] = dest_abspath
+            logdata = {'user': username, 'bad path': dest_abspath}
             log('W8', logdata)
             return None
 
     if '%' in dest_abspath:
-        logdata = dict()
-        logdata['dest_abspath'] = dest_abspath
+        logdata = {'dest_abspath': dest_abspath}
         log('E53', logdata)
         return None
 
     if not dest_abspath.startswith('/'):
-        logdata = dict()
-        logdata['dest_abspath'] = dest_abspath
+        logdata = {'dest_abspath': dest_abspath}
         log('E54', logdata)
         return None
-    logdata = dict()
-    logdata['file'] = dest_abspath
+    logdata = {'file': dest_abspath}
     logdata['with_action'] = shortcut.action
     log('D106', logdata)
     shortcut.apply_desktop(dest_abspath)
@@ -145,7 +136,7 @@ class shortcut_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def get_machine_shortcuts(self):
-        result = list()
+        result = []
         try:
             storage_machine_dict =  self.storage.get_dictionary_from_dconf_file_db()
             machine_shortcuts = storage_machine_dict.get(
@@ -183,8 +174,7 @@ class shortcut_applier_user(applier_frontend):
                 if not in_usercontext and not sc.is_usercontext():
                     apply_shortcut(sc, self.username)
         else:
-            logdata = dict()
-            logdata['username'] = self.username
+            logdata = {'username': self.username}
             log('D100', logdata)
 
     def user_context_apply(self):

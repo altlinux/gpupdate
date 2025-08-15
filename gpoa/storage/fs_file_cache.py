@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2021-2024 BaseALT Ltd. <org@basealt.ru>
+# Copyright (C) 2021-2025 BaseALT Ltd. <org@basealt.ru>
 # Copyright (C) 2021 Igor Chudov <nir@nir.org.ru>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ class fs_file_cache:
                 self.storage_uri = file_cache_dir()
         else:
             self.storage_uri = file_cache_dir()
-        logdata = dict({'cache_file': self.storage_uri})
+        logdata = {'cache_file': self.storage_uri}
         log('D20', logdata)
         self.samba_context = smbc.Context(use_kerberos=1)
                 #, debug=10)
@@ -62,7 +62,7 @@ class fs_file_cache:
             return None
 
         except Exception as exc:
-            logdata = dict({'exception': str(exc)})
+            logdata = {'exception': str(exc)}
             log('D144', logdata)
             raise exc
 
@@ -87,7 +87,7 @@ class fs_file_cache:
             os.rename(tmpfile, destfile)
             os.chmod(destfile, 0o644)
         except Exception as exc:
-            logdata = dict({'exception': str(exc)})
+            logdata = {'exception': str(exc)}
             log('W25', logdata)
             tmppath = Path(tmpfile)
             if tmppath.exists():
@@ -103,10 +103,10 @@ class fs_file_cache:
                 uri_path.get_domain(),
                 uri_path.get_path()))
         except NotUNCPathError as exc:
-            logdata = dict({'path': str(exc)})
+            logdata = {'path': str(exc)}
             log('D62', logdata)
         except Exception as exc:
-            logdata = dict({'exception': str(exc)})
+            logdata = {'exception': str(exc)}
             log('E36', logdata)
             raise exc
         if Path(destfile).exists():
@@ -125,6 +125,6 @@ class fs_file_cache:
         except Exception as exc:
             if Path(uri).exists():
                 return None
-            logdata = dict({'exception': str(exc)})
+            logdata = {'exception': str(exc)}
             log('W12', logdata)
             return None

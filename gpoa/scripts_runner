@@ -33,7 +33,7 @@ class Scripts_runner:
         self.dir_scripts_machine = '/var/cache/gpupdate_scripts_cache/machine/'
         self.dir_scripts_users = '/var/cache/gpupdate_scripts_cache/users/'
         self.user_name = user_name
-        self.list_with_all_commands = list()
+        self.list_with_all_commands = []
         stack_dir = None
         if work_mode and work_mode.upper() == 'MACHINE':
             stack_dir = self.machine_runner_fill()
@@ -59,7 +59,7 @@ class Scripts_runner:
         return self.get_stack_dir(self.dir_scripts_machine)
 
     def get_stack_dir(self, path_dir):
-        stack_dir = list()
+        stack_dir = []
         try:
             dir_script = Path(path_dir)
             for it_dir in dir_script.iterdir():
@@ -72,7 +72,7 @@ class Scripts_runner:
     def find_action(self, stack_dir):
         if not stack_dir:
             return
-        list_tmp = list()
+        list_tmp = []
         while stack_dir:
             path_turn = stack_dir.pop()
             basename = os.path.basename(path_turn)
@@ -94,7 +94,7 @@ class Scripts_runner:
                 except Exception as exc:
                     print('Argument read for {}: {}'.format(self.list_with_all_commands.pop(), exc))
             else:
-                cmd = list()
+                cmd = []
                 cmd.append(file_in_task_dir)
                 self.list_with_all_commands.append(cmd)
 

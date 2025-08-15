@@ -77,8 +77,7 @@ class ntp_applier(applier_frontend):
         srv = None
         if server:
             srv = server.data.rpartition(',')[0]
-            logdata = dict()
-            logdata['srv'] = srv
+            logdata = {'srv': srv}
             log('D122', logdata)
 
         start_command = ['/usr/bin/systemctl', 'start', 'chronyd']
@@ -92,8 +91,7 @@ class ntp_applier(applier_frontend):
         proc.wait()
 
         if srv:
-            logdata = dict()
-            logdata['srv'] = srv
+            logdata = {'srv': srv}
             log('D124', logdata)
 
             proc = subprocess.Popen(chrony_disconnect_all)
@@ -119,8 +117,7 @@ class ntp_applier(applier_frontend):
 
         if server_type and server_type.data:
             if NTPServerType.NTP.value != server_type.data:
-                logdata = dict()
-                logdata['server_type'] = server_type
+                logdata = {'server_type': server_type}
                 log('W10', logdata)
             else:
                 log('D126')

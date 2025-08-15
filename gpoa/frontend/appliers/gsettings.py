@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2021 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ class system_gsettings:
         if check_existing_gsettings(schema, path):
             self.gsettings.append(system_gsetting(schema, path, data, lock, helper))
         else:
-            logdata = dict()
+            logdata = {}
             logdata['schema'] = schema
             logdata['path'] = path
             logdata['data'] = data
@@ -72,7 +72,7 @@ class system_gsettings:
         config = configparser.ConfigParser()
 
         for gsetting in self.gsettings:
-            logdata = dict()
+            logdata = {}
             logdata['gsetting.schema'] = gsetting.schema
             logdata['gsetting.path'] = gsetting.path
             logdata['gsetting.value'] = gsetting.value
@@ -138,7 +138,7 @@ class user_gsettings:
         if check_existing_gsettings(schema, path):
             self.gsettings.append(user_gsetting(schema, path, value, helper))
         else:
-            logdata = dict()
+            logdata = {}
             logdata['schema'] = schema
             logdata['path'] = path
             logdata['data'] = value
@@ -146,7 +146,7 @@ class user_gsettings:
 
     def apply(self):
         for gsetting in self.gsettings:
-            logdata = dict()
+            logdata = {}
             logdata['gsetting.schema'] = gsetting.schema
             logdata['gsetting.path'] = gsetting.path
             logdata['gsetting.value'] = gsetting.value

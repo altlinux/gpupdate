@@ -77,23 +77,23 @@ class Pkcon_applier:
         self.update()
         for package in self.remove_packages:
             try:
-                logdata = dict()
+                logdata = {}
                 logdata['name'] = package
                 log('D149', logdata)
                 self.remove_pkg(package)
             except Exception as exc:
-                logdata = dict()
+                logdata = {}
                 logdata['exc'] = exc
                 log('E58', logdata)
 
         for package in self.install_packages:
            try:
-                logdata = dict()
+                logdata = {}
                 logdata['name'] = package
                 log('D148', logdata)
                 self.install_pkg(package)
            except Exception as exc:
-                logdata = dict()
+                logdata = {}
                 logdata['exc'] = exc
                 log('E57', logdata)
 
@@ -118,14 +118,14 @@ class Pkcon_applier:
         try:
             res =  subprocess.check_output(['/usr/bin/apt-get', 'update'], encoding='utf-8')
             msg =  str(res).split('\n')
-            logdata = dict()
+            logdata = {}
             for mslog in msg:
                 ms =  str(mslog).split(' ')
                 if ms:
                     logdata = {ms[0]: ms[1:-1]}
                 log('D143', logdata)
         except Exception as exc:
-            logdata = dict()
+            logdata = {}
             logdata['msg'] = exc
             log('E56',logdata)
 

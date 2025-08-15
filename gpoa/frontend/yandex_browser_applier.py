@@ -68,16 +68,14 @@ class yandex_browser_applier(applier_frontend):
         os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(dict_item_to_list(self.policies_json), f)
-            logdata = dict()
-            logdata['destfile'] = destfile
+            logdata = {'destfile': destfile}
             log('D185', logdata)
 
         destfilerec = os.path.join(self.__recommended_policies_path, 'policies.json')
         os.makedirs(self.__recommended_policies_path, exist_ok=True)
         with open(destfilerec, 'w') as f:
             json.dump(dict_item_to_list(recommended__json), f)
-            logdata = dict()
-            logdata['destfilerec'] = destfilerec
+            logdata = {'destfilerec': destfilerec}
             log('D185', logdata)
 
 
@@ -186,9 +184,7 @@ class yandex_browser_applier(applier_frontend):
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
 
             except Exception as exc:
-                logdata = dict()
-                logdata['Exception'] = exc
-                logdata['keyname'] = it_data.keyname
+                logdata = {'Exception': exc, 'keyname': it_data.keyname}
                 log('D178', logdata)
         try:
             self.policies_json = counts['']

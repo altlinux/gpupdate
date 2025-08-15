@@ -50,8 +50,7 @@ class scripts_applier(applier_frontend):
         except FileNotFoundError as exc:
             log('D154')
         except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('E64', logdata)
 
     def filling_cache(self):
@@ -101,8 +100,7 @@ class scripts_applier_user(applier_frontend):
         except FileNotFoundError as exc:
             log('D155')
         except Exception as exc:
-            logdata = dict()
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('E65', logdata)
 
     def filling_cache(self):

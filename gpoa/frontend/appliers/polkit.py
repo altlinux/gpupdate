@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ class polkit:
             if os.path.isfile(self.outfile):
                 os.remove(self.outfile)
             return
+        logdata = {}
         try:
             template = self.__template_environment.get_template(self.infilename)
             text = template.render(**self.args)
@@ -57,12 +58,10 @@ class polkit:
             with open(self.outfile, 'w') as f:
                 f.write(text)
 
-            logdata = {}
             logdata['file'] = self.outfile
             logdata['arguments'] = self.args
             log('D77', logdata)
         except Exception as exc:
-            logdata = {}
             logdata['file'] = self.outfile
             logdata['arguments'] = self.args
             log('E44', logdata)

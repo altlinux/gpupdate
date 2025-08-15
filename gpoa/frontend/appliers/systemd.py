@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ class systemd_unit:
         self.unit_properties = dbus.Interface(self.unit_proxy, dbus_interface='org.freedesktop.DBus.Properties')
 
     def apply(self):
+        logdata = {'unit': self.unit_name}
         if self.desired_state == 1:
             self.manager.UnmaskUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.EnableUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
@@ -41,8 +42,6 @@ class systemd_unit:
                 if self.manager.GetUnitFileState(dbus.String(self.unit_name)) == 'enabled':
                     return
             self.manager.StartUnit(self.unit_name, 'replace')
-            logdata = dict()
-            logdata['unit'] = self.unit_name
             log('I6', logdata)
 
             # In case the service has 'RestartSec' property set it
@@ -50,27 +49,21 @@ class systemd_unit:
             # 'active' so we consider 'activating' a valid state too.
             service_state = self._get_state()
 
-            if not service_state in ['active', 'activating']:
+            if service_state not in ('active', 'activating'):
                 service_timer_name =  self.unit_name.replace(".service", ".timer")
                 self.unit = self.manager.LoadUnit(dbus.String(service_timer_name))
                 service_state = self._get_state()
-                if not service_state in ['active', 'activating']:
-                    logdata = dict()
-                    logdata['unit'] = self.unit_name
+                if service_state not in ('active', 'activating'):
                     log('E46', logdata)
         else:
             self.manager.StopUnit(self.unit_name, 'replace')
             self.manager.DisableUnitFiles([self.unit_name], dbus.Boolean(False))
             self.manager.MaskUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
-            logdata = dict()
-            logdata['unit'] = self.unit_name
             log('I6', logdata)
 
             service_state = self._get_state()
 
-            if not service_state in ['stopped', 'deactivating', 'inactive']:
-                logdata = dict()
-                logdata['unit'] = self.unit_name
+            if service_state not in ('stopped', 'deactivating', 'inactive'):
                 log('E46', logdata)
 
     def _get_state(self):

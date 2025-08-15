@@ -44,20 +44,16 @@ class systemd_applier(applier_frontend):
         for setting in self.systemd_unit_settings:
             try:
                 self.units.append(systemd_unit(setting.valuename, int(setting.data)))
-                logdata = dict()
-                logdata['unit'] = format(setting.valuename)
+                logdata = {'unit': format(setting.valuename)}
                 log('I4', logdata)
             except Exception as exc:
-                logdata = dict()
-                logdata['unit'] = format(setting.valuename)
-                logdata['exc'] = exc
+                logdata = {'unit': format(setting.valuename), 'exc': exc}
                 log('I5', logdata)
         for unit in self.units:
             try:
                 unit.apply()
             except:
-                logdata = dict()
-                logdata['unit'] = unit.unit_name
+                logdata = {'unit': unit.unit_name}
                 log('E45', logdata)
 
     def apply(self):

@@ -96,16 +96,15 @@ def determine_username(username=None):
 
     # If username is not set then it will be the name
     # of process owner.
+    logdata = {'username': name}
     if not username:
         name = get_process_user()
-        logdata = dict({'username': name})
         log('D2', logdata)
 
     if not username_match_uid(name):
         if not is_root():
             raise Exception('Current process UID does not match specified username')
 
-    logdata = dict({'username': name})
     log('D15', logdata)
 
     return name
@@ -117,9 +116,7 @@ def apply_user_context(user_appliers):
         try:
             applier_object.user_context_apply()
         except Exception as exc:
-            logdata = dict()
-            logdata['applier'] = applier_name
-            logdata['exception'] = str(exc)
+            logdata = {'applier': applier_name, 'exception': str(exc)}
             log('E20', logdata)
 
 class frontend_manager:
@@ -156,9 +153,7 @@ class frontend_manager:
         try:
             self.machine_appliers['cifs'] = cifs_applier(self.storage)
         except Exception as exc:
-            logdata = dict()
-            logdata['applier_name'] = 'cifs'
-            logdata['msg'] = str(exc)
+            logdata = {'applier_name': 'cifs', 'msg': str(exc)}
             log('E24', logdata)
         self.machine_appliers['cups'] = cups_applier(self.storage)
         self.machine_appliers['firewall'] = firewall_applier(self.storage)
@@ -181,9 +176,7 @@ class frontend_manager:
         try:
             self.user_appliers['cifs'] = cifs_applier_user(self.storage, self.username)
         except Exception as exc:
-            logdata = dict()
-            logdata['applier_name'] = 'cifs'
-            logdata['msg'] = str(exc)
+            logdata = {'applier_name': 'cifs', 'msg': str(exc)}
             log('E25', logdata)
         self.user_appliers['polkit'] = polkit_applier_user(self.storage, self.username)
         self.user_appliers['envvar'] = envvar_applier_user(self.storage, self.username)
@@ -207,9 +200,7 @@ class frontend_manager:
             try:
                 applier_object.apply()
             except Exception as exc:
-                logdata = dict()
-                logdata['applier_name'] = applier_name
-                logdata['msg'] = str(exc)
+                logdata = {'applier_name': applier_name, 'msg': str(exc)}
                 log('E24', logdata)
 
     def user_apply(self):
@@ -221,24 +212,20 @@ class frontend_manager:
                 try:
                     applier_object.admin_context_apply()
                 except Exception as exc:
-                    logdata = dict()
-                    logdata['applier'] = applier_name
-                    logdata['exception'] = str(exc)
+                    logdata = {'applier': applier_name, 'exception': str(exc)}
                     log('E19', logdata)
 
             try:
                 with_privileges(self.username, lambda: apply_user_context(self.user_appliers))
             except Exception as exc:
-                logdata = dict()
-                logdata['username'] = self.username
-                logdata['exception'] = str(exc)
+                logdata = {'username': self.username, 'exception': str(exc)}
                 log('E30', logdata)
         else:
             for applier_name, applier_object in self.user_appliers.items():
                 try:
                     applier_object.user_context_apply()
                 except Exception as exc:
-                    logdata = dict({'applier_name': applier_name, 'message': str(exc)})
+                    logdata = {'applier_name': applier_name, 'message': str(exc)}
                     log('E11', logdata)
 
     def apply_parameters(self):

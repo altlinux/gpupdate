@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,10 +40,7 @@ def uri_fetch(schema, path, value, cache):
     Function to fetch and cache uri
     '''
     retval = value
-    logdata = dict()
-    logdata['schema'] = schema
-    logdata['path'] = path
-    logdata['src'] = value
+    logdata = {'schema': schema, 'path': path, 'src': value}
     try:
         retval = cache.get(value)
         if not retval:
@@ -78,7 +75,7 @@ class gsettings_applier(applier_frontend):
         self.override_file = os.path.join(self.__global_schema, self.__override_priority_file)
         self.override_old_file = os.path.join(self.__global_schema, self.__override_old_file)
         self.gsettings = system_gsettings(self.override_file)
-        self.locks = dict()
+        self.locks = {}
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -89,8 +86,7 @@ class gsettings_applier(applier_frontend):
         try:
             self.file_cache.store(data)
         except Exception as exc:
-            logdata = dict()
-            logdata['exception'] = str(exc)
+            logdata = {'exception': str(exc)}
             log('D145', logdata)
 
     def uri_fetch_helper(self, schema, path, value):
@@ -158,10 +154,9 @@ class GSettingsMapping:
             self.gsettings_schema_key = self.schema.get_key(self.gsettings_key)
             self.gsettings_type = self.gsettings_schema_key.get_value_type()
         except Exception as exc:
-            logdata = dict()
-            logdata['hive_key'] = self.hive_key
-            logdata['gsettings_schema'] = self.gsettings_schema
-            logdata['gsettings_key'] = self.gsettings_key
+            logdata = {'hive_key': self.hive_key,
+                       'gsettings_schema': self.gsettings_schema,
+                       'gsettings_key': self.gsettings_key}
             log('W6', logdata)
 
     def preg2gsettings(self):
@@ -195,8 +190,8 @@ class gsettings_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.__windows_mapping_enabled = check_windows_mapping_enabled(self.storage)
 
-        self.__windows_settings = dict()
-        self.windows_settings = list()
+        self.__windows_settings = {}
+        self.windows_settings = []
         mapping = [
               # Disable or enable screen saver
               GSettingsMapping(
@@ -233,9 +228,7 @@ class gsettings_applier_user(applier_frontend):
         for setting_key in self.__windows_settings.keys():
             value = self.storage.get_hkcu_entry(setting_key)
             if value:
-                logdata = dict()
-                logdata['setting_key'] = setting_key
-                logdata['value.data'] = value.data
+                logdata = {'setting_key': setting_key, 'value.data': value.data}
                 log('D86', logdata)
                 mapping = self.__windows_settings[setting_key]
                 try:
@@ -285,8 +278,7 @@ class gsettings_applier_user(applier_frontend):
         except NotUNCPathError:
             ...
         except Exception as exc:
-            logdata = dict()
-            logdata['exception'] = str(exc)
+            logdata = {'exception': str(exc)}
             log('E50', logdata)
 
 

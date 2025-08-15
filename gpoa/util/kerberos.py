@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -80,12 +80,10 @@ def check_krb_ticket():
         subprocess.check_call(['klist', '-s'])
         output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
         result = True
-        logdata = {}
-        logdata['output'] = output
+        logdata = {'output': output}
         log('D17', logdata)
     except Exception as exc:
-        logdata = {}
-        logdata['krb-exc'] = exc
+        logdata = {'krb-exc': exc}
         log('E14', logdata)
 
     return result

@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ class package_applier(applier_frontend):
         install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
         remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
         sync_branch = '{}\\{}%'.format(self.__hklm_branch, self.__sync_key_name)
-        self.fulcmd = list()
+        self.fulcmd = []
         self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
         self.fulcmd.append('--loglevel')
         logger = logging.getLogger()
@@ -64,15 +64,13 @@ class package_applier(applier_frontend):
                 try:
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
-                    logdata = dict()
-                    logdata['msg'] = str(exc)
+                    logdata = {'msg': str(exc)}
                     log('E55', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
-                    logdata = dict()
-                    logdata['msg'] = str(exc)
+                    logdata = {'msg': str(exc)}
                     log('E61', logdata)
 
     def apply(self):
@@ -95,7 +93,7 @@ class package_applier_user(applier_frontend):
     def __init__(self, storage, username):
         self.storage = storage
         self.username = username
-        self.fulcmd = list()
+        self.fulcmd = []
         self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
         self.fulcmd.append('--user')
         self.fulcmd.append(self.username)
@@ -130,15 +128,13 @@ class package_applier_user(applier_frontend):
                 try:
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
-                    logdata = dict()
-                    logdata['msg'] = str(exc)
+                    logdata = {'msg': str(exc)}
                     log('E60', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
-                    logdata = dict()
-                    logdata['msg'] = str(exc)
+                    logdata = {'msg': str(exc)}
                     log('E62', logdata)
 
     def admin_context_apply(self):

@@ -32,7 +32,7 @@ from util.logging import log
 
 def storage_get_drives(storage):
     drives = storage.get_drives()
-    drive_list = list()
+    drive_list = []
 
     for drv_obj in drives:
         drive_list.append(drv_obj)
@@ -65,7 +65,7 @@ def remove_escaped_quotes(input_string):
 class Drive_list:
     __alphabet = string.ascii_uppercase
     def __init__(self):
-        self.dict_drives = dict()
+        self.dict_drives = {}
 
     def __get_letter(self, letter):
         slice_letters = set(self.__alphabet[self.__alphabet.find(letter) + 1:]) - set(self.dict_drives.keys())
@@ -211,10 +211,10 @@ class cifs_applier_user(applier_frontend):
             self.__mountpoint_dirname = dirname_system_from_machine if dirname_system_from_machine else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname_user
 
-            self.keys_cifs_previous_values_user = self.dict_registry_user.get(self.__key_cifs_previous_value,dict())
-            self.keys_cifs_values_user = self.dict_registry_user.get(name_dir,dict())
-            self.keys_the_preferences_previous_values_user = self.dict_registry_user.get((self.__key_preferences_previous+self.username),dict()).get('Drives', dict())
-            self.keys_the_preferences_values_user = self.dict_registry_user.get((self.__key_preferences+self.username),dict()).get('Drives', dict())
+            self.keys_cifs_previous_values_user = self.dict_registry_user.get(self.__key_cifs_previous_value,{})
+            self.keys_cifs_values_user = self.dict_registry_user.get(name_dir,{})
+            self.keys_the_preferences_previous_values_user = self.dict_registry_user.get((self.__key_preferences_previous+self.username),{}).get('Drives', {})
+            self.keys_the_preferences_values_user = self.dict_registry_user.get((self.__key_preferences+self.username),{}).get('Drives', {})
 
         else:
             self.home = self.__target_mountpoint
@@ -223,10 +223,10 @@ class cifs_applier_user(applier_frontend):
             self.__mountpoint_dirname = dirname_system.data if dirname_system and dirname_system.data else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname
 
-        self.keys_cifs_previous_values_machine = self.dict_registry_machine.get(self.__key_cifs_previous_value,dict())
-        self.keys_cifs_values_machine = self.dict_registry_machine.get(name_dir,dict())
-        self.keys_the_preferences_previous_values = self.dict_registry_machine.get((self.__key_preferences_previous+'Machine'),dict()).get('Drives', dict())
-        self.keys_the_preferences_values = self.dict_registry_machine.get((self.__key_preferences+'Machine'),dict()).get('Drives', dict())
+        self.keys_cifs_previous_values_machine = self.dict_registry_machine.get(self.__key_cifs_previous_value,{})
+        self.keys_cifs_values_machine = self.dict_registry_machine.get(name_dir,{})
+        self.keys_the_preferences_previous_values = self.dict_registry_machine.get((self.__key_preferences_previous+'Machine'),{}).get('Drives', {})
+        self.keys_the_preferences_values = self.dict_registry_machine.get((self.__key_preferences+'Machine'),{}).get('Drives', {})
         self.cifsacl_disable = self.storage.get_entry(self.__cifsacl_key, preg=False)
 
         self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
@@ -311,7 +311,7 @@ class cifs_applier_user(applier_frontend):
         # Collect data for drive settings
         drive_list = Drive_list()
         for drv in self.drives:
-            drive_settings = dict()
+            drive_settings = {}
             drive_settings['dir'] = drv.dir
             drive_settings['login'] = drv.login
             drive_settings['password'] = drv.password
@@ -328,7 +328,7 @@ class cifs_applier_user(applier_frontend):
             drive_list.append(drive_settings)
 
         if drive_list.len() > 0:
-            mount_settings = dict()
+            mount_settings = {}
             mount_settings['drives'] = drive_list()
             mount_text = self.template_mountpoints.render(**mount_settings)
 
@@ -344,7 +344,7 @@ class cifs_applier_user(applier_frontend):
                 f.write(mount_text_hide)
                 f.flush()
 
-            autofs_settings = dict()
+            autofs_settings = {}
             autofs_settings['home_dir'] = self.home
             autofs_settings['mntTarget'] = self.mntTarget
             autofs_settings['mount_file'] = self.user_config.resolve()

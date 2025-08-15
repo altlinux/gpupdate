@@ -64,37 +64,37 @@ class Dconf_registry():
     '''
     _GpoPriority = 'Software/BaseALT/Policies/GpoPriority'
     _gpo_name = set()
-    global_registry_dict = dict({_GpoPriority:{}})
-    previous_global_registry_dict = dict()
+    global_registry_dict = {_GpoPriority:{}}
+    previous_global_registry_dict = {}
     __template_file = '/usr/share/dconf/user_mandatory.template'
     _policies_path = 'Software/'
     _policies_win_path = 'SOFTWARE/'
     _gpt_read_flag = False
     _force = False
     __dconf_dict_flag = False
-    __dconf_dict = dict()
-    _dconf_db = dict()
-    _dict_gpo_name_version_cache = dict()
+    __dconf_dict = {}
+    _dconf_db = {}
+    _dict_gpo_name_version_cache = {}
     _username = None
     _uid = None
     _envprofile = None
     _path_bin_system = "/etc/dconf/db/policy"
 
-    list_keys = list()
-    _info = dict()
+    list_keys = []
+    _info = {}
     _counter_gpt = itertools.count(0)
 
-    shortcuts = list()
-    folders = list()
-    files = list()
-    drives = list()
-    scheduledtasks = list()
-    environmentvariables = list()
-    inifiles = list()
-    services = list()
-    printers = list()
-    scripts = list()
-    networkshares = list()
+    shortcuts = []
+    folders = []
+    files = []
+    drives = []
+    scheduledtasks = []
+    environmentvariables = []
+    inifiles = []
+    services = []
+    printers = []
+    scripts = []
+    networkshares = []
 
     _true_strings = {
         "True",
@@ -126,7 +126,7 @@ class Dconf_registry():
     def get_matching_keys(path):
         if path[0] != '/':
             path = '/' + path
-        logdata = dict()
+        logdata = {}
         envprofile = get_dconf_envprofile()
         try:
             process = subprocess.Popen(['dconf', 'list', path],
@@ -157,7 +157,7 @@ class Dconf_registry():
 
     @staticmethod
     def get_key_value(key):
-        logdata = dict()
+        logdata = {}
         envprofile = get_dconf_envprofile()
         try:
             process = subprocess.Popen(['dconf', 'read', key],
@@ -176,7 +176,7 @@ class Dconf_registry():
 
     @staticmethod
     def dconf_update(uid=None):
-        logdata = dict()
+        logdata = {}
         path_dconf_config = get_dconf_config_path(uid)
         db_file = path_dconf_config[:-3]
         try:
@@ -209,7 +209,7 @@ class Dconf_registry():
 
     @classmethod
     def apply_template(cls, uid):
-        logdata = dict()
+        logdata = {}
         if uid and cls.check_profile_template():
             with open(cls.__template_file, "r") as f:
                 template = f.read()
@@ -259,7 +259,7 @@ class Dconf_registry():
 
     @classmethod
     def get_dictionary_from_dconf_file_db(self, uid=None, path_bin=None, save_dconf_db=False):
-        logdata = dict()
+        logdata = {}
         error_skip = None
         if path_bin:
             error_skip = True
@@ -358,7 +358,7 @@ class Dconf_registry():
 
     @classmethod
     def get_entry(cls, path, dictionary = None, preg = True):
-        logdata = dict()
+        logdata = {}
         result = Dconf_registry.get_storage(dictionary)
 
         keys = path.split("\\") if "\\" in path else path.split("/")
@@ -697,8 +697,7 @@ def create_dconf_ini_file(filename, data, uid=None, nodomain=None):
                 else:
                     file.write(f'{key} = "{value}"\n')
             file.write('\n')
-    logdata = dict()
-    logdata['path'] = filename
+    logdata = {'path': filename}
     log('D209', logdata)
     create_dconf_file_locks(filename, data)
     Dconf_registry.dconf_update(uid)
@@ -845,7 +844,7 @@ def add_preferences_to_global_registry_dict(username, is_machine):
 def extract_display_name_version(data, username):
     policy_force = data.get('Software/BaseALT/Policies/GPUpdate', {}).get('Force', False)
     if Dconf_registry._force or policy_force:
-        logdata = dict({'username': username})
+        logdata = {'username': username}
         log('W26', logdata)
         return {}
     result = {}

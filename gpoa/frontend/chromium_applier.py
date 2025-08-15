@@ -40,7 +40,7 @@ class chromium_applier(applier_frontend):
         self._is_machine_name = is_machine_name(self.username)
         self.chromium_keys = self.storage.filter_hklm_entries(self.__registry_branch)
 
-        self.policies_json = dict()
+        self.policies_json = {}
 
         self.__module_enabled = check_enabled(
               self.storage
@@ -68,7 +68,7 @@ class chromium_applier(applier_frontend):
         os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(dict_item_to_list(self.policies_json), f)
-            logdata = dict()
+            logdata = {}
             logdata['destfile'] = destfile
             log('D97', logdata)
 
@@ -76,7 +76,7 @@ class chromium_applier(applier_frontend):
         os.makedirs(self.__recommended_policies_path, exist_ok=True)
         with open(destfilerec, 'w') as f:
             json.dump(dict_item_to_list(recommended__json), f)
-            logdata = dict()
+            logdata = {}
             logdata['destfilerec'] = destfilerec
             log('D97', logdata)
 
@@ -183,7 +183,7 @@ class chromium_applier(applier_frontend):
         '''
         Collect dictionaries from registry keys into a general dictionary
         '''
-        counts = dict()
+        counts = {}
         #getting the list of keys to read as an integer
         valuename_typeint = self.get_valuename_typeint()
         for it_data in chromium_keys:
@@ -211,7 +211,7 @@ class chromium_applier(applier_frontend):
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
 
             except Exception as exc:
-                logdata = dict()
+                logdata = {}
                 logdata['Exception'] = exc
                 logdata['keyname'] = it_data.keyname
                 log('D178', logdata)

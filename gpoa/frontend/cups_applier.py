@@ -80,8 +80,7 @@ class cups_applier(applier_frontend):
         try:
             self.cups_connection = cups.Connection()
         except Exception as exc:
-            logdata = {}
-            logdata['exc'] = exc
+            logdata = {'exc': exc}
             log('W20', logdata)
         self.printers = storage_get_printers(self.storage)
 

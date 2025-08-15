@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ class control_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
         self.control_settings = self.storage.filter_hklm_entries(self._registry_branch)
-        self.controls = list()
+        self.controls = []
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -45,9 +45,7 @@ class control_applier(applier_frontend):
             valuename = setting.hive_key.rpartition('/')[2]
             try:
                 self.controls.append(control(valuename, int(setting.data)))
-                logdata = dict()
-                logdata['control'] = valuename
-                logdata['value'] = setting.data
+                logdata = {'control': valuename, 'value': setting.data}
                 log('I3', logdata)
             except ValueError as exc:
                 try:
@@ -57,14 +55,10 @@ class control_applier(applier_frontend):
                     log('I3', logdata)
                     continue
                 self.controls.append(ctl)
-                logdata = dict()
-                logdata['control'] = valuename
-                logdata['with string value'] = setting.data
+                logdata = {'control': valuename, 'with string value': setting.data}
                 log('I3', logdata)
             except Exception as exc:
-                logdata = dict()
-                logdata['control'] = valuename
-                logdata['exc'] = exc
+                logdata = {'control': valuename, 'exc': exc}
                 log('E39', logdata)
         #for e in polfile.pol_file.entries:
         #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))

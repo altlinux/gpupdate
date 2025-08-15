@@ -36,10 +36,10 @@ class thunderbird_applier(applier_frontend):
         self.storage = storage
         self.username = username
         self._is_machine_name = is_machine_name(self.username)
-        self.policies = dict()
-        self.policies_json = dict({ 'policies': self.policies })
+        self.policies = {}
+        self.policies_json = {'policies': self.policies}
         self.thunderbird_keys = self.storage.filter_hklm_entries(self.__registry_branch)
-        self.policies_gen = dict()
+        self.policies_gen = {}
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -57,8 +57,7 @@ class thunderbird_applier(applier_frontend):
         os.makedirs(self.__thunderbird_policies, exist_ok=True)
         with open(destfile, 'w') as f:
             json.dump(self.policies_json, f)
-            logdata = dict()
-            logdata['destfile'] = destfile
+            logdata = {'destfile': destfile}
             log('D212', logdata)
 
     def apply(self):
