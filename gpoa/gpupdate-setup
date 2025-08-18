@@ -2,7 +2,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2025 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -342,18 +342,19 @@ def act_default_policy():
 def main():
     arguments = parse_arguments()
 
-    action = dict()
-    action['list'] = act_list
-    action['list-backends'] = act_list_backends
-    action['status'] = act_status
-    action['set-backend'] = act_set_backend
-    action['write'] = act_write
-    action['enable'] = act_enable
-    action['update'] = act_enable
-    action['disable'] = disable_gp
-    action['active-policy'] = act_active_policy
-    action['active-backend'] = act_active_backend
-    action['default-policy'] = act_default_policy
+    action = {
+        'list': act_list,
+        'list-backends': act_list_backends,
+        'status': act_status,
+        'set-backend': act_set_backend,
+        'write': act_write,
+        'enable': act_enable,
+        'update': act_enable,
+        'disable': disable_gp,
+        'active-policy': act_active_policy,
+        'active-backend': act_active_backend,
+        'default-policy': act_default_policy
+    }
 
     if arguments.action == None:
         action['status']()

@@ -20,7 +20,6 @@
 import rpm
 import subprocess
 from gpoa.storage import registry_factory
-from util.gpoa_ini_parsing import GpoaConfigObj
 from util.util import get_uid_by_username, string_to_literal_eval
 import logging
 from util.logging import log
@@ -76,24 +75,20 @@ class Pkcon_applier:
         log('D142')
         self.update()
         for package in self.remove_packages:
+            logdata = {'name': package}
             try:
-                logdata = {}
-                logdata['name'] = package
                 log('D149', logdata)
                 self.remove_pkg(package)
             except Exception as exc:
-                logdata = {}
                 logdata['exc'] = exc
                 log('E58', logdata)
 
         for package in self.install_packages:
+           logdata = {'name': package}
            try:
-                logdata = {}
-                logdata['name'] = package
                 log('D148', logdata)
                 self.install_pkg(package)
            except Exception as exc:
-                logdata = {}
                 logdata['exc'] = exc
                 log('E57', logdata)
 
@@ -107,7 +102,7 @@ class Pkcon_applier:
         pass
 
     def remove_pkg(self, package_name):
-        fullcmd = self.__remove_command
+        fullcmd = list(self.__remove_command)
         fullcmd.append(package_name)
         return subprocess.check_output(fullcmd)
 
@@ -125,8 +120,7 @@ class Pkcon_applier:
                     logdata = {ms[0]: ms[1:-1]}
                 log('D143', logdata)
         except Exception as exc:
-            logdata = {}
-            logdata['msg'] = exc
+            logdata = {'msg': exc}
             log('E56',logdata)
 
 if __name__ == '__main__':
