@@ -120,7 +120,9 @@ class smbcreds (smbopts):
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
             self.is_machine = False
         if not self.is_machine and Dconf_registry.get_info('trust'):
-            pass
+            # TODO: Always returning an empty list here.
+            # Need to implement fetching policies from the trusted domain.
+            return []
 
         dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
         try:
