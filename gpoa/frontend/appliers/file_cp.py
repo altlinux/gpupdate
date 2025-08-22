@@ -30,6 +30,8 @@ from util.util import get_homedir
 from util.exceptions import NotUNCPathError
 from util.paths import UNCPath
 import fnmatch
+import pwd
+import grp
 
 class Files_cp:
     def __init__(self, file_obj, file_cache, exe_check, username=None):
@@ -49,6 +51,7 @@ class Files_cp:
         self.suppress = str2bool(file_obj.suppress)
         self.executable = str2bool(file_obj.executable)
         self.username = username
+        self.pw = pwd.getpwnam(username) if username else None
         self.fromPathFiles = []
         if self.fromPath:
             if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
@@ -134,7 +137,8 @@ class Files_cp:
                 if targetFile and not targetFile.exists():
                     self.copy_target_file(targetFile, fromFile)
                     if self.username:
-                        shutil.chown(targetFile, self.username)
+                        group_name = grp.getgrgid(self.pw.pw_gid).gr_name
+                        chown_home_path(targetFile, username=self.username, group=group_name)
                     self.set_mod_file(targetFile, fromFile)
                     logdata['File'] = targetFile
                     log('D191', logdata)
@@ -172,6 +176,8 @@ class Files_cp:
                 self.copy_target_file(targetFile, fromFile)
                 if self.username:
                     shutil.chown(self.targetPath, self.username)
+                    group_name = grp.getgrgid(self.pw.pw_gid).gr_name
+                    chown_home_path(targetFile, username=self.username, group=group_name)
                 self.set_mod_file(targetFile, fromFile)
                 logdata['File'] = targetFile
                 log('D192', logdata)
@@ -266,3 +272,32 @@ class Execution_check():
 
     def get_list_markers(self):
         return self.list_markers
+
+
+def chown_home_path(path: Path, username: str, group: str) -> None:
+    """
+    Change ownership (user and group) of the given path and all its parent
+    directories up to (but NOT including) the user's home directory.
+
+    If the path is not inside the user's home directory, do nothing.
+
+    :param path: Path to a file or directory.
+    :param user: Username to set as owner.
+    :param group: Group name to set as group.
+    """
+    path = path.resolve()
+    home_root = Path(get_homedir(username))
+
+    # Check if the path is inside user's home directory
+    if home_root not in path.parents:
+        return  # Not inside user's home - do nothing
+
+    # Walk upwards from the given path until just above home_root
+    current = path
+    while True:
+        if current == home_root:
+            break  # do not change ownership of the home directory itself
+        shutil.chown(current, user=username, group=group)
+        if current.parent == current:  # Safety check: reached root (/)
+            break
+        current = current.parent
