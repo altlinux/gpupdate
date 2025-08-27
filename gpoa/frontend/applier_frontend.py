@@ -45,32 +45,23 @@ def check_module_enabled(storage, module_name):
     gpupdate_module_enable_branch = '/Software/BaseALT/Policies/GPUpdate'
     gpupdate_module_flag = '{}/{}'.format(gpupdate_module_enable_branch, module_name)
     flag = storage.get_key_value(gpupdate_module_flag)
-
-    result = None
+ 
     flag = str(flag)
-    if flag and flag!='None':
-        if '1' == flag:
-            result =  True
-        else:
-            result =  False
-
-    return result
+    if flag is not None:
+        return bool(int(flag))
+    
+    return False
 
 def check_enabled(storage, module_name, is_experimental):
     module_enabled = check_module_enabled(storage, module_name)
     exp_enabled = check_experimental_enabled(storage)
 
-    result = False
-
-    if None == module_enabled:
-        if is_experimental and exp_enabled:
-            result = True
-        if not is_experimental:
-            result = True
-    else:
-        result = module_enabled
-
-    return result
+    if module_enabled and is_experimental and exp_enabled:
+        return True
+    if module_enabled and not is_experimental:
+        return True
+    
+    return False
 
 class applier_frontend(ABC):
     @classmethod
