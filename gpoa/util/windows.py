@@ -35,12 +35,15 @@ from .xdg import (
       xdg_get_desktop
 )
 from .util import get_homedir, get_uid_by_username
+from util.system import with_privileges
 from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
 from gpoa.storage import registry_factory
 from samba.samdb import SamDB
 from samba.auth import system_session
+from samba.net import Net
+from samba.param import LoadParm
 import optparse
 import ldb
 import ipaddress
@@ -113,18 +116,22 @@ class smbcreds (smbopts):
         hostname
         '''
         gpos = []
-        if Dconf_registry.get_info('machine_name') == username:
-            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
-            self.is_machine = True
-        else:
-            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
-            self.is_machine = False
-        if not self.is_machine and Dconf_registry.get_info('trust'):
-            # TODO: Always returning an empty list here.
-            # Need to implement fetching policies from the trusted domain.
-            return []
+        dconf_dict = self.get_dconf_dict(username)
 
-        dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
+        if not self.is_machine and Dconf_registry.get_info('trust'):
+            try:
+                info = with_privileges(username, get_kerberos_domain_info)
+                pdc_dns_name = info.get('pdc_dns_name')
+                if pdc_dns_name:
+                    Dconf_registry.set_info('pdc_dns_name', pdc_dns_name)
+                    gpos = get_gpo_list(pdc_dns_name, self.creds, self.lp, username)
+                    logdata = {'username': username}
+                    log('I12', logdata)
+                    self.process_gpos(gpos, username, dconf_dict)
+                    return gpos
+            except Exception as exc:
+                pass
+
         try:
             log('D48')
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
@@ -133,17 +140,7 @@ class smbcreds (smbopts):
                 gpos = ads.get_gpo_list(username)
                 logdata = {'username': username}
                 log('I1', logdata)
-                for gpo in gpos:
-                    # These setters are taken from libgpo/pygpo.c
-                    # print(gpo.ds_path) # LDAP entry
-                    if gpo.display_name in dict_gpo_name_version.keys() and dict_gpo_name_version.get(gpo.display_name, {}).get('version') == str(getattr(gpo, 'version', None)):
-                        if Path(dict_gpo_name_version.get(gpo.display_name, {}).get('correct_path')).exists():
-                            gpo.file_sys_path = ''
-                            ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True}
-                            log('I11', ldata)
-                            continue
-                    ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path}
-                    log('I2', ldata)
+                self.process_gpos(gpos, username, dconf_dict)
 
         except Exception as exc:
             if self.selected_dc != self.pdc_emulator_server:
@@ -152,6 +149,48 @@ class smbcreds (smbopts):
             log('E17', logdata)
 
         return gpos
+
+    def get_dconf_dict(self, username):
+        """
+        Retrieve dconf dictionary either for the machine itself
+        or for a specific user depending on the given username
+        """
+        if Dconf_registry.get_info('machine_name') == username:
+            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
+            self.is_machine = True
+        else:
+            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(get_uid_by_username(username), save_dconf_db=True)
+            self.is_machine = False
+        return dconf_dict
+
+
+    def process_gpos(self, gpos, username, dconf_dict):
+        """
+        Process GPO objects and update their file_sys_path if cached version is valid
+        """
+        dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
+        for gpo in gpos:
+            # These setters are taken from libgpo/pygpo.c
+            cached_info = dict_gpo_name_version.get(gpo.display_name, {})
+
+            # Check if GPO version matches and cached path exists
+            if cached_info.get('version') == str(getattr(gpo, 'version', None)):
+                if Path(cached_info.get('correct_path', '')).exists():
+                    gpo.file_sys_path = ''
+                    logdata = {
+                        'gpo_name': gpo.display_name,
+                        'gpo_uuid': gpo.name,
+                        'file_sys_path_cache': True
+                    }
+                    log('I11', logdata)
+                    continue
+            # Default log if no cache hit
+            logdata = {
+                'gpo_name': gpo.display_name,
+                'gpo_uuid': gpo.name,
+                'file_sys_path': gpo.file_sys_path
+            }
+            log('I2', logdata)
 
     def update_gpos(self, username):
 
@@ -178,7 +217,13 @@ class smbcreds (smbopts):
             logdata['dc'] = self.selected_dc
             try:
                 log('D49', logdata)
-                check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
+                if not self.is_machine and Dconf_registry.get_info('trust'):
+                    check_refresh_gpo_list(Dconf_registry.get_info('pdc_dns_name'),
+                                           self.lp,
+                                           self.creds,
+                                           gpos)
+                else:
+                    check_refresh_gpo_list(self.selected_dc, self.lp, self.creds, gpos)
                 log('D50', logdata)
                 list_selected_dc.clear()
             except NTSTATUSError as smb_exc:
@@ -363,3 +408,28 @@ def check_scroll_enabled():
         return bool(int(data))
     else:
         return False
+
+def get_kerberos_domain_info():
+    """
+    Retrieve information about the AD domain using Kerberos tickets
+    """
+    try:
+        # Initialize credentials and load Samba parameters
+        creds = Credentials()
+        creds.guess()
+        lp = LoadParm()
+
+        # Get current realm
+        realm = creds.get_realm()
+
+        # Query domain controller
+        net = Net(creds, lp, server=None)
+        info = net.finddc(flags=0, domain=realm)
+
+        return {
+            "pdc_dns_name": info.pdc_dns_name,
+            "principal": creds.get_principal(),
+        }
+
+    except Exception as exc:
+        return {'Exception':exc}
