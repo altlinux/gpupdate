@@ -68,6 +68,8 @@ msgstr "В конфигурационном файле была очищена �
 msgid "Found GPT in cache"
 msgstr "Найден GPT в кеше"
 
+msgid "Got GPO list for trusted user"
+msgstr "Получен список GPO для доверенного пользователя"
 
 # Error
 msgid "Insufficient permissions to run gpupdate"

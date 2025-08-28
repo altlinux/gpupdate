@@ -32,6 +32,7 @@ def info_code(code):
     info_ids[9] = 'Set user property to'
     info_ids[10] = 'The line in the configuration file was cleared'
     info_ids[11] = 'Found GPT in cache'
+    info_ids[12] = 'Got GPO list for trusted user'
 
     return info_ids.get(code, 'Unknown info code')
 
