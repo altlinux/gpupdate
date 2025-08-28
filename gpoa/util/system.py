@@ -22,6 +22,7 @@ import pwd
 import signal
 import subprocess
 import locale
+import json
 from .logging import log
 from .dbus import dbus_session
 
@@ -55,20 +56,18 @@ def set_privileges(username, uid, gid, groups, home):
 
     os.chdir(home)
 
-    logdata = {}
-    logdata['uid'] = uid
-    logdata['gid'] = gid
-    logdata['username'] = username
+    logdata = {'uid': uid, 'gid': gid, 'username': username}
     log('D37', logdata)
 
 
 def with_privileges(username, func):
     '''
-    Run supplied function with privileges for specified username.
+    Run supplied function with privileges for specified username and return JSON result of func().
     '''
-    if not os.getuid() == 0:
+    if os.getuid() != 0:
         raise Exception('Not enough permissions to drop privileges')
 
+    # Resolve user information
     user_pw = pwd.getpwnam(username)
     user_uid = user_pw.pw_uid
     user_gid = user_pw.pw_gid
@@ -78,60 +77,74 @@ def with_privileges(username, func):
     if not os.path.isdir(user_home):
         raise Exception('User home directory not exists')
 
+    # Create a pipe for inter-process communication
+    rfd, wfd = os.pipe()
+
     pid = os.fork()
     if pid > 0:
+        # --- Parent process ---
+        os.close(wfd)
         log('D54', {'pid': pid})
-        waitpid, status = os.waitpid(pid, 0)
 
+        # Wait for child process
+        waitpid, status = os.waitpid(pid, 0)
         code = os.WEXITSTATUS(status)
         if code != 0:
             raise Exception('Error in forked process ({})'.format(status))
 
-        return
+        # Read data from pipe
+        data = os.read(rfd, 10_000_000)
+        os.close(rfd)
 
-    # We need to return child error code to parent
-    result = 0
+        if not data:
+            return None
+
+        # Deserialize JSON
+        return json.loads(data.decode("utf-8"))
+
+    # --- Child process ---
+    os.close(rfd)
+
+    result = None
+    exitcode = 0
     dbus_pid = -1
     dconf_pid = -1
     try:
-
         # Drop privileges
         set_privileges(username, user_uid, user_gid, user_groups, user_home)
 
-        # Run the D-Bus session daemon in order D-Bus calls to work
+        # Start dbus-launch to get session bus
         proc = subprocess.Popen(
             'dbus-launch',
             shell=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+            stderr=subprocess.STDOUT
+        )
         for var in proc.stdout:
             sp = var.decode('utf-8').split('=', 1)
-            os.environ[sp[0]] = sp[1][:-1]
+            os.environ[sp[0]] = sp[1].strip()
 
-        # Save pid of dbus-daemon
+        # Save DBus session PID
         dbus_pid = int(os.environ['DBUS_SESSION_BUS_PID'])
 
-        # Run user appliers
-        func()
+        # Execute target function and expect JSON-serializable result
+        result = func()
 
-        # Save pid of dconf-service
-        dconf_connection = "ca.desrt.dconf"
+        # Try to get dconf-service PID
         try:
             session = dbus_session()
-            dconf_pid = session.get_connection_pid(dconf_connection)
+            dconf_pid = session.get_connection_pid("ca.desrt.dconf")
         except Exception:
             pass
 
     except Exception as exc:
-        logdata = {}
-        logdata['msg'] = str(exc)
-        log('E33', logdata)
-        result = 1;
+        log('E33', {'msg': str(exc)})
+        exitcode = 1
     finally:
-        logdata = {}
-        logdata['dbus_pid'] = dbus_pid
-        logdata['dconf_pid'] = dconf_pid
-        log('D56', logdata)
+        # Log dbus/dconf info
+        log('D56', {'dbus_pid': dbus_pid, 'dconf_pid': dconf_pid})
+
+        # Cleanup processes
         if dbus_pid > 0:
             os.kill(dbus_pid, signal.SIGHUP)
         if dconf_pid > 0:
@@ -139,5 +152,11 @@ def with_privileges(username, func):
         if dbus_pid > 0:
             os.kill(dbus_pid, signal.SIGTERM)
 
-    sys.exit(result)
+    # Serialize result to JSON and send to parent
+    try:
+        os.write(wfd, json.dumps(result).encode("utf-8"))
+    except Exception:
+        pass
+    os.close(wfd)
 
+    sys.exit(exitcode)
