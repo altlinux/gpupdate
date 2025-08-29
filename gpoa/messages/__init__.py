@@ -112,6 +112,12 @@ def error_code(code):
     error_ids[74] = 'Autofs restart failed'
     error_ids[75] = 'Failed to update LDAP with new password data'
     error_ids[76] = 'Failed to change local user password'
+    error_ids[77] = 'Error running apt1_runner sync for user'
+    error_ids[78] = 'Error running apt1_runner async for user'
+    error_ids[79] = 'Error running apt1_runner sync for machine'
+    error_ids[80] = 'Error running apt1_runner async for machine'
+    error_ids[81] = 'Error no package applier runner found'
+
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -349,6 +355,8 @@ def debug_code(code):
     debug_ids[232] = 'No user login records found'
     debug_ids[233] = 'Calculating time since the first user login after their password change'
     debug_ids[234] = 'No logins found after password change'
+    debug_ids[235] = 'Running apt1_runner to install and remove packages'
+    debug_ids[236] = 'Package applier runner found'
 
     return debug_ids.get(code, 'Unknown debug code')
 
