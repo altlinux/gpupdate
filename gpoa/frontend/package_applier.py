@@ -24,6 +24,20 @@ from .applier_frontend import (
       applier_frontend
     , check_enabled
 )
+import os
+
+def select_runner() -> None | str:
+    """
+    Select runner to use for package applier
+
+    Returns:
+        str if backend is selected
+        None otherwise
+    """
+    proc = subprocess.run(['/usr/libexec/gpupdate/select_runner'], stdout=subprocess.PIPE)
+    if proc.returncode != 0:
+        return None
+    return proc.stdout.decode('utf-8').strip()
 
 class package_applier(applier_frontend):
     __module_name = 'PackagesApplier'
@@ -40,8 +54,16 @@ class package_applier(applier_frontend):
         install_branch = '{}\\{}%'.format(self.__hklm_branch, self.__install_key_name)
         remove_branch = '{}\\{}%'.format(self.__hklm_branch, self.__remove_key_name)
         sync_branch = '{}\\{}%'.format(self.__hklm_branch, self.__sync_key_name)
+
+        runner = select_runner()
+        if runner is None:
+            log('E81')
+            raise Exception('No package runner selected')
+        log('D236', {'runner': runner})
+        self.runner = runner + '_runner'
+
         self.fulcmd = []
-        self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
+        self.fulcmd.append('/usr/libexec/gpupdate/' + self.runner)
         self.fulcmd.append('--loglevel')
         logger = logging.getLogger()
         self.fulcmd.append(str(logger.level))
@@ -65,13 +87,19 @@ class package_applier(applier_frontend):
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
-                    log('E55', logdata)
+                    if self.runner == 'pkcon_runner':
+                        log('E55', logdata)
+                    elif self.runner == 'apt1_runner':
+                        log('E79', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
-                    log('E61', logdata)
+                    if self.runner == 'pkcon_runner':
+                        log('E61', logdata)
+                    elif self.runner == 'apt1_runner':
+                        log('E80', logdata)
 
     def apply(self):
         if self.__module_enabled:
@@ -91,10 +119,17 @@ class package_applier_user(applier_frontend):
     __hkcu_branch = 'Software\\BaseALT\\Policies\\Packages'
 
     def __init__(self, storage, username):
+        runner = select_runner()
+        if runner is None:
+            log('E81')
+            raise Exception('No package applier runner found')
+        log('D236', {'runner': runner})
+        self.runner = runner + '_runner'
+
         self.storage = storage
         self.username = username
         self.fulcmd = []
-        self.fulcmd.append('/usr/libexec/gpupdate/pkcon_runner')
+        self.fulcmd.append('/usr/libexec/gpupdate/' + self.runner)
         self.fulcmd.append('--user')
         self.fulcmd.append(self.username)
         self.fulcmd.append('--loglevel')
@@ -129,13 +164,19 @@ class package_applier_user(applier_frontend):
                     subprocess.check_call(self.fulcmd)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
-                    log('E60', logdata)
+                    if self.runner == 'pkcon_runner':
+                        log('E60', logdata)
+                    elif self.runner == 'apt1_runner':
+                        log('E77', logdata)
             else:
                 try:
                     subprocess.Popen(self.fulcmd,close_fds=False)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
-                    log('E62', logdata)
+                    if self.runner == 'pkcon_runner':
+                        log('E62', logdata)
+                    elif self.runner == 'apt1_runner':
+                        log('E78', logdata)
 
     def admin_context_apply(self):
         '''
