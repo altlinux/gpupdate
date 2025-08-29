@@ -1,0 +1,155 @@
+#!/usr/bin/python3
+#
+# GPOA - GPO Applier for Linux
+#
+# Copyright (C) 2025 BaseALT Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import rpm
+from gpoa.storage import registry_factory
+from util.util import get_uid_by_username, string_to_literal_eval
+import logging
+from util.logging import log
+import argparse
+import gettext
+import locale
+
+import dbus
+import dbus.mainloop.glib
+
+
+def is_rpm_installed(rpm_name):
+    """
+    Check if the package named 'rpm_name' is installed
+    """
+    ts = rpm.TransactionSet()
+    pm = ts.dbMatch('name', rpm_name)
+    if pm.count() > 0:
+        return True
+
+    return False
+
+
+def is_rpm_notinstalled(rpm_name):
+    """
+    Check if the package named 'rpm_name' is not installed
+    """
+    return not is_rpm_installed(rpm_name)
+
+
+def remove_suffix(item):
+    return '-' + str(item)
+
+
+class Apt_applier:
+    def __init__(self, user=None):
+        """
+        Initialize the DBus client for org.altlinux.alterator.apt1
+
+        Throws:
+            dbus.exceptions.DBusException on error while connecting to the DBus
+        """
+        dbus_interface = 'org.altlinux.alterator.apt1'
+        bus_name = 'org.altlinux.alterator'
+        object_path = '/org/altlinux/alterator/apt'
+
+        apt_obj = dbus.SystemBus().get_object(bus_name, object_path)
+        self.apt_iface = dbus.Interface(apt_obj, dbus_interface)
+
+        install_key_name = 'Install'
+        remove_key_name = 'Remove'
+        hklm_branch = 'Software/BaseALT/Policies/Packages'
+        self.storage = registry_factory()
+        if user:
+            uid = get_uid_by_username(user)
+            dict_dconf_db = self.storage.get_dictionary_from_dconf_file_db(uid)
+        else:
+            dict_dconf_db = self.storage.get_dictionary_from_dconf_file_db()
+        dict_packages = dict_dconf_db.get(hklm_branch, {})
+
+        self.remove_packages = set(map(str.strip, string_to_literal_eval(dict_packages.get(remove_key_name, []))))
+        self.install_packages = map(str.strip, string_to_literal_eval(dict_packages.get(install_key_name, [])))
+        self.install_packages = set(
+            filter(is_rpm_notinstalled, [item for item in self.install_packages if item not in self.remove_packages]))
+        self.remove_packages = filter(is_rpm_installed, self.remove_packages)
+
+    def apply(self):
+        """
+        Call the ApplyAsync method for current packages policy
+        Throws:
+            dbus.exceptions.DBusException on error while connecting to the DBus
+        Returns:
+            response
+        """
+        log('D235')
+
+        log('D148', {'names': self.install_packages})
+        log('D149', {'names': self.remove_packages})
+        response = self.apt_iface.ApplyAsync("' '",
+                                             "'" + " ".join(map(str, self.install_packages)) + " ".join(
+                                                 map(remove_suffix, self.remove_packages)) + "'")
+        if response != 0:
+            remove_packages = filter(is_rpm_installed, self.remove_packages)
+            install_packages = filter(is_rpm_notinstalled, self.install_packages)
+            for package in remove_packages:
+                if self.apt_iface.ApplyAsync("' '", remove_suffix(package)) != 0:
+                    log('E58', {'name': package})
+            for package in install_packages:
+                if self.apt_iface.ApplyAsync("' '", package) != 0:
+                    log('E57', {'name': package})
+
+        return response
+
+    def update(self):
+        """
+        Call the UpdateAsync method
+        Throws:
+            dbus.exceptions.DBusException on error while connecting to the DBus
+        Returns:
+            response
+        """
+        response = self.apt_iface.UpdateAsync()
+        log('D143')
+        # TODO: Write output into log
+        return response
+
+
+if __name__ == '__main__':
+    locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.textdomain('gpoa')
+    logger = logging.getLogger()
+    parser = argparse.ArgumentParser(description='Package applier')
+    parser.add_argument('--user', type=str, help='user', nargs='?', default=None)
+    parser.add_argument('--loglevel', type=int, help='loglevel', nargs='?', default=30)
+
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+    args = parser.parse_args()
+    logger.setLevel(args.loglevel)
+
+    try:
+        if args.user:
+            applier = Apt_applier(args.user)
+        else:
+            applier = Apt_applier()
+    except dbus.exceptions.DBusException as e:
+        exit(1)
+
+    try:
+        if applier.apply() != 0:
+            exit(1)
+    except dbus.exceptions.DBusException as exc:
+        exit(1)

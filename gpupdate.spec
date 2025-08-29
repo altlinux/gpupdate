@@ -106,6 +106,8 @@ ln -s %python3_sitelibdir/gpoa/gpupdate-setup \
 mkdir -p \
 	%buildroot%_prefix/libexec/%name
 
+ln -s %python3_sitelibdir/gpoa/apt1_runner \
+	%buildroot%_prefix/libexec/%name/apt1_runner
 ln -s %python3_sitelibdir/gpoa/pkcon_runner \
 	%buildroot%_prefix/libexec/%name/pkcon_runner
 ln -s %python3_sitelibdir/gpoa/scripts_runner \
@@ -166,11 +168,13 @@ fi
 %_bindir/gpupdate
 %_prefix/libexec/%name/scripts_runner
 %_prefix/libexec/%name/pkcon_runner
+%_prefix/libexec/%name/apt1_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpoa
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate-setup
 %attr(755,root,root) %python3_sitelibdir/gpoa/scripts_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/pkcon_runner
+%attr(755,root,root) %python3_sitelibdir/gpoa/apt1_runner
 %python3_sitelibdir/gpoa
 %_datadir/%name
 %_unitdir/%name.service

@@ -958,6 +958,9 @@ msgstr "Расчет времени с момента первого входа 
 msgid "No logins found after password change"
 msgstr "Не найдены входы после изменения пароля"
 
+msgid "Running apt1_runner to install and remove packages"
+msgstr "Запуск apt1_runner для установки и удаления пакетов"
+
 msgid "Unknown message type, no message assigned"
 msgstr "Неизвестный тип сообщения"
 

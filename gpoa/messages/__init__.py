@@ -349,6 +349,7 @@ def debug_code(code):
     debug_ids[232] = 'No user login records found'
     debug_ids[233] = 'Calculating time since the first user login after their password change'
     debug_ids[234] = 'No logins found after password change'
+    debug_ids[235] = 'Running apt1_runner to install and remove packages'
 
     return debug_ids.get(code, 'Unknown debug code')
 
