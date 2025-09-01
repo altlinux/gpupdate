@@ -20,12 +20,15 @@
 gpoa \- utility to update and apply group policy settings
 .
 .SH SYNOPSYS
-.B gpoa
+.B gpoa [user][options]
 .
 .SH DESCRIPTION
 .B gpoa
 Fetches GPT files for designated user from AD instance and transforms
 them into UNIX system settings.
+
+If no user argument is specified, gpoa applies machine policies.
+If a user name is given, gpoa applies user policies for that domain account.
 .SS Options
 .TP
 \fB-h\fP
@@ -35,7 +38,11 @@ Show help.
 Specify domain controller hostname FQDN to replicate GPTs from. May be
 useful in case of default DC problems.
 .TP
-\fB--target \fITARGET\fP
+\fB--list-backends\fP
+Show a list of available backends for applying policies.
+.TP
+\fB--nodomain\fP
+Operate without a domain controller. Apply only local policy.
 .TP
 \fB--noupdate\fP
 Don't update settings.
