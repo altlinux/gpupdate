@@ -118,6 +118,7 @@ class samba_backend(applier_backend):
         # This is a buggy implementation and should be tested more
         else:
             user_gpts = []
+            user_path_gpts = set()
             try:
                 user_gpts = self._get_gpts(self.username)
             except Exception as exc:
@@ -134,13 +135,15 @@ class samba_backend(applier_backend):
                 for gptobj in user_gpts:
                     try:
                         gptobj.merge_user()
+                        user_path_gpts.add(gptobj.path)
                     except Exception as exc:
                         logdata = {}
                         logdata['msg'] = str(exc)
                         log('E27', logdata)
-
+            filtered_machine_gpts = [gpt for gpt in machine_gpts
+                                    if gpt.path not in user_path_gpts]
             if policy_mode > 0:
-                for gptobj in machine_gpts:
+                for gptobj in filtered_machine_gpts:
                     try:
                         gptobj.merge_user()
                     except Exception as exc:
