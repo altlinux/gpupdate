@@ -319,7 +319,7 @@ class cifs_applier_user(applier_frontend):
             drive_settings['action'] = drv.action
             drive_settings['thisDrive'] = drv.thisDrive
             drive_settings['allDrives'] = drv.allDrives
-            drive_settings['label'] = remove_escaped_quotes(drv.label)
+            drive_settings['label'] = remove_escaped_quotes(drv.label) if drv.persistent == '1' else None
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
             drive_settings['username'] = self.username
