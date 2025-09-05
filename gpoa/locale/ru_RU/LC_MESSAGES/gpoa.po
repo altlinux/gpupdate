@@ -71,6 +71,9 @@ msgstr "Найден GPT в кеше"
 msgid "Got GPO list for trusted user"
 msgstr "Получен список GPO для доверенного пользователя"
 
+msgid "Restarting systemd unit"
+msgstr "Перезапуск unit systemd"
+
 # Error
 msgid "Insufficient permissions to run gpupdate"
 msgstr "Недостаточно прав для запуска gpupdate"
@@ -269,6 +272,9 @@ msgstr "Не удалось обновить LDAP новыми данными п
 
 msgid "Failed to change local user password"
 msgstr "Не удалось изменить пароль локального пользователя"
+
+msgid "Unable to restart systemd unit"
+msgstr "Не удалось перезапустить unit systemd"
 
 # Error_end
 

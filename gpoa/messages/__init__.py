@@ -33,6 +33,7 @@ def info_code(code):
     info_ids[10] = 'The line in the configuration file was cleared'
     info_ids[11] = 'Found GPT in cache'
     info_ids[12] = 'Got GPO list for trusted user'
+    info_ids[13] = 'Restarting systemd unit'
 
     return info_ids.get(code, 'Unknown info code')
 
@@ -113,6 +114,7 @@ def error_code(code):
     error_ids[74] = 'Autofs restart failed'
     error_ids[75] = 'Failed to update LDAP with new password data'
     error_ids[76] = 'Failed to change local user password'
+    error_ids[77] = 'Unable to restart systemd unit'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):

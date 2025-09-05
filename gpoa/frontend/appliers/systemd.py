@@ -72,3 +72,19 @@ class systemd_unit:
         '''
         return self.unit_properties.Get('org.freedesktop.systemd1.Unit', 'ActiveState')
 
+    def restart(self):
+        """
+        Restarts the specified unit, if available
+        """
+        logdata = {'unit': self.unit_name, 'action': 'restart'}
+        try:
+            self.unit = self.manager.LoadUnit(dbus.String(self.unit_name))
+            self.manager.RestartUnit(self.unit_name, 'replace')
+            log('I13', logdata)
+            service_state = self._get_state()
+            if service_state not in ('active', 'activating'):
+                log('E77', logdata)
+
+        except dbus.DBusException as exc:
+            log('E77', {**logdata, 'error': str(exc)})
+
