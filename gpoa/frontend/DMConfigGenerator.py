@@ -18,10 +18,9 @@
 
 import os
 import shutil
-import subprocess
-from pathlib import Path
 from util.gpoa_ini_parsing import GpoaConfigObj
-
+from appliers.systemd import systemd_unit
+from util.logging import log
 
 class DMConfigGenerator:
     """
@@ -143,21 +142,38 @@ class DMConfigGenerator:
             raise ValueError(f"Unknown DM: {dm_name}")
         return gen(filename)
 
-    def detect_dm(self):
+
+    def detect_dm(self) -> dict:
         result = {"available": [], "active": None}
-        for dm, bins in {"lightdm": ["lightdm"], "gdm": ["gdm", "gdm3"], "sddm": ["sddm"]}.items():
-            if any(shutil.which(bn) for bn in bins):
-                result["available"].append(dm)
-        dm_service = Path("/etc/systemd/system/display-manager.service")
-        if dm_service.is_symlink():
-            target = os.path.basename(os.readlink(dm_service))
-            result["active"] = next((d for d in result["available"] if d in target), None)
-        else:
-            try:
-                status = subprocess.check_output(
-                    ["systemctl", "status", "display-manager.service"], stderr=subprocess.DEVNULL
-                ).decode()
-                result["active"] = next((d for d in result["available"] if d in status), None)
-            except Exception:
-                pass
+
+        if shutil.which("lightdm"):
+            result["available"].append("lightdm")
+        if shutil.which("gdm") or shutil.which("gdm3"):
+            result["available"].append("gdm")
+        if shutil.which("sddm"):
+            result["available"].append("sddm")
+
+        # Check via systemd D-Bus
+        active = self._check_systemd_dm()
+        if active:
+            result["active"] = active
+
         return result
+
+    def _check_systemd_dm(self) -> str | None:
+        """
+        Check active display manager via systemd D-Bus API.
+        Returns dm name (lightdm/gdm/sddm) or None if not active.
+        """
+        try:
+            dm_unit = systemd_unit("display-manager.service", 1)
+            state = dm_unit._get_state()
+            if state in ("active", "activating"):
+                unit_path = str(dm_unit.unit)  # D-Bus object path, e.g. /org/.../lightdm_2eservice
+                for dm in ["lightdm", "gdm", "sddm"]:
+                    if dm in unit_path:
+                        return dm
+        except Exception as e:
+            pass
+            #log("E??", {"unit": "display-manager.service", "error": str(e)})
+        return None
