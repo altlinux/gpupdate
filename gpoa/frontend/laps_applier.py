@@ -35,6 +35,13 @@ from util.util import check_local_user_exists, remove_prefix_from_keys
 
 from .applier_frontend import applier_frontend, check_enabled
 
+from libcng_dpapi import (
+    create_protection_descriptor,
+    protect_secret,
+    unprotect_secret,
+    NcryptError
+)
+
 _DATEUTIL_AVAILABLE = False
 try:
     from dateutil import tz
@@ -425,11 +432,14 @@ class laps_applier(applier_frontend):
         old_level = logger.level
         logger.setLevel(logging.ERROR)
         # Encrypt the password
-        dpapi_blob = dpapi_ng.ncrypt_protect_secret(
-            password_bytes,
-            self.encryption_principal,
-            auth_protocol='kerberos'
-        )
+        descriptor_string = f"SID={self.encryption_principal}"
+        descriptor_handle = create_protection_descriptor(descriptor_string)
+        secret_message = password_bytes
+        dpapi_blob = protect_secret(descriptor_handle,
+                                    secret_message,
+                                    domain="DOMAIN2.ALT",
+                                    server="dc01.DOMAIN2.alt",
+                                    username="LINUX-CLIENT$")
         # Restoreloglevel
         logger.setLevel(old_level)
         # Create full blob with metadata
