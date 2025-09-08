@@ -18,18 +18,13 @@
 
 import subprocess
 
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
-from util.windows import expand_windows_var
+from gpt.shortcuts import get_ttype, shortcut
 from util.logging import log
-from util.util import (
-        get_homedir,
-        homedir_exists,
-        string_to_literal_eval
-)
-from gpt.shortcuts import shortcut, get_ttype
+from util.util import get_homedir, homedir_exists, string_to_literal_eval
+from util.windows import expand_windows_var
+
+from .applier_frontend import applier_frontend, check_enabled
+
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
     '''

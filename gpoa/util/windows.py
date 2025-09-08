@@ -19,36 +19,38 @@
 
 import os
 from pathlib import Path
-from samba.credentials import Credentials
+
 from samba import NTSTATUSError
+from samba.credentials import Credentials
 
 try:
-    from samba.gpclass import get_dc_hostname, check_refresh_gpo_list
+    from samba.gpclass import check_refresh_gpo_list, get_dc_hostname
 except ImportError:
     from samba.gp.gpclass import get_dc_hostname, check_refresh_gpo_list, get_gpo_list
 
-from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
-from storage.dconf_registry import Dconf_registry, extract_display_name_version
-import samba.gpo
+import ipaddress
+import optparse
+import random
 
-from .xdg import (
-      xdg_get_desktop
-)
-from .util import get_homedir, get_uid_by_username
+import ldb
+import netifaces
+from samba.auth import system_session
+import samba.gpo
+from samba.net import Net
+from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
+from samba.param import LoadParm
+from samba.samdb import SamDB
+from storage.dconf_registry import Dconf_registry, extract_display_name_version
 from util.system import with_privileges
+
+from gpoa.storage import registry_factory
+
 from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
-from gpoa.storage import registry_factory
-from samba.samdb import SamDB
-from samba.auth import system_session
-from samba.net import Net
-from samba.param import LoadParm
-import optparse
-import ldb
-import ipaddress
-import netifaces
-import random
+from .util import get_homedir, get_uid_by_username
+from .xdg import xdg_get_desktop
+
 
 class smbcreds (smbopts):
 

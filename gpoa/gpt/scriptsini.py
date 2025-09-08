@@ -18,7 +18,9 @@
 
 import configparser
 import os
+
 from .dynamic_attributes import DynamicAttributes
+
 
 def read_scripts(scripts_file):
     scripts = Scripts_lists()

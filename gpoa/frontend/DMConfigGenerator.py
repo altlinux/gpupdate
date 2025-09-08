@@ -18,9 +18,11 @@
 
 import os
 import shutil
-from util.gpoa_ini_parsing import GpoaConfigObj
+
 from appliers.systemd import systemd_unit
+from util.gpoa_ini_parsing import GpoaConfigObj
 from util.logging import log
+
 
 class DMConfigGenerator:
     """

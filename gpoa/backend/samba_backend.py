@@ -17,25 +17,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
 # Facility to determine GPTs for user
 try:
     from samba.gpclass import check_safe_path
 except ImportError:
     from samba.gp.gpclass import check_safe_path
 
-from .applier_backend import applier_backend
-from storage import registry_factory
-from gpt.gpt import gpt, get_local_gpt
 from gpt.gpo_dconf_mapping import GpoInfoDconf
-from util.util import (
-    get_machine_name
-)
-from util.kerberos import (
-      machine_kinit
-    , machine_kdestroy
-)
-from util.sid import get_sid
+from gpt.gpt import get_local_gpt, gpt
+from storage import registry_factory
+from util.kerberos import machine_kdestroy, machine_kinit
 from util.logging import log
+from util.sid import get_sid
+from util.util import get_machine_name
+
+from .applier_backend import applier_backend
+
 
 class samba_backend(applier_backend):
     __user_policy_mode_key = '/SOFTWARE/Policies/Microsoft/Windows/System/UserPolicyMode'

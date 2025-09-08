@@ -16,13 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from util.logging import log
+
 from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-    , check_windows_mapping_enabled
+    applier_frontend,
+    check_enabled,
+    check_windows_mapping_enabled,
 )
 from .appliers.polkit import polkit
-from util.logging import log
+
 
 class polkit_applier(applier_frontend):
     __module_name = 'PolkitApplier'

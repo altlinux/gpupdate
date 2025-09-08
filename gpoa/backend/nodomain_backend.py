@@ -17,9 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .applier_backend import applier_backend
-from storage import registry_factory
 from gpt.gpt import get_local_gpt
+from storage import registry_factory
+
+from .applier_backend import applier_backend
 
 
 class nodomain_backend(applier_backend):

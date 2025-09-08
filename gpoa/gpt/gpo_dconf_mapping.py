@@ -18,6 +18,7 @@
 
 from .dynamic_attributes import DynamicAttributes
 
+
 class GpoInfoDconf(DynamicAttributes):
     _counter = 0
     def __init__(self, gpo) -> None:

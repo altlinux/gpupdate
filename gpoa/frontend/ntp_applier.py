@@ -18,15 +18,12 @@
 
 
 
-import subprocess
 from enum import Enum
+import subprocess
 
-
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
 from util.logging import log
+
+from .applier_frontend import applier_frontend, check_enabled
 
 
 class NTPServerType(Enum):

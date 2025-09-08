@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from enum import Enum, IntEnum
 import logging
 import logging.handlers
-from enum import IntEnum, Enum
 
 from .logging import log
 

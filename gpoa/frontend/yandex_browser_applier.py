@@ -16,15 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
-
 import json
 import os
+
 from util.logging import log
 from util.util import is_machine_name, string_to_literal_eval
+
+from .applier_frontend import applier_frontend, check_enabled
+
 
 class yandex_browser_applier(applier_frontend):
     __module_name = 'YandexBrowserApplier'

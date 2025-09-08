@@ -23,6 +23,7 @@ import signal
 from .arguments import ExitCodeUpdater
 from .kerberos import machine_kdestroy
 
+
 def signal_handler(sig_number, frame):
     print('Received signal, exiting gracefully')
     # Ignore extra signals

@@ -19,15 +19,15 @@
 
 import os
 import os.path
-import tempfile
 from pathlib import Path
+import tempfile
+
 import smbc
-
-
-from util.logging import log
-from util.paths import file_cache_dir, file_cache_path_home, UNCPath
 from util.exceptions import NotUNCPathError
+from util.logging import log
+from util.paths import UNCPath, file_cache_dir, file_cache_path_home
 from util.util import get_machine_name
+
 
 class fs_file_cache:
     __read_blocksize = 4096

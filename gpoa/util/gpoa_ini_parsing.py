@@ -16,15 +16,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from configobj import (ConfigObj, NestingError, Section,
-                        DuplicateError, ParseError, UnreprError,
-                        UnknownType,UnreprError,
-                        BOM_UTF8, DEFAULT_INDENT_TYPE, BOM_LIST,
-                        match_utf8, unrepr)
-import six
+import os
 import re
 import sys
-import os
+
+from configobj import (
+    BOM_LIST,
+    BOM_UTF8,
+    DEFAULT_INDENT_TYPE,
+    ConfigObj,
+    DuplicateError,
+    NestingError,
+    ParseError,
+    Section,
+    UnknownType,
+    UnreprError,
+    match_utf8,
+    unrepr,
+)
+import six
 
 # Michael Foord: fuzzyman AT voidspace DOT org DOT uk
 # Nicola Larosa: nico AT tekNico DOT net

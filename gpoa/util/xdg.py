@@ -18,9 +18,12 @@
 
 
 import os
+
 from messages import message_with_code
-from .util import get_homedir
+
 from .logging import log
+from .util import get_homedir
+
 
 def xdg_get_desktop(username, homedir = None):
     if username:

@@ -16,7 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .frontend_manager import (
-    frontend_manager as applier
-)
-
+from .frontend_manager import frontend_manager as applier

@@ -16,19 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import jinja2
 import os
-import pwd
-import subprocess
 from pathlib import Path
+import pwd
 import string
+import subprocess
 
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
-from util.util import get_homedir, get_uid_by_username, get_machine_name
+import jinja2
 from util.logging import log
+from util.util import get_homedir, get_machine_name, get_uid_by_username
+
+from .applier_frontend import applier_frontend, check_enabled
+
 
 def storage_get_drives(storage):
     drives = storage.get_drives()

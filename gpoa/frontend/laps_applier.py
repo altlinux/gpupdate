@@ -16,26 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import (
-    applier_frontend,
-    check_enabled
-)
-import struct
-from datetime import datetime, timedelta
-import dpapi_ng
-from util.util import remove_prefix_from_keys, check_local_user_exists
-from util.sid import WellKnown21RID
-import subprocess
-import ldb
-import string
-import secrets
+from datetime import datetime, timedelta, timezone
+import logging
 import os
+import re
+import secrets
+import string
+import struct
+import subprocess
+
+from dateutil import tz
+import dpapi_ng
+import ldb
 import psutil
 from util.logging import log
-import logging
-import re
-from datetime import timezone
-from dateutil import tz
+from util.sid import WellKnown21RID
+from util.util import check_local_user_exists, remove_prefix_from_keys
+
+from .applier_frontend import applier_frontend, check_enabled
 
 _DATEUTIL_AVAILABLE = False
 try:

@@ -16,15 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import locale
 import os
-import sys
 import pwd
 import signal
 import subprocess
-import locale
-import json
-from .logging import log
+import sys
+
 from .dbus import dbus_session
+from .logging import log
 
 
 def set_privileges(username, uid, gid, groups, home):

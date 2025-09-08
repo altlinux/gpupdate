@@ -17,10 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .dynamic_attributes import DynamicAttributes
-
 from util.xml import get_xml_root
 
+from .dynamic_attributes import DynamicAttributes
 
 
 def action_enum2letter(enumitem):

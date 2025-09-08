@@ -19,9 +19,9 @@
 import os
 import subprocess
 
-from .util import get_machine_name
 from .logging import log
 from .samba import smbopts
+from .util import get_machine_name
 
 
 def machine_kinit(cache_name=None):

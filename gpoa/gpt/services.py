@@ -17,7 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+
 from .dynamic_attributes import DynamicAttributes
+
 
 def read_services(service_file):
     '''

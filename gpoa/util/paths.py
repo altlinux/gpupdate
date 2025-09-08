@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pathlib
 import os
+import pathlib
 from pathlib import Path
 from urllib.parse import urlparse
+
 from util.util import get_homedir
 
 from .config import GPConfig

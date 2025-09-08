@@ -17,13 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
-import pwd
-import subprocess
-import re
-from pathlib import Path
-from .samba import smbopts
 import ast
+import os
+from pathlib import Path
+import pwd
+import re
+import subprocess
+
+from .samba import smbopts
 
 
 def get_machine_name():

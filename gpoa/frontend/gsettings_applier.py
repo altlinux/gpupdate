@@ -16,24 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.exceptions import NotUNCPathError
 import os
 import pwd
 import subprocess
 
 from gi.repository import Gio
 from storage.dconf_registry import Dconf_registry
+from util.exceptions import NotUNCPathError
+from util.logging import log
 
 from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-    , check_windows_mapping_enabled
+    applier_frontend,
+    check_enabled,
+    check_windows_mapping_enabled,
 )
-from .appliers.gsettings import (
-    system_gsettings,
-    user_gsettings
-)
-from util.logging import log
+from .appliers.gsettings import system_gsettings, user_gsettings
+
 
 def uri_fetch(schema, path, value, cache):
     '''

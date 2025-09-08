@@ -17,14 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
-from .appliers.folder import Folder
+import re
+
 from util.logging import log
 from util.windows import expand_windows_var
-import re
+
+from .applier_frontend import applier_frontend, check_enabled
+from .appliers.folder import Folder
+
 
 class folder_applier(applier_frontend):
     __module_name = 'FoldersApplier'

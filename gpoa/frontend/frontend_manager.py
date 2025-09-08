@@ -18,73 +18,36 @@
 
 from storage import registry_factory
 from storage.fs_file_cache import fs_file_cache
-
-from .control_applier import control_applier
-from .polkit_applier import (
-      polkit_applier
-    , polkit_applier_user
-)
-from .systemd_applier import systemd_applier
-from .firefox_applier import firefox_applier
-from .thunderbird_applier import thunderbird_applier
-from .chromium_applier import chromium_applier
-from .cups_applier import cups_applier
-from .package_applier import (
-      package_applier
-    , package_applier_user
-)
-from .shortcut_applier import (
-    shortcut_applier,
-    shortcut_applier_user
-)
-from .gsettings_applier import (
-    gsettings_applier,
-    gsettings_applier_user
-)
-from .firewall_applier import firewall_applier
-from .folder_applier import (
-      folder_applier
-    , folder_applier_user
-)
-from .cifs_applier import (
-      cifs_applier_user
-    , cifs_applier)
-from .ntp_applier import ntp_applier
-from .envvar_applier import (
-      envvar_applier
-    , envvar_applier_user
-)
-from .scripts_applier import (
-      scripts_applier
-    , scripts_applier_user
-)
-
-from .file_applier import (
-      file_applier
-    , file_applier_user
-)
-
-from .ini_applier import (
-      ini_applier
-    , ini_applier_user
-)
-
-from .kde_applier import (
-      kde_applier
-    , kde_applier_user
-)
-from .laps_applier import laps_applier
-
-from .networkshare_applier import networkshare_applier
-from .yandex_browser_applier import yandex_browser_applier
-
-from util.users import (
-    is_root,
-    get_process_user,
-    username_match_uid,
-)
 from util.logging import log
 from util.system import with_privileges
+from util.users import (
+    get_process_user,
+    is_root,
+    username_match_uid,
+)
+
+from .chromium_applier import chromium_applier
+from .cifs_applier import cifs_applier, cifs_applier_user
+from .control_applier import control_applier
+from .cups_applier import cups_applier
+from .envvar_applier import envvar_applier, envvar_applier_user
+from .file_applier import file_applier, file_applier_user
+from .firefox_applier import firefox_applier
+from .firewall_applier import firewall_applier
+from .folder_applier import folder_applier, folder_applier_user
+from .gsettings_applier import gsettings_applier, gsettings_applier_user
+from .ini_applier import ini_applier, ini_applier_user
+from .kde_applier import kde_applier, kde_applier_user
+from .laps_applier import laps_applier
+from .networkshare_applier import networkshare_applier
+from .ntp_applier import ntp_applier
+from .package_applier import package_applier, package_applier_user
+from .polkit_applier import polkit_applier, polkit_applier_user
+from .scripts_applier import scripts_applier, scripts_applier_user
+from .shortcut_applier import shortcut_applier, shortcut_applier_user
+from .systemd_applier import systemd_applier
+from .thunderbird_applier import thunderbird_applier
+from .yandex_browser_applier import yandex_browser_applier
 
 
 def determine_username(username=None):

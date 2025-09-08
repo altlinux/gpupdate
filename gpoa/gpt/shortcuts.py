@@ -16,17 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from enum import Enum
+import json
 from pathlib import Path
 import stat
-from enum import Enum
 
-from xdg.DesktopEntry import DesktopEntry
-import json
-
+from util.paths import get_desktop_files_directory
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
-from util.paths import get_desktop_files_directory
+from xdg.DesktopEntry import DesktopEntry
+
 from .dynamic_attributes import DynamicAttributes
+
 
 class TargetType(Enum):
     FILESYSTEM = 'FILESYSTEM'

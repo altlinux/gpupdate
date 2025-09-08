@@ -17,14 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+
 import cups
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
 from gpt.printers import json2printer
-from util.rpm import is_rpm_installed
 from util.logging import log
+from util.rpm import is_rpm_installed
+
+from .applier_frontend import applier_frontend, check_enabled
+
 
 def storage_get_printers(storage):
     '''

@@ -16,71 +16,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from enum import Enum, unique
 import os
 from pathlib import Path
-from enum import Enum, unique
 
 from samba.gp_parse.gp_pol import GPPolParser
-
 from storage import registry_factory
 from storage.dconf_registry import add_to_dict
-
-from .polfile import (
-      read_polfile
-    , merge_polfile
-)
-from .shortcuts import (
-      read_shortcuts
-    , merge_shortcuts
-)
-from .services import (
-      read_services
-    , merge_services
-)
-from .printers import (
-      read_printers
-    , merge_printers
-)
-from .inifiles import (
-      read_inifiles
-    , merge_inifiles
-)
-from .folders import (
-      read_folders
-    , merge_folders
-)
-from .files import (
-      read_files
-    , merge_files
-)
-from .envvars import (
-      read_envvars
-    , merge_envvars
-)
-from .drives import (
-      read_drives
-    , merge_drives
-)
-from .tasks import (
-      read_tasks
-    , merge_tasks
-)
-from .scriptsini import (
-      read_scripts
-    , merge_scripts
-)
-from .networkshares import (
-      read_networkshares
-    , merge_networkshares
-)
 import util
-import util.preg
-from util.paths import (
-    local_policy_path,
-    cache_dir,
-    local_policy_cache
-)
 from util.logging import log
+from util.paths import cache_dir, local_policy_cache, local_policy_path
+import util.preg
+
+from .drives import merge_drives, read_drives
+from .envvars import merge_envvars, read_envvars
+from .files import merge_files, read_files
+from .folders import merge_folders, read_folders
+from .inifiles import merge_inifiles, read_inifiles
+from .networkshares import merge_networkshares, read_networkshares
+from .polfile import merge_polfile, read_polfile
+from .printers import merge_printers, read_printers
+from .scriptsini import merge_scripts, read_scripts
+from .services import merge_services, read_services
+from .shortcuts import merge_shortcuts, read_shortcuts
+from .tasks import merge_tasks, read_tasks
 
 
 @unique

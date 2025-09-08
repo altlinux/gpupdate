@@ -17,10 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import dbus
+from storage import Dconf_registry
 
 from .logging import log
 from .users import is_root
-from storage import Dconf_registry
 
 
 class dbus_runner:

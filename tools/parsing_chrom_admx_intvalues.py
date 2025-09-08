@@ -6,6 +6,7 @@
 import sys
 from xml.etree import ElementTree
 
+
 def get_child(parent, desires:list, list_data_pol:list):
     if parent.tag == 'decimal':
         list_data_pol.append(parent.get('value'))

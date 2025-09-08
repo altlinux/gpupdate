@@ -18,12 +18,14 @@
 
 import logging
 
+from messages import message_with_code
+from util.logging import slogm
+
 from .adp import adp
-from .roles import roles
 from .exceptions import PluginInitError
 from .plugin import plugin
-from util.logging import slogm
-from messages import message_with_code
+from .roles import roles
+
 
 class plugin_manager:
     def __init__(self):

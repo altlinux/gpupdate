@@ -17,15 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import shutil
 from pathlib import Path
+import shutil
 
 from util.logging import log
+
+from .applier_frontend import applier_frontend, check_enabled
 from .appliers.folder import remove_dir_tree
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
+
 
 class scripts_applier(applier_frontend):
     __module_name = 'ScriptsApplier'

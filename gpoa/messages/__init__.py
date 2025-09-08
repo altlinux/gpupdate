@@ -19,6 +19,7 @@
 
 import gettext
 
+
 def info_code(code):
     info_ids = {}
     info_ids[1] = 'Got GPO list for username'

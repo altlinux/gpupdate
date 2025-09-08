@@ -17,13 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .appliers.file_cp import Files_cp, Execution_check
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
 from util.logging import log
 
+from .applier_frontend import applier_frontend, check_enabled
+from .appliers.file_cp import Execution_check, Files_cp
 
 
 class file_applier(applier_frontend):

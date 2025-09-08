@@ -16,12 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .appliers.netshare import Networkshare
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
 from util.logging import log
+
+from .applier_frontend import applier_frontend, check_enabled
+from .appliers.netshare import Networkshare
+
 
 class networkshare_applier(applier_frontend):
     __module_name = 'NetworksharesApplier'

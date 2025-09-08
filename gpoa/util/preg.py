@@ -18,9 +18,9 @@
 
 
 from xml.etree import ElementTree
-from storage.dconf_registry import load_preg_dconf
 
 from samba.gp_parse.gp_pol import GPPolParser
+from storage.dconf_registry import load_preg_dconf
 
 from .logging import log
 

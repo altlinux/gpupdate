@@ -19,6 +19,7 @@
 
 from .applier_backend import applier_backend
 
+
 class freeipa_backend(applier_backend):
     def __init__(self):
         pass

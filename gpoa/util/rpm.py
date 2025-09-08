@@ -18,6 +18,7 @@
 
 
 import subprocess
+
 import rpm
 
 

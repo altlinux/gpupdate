@@ -18,12 +18,11 @@
 
 import logging
 import subprocess
+
 from util.logging import log
 
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
+from .applier_frontend import applier_frontend, check_enabled
+
 
 class package_applier(applier_frontend):
     __module_name = 'PackagesApplier'

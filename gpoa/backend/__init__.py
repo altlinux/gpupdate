@@ -17,14 +17,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from util.windows import smbcreds
-from .samba_backend import samba_backend
-from .nodomain_backend import nodomain_backend
-from util.logging import log
+from storage.dconf_registry import (
+    Dconf_registry,
+    add_preferences_to_global_registry_dict,
+    create_dconf_ini_file,
+)
 from util.config import GPConfig
-from util.util import get_uid_by_username, touch_file
+from util.logging import log
 from util.paths import get_dconf_config_file
-from storage.dconf_registry import Dconf_registry, create_dconf_ini_file, add_preferences_to_global_registry_dict
+from util.util import get_uid_by_username, touch_file
+from util.windows import smbcreds
+
+from .nodomain_backend import nodomain_backend
+from .samba_backend import samba_backend
+
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''

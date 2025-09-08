@@ -16,24 +16,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import subprocess
-from pathlib import Path
-from util.util import (string_to_literal_eval,
-                       try_dict_to_literal_eval,
-                       touch_file, get_uid_by_username,
-                       add_prefix_to_keys,
-                       remove_keys_with_prefix,
-                       clean_data)
-from util.paths import get_dconf_config_path
-from util.logging import log
-import re
 from collections import OrderedDict
 import itertools
-from gpt.dynamic_attributes import RegistryKeyMetadata
+from pathlib import Path
+import re
+import subprocess
+
 import gi
+from gpt.dynamic_attributes import RegistryKeyMetadata
+from util.logging import log
+from util.paths import get_dconf_config_path
+from util.util import (
+    add_prefix_to_keys,
+    clean_data,
+    get_uid_by_username,
+    remove_keys_with_prefix,
+    string_to_literal_eval,
+    touch_file,
+    try_dict_to_literal_eval,
+)
+
 gi.require_version("Gvdb", "1.0")
 gi.require_version("GLib", "2.0")
-from gi.repository import Gvdb, GLib
+from gi.repository import GLib, Gvdb
 
 
 class PregDconf():

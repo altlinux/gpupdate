@@ -19,10 +19,8 @@
 
 from configparser import ConfigParser
 
-from .util import (
-      get_backends
-    , get_default_policy_name
-)
+from .util import get_backends, get_default_policy_name
+
 
 class GPConfig:
     __config_path = '/etc/gpupdate/gpupdate.ini'

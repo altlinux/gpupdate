@@ -17,13 +17,12 @@
 import json
 import os
 
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
 from util.logging import log
 from util.util import is_machine_name
+
+from .applier_frontend import applier_frontend, check_enabled
 from .firefox_applier import create_dict
+
 
 class thunderbird_applier(applier_frontend):
     __module_name = 'ThunderbirdApplier'

@@ -16,11 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 from base64 import b64decode
+import json
+
 from Crypto.Cipher import AES
-from .dynamic_attributes import DynamicAttributes
 from util.xml import get_xml_root
+
+from .dynamic_attributes import DynamicAttributes
+
 
 def decrypt_pass(cpassword):
     '''

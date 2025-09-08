@@ -18,6 +18,7 @@
 
 from util.roles import fill_roles
 
+
 class roles:
     def __init__(self):
         pass

@@ -19,10 +19,12 @@
 import logging
 import subprocess
 
-from util.rpm import is_rpm_installed
-from .exceptions import PluginInitError
-from util.logging import slogm
 from messages import message_with_code
+from util.logging import slogm
+from util.rpm import is_rpm_installed
+
+from .exceptions import PluginInitError
+
 
 class adp:
     def __init__(self):

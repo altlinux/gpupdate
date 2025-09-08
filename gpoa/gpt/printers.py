@@ -17,9 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from .dynamic_attributes import DynamicAttributes
 
 from util.xml import get_xml_root
+
+from .dynamic_attributes import DynamicAttributes
+
 
 def read_printers(printers_file):
     '''

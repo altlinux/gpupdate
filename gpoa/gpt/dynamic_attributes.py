@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from enum import Enum
 
+
 class DynamicAttributes:
     def __init__(self, **kwargs):
         self.policy_name = None

@@ -17,12 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .appliers.ini_file import Ini_file
-from .applier_frontend import (
-      applier_frontend
-    , check_enabled
-)
 from util.logging import log
+
+from .applier_frontend import applier_frontend, check_enabled
+from .appliers.ini_file import Ini_file
+
 
 class ini_applier(applier_frontend):
     __module_name = 'InifilesApplier'
