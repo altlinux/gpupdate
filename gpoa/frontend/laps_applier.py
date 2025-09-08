@@ -26,12 +26,12 @@ import struct
 import subprocess
 
 from dateutil import tz
-import dpapi_ng
 import ldb
 import psutil
 from util.logging import log
 from util.sid import WellKnown21RID
-from util.util import check_local_user_exists, remove_prefix_from_keys
+from util.util import check_local_user_exists, remove_prefix_from_keys, get_machine_name
+from util.windows import get_kerberos_domain_info
 
 from .applier_frontend import applier_frontend, check_enabled
 
@@ -435,11 +435,26 @@ class laps_applier(applier_frontend):
         descriptor_string = f"SID={self.encryption_principal}"
         descriptor_handle = create_protection_descriptor(descriptor_string)
         secret_message = password_bytes
-        dpapi_blob = protect_secret(descriptor_handle,
-                                    secret_message,
-                                    domain="DOMAIN2.ALT",
-                                    server="dc01.DOMAIN2.alt",
-                                    username="LINUX-CLIENT$")
+        # Resolve DPAPI-NG parameters dynamically using single Kerberos info fetch
+        info = get_kerberos_domain_info()
+        domain_realm = self._get_windows_realm(info)
+        dc_fqdn = self._get_domain_controller_fqdn(info)
+        machine_username = self._get_machine_account_username()
+        if not domain_realm or not dc_fqdn or not machine_username:
+            logdata = {
+                'realm': bool(domain_realm),
+                'dc_fqdn': bool(dc_fqdn),
+                'machine_username': bool(machine_username)
+            }
+            log('E78', logdata)
+            return None
+        dpapi_blob = protect_secret(
+            descriptor_handle,
+            secret_message,
+            domain=domain_realm,
+            server=dc_fqdn,
+            username=machine_username
+        )
         # Restoreloglevel
         logger.setLevel(old_level)
         # Create full blob with metadata
@@ -464,6 +479,41 @@ class laps_applier(applier_frontend):
 
         # Combine metadata and encrypted blob
         return prefix + dpapi_blob
+
+    def _get_windows_realm(self, info):
+        """Return Kerberos/Windows realm in FQDN upper-case form (e.g., EXAMPLE.COM)."""
+        try:
+            realm = info.get('principal')
+            # If principal like 'HOST/NAME@REALM', extract realm
+            if isinstance(realm, str) and '@' in realm:
+                realm = realm.rsplit('@', 1)[-1]
+            if isinstance(realm, str) and realm:
+                return realm.upper()
+        except Exception:
+            pass
+        return None
+
+    def _get_domain_controller_fqdn(self, info):
+        """Determine a domain controller FQDN using Kerberos info only."""
+        try:
+            pdc = info.get('pdc_dns_name')
+            if isinstance(pdc, str) and pdc:
+                return pdc
+        except Exception:
+            pass
+        return None
+
+    def _get_machine_account_username(self):
+        """Return machine account username with trailing '$' (e.g., HOSTNAME$)."""
+        try:
+            name = get_machine_name()
+            if not isinstance(name, str):
+                name = str(name)
+            if not name:
+                return None
+            return name if name.endswith('$') else f'{name}$'
+        except Exception:
+            return None
 
     def _change_user_password(self, new_password):
         """
@@ -640,6 +690,9 @@ class laps_applier(applier_frontend):
 
         # Create encrypted password blob
         encrypted_blob = self._create_password_blob(password)
+        if not encrypted_blob:
+            log('E78')
+            return False
 
         # Update password in LDAP
         ldap_success = self._update_ldap_password(encrypted_blob)

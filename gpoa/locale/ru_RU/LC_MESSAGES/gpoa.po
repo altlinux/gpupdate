@@ -276,6 +276,9 @@ msgstr "Не удалось изменить пароль локального �
 msgid "Unable to restart systemd unit"
 msgstr "Не удалось перезапустить unit systemd"
 
+msgid "Kerberos info unavailable; cannot construct DPAPI parameters"
+msgstr "Информация Kerberos недоступна; невозможно сформировать параметры DPAPI"
+
 # Error_end
 
 # Debug

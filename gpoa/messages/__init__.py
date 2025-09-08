@@ -116,6 +116,7 @@ def error_code(code):
     error_ids[75] = 'Failed to update LDAP with new password data'
     error_ids[76] = 'Failed to change local user password'
     error_ids[77] = 'Unable to restart systemd unit'
+    error_ids[78] = 'Kerberos info unavailable; cannot construct DPAPI parameters'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
