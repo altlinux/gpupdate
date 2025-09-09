@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
 import subprocess
 
 from util.logging import log
@@ -32,6 +33,7 @@ class firewall_applier(applier_frontend):
     __firewall_branch = 'SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\FirewallRules'
     __firewall_switch = 'SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\DomainProfile\\EnableFirewall'
     __firewall_reset_cmd = ['/usr/bin/alterator-net-iptables', 'reset']
+    __firewall_reset_cmd_path = '/usr/bin/alterator-net-iptables'
 
     def __init__(self, storage):
         self.storage = storage
@@ -49,6 +51,9 @@ class firewall_applier(applier_frontend):
             rule.apply()
 
     def apply(self):
+        if not os.path.exists(self.__firewall_reset_cmd_path):
+            log('D120', {'not_found_cmd': self.__firewall_reset_cmd_path})
+            return
         if self.__module_enabled:
             log('D117')
             if '1' == self.firewall_enabled:
