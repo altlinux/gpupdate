@@ -26,7 +26,7 @@ from util.logging import log
 import shutil
 from pathlib import Path
 from util.windows import expand_windows_var
-from util.util import get_homedir
+from util.util import get_homedir, get_user_info
 from util.exceptions import NotUNCPathError
 from util.paths import UNCPath
 import fnmatch
@@ -51,7 +51,7 @@ class Files_cp:
         self.suppress = str2bool(file_obj.suppress)
         self.executable = str2bool(file_obj.executable)
         self.username = username
-        self.pw = pwd.getpwnam(username) if username else None
+        self.pw = get_user_info(username) if username else None
         self.fromPathFiles = []
         if self.fromPath:
             if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):

@@ -24,7 +24,7 @@ import subprocess
 
 import jinja2
 from util.logging import log
-from util.util import get_homedir, get_machine_name, get_uid_by_username
+from util.util import get_homedir, get_machine_name, get_uid_by_username, get_user_info
 
 from .applier_frontend import applier_frontend, check_enabled
 
@@ -298,7 +298,7 @@ class cifs_applier_user(applier_frontend):
         self.auto_master_d.mkdir(parents=True, exist_ok=True)
         # Create user's destination mount directory
         self.mount_dir.mkdir(parents=True, exist_ok=True)
-        uid = pwd.getpwnam(self.username).pw_uid if self.username else None
+        uid = get_user_info(self.username).pw_uid if self.username else None
         if uid:
             os.chown(self.mount_dir, uid=uid, gid=-1)
             self.mount_dir.chmod(0o700)
