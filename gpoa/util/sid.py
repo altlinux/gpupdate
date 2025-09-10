@@ -25,6 +25,7 @@ import pysss_nss_idmap
 from storage.dconf_registry import Dconf_registry
 
 from .logging import log
+from .util import get_user_info
 
 
 def wbinfo_getsid(domain, user):
@@ -69,7 +70,7 @@ def get_sid(domain, username, is_machine = False):
     if not domain:
         found_uid = 0
         if not is_machine:
-            found_uid = pwd.getpwnam(username).pw_uid
+            found_uid = get_user_info(username).pw_uid
         return '{}-{}'.format(get_local_sid_prefix(), found_uid)
 
     # domain user

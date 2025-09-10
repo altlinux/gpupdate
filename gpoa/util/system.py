@@ -26,6 +26,7 @@ import sys
 
 from .dbus import dbus_session
 from .logging import log
+from .util import get_user_info
 
 
 def set_privileges(username, uid, gid, groups, home):
@@ -68,8 +69,18 @@ def with_privileges(username, func):
     if os.getuid() != 0:
         raise Exception('Not enough permissions to drop privileges')
 
-    # Resolve user information
-    user_pw = pwd.getpwnam(username)
+    # Resolve user information with retry
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            user_pw = get_user_info(username)
+            break
+        except KeyError:
+            if attempt == max_retries - 1:
+                raise
+            import time
+            time.sleep(0.5)  # Wait before retry
+
     user_uid = user_pw.pw_uid
     user_gid = user_pw.pw_gid
     user_groups = os.getgrouplist(username, user_gid)
