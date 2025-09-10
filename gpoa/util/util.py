@@ -23,6 +23,7 @@ from pathlib import Path
 import pwd
 import re
 import subprocess
+from functools import lru_cache
 
 from .samba import smbopts
 
@@ -55,11 +56,27 @@ def traverse_dir(root_dir):
     return filelist
 
 
+@lru_cache(maxsize=128)
+def get_user_info(username):
+    '''
+    Get user information with caching.
+    '''
+    try:
+        return pwd.getpwnam(username)
+    except KeyError as exc:
+        # Clear cache to retry on next call
+        get_user_info.cache_clear()
+        # Log the error for debugging
+        from .logging import log
+        logdata = {'username': username, 'exception': str(exc)}
+        log('D235', logdata)
+        raise
+
 def get_homedir(username):
     '''
     Query password database for user's home directory.
     '''
-    return pwd.getpwnam(username).pw_dir
+    return get_user_info(username).pw_dir
 
 def homedir_exists(username):
     '''
@@ -80,8 +97,9 @@ def mk_homedir_path(username, homedir_path):
     Create subdirectory in user's $HOME.
     '''
     homedir = get_homedir(username)
-    uid = pwd.getpwnam(username).pw_uid
-    gid = pwd.getpwnam(username).pw_gid
+    user_info = get_user_info(username)
+    uid = user_info.pw_uid
+    gid = user_info.pw_gid
 
     elements = homedir_path.split('/')
     longer_path = homedir
@@ -193,7 +211,7 @@ def touch_file(filename):
 
 def get_uid_by_username(username):
     try:
-        user_info = pwd.getpwnam(username)
+        user_info = get_user_info(username)
         return user_info.pw_uid
     except KeyError:
         return None
@@ -251,7 +269,7 @@ def check_local_user_exists(username):
     """
     try:
         # Try to get user information from the password database
-        pwd.getpwnam(username)
+        get_user_info(username)
         return True
     except:
         return False
