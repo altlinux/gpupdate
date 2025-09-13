@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+
+import dbus
+import logging
+from util.logging import log
+import argparse
+import gettext
+import locale
+
+import os
+import dbus
+import dbus.mainloop.glib
+
+
+def check_apt1() -> bool:
+    '''
+    Check if apt1 is running and has ApplyAsync method
+
+    Returns:
+        True if apt1 is running and has ApplyAsync method
+    '''
+    dbus_interface = 'org.altlinux.alterator.apt1'
+    bus_name = 'org.altlinux.alterator'
+    object_path = '/org/altlinux/alterator/apt'
+    try:
+        bus = dbus.SystemBus()
+
+        if not bus.name_has_owner(bus_name):
+            bus.close()
+            return False
+
+        if not bus.get_object(bus_name, object_path).has_method(dbus_interface, 'ApplyAsync'):
+            bus.close()
+            return False
+
+        bus.close()
+        return True
+    except dbus.exceptions.DBusException as e:
+        return False
+
+def check_pkcon() -> bool:
+    """
+    Check if pkcon is installed and executable
+
+    Returns:
+        True if pkcon is installed and executable
+    """
+    if os.path.isfile('/usr/bin/pkcon') and os.access('/usr/bin/pkcon', os.X_OK):
+        return True
+    return False
+
+def main() -> int:
+    """
+    Check if apt1 or pkcon is running and return the name of the backend
+
+    Returns:
+        0 if apt1 or pkcon is running, 1 otherwise
+    """
+
+    backends = { "apt1": check_apt1,"pkcon": check_pkcon }
+
+    locale.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.bindtextdomain('gpoa', '/usr/lib/python3/site-packages/gpoa/locale')
+    gettext.textdomain('gpoa')
+    logger = logging.getLogger()
+    parser = argparse.ArgumentParser(description='Package applier')
+    parser.add_argument('-b', '--backend', type=str, choices=backends.keys(), default='apt1', help='priority backend (default: %(default)s)')
+    parser.add_argument('--loglevel', type=int, help='loglevel', nargs='?', default=30)
+
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+    args = parser.parse_args()
+    logger.setLevel(args.loglevel)
+
+    if backends[args.backend]():
+        print(args.backend)
+        return 0
+
+    for el in backends:
+        if el == args.backend:
+            continue
+        if backends[el]():
+            print(el)
+            return 0
+    return 1
+
+if __name__ == '__main__':
+    try:
+        exit(main())
+    except Exception as exc:
+        exit(1)
