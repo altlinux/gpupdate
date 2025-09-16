@@ -25,7 +25,7 @@ import locale
 
 from backend import backend_factory, save_dconf
 from frontend.frontend_manager import frontend_manager, determine_username
-from plugin import plugin_manager
+from .plugin import plugin_manager
 from messages import message_with_code
 from storage import Dconf_registry
 
@@ -125,8 +125,8 @@ class gpoa_controller:
             print('samba')
             return
         Dconf_registry._force = self.__args.force
-        self.start_plugins()
         self.start_backend()
+        self.start_plugins(self.is_machine, self.username)
 
     def start_backend(self):
         '''
@@ -180,12 +180,12 @@ class gpoa_controller:
             logdata.update(einfo)
             log('E4', logdata)
 
-    def start_plugins(self):
+    def start_plugins(self, is_machine, username):
         '''
         Function to start supplementary facilities
         '''
         if not self.__args.noplugins:
-            pm = plugin_manager()
+            pm = plugin_manager(is_machine, username)
             pm.run()
 
 def main():

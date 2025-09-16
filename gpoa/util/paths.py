@@ -22,7 +22,7 @@ import pathlib
 from pathlib import Path
 from urllib.parse import urlparse
 
-from util.util import get_homedir
+from .util import get_homedir
 
 from .config import GPConfig
 from .exceptions import NotUNCPathError
@@ -109,6 +109,12 @@ def get_dconf_config_file(uid = None):
 
 def get_desktop_files_directory():
     return '/usr/share/applications'
+
+def gpupdate_plugins_path():
+    '''
+    Returns path to gpupdate frontend plugins directory
+    '''
+    return os.path.join(os.path.dirname(__file__), '..', 'frontend_plugins')
 
 class UNCPath:
     def __init__(self, path):

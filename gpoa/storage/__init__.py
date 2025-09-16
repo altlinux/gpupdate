@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from storage.dconf_registry import Dconf_registry
+from .dconf_registry import Dconf_registry
 
 
 def registry_factory(registry_name='', envprofile=None , username=None):
