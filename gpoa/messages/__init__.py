@@ -48,7 +48,7 @@ def error_code(code):
     error_ids[6] = 'Error running GPOA for user'
     error_ids[7] = 'Unable to initialize Samba backend'
     error_ids[8] = 'Unable to initialize no-domain backend'
-    error_ids[9] = 'Error running ADP'
+    error_ids[9] = 'Error running plugin'
     error_ids[10] = 'Unable to determine DC hostname'
     error_ids[11] = 'Error occured while running applier with user privileges'
     error_ids[12] = 'Unable to initialize backend'
@@ -124,8 +124,8 @@ def debug_code(code):
     debug_ids[1] = 'The GPOA process was started for user'
     debug_ids[2] = 'Username is not specified - will use username of the current process'
     debug_ids[3] = 'Initializing plugin manager'
-    debug_ids[4] = 'ADP plugin initialized'
-    debug_ids[5] = 'Running ADP plugin'
+    #debug_ids[4] = ''
+    #debug_ids[5] = ''
     debug_ids[6] = 'Starting GPOA for user via D-Bus'
     debug_ids[7] = 'Cache directory determined'
     debug_ids[8] = 'Initializing local backend without domain'
@@ -409,6 +409,8 @@ def warning_code(code):
     warning_ids[41] = 'Error getting user login times'
     warning_ids[42] = 'Invalid timezone in reference datetime'
     warning_ids[43] = 'wbinfo SID lookup failed; will try as trusted domain user'
+    warning_ids[44] = 'Plugin is not valid API object'
+    warning_ids[45] = 'Error loading plugin from file'
 
     return warning_ids.get(code, 'Unknown warning code')
 

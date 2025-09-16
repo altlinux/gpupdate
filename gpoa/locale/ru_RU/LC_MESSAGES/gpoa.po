@@ -291,12 +291,6 @@ msgstr "Имя пользователя не указано - будет исп�
 msgid "Initializing plugin manager"
 msgstr "Инициализация плагинов"
 
-msgid "ADP plugin initialized"
-msgstr "Инициализирован плагин ADP"
-
-msgid "Running ADP plugin"
-msgstr "Запущен плагин ADP"
-
 msgid "Starting GPOA for user via D-Bus"
 msgstr "Запускается GPOA для пользователя обращением к oddjobd через D-Bus"
 
@@ -969,6 +963,9 @@ msgstr "Расчет времени с момента первого входа 
 msgid "No logins found after password change"
 msgstr "Не найдены входы после изменения пароля"
 
+msgid "User not found in passwd database"
+msgstr "Пользователь не найден в базе данных паролей"
+
 msgid "Unknown message type, no message assigned"
 msgstr "Неизвестный тип сообщения"
 
@@ -1104,6 +1101,13 @@ msgstr "Некорректный часовой пояс в reference datetime"
 
 msgid "wbinfo SID lookup failed; will try as trusted domain user"
 msgstr "Ошибка получения SID через wbinfo; будет предпринята попытка как для пользователя доверенного домена"
+
+msgid "Plugin is not valid API object"
+msgstr "Плагин не является допустимым объектом API"
+
+msgid "Error loading plugin from file"
+msgstr "Ошибка загрузки плагина из файла"
+
 # Warning_end
 
 # Fatal
