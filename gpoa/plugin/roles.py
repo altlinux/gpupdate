@@ -16,13 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.roles import fill_roles
+from ..util.roles import fill_roles
+from .plugin import plugin
 
 
-class roles:
-    def __init__(self):
-        pass
+class roles(plugin):
+    def __init__(self, user=None):
+        super().__init__(user)
+        self.plugin_name = "roles"
 
     def run(self):
-        fill_roles()
+        # Roles plugin logic would go here
+        # For now, just pass as the original was doing nothing
+        pass
 

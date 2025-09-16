@@ -16,13 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from abc import ABC
+from abc import ABC, abstractmethod
+from gpoa.util.util import string_to_literal_eval
+class plugin(ABC):
+    def __init__(self, dict_dconf_db={}, username=None):
+        self.dict_dconf_db = dict_dconf_db
+        self.username = username
 
+    def get_dict_registry(self, prefix=''):
+        return  string_to_literal_eval(self.dict_dconf_db.get(prefix,{}))
 
-class plugin():
-    def __init__(self, plugin_name):
-        self.plugin_name = plugin_name
-
+    @abstractmethod
     def run(self):
         pass
 
