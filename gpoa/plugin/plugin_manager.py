@@ -21,12 +21,12 @@ import inspect
 from pathlib import Path
 from typing import List
 
-from ..util.logging import log
-from ..util.paths import gpupdate_plugins_path
+from util.logging import log
+from util.paths import gpupdate_plugins_path
 
 from .plugin import plugin
-from ..storage import registry_factory
-from ..util.util import get_uid_by_username
+from storage import registry_factory
+from util.util import get_uid_by_username
 
 
 class plugin_manager:
