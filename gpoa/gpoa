@@ -25,7 +25,7 @@ import locale
 
 from backend import backend_factory, save_dconf
 from frontend.frontend_manager import frontend_manager, determine_username
-from plugin import plugin_manager
+from gpoa.plugin import plugin_manager
 from messages import message_with_code
 from storage import Dconf_registry
 

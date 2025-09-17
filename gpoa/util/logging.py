@@ -20,7 +20,7 @@ import datetime
 import json
 import logging
 
-from messages import message_with_code
+from gpoa.messages import message_with_code
 
 
 class encoder(json.JSONEncoder):

@@ -19,14 +19,13 @@
 import importlib.util
 import inspect
 from pathlib import Path
-from typing import List
 
-from util.logging import log
-from util.paths import gpupdate_plugins_path
+from gpoa.util.logging import log
+from gpoa.util.paths import gpupdate_plugins_path
 
 from .plugin import plugin
-from storage import registry_factory
-from util.util import get_uid_by_username
+from gpoa.storage import registry_factory
+from gpoa.util.util import get_uid_by_username
 
 
 class plugin_manager:
@@ -46,14 +45,14 @@ class plugin_manager:
             else:
                 log('W44', {'plugin_name': getattr(plugin_obj, 'plugin_name', 'unknown')})
 
-    def load_plugins(self) -> List[plugin]:
+    def load_plugins(self):
         """Load plugins from multiple directories"""
         plugins = []
 
         # Default plugin directories
         plugin_dirs = [
             # Frontend plugins
-            Path(gpupdate_plugins_path()).absolute() / "plugins",
+            Path(gpupdate_plugins_path()).absolute(),
             # System-wide plugins
             Path("/usr/lib/gpupdate/plugins")
         ]
@@ -64,7 +63,7 @@ class plugin_manager:
 
         return plugins
 
-    def _load_plugins_from_directory(self, directory: Path) -> List[plugin]:
+    def _load_plugins_from_directory(self, directory: Path):
         """Load plugins from a specific directory"""
         plugins = []
 

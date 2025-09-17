@@ -23,10 +23,10 @@ import re
 import subprocess
 
 import gi
-from gpt.dynamic_attributes import RegistryKeyMetadata
-from util.logging import log
-from util.paths import get_dconf_config_path
-from util.util import (
+from gpoa.gpt.dynamic_attributes import RegistryKeyMetadata
+from gpoa.util.logging import log
+from gpoa.util.paths import get_dconf_config_path
+from gpoa.util.util import (
     add_prefix_to_keys,
     clean_data,
     get_uid_by_username,
