@@ -104,7 +104,7 @@ class plugin_manager:
         factory_funcs = []
         for name, obj in inspect.getmembers(module):
             if (inspect.isfunction(obj) and
-                name.lower() in ['create_plugin', 'create_plugin_instance'] and
+                name.lower() in ['create_applier', 'create_plugin'] and
                 callable(obj)):
                 factory_funcs.append(obj)
 
