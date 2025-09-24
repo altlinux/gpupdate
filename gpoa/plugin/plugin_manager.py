@@ -134,12 +134,19 @@ class plugin_manager:
 
             # First try: locale directory in plugin's own directory
             locale_candidate = plugin_dir / 'locale'
+
+            # Second try: common locale directory for frontend plugins
             if not locale_candidate.exists() and 'frontend_plugins' in str(plugin_dir):
-                # Second try: common locale directory for frontend plugins
                 frontend_plugins_dir = plugin_dir.parent
                 common_locale_dir = frontend_plugins_dir / 'locale'
                 if common_locale_dir.exists():
                     locale_candidate = common_locale_dir
+
+            # Third try: system-wide gpupdate plugins locale directory
+            if not locale_candidate.exists():
+                gpupdate_plugins_locale = Path('/usr/lib/gpupdate/plugins/locale')
+                if gpupdate_plugins_locale.exists():
+                    locale_candidate = gpupdate_plugins_locale
 
             if locale_candidate.exists():
                 plugin_instance._init_plugin_log(

@@ -108,7 +108,7 @@ class PluginLog:
             if script_dir.exists():
                 self.locale_dir = str(script_dir)
                 return
-            # Fifth try: system installation path
+            # Fifth try: system installation path for frontend plugins
             system_paths = [
                 '/usr/lib/python3/site-packages/gpoa/frontend_plugins/locale',
                 '/usr/local/lib/python3/site-packages/gpoa/frontend_plugins/locale'
@@ -117,6 +117,12 @@ class PluginLog:
                 if os.path.exists(path):
                     self.locale_dir = path
                     return
+
+            # Sixth try: system-wide gpupdate plugins directory
+            gpupdate_plugins_locale = Path('/usr/lib/gpupdate/plugins/locale')
+            if gpupdate_plugins_locale.exists():
+                self.locale_dir = str(gpupdate_plugins_locale)
+                return
         except:
             pass
 

@@ -106,6 +106,30 @@ def _load_plugin_translations(plugin_prefix):
                                     # Could not get file path for the class
                                     continue
                 break
+
+        # If not found through module inspection, try system-wide gpupdate plugins directory
+        gpupdate_plugins_locale = Path('/usr/lib/gpupdate/plugins/locale')
+        if gpupdate_plugins_locale.exists():
+            lang = 'ru_RU'
+            lc_messages_dir = gpupdate_plugins_locale / lang / 'LC_MESSAGES'
+            if lc_messages_dir.exists():
+                # Look for .po files matching the plugin prefix
+                po_files = list(lc_messages_dir.glob(f'*{plugin_prefix.lower()}*.po'))
+                if not po_files:
+                    # Try any .po file if no specific match
+                    po_files = list(lc_messages_dir.glob('*.po'))
+
+                for po_file in po_files:
+                    try:
+                        translation = gettext.translation(
+                            po_file.stem,
+                            localedir=str(gpupdate_plugins_locale),
+                            languages=[lang]
+                        )
+                        _plugin_translations[plugin_prefix] = translation
+                        return  # Successfully loaded translations
+                    except FileNotFoundError:
+                        continue
     except Exception:
         # Silently fail if translations cannot be loaded
         pass
