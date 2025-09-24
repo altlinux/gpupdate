@@ -1,0 +1,54 @@
+# Russian translations for dm_applier plugin.
+# Copyright (C) 2025 BaseALT Ltd.
+# This file is distributed under the same license as the dm_applier plugin.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dm_applier\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-18 12:00+0000\n"
+"PO-Revision-Date: 2025-01-18 12:00+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: Russian\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+# DM Applier messages
+msgid "Display Manager Applier initialized"
+msgstr "Инициализирован апплаер дисплей менеджера"
+
+msgid "LightDM configuration generated successfully"
+msgstr "Конфигурация LightDM успешно сгенерирована"
+
+msgid "Display Manager Applier execution started"
+msgstr "Запущено выполнение апплаера дисплей менеджера"
+
+msgid "Display manager configuration completed successfully"
+msgstr "Конфигурация дисплей менеджера успешно завершена"
+
+msgid "No display managers detected"
+msgstr "Дисплей менеджеры не обнаружены"
+
+msgid "Configuration file path is invalid or inaccessible"
+msgstr "Путь к файлу конфигурации недействителен или недоступен"
+
+msgid "Failed to generate LightDM configuration"
+msgstr "Не удалось сгенерировать конфигурацию LightDM"
+
+msgid "Unknown display manager config directory"
+msgstr "Неизвестный каталог конфигурации дисплей менеджера"
+
+msgid "Failed to generate display manager configuration"
+msgstr "Не удалось сгенерировать конфигурацию дисплей менеджера"
+
+msgid "Display Manager Applier execution failed"
+msgstr "Выполнение апплаера дисплей менеджера завершилось ошибкой"
+
+msgid "Display manager detection details"
+msgstr "Детали обнаружения дисплей менеджера"
+
+msgid "Display manager configuration details"
+msgstr "Детали конфигурации дисплей менеджера"
