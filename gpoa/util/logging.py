@@ -50,7 +50,6 @@ class slogm(object):
         now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))
         args = {}
         args.update(self.kwargs)
-        
         if args:
             result = '{}|{}|{}'.format(now, self.message, args)
         else:

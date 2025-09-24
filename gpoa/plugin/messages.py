@@ -36,7 +36,7 @@ _plugin_translations = {}
 def _load_plugin_translations(plugin_prefix):
     """
     Load translations for a specific plugin from its locale directory.
-    
+
     Dynamically searches for plugin modules across the entire project.
 
     Args:
@@ -51,16 +51,14 @@ def _load_plugin_translations(plugin_prefix):
                     if module and hasattr(module, '__dict__'):
                         for name, obj in module.__dict__.items():
                             # Check if this is a class with the _get_plugin_prefix method
-                            if (isinstance(obj, type) and 
+                            if (isinstance(obj, type) and
                                 hasattr(obj, '_get_plugin_prefix') and
                                 callable(getattr(obj, '_get_plugin_prefix')) and
                                 obj._get_plugin_prefix() == plugin_prefix):
-                                
                                 # Found the plugin class, now find its file
                                 try:
                                     plugin_file = Path(inspect.getfile(obj))
                                     plugin_dir = plugin_file.parent
-                                    
                                     # Look for locale directory in plugin directory
                                     locale_dir = plugin_dir / 'locale'
                                     if locale_dir.exists():
@@ -81,14 +79,12 @@ def _load_plugin_translations(plugin_prefix):
                                                     return  # Successfully loaded translations
                                                 except FileNotFoundError:
                                                     continue
-                                    
                                     # If not found in plugin directory, check parent directories
                                     # (for plugins that are in subdirectories)
                                     parent_dirs_to_check = [
                                         plugin_dir.parent / 'locale',  # Parent directory
                                         plugin_dir.parent.parent / 'locale'  # Grandparent directory
                                     ]
-                                    
                                     for parent_locale_dir in parent_dirs_to_check:
                                         if parent_locale_dir.exists():
                                             lang = 'ru_RU'

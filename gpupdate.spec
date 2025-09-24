@@ -1,6 +1,7 @@
 %define _unpackaged_files_terminate_build 1
 #add_python3_self_prov_path %buildroot%python3_sitelibdir/gpoa
 
+%add_python3_req_skip applaer.systemd
 %add_python3_req_skip backend
 %add_python3_req_skip frontend.frontend_manager
 %add_python3_req_skip gpt.envvars

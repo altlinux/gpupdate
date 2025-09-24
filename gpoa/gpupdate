@@ -167,7 +167,7 @@ def try_directly(username, target, loglevel):
 
 def main():
     args = parse_cli_arguments()
-    
+
     # Set up locale for main application
     import os
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -175,7 +175,7 @@ def main():
     locale.bindtextdomain('gpoa', main_locale_path)
     gettext.bindtextdomain('gpoa', main_locale_path)
     gettext.textdomain('gpoa')
-    
+
     set_loglevel(args.loglevel)
     Dconf_registry._force = args.force
     gpo_appliers = runner_factory(args, process_target(args.target))

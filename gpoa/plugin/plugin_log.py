@@ -76,8 +76,6 @@ class PluginLog:
     def _auto_detect_locale_dir(self):
         """Auto-detect locale directory based on plugin file location."""
         try:
-            import os
-            
             # Try to find the calling plugin module
             import inspect
             frame = inspect.currentframe()
@@ -87,13 +85,11 @@ class PluginLog:
                     module_file = frame.f_globals.get('__file__', '')
                     if module_file:
                         plugin_dir = Path(module_file).parent
-
                         # First try: locale directory in plugin's own directory
                         locale_candidate = plugin_dir / 'locale'
                         if locale_candidate.exists():
                             self.locale_dir = str(locale_candidate)
                             return
-
                         # Second try: common locale directory for frontend plugins
                         if 'frontend_plugins' in str(plugin_dir):
                             frontend_plugins_dir = plugin_dir.parent
@@ -102,19 +98,16 @@ class PluginLog:
                                 self.locale_dir = str(common_locale_dir)
                                 return
                 frame = frame.f_back
-            
             # Third try: relative to current working directory
             cwd_locale = Path.cwd() / 'gpoa' / 'frontend_plugins' / 'locale'
             if cwd_locale.exists():
                 self.locale_dir = str(cwd_locale)
                 return
-                
             # Fourth try: relative to script location
             script_dir = Path(__file__).parent.parent.parent / 'frontend_plugins' / 'locale'
             if script_dir.exists():
                 self.locale_dir = str(script_dir)
                 return
-                
             # Fifth try: system installation path
             system_paths = [
                 '/usr/lib/python3/site-packages/gpoa/frontend_plugins/locale',
@@ -124,7 +117,6 @@ class PluginLog:
                 if os.path.exists(path):
                     self.locale_dir = path
                     return
-                    
         except:
             pass
 
@@ -136,7 +128,6 @@ class PluginLog:
                 import locale
                 system_locale = locale.getdefaultlocale()[0]
                 languages = [system_locale] if system_locale else ['ru_RU']
-
                 # Try to load translation with fallback
                 self._translation = gettext.translation(
                     self.domain,
@@ -167,17 +158,14 @@ class PluginLog:
     def _format_message(self, level, code, data=None):
         """Format message with data and apply translation."""
         template = self._get_message_template(level, code)
-
         # Apply translation
         translated_template = self._translation.gettext(template)
-
         # Format with data if provided
         if data and isinstance(data, dict):
             try:
                 return translated_template.format(**data)
             except:
                 return "{} | {}".format(translated_template, data)
-
         return translated_template
 
     def _get_full_code(self, level_char, code):
@@ -195,7 +183,6 @@ class PluginLog:
         if not message_code or len(message_code) < 2:
             logging.error(slogm("Invalid message code format", {"code": message_code}))
             return
-
         level_char = message_code[0].lower()
         try:
             code_num = int(message_code[1:])
@@ -205,10 +192,8 @@ class PluginLog:
 
         # Get the formatted message
         message = self._format_message(level_char, code_num, data)
-
         # Create full message code for logging
         full_code = self._get_full_code(level_char.upper(), code_num)
-
         # Format the log message like main code: [Code]| Message | data
         full_code = self._get_full_code(level_char.upper(), code_num)
         log_message = f"[{full_code}]| {message}"
