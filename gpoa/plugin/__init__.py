@@ -17,4 +17,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .plugin_manager import plugin_manager
+from .messages import register_plugin_messages, get_plugin_message, get_all_plugin_messages
 

@@ -63,7 +63,7 @@ class plugin_manager:
 
         return plugins
 
-    def _load_plugins_from_directory(self, directory: Path):
+    def _load_plugins_from_directory(self, directory):
         """Load plugins from a specific directory"""
         plugins = []
 
@@ -80,7 +80,7 @@ class plugin_manager:
 
         return plugins
 
-    def _load_plugin_from_file(self, file_path: Path) -> plugin:
+    def _load_plugin_from_file(self, file_path):
         """Load a single plugin from a Python file"""
         module_name = file_path.stem
 
@@ -97,7 +97,8 @@ class plugin_manager:
         for name, obj in inspect.getmembers(module):
             if (inspect.isclass(obj) and
                 issubclass(obj, plugin) and
-                obj != plugin):
+                obj != plugin and
+                not inspect.isabstract(obj)):  # Skip abstract classes
                 plugin_classes.append(obj)
 
         # Find factory functions
@@ -118,10 +119,35 @@ class plugin_manager:
 
         if factory_funcs:
             # Use factory function if available
-            return factory_funcs[0](dict_dconf_db, self.username)
+            plugin_instance = factory_funcs[0](dict_dconf_db, self.username)
         elif plugin_classes:
             # Use first found plugin class
-            return plugin_classes[0](dict_dconf_db, self.username)
+            plugin_instance = plugin_classes[0](dict_dconf_db, self.username)
+        else:
+            return None
+
+        # Initialize plugin logger if not already initialized
+        if hasattr(plugin_instance, '_init_plugin_log') and not hasattr(plugin_instance, '_log'):
+            # Auto-detect locale directory for this plugin
+            plugin_file = file_path
+            plugin_dir = plugin_file.parent
+
+            # First try: locale directory in plugin's own directory
+            locale_candidate = plugin_dir / 'locale'
+            if not locale_candidate.exists() and 'frontend_plugins' in str(plugin_dir):
+                # Second try: common locale directory for frontend plugins
+                frontend_plugins_dir = plugin_dir.parent
+                common_locale_dir = frontend_plugins_dir / 'locale'
+                if common_locale_dir.exists():
+                    locale_candidate = common_locale_dir
+
+            if locale_candidate.exists():
+                plugin_instance._init_plugin_log(
+                    plugin_prefix=getattr(plugin_instance, 'plugin_prefix', '000'),
+                    locale_dir=str(locale_candidate)
+                )
+
+        return plugin_instance
 
         return None
 
