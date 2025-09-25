@@ -119,10 +119,10 @@ class PluginLog:
                     self.locale_dir = path
                     return
 
-            # Sixth try: system-wide gpupdate plugins directory
-            gpupdate_plugins_locale = Path('/usr/lib/gpupdate/plugins/locale')
-            if gpupdate_plugins_locale.exists():
-                self.locale_dir = str(gpupdate_plugins_locale)
+            # Sixth try: system-wide gpupdate package locale directory
+            gpupdate_package_locale = Path('/usr/lib/python3/site-packages/gpoa/locale')
+            if gpupdate_package_locale.exists():
+                self.locale_dir = str(gpupdate_package_locale)
                 return
 
             # Seventh try: system-wide locale directory (fallback)
@@ -164,6 +164,7 @@ class PluginLog:
             possible_domains = unique_domains
 
             # First stage: try loading from the detected locale_dir
+            translations_found = False
             for domain in possible_domains:
                 try:
                     # Get system locale
@@ -179,6 +180,7 @@ class PluginLog:
                             languages=languages,
                             fallback=False
                         )
+                        translations_found = True
                         break
                     except FileNotFoundError:
                         # File not found, try with fallback
@@ -191,13 +193,14 @@ class PluginLog:
 
                         # Check if we got real translations or NullTranslations
                         if not isinstance(self._translation, gettext.NullTranslations):
+                            translations_found = True
                             break
 
                 except Exception:
                     continue
 
             # Second stage: if no translations found in locale_dir, try system locale directory
-            if not hasattr(self, '_translation') or isinstance(self._translation, gettext.NullTranslations):
+            if not translations_found:
                 for domain in possible_domains:
                     try:
                         # Get system locale
