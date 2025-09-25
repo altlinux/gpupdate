@@ -126,9 +126,8 @@ class plugin_manager:
         else:
             return None
 
-        # Initialize plugin logger if not already initialized
-        if hasattr(plugin_instance, '_init_plugin_log') and not hasattr(plugin_instance, '_log'):
-            # Auto-detect locale directory for this plugin
+        # Auto-detect locale directory for this plugin and initialize/update logger
+        if hasattr(plugin_instance, '_init_plugin_log'):
             plugin_file = file_path
             plugin_dir = plugin_file.parent
 
@@ -149,9 +148,27 @@ class plugin_manager:
                     locale_candidate = gpupdate_plugins_locale
 
             if locale_candidate.exists():
+                # Get plugin prefix from instance or use default
+                plugin_prefix = getattr(plugin_instance, 'plugin_prefix', '000')
+
+                # If logger already exists, reinitialize it with the correct locale directory
+                if hasattr(plugin_instance, '_log') and plugin_instance._log is not None:
+                    # Save message_dict and domain from existing logger
+                    message_dict = getattr(plugin_instance._log, 'message_dict', None)
+                    domain = getattr(plugin_instance._log, 'domain', None)
+
+                    # Reinitialize logger with proper locale directory
+                    plugin_instance._log = None
+                else:
+                    message_dict = None
+                    domain = None
+
+                # Initialize plugin logger with the found locale directory
                 plugin_instance._init_plugin_log(
-                    plugin_prefix=getattr(plugin_instance, 'plugin_prefix', '000'),
-                    locale_dir=str(locale_candidate)
+                    plugin_prefix=plugin_prefix,
+                    message_dict=message_dict,
+                    locale_dir=str(locale_candidate),
+                    domain=domain
                 )
 
         return plugin_instance

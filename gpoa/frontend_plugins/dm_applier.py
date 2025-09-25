@@ -50,7 +50,7 @@ class DMApplier(FrontendPlugin):
     def __init__(self, dict_dconf_db, username=None):
         super().__init__(dict_dconf_db, username)
 
-        # Initialize plugin-specific logger FIRST with locale directory
+        # Initialize plugin-specific logger - locale_dir will be set by plugin_manager
         self._init_plugin_log(
             plugin_prefix=self.__plugin_prefix,
             message_dict={
@@ -75,7 +75,7 @@ class DMApplier(FrontendPlugin):
                     31: "Display manager configuration details"
                 }
             },
-            locale_dir=None,  # Let it auto-detect
+            # locale_dir will be set by plugin_manager during plugin loading
             domain="dm_applier"
         )
 
