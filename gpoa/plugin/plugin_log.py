@@ -124,6 +124,12 @@ class PluginLog:
             if gpupdate_plugins_locale.exists():
                 self.locale_dir = str(gpupdate_plugins_locale)
                 return
+
+            # Seventh try: system-wide locale directory (fallback)
+            system_locale_dir = Path('/usr/share/locale')
+            if system_locale_dir.exists():
+                self.locale_dir = str(system_locale_dir)
+                return
         except:
             pass
 
@@ -157,6 +163,7 @@ class PluginLog:
 
             possible_domains = unique_domains
 
+            # First stage: try loading from the detected locale_dir
             for domain in possible_domains:
                 try:
                     # Get system locale
@@ -188,6 +195,40 @@ class PluginLog:
 
                 except Exception:
                     continue
+
+            # Second stage: if no translations found in locale_dir, try system locale directory
+            if not hasattr(self, '_translation') or isinstance(self._translation, gettext.NullTranslations):
+                for domain in possible_domains:
+                    try:
+                        # Get system locale
+                        import locale
+                        system_locale = locale.getdefaultlocale()[0]
+                        languages = [system_locale] if system_locale else ['ru_RU']
+
+                        # Try loading from system locale directory
+                        try:
+                            self._translation = gettext.translation(
+                                domain,
+                                localedir='/usr/share/locale',
+                                languages=languages,
+                                fallback=False
+                            )
+                            break
+                        except FileNotFoundError:
+                            # File not found, try with fallback
+                            self._translation = gettext.translation(
+                                domain,
+                                localedir='/usr/share/locale',
+                                languages=languages,
+                                fallback=True
+                            )
+
+                            # Check if we got real translations or NullTranslations
+                            if not isinstance(self._translation, gettext.NullTranslations):
+                                break
+
+                    except Exception:
+                        continue
 
             # If all attempts failed, use NullTranslations
             # Only set NullTranslations if no translation was successfully loaded
