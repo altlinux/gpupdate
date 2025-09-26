@@ -18,7 +18,9 @@
 
 import os
 import gettext
+import locale
 import logging
+import inspect
 from pathlib import Path
 
 from gpoa.util.logging import slogm
@@ -78,7 +80,6 @@ class PluginLog:
         """Auto-detect locale directory based on plugin file location."""
         try:
             # Try to find the calling plugin module
-            import inspect
             frame = inspect.currentframe()
             while frame:
                 module = frame.f_globals.get('__name__', '')
@@ -136,79 +137,36 @@ class PluginLog:
     def _load_translations(self):
         """Load translations for the plugin using system locale."""
         if self.locale_dir:
-            # Try different domain names for translation files
-            # Priority order: specific plugin name -> common patterns -> fallbacks
-            possible_domains = []
+            # Use only self.domain as the translation file name
+            # This aligns with the convention that plugin translation files
+            # are always named according to the domain
+            domain = self.domain
 
-            # First try: common plugin naming pattern (e.g., dm_applier)
-            if not self.domain.endswith('_applier'):
-                possible_domains.append(f"{self.domain}_applier")
+            try:
+                # Get system locale
+                system_locale = locale.getdefaultlocale()[0]
+                languages = [system_locale] if system_locale else ['ru_RU']
 
-            # Second try: plugin name as is
-            possible_domains.append(self.domain)
-
-            # Third try: display manager fallback
-            possible_domains.append("dm_applier")
-
-            # Fourth try: main application domain
-            possible_domains.append("gpoa")
-
-            # Remove duplicates while preserving order
-            seen = set()
-            unique_domains = []
-            for domain in possible_domains:
-                if domain not in seen:
-                    seen.add(domain)
-                    unique_domains.append(domain)
-
-            possible_domains = unique_domains
-
-            # First stage: try loading from the detected locale_dir
-            translations_found = False
-            for domain in possible_domains:
+                # First try: load from the detected locale_dir without fallback
                 try:
-                    # Get system locale
-                    import locale
-                    system_locale = locale.getdefaultlocale()[0]
-                    languages = [system_locale] if system_locale else ['ru_RU']
+                    self._translation = gettext.translation(
+                        domain,
+                        localedir=self.locale_dir,
+                        languages=languages,
+                        fallback=False
+                    )
+                except FileNotFoundError:
+                    # File not found, try with fallback
+                    self._translation = gettext.translation(
+                        domain,
+                        localedir=self.locale_dir,
+                        languages=languages,
+                        fallback=True
+                    )
 
-                    # First try: load without fallback to get real translations
-                    try:
-                        self._translation = gettext.translation(
-                            domain,
-                            localedir=self.locale_dir,
-                            languages=languages,
-                            fallback=False
-                        )
-                        translations_found = True
-                        break
-                    except FileNotFoundError:
-                        # File not found, try with fallback
-                        self._translation = gettext.translation(
-                            domain,
-                            localedir=self.locale_dir,
-                            languages=languages,
-                            fallback=True
-                        )
-
-                        # Check if we got real translations or NullTranslations
-                        if not isinstance(self._translation, gettext.NullTranslations):
-                            translations_found = True
-                            break
-
-                except Exception:
-                    continue
-
-            # Second stage: if no translations found in locale_dir, try system locale directory
-            if not translations_found:
-                for domain in possible_domains:
-                    try:
-                        # Get system locale
-                        import locale
-                        system_locale = locale.getdefaultlocale()[0]
-                        languages = [system_locale] if system_locale else ['ru_RU']
-
-                        # Try loading from system locale directory
+                    # Check if we got real translations or NullTranslations
+                    if isinstance(self._translation, gettext.NullTranslations):
+                        # Try loading from system locale directory as fallback
                         try:
                             self._translation = gettext.translation(
                                 domain,
@@ -216,9 +174,8 @@ class PluginLog:
                                 languages=languages,
                                 fallback=False
                             )
-                            break
                         except FileNotFoundError:
-                            # File not found, try with fallback
+                            # File not found in system directory, use fallback
                             self._translation = gettext.translation(
                                 domain,
                                 localedir='/usr/share/locale',
@@ -226,20 +183,13 @@ class PluginLog:
                                 fallback=True
                             )
 
-                            # Check if we got real translations or NullTranslations
-                            if not isinstance(self._translation, gettext.NullTranslations):
-                                break
+            except Exception:
+                # If any exception occurs, fall back to NullTranslations
+                self._translation = gettext.NullTranslations()
 
-                    except Exception:
-                        continue
-
-            # If all attempts failed, use NullTranslations
-            # Only set NullTranslations if no translation was successfully loaded
+            # Ensure _translation is set even if all attempts failed
             if not hasattr(self, '_translation'):
                 self._translation = gettext.NullTranslations()
-            elif isinstance(self._translation, gettext.NullTranslations):
-                # Already NullTranslations, no need to change
-                pass
         else:
             self._translation = gettext.NullTranslations()
 
