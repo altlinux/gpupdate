@@ -32,7 +32,7 @@ except ImportError:
     # Fallback for testing
     GpoaConfigObj = None
 
-from gpoa.frontend_plugins.plugin_base import FrontendPlugin
+from gpoa.plugin.plugin_base import FrontendPlugin
 from gpoa.plugin.plugin_log import PluginLog
 
 
