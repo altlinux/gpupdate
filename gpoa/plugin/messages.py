@@ -50,11 +50,10 @@ def _load_plugin_translations(plugin_prefix):
                 for module_name, module in list(sys.modules.items()):
                     if module and hasattr(module, '__dict__'):
                         for name, obj in module.__dict__.items():
-                            # Check if this is a class with the _get_plugin_prefix method
+                            # Check if this is a class with the domain attribute
                             if (isinstance(obj, type) and
-                                hasattr(obj, '_get_plugin_prefix') and
-                                callable(getattr(obj, '_get_plugin_prefix')) and
-                                obj._get_plugin_prefix() == plugin_prefix):
+                                hasattr(obj, 'domain') and
+                                obj.domain == domain):
                                 # Found the plugin class, now find its file
                                 try:
                                     plugin_file = Path(inspect.getfile(obj))
