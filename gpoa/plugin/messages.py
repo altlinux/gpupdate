@@ -53,7 +53,7 @@ def _load_plugin_translations(plugin_prefix):
                             # Check if this is a class with the domain attribute
                             if (isinstance(obj, type) and
                                 hasattr(obj, 'domain') and
-                                obj.domain == domain):
+                                obj.domain == plugin_prefix):
                                 # Found the plugin class, now find its file
                                 try:
                                     plugin_file = Path(inspect.getfile(obj))
