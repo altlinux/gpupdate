@@ -30,9 +30,9 @@ class plugin(ABC):
     def get_dict_registry(self, prefix=''):
         return  string_to_literal_eval(self.dict_dconf_db.get(prefix,{}))
 
-    def _init_plugin_log(self, plugin_prefix, message_dict=None, locale_dir=None, domain=None):
+    def _init_plugin_log(self, message_dict=None, locale_dir=None, domain=None):
         """Initialize plugin-specific logger with message codes."""
-        self._log = PluginLog(plugin_prefix, message_dict, locale_dir, domain)
+        self._log = PluginLog(message_dict, locale_dir, domain)
 
     def log_info(self, message, data=None):
         """Log info message with plugin context"""

@@ -32,30 +32,28 @@ class PluginLog:
     Plugin logging class with message codes and translations support.
 
     Usage:
-        log = PluginLog('DM1', {
+        log = PluginLog({
             'w': {1: 'Warning message template {param}'},
             'e': {1: 'Error message template {param}'},
             'i': {1: 'Info message template {param}'},
             'd': {1: 'Debug message template {param}'}
-        })
+        }, domain='dm_applier')
 
         log('W1', {'param': 'value'})
     """
 
-    def __init__(self, plugin_prefix, message_dict=None, locale_dir=None, domain=None):
+    def __init__(self, message_dict=None, locale_dir=None, domain=None):
         """
         Initialize plugin logger.
 
         Args:
-            plugin_prefix (str): Plugin prefix (e.g., 'DM1', '901')
             message_dict (dict): Dictionary with message templates
             locale_dir (str): Path to locale directory for translations
-            domain (str): Translation domain name (defaults to plugin_prefix)
+            domain (str): Translation domain name (required for translations)
         """
-        self.plugin_prefix = plugin_prefix
         self.message_dict = message_dict or {}
         self.locale_dir = locale_dir
-        self.domain = domain or plugin_prefix.lower()
+        self.domain = domain or 'plugin'
         self._translation = None
 
         # Register plugin messages
@@ -66,7 +64,7 @@ class PluginLog:
                 for code, message in level_dict.items():
                     flat_messages[code] = message
 
-            register_plugin_messages(plugin_prefix, flat_messages)
+            register_plugin_messages(self.domain, flat_messages)
 
         # Auto-detect locale directory only if explicitly None (not provided)
         # If locale_dir is an empty string or other falsy value, don't auto-detect
@@ -212,8 +210,8 @@ class PluginLog:
         return translated_template
 
     def _get_full_code(self, level_char, code):
-        """Get full message code with plugin prefix."""
-        return f"p{level_char}{self.plugin_prefix}{code:03d}"
+        """Get full message code without plugin prefix."""
+        return f"{level_char}{code:05d}"
 
     def __call__(self, message_code, data=None):
         """
@@ -239,7 +237,7 @@ class PluginLog:
         full_code = self._get_full_code(level_char.upper(), code_num)
         # Format the log message like main code: [Code]| Message | data
         full_code = self._get_full_code(level_char.upper(), code_num)
-        log_message = f"[{full_code}]| {message}"
+        log_message = f"{self.domain}[{full_code}]| {message}"
         if data:
             log_message += f"|{data}"
 
