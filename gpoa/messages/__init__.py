@@ -436,32 +436,10 @@ def get_message(code):
     if code.startswith('F'):
         retstr = fatal_code(int(code[1:]))
 
-    # Plugin message codes (P prefix)
-    if code.startswith('P'):
-        # Extract plugin-specific message
-        # New format: P<level_char><plugin_prefix><message_code>
-        # Example: PI901001 = INFO level, plugin 901, message 1
-        #           PE901002 = ERROR level, plugin 901, message 2
-        if len(code) >= 8:
-            level_char = code[1]  # Level character (I=INFO, W=WARN, E=ERROR, etc.)
-            plugin_prefix = code[2:5]  # Next 3 digits: plugin prefix
-            message_code = int(code[5:])  # Remaining digits: message code
-        else:
-            # Fallback for shorter codes
-            plugin_prefix = code[1:4] if len(code) >= 4 else "000"
-            message_code = int(code[4:]) if len(code) > 4 else 0
-
-        # Try to get message from plugin registry
-        try:
-            from gpoa.plugin.messages import get_plugin_message
-            retstr = get_plugin_message(plugin_prefix, message_code)
-        except ImportError:
-            retstr = f"Plugin {plugin_prefix} message {message_code}"
-
     return retstr
 
 def message_with_code(code):
-    retstr = '[' + code[0:1] + code[1:].rjust(7, '0') + ']| ' + gettext.gettext(get_message(code))
+    retstr = 'core' + '[' + code[0:1] + code[1:].rjust(7, '0') + ']| ' + gettext.gettext(get_message(code))
 
     return retstr
 
