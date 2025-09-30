@@ -32,6 +32,7 @@ class plugin_manager:
     def __init__(self, is_machine, username):
         self.is_machine = is_machine
         self.username = username
+        self.list_plugins = []
         self.plugins = self.load_plugins()
         log('D3')
 
@@ -86,8 +87,10 @@ class plugin_manager:
 
         # Load the module
         spec = importlib.util.spec_from_file_location(module_name, file_path)
-        if not spec or not spec.loader:
+        if not spec or not spec.loader or module_name in self.list_plugins:
             return None
+        # Save the list of names to prevent repetition
+        self.list_plugins.append(module_name)
 
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
