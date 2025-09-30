@@ -33,19 +33,19 @@ from pathlib import Path
 _plugin_messages = {}
 _plugin_translations = {}
 
-def _load_plugin_translations(plugin_prefix):
+def _load_plugin_translations(domain):
     """
     Load translations for a specific plugin from its locale directory.
 
     Dynamically searches for plugin modules across the entire project.
 
     Args:
-        plugin_prefix (str): 3-digit plugin prefix
+        domain (str): Plugin domain/prefix
     """
     try:
         # Try to find the plugin module that registered these messages
         for prefix, msgs in _plugin_messages.items():
-            if prefix == plugin_prefix:
+            if prefix == domain:
                 # Search through all loaded modules to find the plugin class
                 for module_name, module in list(sys.modules.items()):
                     if module and hasattr(module, '__dict__'):
@@ -53,7 +53,7 @@ def _load_plugin_translations(plugin_prefix):
                             # Check if this is a class with the domain attribute
                             if (isinstance(obj, type) and
                                 hasattr(obj, 'domain') and
-                                obj.domain == plugin_prefix):
+                                obj.domain == domain):
                                 # Found the plugin class, now find its file
                                 try:
                                     plugin_file = Path(inspect.getfile(obj))
@@ -74,7 +74,7 @@ def _load_plugin_translations(plugin_prefix):
                                                         localedir=str(locale_dir),
                                                         languages=[lang]
                                                     )
-                                                    _plugin_translations[plugin_prefix] = translation
+                                                    _plugin_translations[domain] = translation
                                                     return  # Successfully loaded translations
                                                 except FileNotFoundError:
                                                     continue
@@ -97,7 +97,7 @@ def _load_plugin_translations(plugin_prefix):
                                                             localedir=str(parent_locale_dir),
                                                             languages=[lang]
                                                         )
-                                                        _plugin_translations[plugin_prefix] = translation
+                                                        _plugin_translations[domain] = translation
                                                         return  # Successfully loaded translations
                                                     except FileNotFoundError:
                                                         continue
@@ -113,7 +113,7 @@ def _load_plugin_translations(plugin_prefix):
             lc_messages_dir = gpupdate_plugins_locale / lang / 'LC_MESSAGES'
             if lc_messages_dir.exists():
                 # Look for .po files matching the plugin prefix
-                po_files = list(lc_messages_dir.glob(f'*{plugin_prefix.lower()}*.po'))
+                po_files = list(lc_messages_dir.glob(f'*{domain.lower()}*.po'))
                 if not po_files:
                     # Try any .po file if no specific match
                     po_files = list(lc_messages_dir.glob('*.po'))
@@ -125,7 +125,7 @@ def _load_plugin_translations(plugin_prefix):
                             localedir=str(gpupdate_plugins_locale),
                             languages=[lang]
                         )
-                        _plugin_translations[plugin_prefix] = translation
+                        _plugin_translations[domain] = translation
                         return  # Successfully loaded translations
                     except FileNotFoundError:
                         continue
@@ -133,35 +133,35 @@ def _load_plugin_translations(plugin_prefix):
         # Silently fail if translations cannot be loaded
         pass
 
-def register_plugin_messages(plugin_prefix, messages_dict):
+def register_plugin_messages(domain, messages_dict):
     """
     Register message codes for a plugin.
 
     Args:
-        plugin_prefix (str): 3-digit plugin prefix (e.g., "901")
+        domain (str): Plugin domain/prefix
         messages_dict (dict): Dictionary mapping message codes to descriptions
     """
-    _plugin_messages[plugin_prefix] = messages_dict
+    _plugin_messages[domain] = messages_dict
 
     # Try to load plugin-specific translations
-    _load_plugin_translations(plugin_prefix)
+    _load_plugin_translations(domain)
 
-def get_plugin_message(plugin_prefix, code):
+def get_plugin_message(domain, code):
     """
     Get message description for a plugin-specific code.
 
     Args:
-        plugin_prefix (str): 3-digit plugin prefix
+        domain (str): Plugin domain/prefix
         code (int): Message code
 
     Returns:
         str: Message description or generic message if not found
     """
-    plugin_msgs = _plugin_messages.get(plugin_prefix, {})
-    message_text = plugin_msgs.get(code, f"Plugin {plugin_prefix} message {code}")
+    plugin_msgs = _plugin_messages.get(domain, {})
+    message_text = plugin_msgs.get(code, f"Plugin {domain} message {code}")
 
     # Try to translate the message if translations are available
-    translation = _plugin_translations.get(plugin_prefix)
+    translation = _plugin_translations.get(domain)
     if translation:
         try:
             return translation.gettext(message_text)
