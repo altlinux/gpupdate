@@ -45,14 +45,13 @@ class DMApplier(FrontendPlugin):
     """
 
     __registry_path = 'Software/BaseALT/Policies/DisplayManager'
-    __plugin_prefix = 'DM1'
+    domain = 'dm_applier'
 
     def __init__(self, dict_dconf_db, username=None):
         super().__init__(dict_dconf_db, username)
 
         # Initialize plugin-specific logger - locale_dir will be set by plugin_manager
         self._init_plugin_log(
-            plugin_prefix=self.__plugin_prefix,
             message_dict={
                 'i': {
                     1: "Display Manager Applier initialized",
