@@ -695,8 +695,12 @@ def create_dconf_ini_file(filename, data, uid=None, nodomain=None):
     '''
     with open(filename, 'a' if nodomain else 'w') as file:
         for section, section_data in data.items():
+            if not section:
+                continue
             file.write(f'[{section}]\n')
             for key, value in section_data.items():
+                if not key:
+                    continue
                 if isinstance(value, int):
                     file.write(f'{key} = {value}\n')
                 else:
