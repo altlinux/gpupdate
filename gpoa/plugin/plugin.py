@@ -17,17 +17,47 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
+from typing import final
 from gpoa.util.util import string_to_literal_eval
 from gpoa.util.logging import log
 from gpoa.plugin.plugin_log import PluginLog
+from gpoa.storage.dconf_registry import Dconf_registry
 
 class plugin(ABC):
     def __init__(self, dict_dconf_db={}, username=None):
         self.dict_dconf_db = dict_dconf_db
         self.username = username
         self._log = None
+        self.plugin_name = self.__class__.__name__
+        self.enabled = self.check_enabled()
 
+    @final
+    def check_enabled(self):
+        """Check if the plugin is enabled"""
+        plugins_enable = Dconf_registry.get_key_value(
+            '/Software/BaseALT/Policies/GPUpdate/Plugins'
+        )
+        plugins_list = Dconf_registry.get_key_value(
+            '/Software/BaseALT/Policies/GPUpdate/PluginsList'
+        )
+
+        if not plugins_enable:
+            return False
+
+        if isinstance(plugins_list, list):
+            return self.plugin_name in plugins_list
+        # if the list is missing or not a list, consider the plugin enabled
+        return True
+
+    @final
+    def apply(self):
+        """Apply the plugin"""
+        if self.enabled:
+            self.run()
+
+    @final
     def get_dict_registry(self, prefix=''):
+        """Get the dictionary from the registry"""
         return  string_to_literal_eval(self.dict_dconf_db.get(prefix,{}))
 
     def _init_plugin_log(self, message_dict=None, locale_dir=None, domain=None):

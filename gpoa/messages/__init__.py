@@ -124,7 +124,7 @@ def debug_code(code):
     debug_ids[1] = 'The GPOA process was started for user'
     debug_ids[2] = 'Username is not specified - will use username of the current process'
     debug_ids[3] = 'Initializing plugin manager'
-    #debug_ids[4] = ''
+    debug_ids[4] = 'Running plugin'
     #debug_ids[5] = ''
     debug_ids[6] = 'Starting GPOA for user via D-Bus'
     debug_ids[7] = 'Cache directory determined'
@@ -355,6 +355,7 @@ def debug_code(code):
     debug_ids[233] = 'Calculating time since the first user login after their password change'
     debug_ids[234] = 'No logins found after password change'
     debug_ids[235] = 'User not found in passwd database'
+    debug_ids[236] = 'Plugin is disabled'
 
     return debug_ids.get(code, 'Unknown debug code')
 

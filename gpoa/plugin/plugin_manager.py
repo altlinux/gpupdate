@@ -37,12 +37,17 @@ class plugin_manager:
         log('D3')
 
     def run(self):
+        """Run the plugins"""
         for plugin_obj in self.plugins:
             if self.is_valid_api_object(plugin_obj):
                 # Set execution context for plugins that support it
                 if hasattr(plugin_obj, 'set_context'):
                     plugin_obj.set_context(self.is_machine, self.username)
-                plugin_obj.run()
+                if plugin_obj.enabled:
+                    log('D4', {'plugin_name': plugin_obj.plugin_name})
+                    plugin_obj.apply()
+                else:
+                    log('D236', {'plugin_name': plugin_obj.plugin_name})
             else:
                 log('W44', {'plugin_name': getattr(plugin_obj, 'plugin_name', 'unknown')})
 
@@ -179,4 +184,5 @@ class plugin_manager:
         return None
 
     def is_valid_api_object(self, obj):
+        """Check if the object is a valid plugin API object"""
         return isinstance(obj, plugin)

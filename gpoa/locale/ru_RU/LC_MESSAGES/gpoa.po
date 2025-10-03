@@ -969,6 +969,12 @@ msgstr "Пользователь не найден в базе данных па
 msgid "Unknown message type, no message assigned"
 msgstr "Неизвестный тип сообщения"
 
+msgid "Plugin is disabled"
+msgstr "Плагин отключен"
+
+msgid "Running plugin"
+msgstr "Запуск плагина"
+
 # Debug_end
 
 # Warning
