@@ -62,7 +62,7 @@ class plugin(ABC):
 
     def _init_plugin_log(self, message_dict=None, locale_dir=None, domain=None):
         """Initialize plugin-specific logger with message codes."""
-        self._log = PluginLog(message_dict, locale_dir, domain)
+        self._log = PluginLog(message_dict, locale_dir, domain, self.plugin_name)
 
     def log_info(self, message, data=None):
         """Log info message with plugin context"""

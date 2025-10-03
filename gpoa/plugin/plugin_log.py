@@ -42,7 +42,7 @@ class PluginLog:
         log('W1', {'param': 'value'})
     """
 
-    def __init__(self, message_dict=None, locale_dir=None, domain=None):
+    def __init__(self, message_dict=None, locale_dir=None, domain=None, plugin_name=None):
         """
         Initialize plugin logger.
 
@@ -55,7 +55,7 @@ class PluginLog:
         self.locale_dir = locale_dir
         self.domain = domain or 'plugin'
         self._translation = None
-
+        self.plugin_name = plugin_name
         # Register plugin messages
         if message_dict:
             # Convert to flat dictionary for registration
@@ -237,7 +237,7 @@ class PluginLog:
         full_code = self._get_full_code(level_char.upper(), code_num)
         # Format the log message like main code: [Code]| Message | data
         full_code = self._get_full_code(level_char.upper(), code_num)
-        log_message = f"{self.domain}[{full_code}]| {message}"
+        log_message = f"{self.plugin_name}[{full_code}]| {message}"
         if data:
             log_message += f"|{data}"
 
