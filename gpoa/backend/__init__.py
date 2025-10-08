@@ -24,6 +24,8 @@ from util.logging import log
 from util.config import GPConfig
 from util.util import get_uid_by_username, touch_file
 from util.paths import get_dconf_config_file
+from util.ipacreds import ipacreds
+from .freeipa_backend import freeipa_backend
 from storage.dconf_registry import Dconf_registry, create_dconf_ini_file, add_preferences_to_global_registry_dict
 
 def backend_factory(dc, username, is_machine, no_domain = False):
@@ -51,6 +53,20 @@ def backend_factory(dc, username, is_machine, no_domain = False):
         except Exception as exc:
             logdata = dict({'error': str(exc)})
             log('E7', logdata)
+
+    if config.get_backend() == 'freeipa' and not no_domain:
+        try:
+            if not dc:
+                dc = config.get_dc()
+                if dc:
+                    ld = dict({'dc': dc})
+                    log('D52', ld)
+            ipac = ipacreds()
+            domain = ipac.get_domain()
+            back = freeipa_backend(ipac, username, domain, is_machine)
+        except Exception as exc:
+            logdata = dict({'error': str(exc)})
+            log('E77', logdata)
 
     if config.get_backend() == 'local' or no_domain:
         log('D8')

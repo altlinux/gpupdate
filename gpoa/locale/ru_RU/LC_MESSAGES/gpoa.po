@@ -268,6 +268,9 @@ msgstr "Не удалось обновить LDAP новыми данными п
 msgid "Failed to change local user password"
 msgstr "Не удалось изменить пароль локального пользователя"
 
+msgid "Unable to initialize Freeipa backend"
+msgstr "Невозможно инициализировать бэкэнд Freeipa"
+
 # Error_end
 
 # Debug
