@@ -77,7 +77,7 @@ def parse_arguments():
         type=str,
         nargs='?',
         const='backend',
-        choices=['local', 'samba'],
+        choices=['local', 'samba', 'freeipa'],
         help='Backend (source of settings) name')
 
     parser_write.add_argument('status',
@@ -92,7 +92,7 @@ def parse_arguments():
         type=str,
         nargs='?',
         const='backend',
-        choices=['local', 'samba'],
+        choices=['local', 'samba', 'freeipa'],
         help='Backend (source of settings) name')
 
     parser_enable.add_argument('--local-policy',
@@ -101,7 +101,7 @@ def parse_arguments():
     parser_enable.add_argument('--backend',
         default='samba',
         type=str,
-        choices=['local', 'samba'],
+        choices=['local', 'samba', 'freeipa'],
         help='Backend (source of settings) name')
 
     parser_update.add_argument('--local-policy',
@@ -110,7 +110,7 @@ def parse_arguments():
     parser_update.add_argument('--backend',
         default='samba',
         type=str,
-        choices=['local', 'samba'],
+        choices=['local', 'samba', 'freeipa'],
         help='Backend (source of settings) name')
 
 
@@ -221,6 +221,8 @@ def enable_gp(policy_name, backend_type):
     cmd_enable_gpupdate_user_timer = ['/bin/systemctl', '--global', 'enable', 'gpupdate-user.timer']
     cmd_enable_gpupdate_scripts_service = ['/bin/systemctl', 'enable', 'gpupdate-scripts-run.service']
     cmd_enable_gpupdate_user_scripts_service = ['/bin/systemctl', '--global', 'enable', 'gpupdate-scripts-run-user.service']
+    cmd_ipa_client_samba = ['/usr/sbin/ipa-client-samba', '--unattended']
+
 
     config = GPConfig()
 
@@ -271,6 +273,17 @@ def enable_gp(policy_name, backend_type):
     if not is_unit_enabled('gpupdate.timer'):
         disable_gp()
         return
+
+    if backend_type == 'freeipa':
+        result = runcmd(cmd_ipa_client_samba)
+        if result[0] != 0:
+            if "already configured" in str(result[1]) or "already exists" in str(result[1]):
+            else:
+                print(str(result))
+                return
+        else:
+            print(str(result))
+
     # Enable gpupdate-setup.timer for all users
     if not rollback_on_error(cmd_enable_gpupdate_user_timer):
         return

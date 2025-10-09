@@ -106,7 +106,7 @@ def get_backends():
     '''
     Get the list of backends supported by GPOA
     '''
-    return ['local', 'samba']
+    return ['local', 'samba', 'freeipa']
 
 def get_default_policy_name():
     '''
