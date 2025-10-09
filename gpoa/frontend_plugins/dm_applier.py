@@ -33,7 +33,6 @@ except ImportError:
     GpoaConfigObj = None
 
 from gpoa.plugin.plugin_base import FrontendPlugin
-from gpoa.plugin.plugin_log import PluginLog
 
 
 class DMApplier(FrontendPlugin):
@@ -57,7 +56,8 @@ class DMApplier(FrontendPlugin):
                     1: "Display Manager Applier initialized",
                     2: "LightDM configuration generated successfully",
                     3: "Display Manager Applier execution started",
-                    4: "Display manager configuration completed successfully"
+                    4: "Display manager configuration completed successfully",
+                    5: "LightDM GTK greeter configuration generated successfully"
                 },
                 'w': {
                     10: "No display managers detected"
@@ -95,20 +95,25 @@ class DMApplier(FrontendPlugin):
 
         if not self.dm_config["Autologin.User"]:
             self.dm_config["Autologin.Enable"] = False
+            self.dm_config["Autologin.Session"] = ""
 
         self.log("I1")  # Display Manager Applier initialized
 
     @classmethod
     def _get_plugin_prefix(cls):
         """Return plugin prefix for translation lookup."""
-        return cls.__plugin_prefix
+        return "dm_applier"
 
     def _prepare_conf(self, path):
         """
         Load existing file or create new, preserving all comments and structure.
         """
-        conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
-        return conf
+        try:
+            conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
+            return conf
+        except Exception as e:
+            self.log("E20", {"path": path, "error": str(e)})  # Configuration file path is invalid or inaccessible
+            return None
 
     def generate_lightdm(self, path):
         if not path or not os.path.isabs(path):
@@ -116,6 +121,8 @@ class DMApplier(FrontendPlugin):
             return None
 
         conf = self._prepare_conf(path)
+        if not conf:
+            return None
         section = conf.setdefault("Seat:*", {})
 
         # Set values:
@@ -145,8 +152,11 @@ class DMApplier(FrontendPlugin):
             self.log("E21", {"path": path, "error": str(e)})  # Failed to generate LightDM configuration
             return None
 
+
     def generate_gdm(self, path):
         conf = self._prepare_conf(path)
+        if not conf:
+            return None
         daemon = conf.setdefault("daemon", {})
         if self.dm_config["Autologin.Enable"]:
             daemon["AutomaticLoginEnable"] = "true"
@@ -178,6 +188,8 @@ class DMApplier(FrontendPlugin):
 
     def generate_sddm(self, path):
         conf = self._prepare_conf(path)
+        if not conf:
+            return None
         autologin = conf.setdefault("Autologin", {})
         if self.dm_config["Autologin.Enable"]:
             autologin["User"] = self.dm_config["Autologin.User"]
@@ -212,7 +224,128 @@ class DMApplier(FrontendPlugin):
         }.get(dm_name)
         if not gen:
             raise ValueError("Unknown DM: {}".format(dm_name))
-        return gen(filename)
+
+        result = gen(filename)
+
+        # For LightDM, also generate greeter configuration if needed
+        if dm_name == "lightdm" and result:
+            self._generate_lightdm_greeter_config()
+
+        return result
+
+    def _detect_lightdm_greeter(self):
+        """Detect which LightDM greeter is being used"""
+
+        # Check main lightdm.conf
+        lightdm_conf_path = "/etc/lightdm/lightdm.conf"
+        if os.path.exists(lightdm_conf_path):
+            with open(lightdm_conf_path, 'r') as f:
+                for line in f:
+                    if line.strip().startswith("greeter-session") and not line.strip().startswith('#'):
+                        greeter = line.split('=')[1].strip()
+                        self.log("D30", {"greeter": greeter, "source": "lightdm.conf"})  # Greeter detection details
+                        return greeter
+
+        # Check lightdm.conf.d directory
+        lightdm_conf_d = "/etc/lightdm/lightdm.conf.d"
+        if os.path.exists(lightdm_conf_d):
+            for file in sorted(os.listdir(lightdm_conf_d)):
+                if file.endswith('.conf'):
+                    file_path = os.path.join(lightdm_conf_d, file)
+                    with open(file_path, 'r') as f:
+                        for line in f:
+                            if line.strip().startswith("greeter-session") and not line.strip().startswith('#'):
+                                greeter = line.split('=')[1].strip()
+                                self.log("D30", {"greeter": greeter, "source": file})  # Greeter detection details
+                                return greeter
+
+        # Check default greeter
+        default_greeter_path = "/usr/share/xgreeters/lightdm-default-greeter.desktop"
+        if os.path.exists(default_greeter_path):
+            with open(default_greeter_path, 'r') as f:
+                for line in f:
+                    if line.strip().startswith("Exec=") and not line.strip().startswith('#'):
+                        greeter_exec = line.split('=')[1].strip()
+                        # Extract greeter name from exec path
+                        greeter_name = os.path.basename(greeter_exec)
+                        self.log("D30", {"greeter": greeter_name, "source": "default-greeter"})  # Greeter detection details
+                        return greeter_name
+
+        # Fallback to gtk-greeter (most common)
+        self.log("D30", {"greeter": "lightdm-gtk-greeter", "source": "fallback"})  # Greeter detection details
+        return "lightdm-gtk-greeter"
+
+    def _generate_lightdm_greeter_config(self):
+        """Generate configuration for the detected LightDM greeter"""
+
+        # Only generate if we have greeter settings
+        if not (self.dm_config["Greeter.Background"] or self.dm_config["Greeter.Theme"]):
+            return
+
+        greeter_name = self._detect_lightdm_greeter()
+
+        # Map greeter names to configuration files and settings
+        greeter_configs = {
+            "lightdm-gtk-greeter": {
+                "config_path": "/etc/lightdm/lightdm-gtk-greeter.conf",
+                "section": "greeter",
+                "background_key": "background",
+                "theme_key": "theme-name"
+            },
+            "lightdm-webkit2-greeter": {
+                "config_path": "/etc/lightdm/lightdm-webkit2-greeter.conf",
+                "section": "greeter",
+                "background_key": "background",
+                "theme_key": "theme"
+            },
+            "lightdm-unity-greeter": {
+                "config_path": "/etc/lightdm/lightdm-unity-greeter.conf",
+                "section": "greeter",
+                "background_key": "background",
+                "theme_key": "theme-name"
+            },
+            "lightdm-slick-greeter": {
+                "config_path": "/etc/lightdm/lightdm-slick-greeter.conf",
+                "section": "greeter",
+                "background_key": "background",
+                "theme_key": "theme-name"
+            },
+            "lightdm-kde-greeter": {
+                "config_path": "/etc/lightdm/lightdm-kde-greeter.conf",
+                "section": "greeter",
+                "background_key": "background",
+                "theme_key": "theme"
+            }
+        }
+
+        config_info = greeter_configs.get(greeter_name)
+        if not config_info:
+            self.log("E22", {"greeter": greeter_name})  # Unknown greeter type
+            return
+
+        conf = self._prepare_conf(config_info["config_path"])
+
+        # Get or create the greeter section
+        greeter_section = conf.setdefault(config_info["section"], {})
+
+        # Apply greeter settings
+        if self.dm_config["Greeter.Background"]:
+            greeter_section[config_info["background_key"]] = self.dm_config["Greeter.Background"]
+        if self.dm_config["Greeter.Theme"]:
+            greeter_section[config_info["theme_key"]] = self.dm_config["Greeter.Theme"]
+
+        # Remove settings if they were previously set but now empty
+        if not self.dm_config["Greeter.Background"] and config_info["background_key"] in greeter_section:
+            del greeter_section[config_info["background_key"]]
+        if not self.dm_config["Greeter.Theme"] and config_info["theme_key"] in greeter_section:
+            del greeter_section[config_info["theme_key"]]
+
+        conf.initial_comment = [f"# {greeter_name} custom config"]
+        try:
+            conf.write()
+            self.log("I5", {"path": config_info["config_path"], "greeter": greeter_name})  # Greeter config generated
+        except Exception as e:
+            self.log("E21", {"path": config_info["config_path"], "error": str(e)})  # Failed to generate greeter config
 
     def detect_dm(self):
         result = {"available": [], "active": None}
@@ -245,7 +378,7 @@ class DMApplier(FrontendPlugin):
                     if dm in unit_path:
                         return dm
         except Exception as e:
-            self.log("D2", {"unit": "display-manager.service", "error": str(e)})  # Display manager configuration details
+            self.log("D2", {"unit": "display-manager.service", "error": str(e)})  # DM config details
         return None
 
     def run(self):
@@ -265,7 +398,11 @@ class DMApplier(FrontendPlugin):
                 return False
 
             # Use active DM or first available
-            target_dm = dm_info["active"] or dm_info["available"][0]
+            target_dm = dm_info["active"] or (dm_info["available"][0] if dm_info["available"] else None)
+
+            if not target_dm:
+                self.log("W10")  # No display managers detected
+                return False
 
             # Determine config directory based on DM
             config_dirs = {
@@ -283,15 +420,16 @@ class DMApplier(FrontendPlugin):
             result = self.write_config(target_dm, config_dir)
 
             if result:
-                self.log("I4", {"dm": target_dm, "config_dir": config_dir})  # Display manager configuration completed successfully
+                self.log("I4", {"dm": target_dm, "config_dir": config_dir})  # DM config completed successfully
                 return True
             else:
-                self.log("E23", {"dm": target_dm, "config_dir": config_dir})  # Failed to generate display manager configuration
+                self.log("E23", {"dm": target_dm, "config_dir": config_dir})  # Failed to generate DM config
                 return False
 
         except Exception as e:
             self.log("E24", {"error": str(e)})  # Display Manager Applier execution failed
             return False
+
 
 def create_applier(dict_dconf_db, username=None):
     """Factory function to create DMApplier instance"""

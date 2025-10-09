@@ -29,6 +29,9 @@ msgstr "Запущено выполнение апплаера дисплей м
 msgid "Display manager configuration completed successfully"
 msgstr "Конфигурация дисплей менеджера успешно завершена"
 
+msgid "LightDM greeter configuration generated successfully"
+msgstr "Конфигурация LightDM greeter успешно сгенерирована"
+
 msgid "No display managers detected"
 msgstr "Дисплей менеджеры не обнаружены"
 
