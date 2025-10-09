@@ -59,13 +59,13 @@ def backend_factory(dc, username, is_machine, no_domain = False):
             if not dc:
                 dc = config.get_dc()
                 if dc:
-                    ld = dict({'dc': dc})
+                    ld = {'dc': dc}
                     log('D52', ld)
             ipac = ipacreds()
             domain = ipac.get_domain()
             back = freeipa_backend(ipac, username, domain, is_machine)
         except Exception as exc:
-            logdata = dict({'error': str(exc)})
+            logdata = {'error': str(exc)}
             log('E77', logdata)
 
     if config.get_backend() == 'local' or no_domain:

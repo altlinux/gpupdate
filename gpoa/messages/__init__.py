@@ -113,6 +113,7 @@ def error_code(code):
     error_ids[75] = 'Failed to update LDAP with new password data'
     error_ids[76] = 'Failed to change local user password'
     error_ids[77] = 'Unable to initialize Freeipa backend'
+    error_ids[78] = 'FreeIPA API error'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -350,6 +351,7 @@ def debug_code(code):
     debug_ids[232] = 'No user login records found'
     debug_ids[233] = 'Calculating time since the first user login after their password change'
     debug_ids[234] = 'No logins found after password change'
+    debug_ids[235] = 'Failed to load cached versions'
 
     return debug_ids.get(code, 'Unknown debug code')
 

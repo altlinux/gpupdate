@@ -271,6 +271,9 @@ msgstr "Не удалось изменить пароль локального �
 msgid "Unable to initialize Freeipa backend"
 msgstr "Невозможно инициализировать бэкэнд Freeipa"
 
+msgid "FreeIPA API Error"
+msgstr "Ошибка API FreeIPA"
+
 # Error_end
 
 # Debug
@@ -963,6 +966,9 @@ msgstr "Не найдены входы после изменения парол�
 
 msgid "Unknown message type, no message assigned"
 msgstr "Неизвестный тип сообщения"
+
+msgid "Failed to load cached versions"
+msgstr "Не удалось загрузить кешированные версии"
 
 # Debug_end
 
