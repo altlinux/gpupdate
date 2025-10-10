@@ -278,6 +278,7 @@ def enable_gp(policy_name, backend_type):
         result = runcmd(cmd_ipa_client_samba)
         if result[0] != 0:
             if "already configured" in str(result[1]) or "already exists" in str(result[1]):
+                print("FreeIPA is already configured")
             else:
                 print(str(result))
                 return

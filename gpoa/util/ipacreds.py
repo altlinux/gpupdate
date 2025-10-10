@@ -22,6 +22,8 @@ from pathlib import Path
 import os, re, logging
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
 from util.util import get_uid_by_username
+from .ipa import ipaopts
+from util.logging import log
 
 class ipacreds(ipaopts):
     def __init__(self):
@@ -53,7 +55,7 @@ class ipacreds(ipaopts):
                         dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(uid, save_dconf_db=True)
                     dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
                 except Exception as exc:
-                    logdata['exc'] = exc
+                    logdata = {'exc': str(exc)}
                     log('D235', logdata)
                     dict_gpo_name_version = {}
 
@@ -85,7 +87,7 @@ class ipacreds(ipaopts):
                 api.Backend.rpcclient.disconnect()
 
         except Exception as exc:
-            logdata['exc'] = exc
+            logdata = {'exc': str(exc)}
             log('E78', logdata)
         return gpos, server
 

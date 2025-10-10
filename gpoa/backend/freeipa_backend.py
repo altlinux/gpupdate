@@ -39,17 +39,20 @@ class freeipa_backend(applier_backend):
         self.__kinit_successful = machine_kinit(self.cache_path, "freeipa")
         if not self.__kinit_successful:
             raise Exception('kinit is not successful')
+
         self.storage = registry_factory()
         self.storage.set_info('domain', domain)
+
         machine_name = self.ipacreds.get_machine_name()
         self.storage.set_info('machine_name', machine_name)
         self.username = machine_name if is_machine else username
         self._is_machine_username = is_machine
+
         self.cache_dir = self.ipacreds.get_cache_dir()
         self.gpo_cache_part = 'gpo_cache'
         self.gpo_cache_dir = os.path.join(self.cache_dir, self.gpo_cache_part)
         self.storage.set_info('cache_dir', self.gpo_cache_dir)
-        logdata = dict({'cachedir': self.cache_dir})
+        logdata = {'cachedir': self.cache_dir}
         log('D7', logdata)
 
     def __del__(self):
@@ -60,21 +63,28 @@ class freeipa_backend(applier_backend):
         '''
         Retrieve settings and store it in a database - FreeIPA version
         '''
-        if self._is_machine_username:
-            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
-        else:
-            uid = get_uid_by_username(self.username)
-            dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(uid, save_dconf_db=True)
+        try:
+            if self._is_machine_username:
+                dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
+            else:
+                uid = get_uid_by_username(self.username)
+                dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(uid, save_dconf_db=True)
+        except Exception as e:
+            logdata = {'msg': str(e)}
+            log('E72', logdata)
 
         if self._is_machine_username:
-            machine_gpts = list()
+            machine_gpts = []
+
             try:
                 machine_name = self.storage.get_info('machine_name')
                 machine_gpts = self._get_gpts(machine_name)
                 machine_gpts.reverse()
+
             except Exception as exc:
                 logdata = {'msg': str(exc)}
                 log('E17', logdata)
+
             for i, gptobj in enumerate(machine_gpts):
                 try:
                     gptobj.merge_machine()
@@ -82,7 +92,7 @@ class freeipa_backend(applier_backend):
                     logdata = {'msg': str(exc)}
                     log('E26', logdata)
         else:
-            user_gpts = list()
+            user_gpts = []
             try:
                 user_gpts = self._get_gpts(self.username)
                 user_gpts.reverse()
@@ -93,77 +103,112 @@ class freeipa_backend(applier_backend):
                 try:
                     gptobj.merge_user()
                 except Exception as exc:
-                    logdata = dict({'msg': str(exc)})
+                    logdata = {'msg': str(exc)}
                     log('E27', logdata)
 
     def _get_gpts(self, username):
-        gpts = list()
+        gpts = []
         gpos, server = self.ipacreds.update_gpos(username)
         if not gpos:
             return gpts
         if not server:
             return gpts
-        for gpo in gpos:
+
+        cached_gpos = []
+        download_gpos = []
+
+        for i, gpo in enumerate(gpos):
+            if gpo.file_sys_path.startswith('/'):
+                if os.path.exists(gpo.file_sys_path):
+                    logdata = {'gpo_name': gpo.display_name, 'path': gpo.file_sys_path}
+                    log('D11', logdata)
+                    cached_gpos.append(gpo)
+                else:
+                    download_gpos.append(gpo)
+            else:
+                if self._check_sysvol_present(gpo):
+                    download_gpos.append(gpo)
+                else:
+                    logdata = {'gpo_name': gpo.display_name}
+                    log('W4', logdata)
+
+        if download_gpos:
+            try:
+                self._download_gpos(download_gpos, server)
+                logdata = {'count': len(download_gpos)}
+                log('D50', logdata)
+            except Exception as e:
+                logdata = {'msg': str(e), 'count': len(download_gpos)}
+                log('E35', logdata)
+        else:
+            log('D211', {})
+
+        all_gpos = cached_gpos + download_gpos
+        for gpo in all_gpos:
             gpt_abspath = gpo.file_sys_path
             if not os.path.exists(gpt_abspath):
-                try:
-                    self._download_single_gpo(gpo, server)
-                except Exception as e:
-                    if self._is_machine_username:
-                        logdata = {'gpo': gpo.display_name, 'error': str(e)}
-                        log('E47', logdata)
-                    else:
-                        logdata = {'gpo': gpo.display_name, 'error': str(e)}
-                        log('E50', logdata)
-                    continue
-
-            if not os.path.exists(gpt_abspath):
-                log('D211', {'gpo': gpo.display_name, 'path': gpt_abspath})
+                logdata = {'path': gpt_abspath, 'gpo_name': gpo.display_name}
+                log('W12', logdata)
                 continue
 
             if self._is_machine_username:
                 obj = gpt(gpt_abspath, None, GpoInfoDconf(gpo))
             else:
                 obj = gpt(gpt_abspath, self.username, GpoInfoDconf(gpo))
+
             obj.set_name(gpo.display_name)
             gpts.append(obj)
 
         local_gpt = get_local_gpt()
         gpts.append(local_gpt)
+        logdata = {'total_count': len(gpts), 'downloaded_count': len(download_gpos)}
+        log('I2', logdata)
         return gpts
 
-    def _download_single_gpo(self, gpo, server):
-        """Downloading one GPO"""
-        if not gpo.file_sys_path or gpo.file_sys_path.startswith('/'):
-            return
-        try:
-            smb_context = smbc.Context(use_kerberos=1)
-            cache_dir = self.ipacreds.get_cache_dir()
+    def _check_sysvol_present(self, gpo):
 
-            domain = self.ipacreds.get_domain().upper()
-            gpo_cache_dir = os.path.join(cache_dir, domain, 'POLICIES')
-            os.makedirs(gpo_cache_dir, exist_ok=True)
+        if not gpo.file_sys_path:
+            if getattr(gpo, 'name', '') != 'Local Policy':
+                logdata = {'gponame': getattr(gpo, 'name', 'Unknown')}
+                log('W4', logdata)
+            return False
 
-            smb_remote_path = self._convert_to_smb_path(gpo.file_sys_path, server)
-            local_gpo_path = os.path.join(gpo_cache_dir, gpo.name)
-            os.makedirs(local_gpo_path, exist_ok=True)
-            logdata = {'gpo': gpo.display_name, 'server': server}
-            log('D49', logdata)
+        if gpo.file_sys_path.startswith('\\\\'):
+            return True
 
-            self._download_files_recursively(smb_context, smb_remote_path, local_gpo_path)
-            gpo.file_sys_path = local_gpo_path
-
-            logdata = {'gpo': gpo.display_name, 'path': local_gpo_path}
-            log('D46', logdata)
-
-        except Exception as e:
-            if self._is_machine_username:
-                logdata = {'gpo': gpo.display_name, 'error': str(e)}
-                log('E47', logdata)
+        elif gpo.file_sys_path.startswith('/'):
+            if os.path.exists(gpo.file_sys_path):
+                return True
             else:
-                logdata = {'gpo': gpo.display_name, 'error': str(e)}
-                log('E50', logdata)
-            raise
+                return False
+
+        else:
+            return False
+
+    def _download_gpos(self, gpos, server):
+        smb_context = smbc.Context(use_kerberos=1)
+        cache_dir = self.ipacreds.get_cache_dir()
+        domain = self.ipacreds.get_domain().upper()
+        gpo_cache_dir = os.path.join(cache_dir, domain, 'POLICIES')
+        os.makedirs(gpo_cache_dir, exist_ok=True)
+
+        for gpo in gpos:
+            if not gpo.file_sys_path:
+                continue
+            try:
+                smb_remote_path = self._convert_to_smb_path(gpo.file_sys_path, server)
+                local_gpo_path = os.path.join(gpo_cache_dir, gpo.name)
+                os.makedirs(local_gpo_path, exist_ok=True)
+                self._download_files_recursively(smb_context, smb_remote_path, local_gpo_path)
+                gpo.file_sys_path = local_gpo_path
+
+            except Exception as e:
+                logdata = {
+                'msg': str(e),
+                'gpo_name': gpo.display_name,
+                'smb_path': smb_remote_path,
+                }
+                log('E38', logdata)
 
     def _convert_to_smb_path(self, windows_path, server):
         import re
@@ -181,8 +226,10 @@ class freeipa_backend(applier_backend):
             for file_entry in opendir.getdents():
                 if file_entry.name in [".", ".."]:
                     continue
+
                 remote_file_path = f"{remote_folder_path}/{file_entry.name}"
                 local_file_path = os.path.join(local_folder_path, file_entry.name)
+
                 if file_entry.smbc_type == smbc.DIR:
                     os.makedirs(local_file_path, exist_ok=True)
                     self._download_files_recursively(smb_context, remote_file_path, local_file_path)
@@ -193,8 +240,9 @@ class freeipa_backend(applier_backend):
                             local_file.write(remote_file.read())
                         remote_file.close()
                     except Exception as e:
-                        logdata = dict({'exception': str(e), 'file': file_entry.name})
+                        logdata = {'exception': str(e), 'file': file_entry.name}
                         log('W30', logdata)
         except Exception as e:
-            logdata = dict({'exception': str(e), 'remote_folder_path': remote_folder_path})
+            logdata = {'exception': str(e), 'remote_folder_path': remote_folder_path}
             log('W31', logdata)
+
