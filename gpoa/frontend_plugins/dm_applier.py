@@ -46,8 +46,8 @@ class DMApplier(FrontendPlugin):
     __registry_path = 'Software/BaseALT/Policies/DisplayManager'
     domain = 'dm_applier'
 
-    def __init__(self, dict_dconf_db, username=None):
-        super().__init__(dict_dconf_db, username)
+    def __init__(self, dict_dconf_db, username=None, fs_file_cache=None):
+        super().__init__(dict_dconf_db, username, fs_file_cache)
 
         # Initialize plugin-specific logger - locale_dir will be set by plugin_manager
         self._init_plugin_log(
@@ -85,14 +85,19 @@ class DMApplier(FrontendPlugin):
             "Autologin.Enable": self.config.get("Autologin.Enable", False),
             "Autologin.User": self.config.get("Autologin.User", ""),
             "Autologin.Session": self.config.get("Autologin.Session", ""),
-            "Greeter.Background": self.config.get("Greeter.Background", ""),
+            #"Greeter.Background": self.config.get("Greeter.Background", ""),
             "Greeter.Theme": self.config.get("Greeter.Theme", ""),
             "Session.Default": self.config.get("Session.Default", ""),
             "Security.AllowRootLogin": self.config.get("Security.AllowRootLogin", True),
             "Remote.XDMCP.Enable": self.config.get("Remote.XDMCP.Enable", False),
             "Logging.Level": self.config.get("Logging.Level", "")
         }
-
+        background_path = self.config.get("Greeter.Background", None)
+        if background_path:
+            fs_file_cache.store(background_path)
+            self.dm_config["Greeter.Background"] = fs_file_cache.get(background_path)
+        else:
+            self.dm_config["Greeter.Background"] = ''
         if not self.dm_config["Autologin.User"]:
             self.dm_config["Autologin.Enable"] = False
             self.dm_config["Autologin.Session"] = ""
@@ -431,6 +436,6 @@ class DMApplier(FrontendPlugin):
             return False
 
 
-def create_applier(dict_dconf_db, username=None):
+def create_applier(dict_dconf_db, username=None, fs_file_cache=None):
     """Factory function to create DMApplier instance"""
-    return DMApplier(dict_dconf_db, username)
+    return DMApplier(dict_dconf_db, username, fs_file_cache)

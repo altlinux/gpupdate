@@ -24,8 +24,8 @@ class FrontendPlugin(plugin):
     Base class for frontend plugins with simplified logging support.
     """
 
-    def __init__(self, dict_dconf_db={}, username=None):
-        super().__init__(dict_dconf_db, username)
+    def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None):
+        super().__init__(dict_dconf_db, username, fs_file_cache)
 
     @abstractmethod
     def run(self):

@@ -25,6 +25,7 @@ from gpoa.util.paths import gpupdate_plugins_path
 
 from .plugin import plugin
 from gpoa.storage import registry_factory
+from gpoa.storage.fs_file_cache import fs_file_cache
 from gpoa.util.util import get_uid_by_username
 
 
@@ -32,6 +33,7 @@ class plugin_manager:
     def __init__(self, is_machine, username):
         self.is_machine = is_machine
         self.username = username
+        self.file_cache = fs_file_cache('file_cache', self.username)
         self.list_plugins = []
         self.plugins = self.load_plugins()
         log('D3')
@@ -127,10 +129,10 @@ class plugin_manager:
 
         if factory_funcs:
             # Use factory function if available
-            plugin_instance = factory_funcs[0](dict_dconf_db, self.username)
+            plugin_instance = factory_funcs[0](dict_dconf_db, self.username, self.file_cache)
         elif plugin_classes:
             # Use first found plugin class
-            plugin_instance = plugin_classes[0](dict_dconf_db, self.username)
+            plugin_instance = plugin_classes[0](dict_dconf_db, self.username, self.file_cache)
         else:
             return None
 

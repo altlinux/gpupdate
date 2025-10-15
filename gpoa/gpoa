@@ -126,7 +126,6 @@ class gpoa_controller:
             return
         Dconf_registry._force = self.__args.force
         self.start_backend()
-        self.start_plugins(self.is_machine, self.username)
 
     def start_backend(self):
         '''
@@ -165,6 +164,7 @@ class gpoa_controller:
                         einfo = geterr()
                         logdata.update(einfo)
                         log('E3', logdata)
+                    self.start_plugins(self.is_machine, self.username)
 
     def start_frontend(self):
         '''
