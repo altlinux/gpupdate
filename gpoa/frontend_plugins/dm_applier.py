@@ -232,11 +232,12 @@ class DMApplier(FrontendPlugin):
 
         result = gen(filename)
 
-        # For LightDM, also generate greeter configuration if needed
-        if dm_name == "lightdm" and result:
+        # For LightDM, always generate greeter configuration if needed
+        if dm_name == "lightdm":
             self._generate_lightdm_greeter_config()
 
-        return result
+        # Return True if configuration was created or if we only have greeter settings
+        return result is not None or (self.dm_config["Greeter.Background"] or self.dm_config["Greeter.Theme"])
 
     def _detect_lightdm_greeter(self):
         """Detect which LightDM greeter is being used"""
