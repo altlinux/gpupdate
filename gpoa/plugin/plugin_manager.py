@@ -102,20 +102,19 @@ class plugin_manager:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
-        # Find plugin classes (subclasses of plugin base class)
-        plugin_classes = []
-        for name, obj in inspect.getmembers(module):
-            if (inspect.isclass(obj) and
-                issubclass(obj, plugin) and
-                obj != plugin and
-                not inspect.isabstract(obj)):  # Skip abstract classes
-                plugin_classes.append(obj)
 
-        # Find factory functions
+        # Find factory functions based on context
         factory_funcs = []
+        target_factory_names = []
+
+        if self.is_machine:
+            target_factory_names = ['create_machine_applier', 'create_plugin']
+        else:
+            target_factory_names = ['create_user_applier', 'create_plugin']
+
         for name, obj in inspect.getmembers(module):
             if (inspect.isfunction(obj) and
-                name.lower() in ['create_applier', 'create_plugin'] and
+                name.lower() in target_factory_names and
                 callable(obj)):
                 factory_funcs.append(obj)
 
@@ -130,10 +129,8 @@ class plugin_manager:
         if factory_funcs:
             # Use factory function if available
             plugin_instance = factory_funcs[0](dict_dconf_db, self.username, self.file_cache)
-        elif plugin_classes:
-            # Use first found plugin class
-            plugin_instance = plugin_classes[0](dict_dconf_db, self.username, self.file_cache)
         else:
+            # No suitable factory function found for this context
             return None
 
         # Auto-detect locale directory for this plugin and initialize/update logger

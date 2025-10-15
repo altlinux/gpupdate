@@ -437,6 +437,11 @@ class DMApplier(FrontendPlugin):
             return False
 
 
-def create_applier(dict_dconf_db, username=None, fs_file_cache=None):
+def create_machine_applier(dict_dconf_db, username=None, fs_file_cache=None):
     """Factory function to create DMApplier instance"""
     return DMApplier(dict_dconf_db, username, fs_file_cache)
+
+
+def create_user_applier(dict_dconf_db, username=None, fs_file_cache=None):
+    """Factory function to create DMApplier instance"""
+    pass
