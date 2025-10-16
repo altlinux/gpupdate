@@ -71,7 +71,8 @@ class DMApplier(FrontendPlugin):
                 },
                 'd': {
                     30: "Display manager detection details",
-                    31: "Display manager configuration details"
+                    31: "Display manager configuration details",
+                    32: "Removed empty configuration value"
                 }
             },
             # locale_dir will be set by plugin_manager during plugin loading
@@ -85,7 +86,6 @@ class DMApplier(FrontendPlugin):
             "Autologin.Enable": self.config.get("Autologin.Enable", False),
             "Autologin.User": self.config.get("Autologin.User", ""),
             "Autologin.Session": self.config.get("Autologin.Session", ""),
-            #"Greeter.Background": self.config.get("Greeter.Background", ""),
             "Greeter.Theme": self.config.get("Greeter.Theme", ""),
             "Session.Default": self.config.get("Session.Default", ""),
             "Security.AllowRootLogin": self.config.get("Security.AllowRootLogin", True),
@@ -120,6 +120,26 @@ class DMApplier(FrontendPlugin):
             self.log("E20", {"path": path, "error": str(e)})  # Configuration file path is invalid or inaccessible
             return None
 
+    def _clean_empty_values(self, section):
+        """
+        Remove keys with empty values from configuration section.
+        Avoids writing empty values to config files.
+        """
+        if not section:
+            return
+
+        # Create list of keys to remove (can't modify dict during iteration)
+        keys_to_remove = []
+        for key, value in section.items():
+            # Remove keys with empty strings, None, or whitespace-only values
+            if value is None or (isinstance(value, str) and not value.strip()):
+                keys_to_remove.append(key)
+
+        # Remove the identified keys
+        for key in keys_to_remove:
+            del section[key]
+            self.log("D32", {"key": key, "section": str(section)})  # Removed empty value
+
     def generate_lightdm(self, path):
         if not path or not os.path.isabs(path):
             self.log("E20", {"path": path})  # Configuration file path is invalid or inaccessible
@@ -130,9 +150,10 @@ class DMApplier(FrontendPlugin):
             return None
         section = conf.setdefault("Seat:*", {})
 
-        # Set values:
+        # Set values only if they have meaningful content (avoid writing empty values)
         if self.dm_config["Autologin.Enable"]:
-            section["autologin-user"] = self.dm_config["Autologin.User"]
+            if self.dm_config["Autologin.User"]:
+                section["autologin-user"] = self.dm_config["Autologin.User"]
             if self.dm_config["Autologin.Session"]:
                 section["autologin-session"] = self.dm_config["Autologin.Session"]
         if self.dm_config["Greeter.Theme"]:
@@ -146,6 +167,9 @@ class DMApplier(FrontendPlugin):
             x["enabled"] = "true"
         if self.dm_config["Logging.Level"]:
             section["log-level"] = self.dm_config["Logging.Level"]
+
+        # Remove any existing empty values that might have been set previously
+        self._clean_empty_values(section)
 
         # Comments example:
         conf.initial_comment = ["# LightDM custom config"]
@@ -163,12 +187,15 @@ class DMApplier(FrontendPlugin):
         if not conf:
             return None
         daemon = conf.setdefault("daemon", {})
+
+        # Set values only if they have meaningful content
         if self.dm_config["Autologin.Enable"]:
             daemon["AutomaticLoginEnable"] = "true"
-            daemon["AutomaticLogin"] = self.dm_config["Autologin.User"]
+            if self.dm_config["Autologin.User"]:
+                daemon["AutomaticLogin"] = self.dm_config["Autologin.User"]
             if self.dm_config["Autologin.Session"]:
                 daemon["AutomaticLoginSession"] = self.dm_config["Autologin.Session"]
-        if self.dm_config["Session.Default"].lower() == "x11":
+        if self.dm_config["Session.Default"] and self.dm_config["Session.Default"].lower() == "x11":
             daemon["WaylandEnable"] = "false"
         if self.dm_config["Remote.XDMCP.Enable"]:
             conf.setdefault("xdmcp", {})["Enable"] = "true"
@@ -188,6 +215,10 @@ class DMApplier(FrontendPlugin):
             daemon.comments.setdefault("log-comment", []).append(
                 f"# Logging: {self.dm_config['Logging.Level']}"
             )
+
+        # Clean up empty values
+        self._clean_empty_values(daemon)
+
         conf.write()
         return conf
 
@@ -196,8 +227,11 @@ class DMApplier(FrontendPlugin):
         if not conf:
             return None
         autologin = conf.setdefault("Autologin", {})
+
+        # Set values only if they have meaningful content
         if self.dm_config["Autologin.Enable"]:
-            autologin["User"] = self.dm_config["Autologin.User"]
+            if self.dm_config["Autologin.User"]:
+                autologin["User"] = self.dm_config["Autologin.User"]
             if self.dm_config["Autologin.Session"]:
                 autologin["Session"] = self.dm_config["Autologin.Session"]
         theme = conf.setdefault("Theme", {})
@@ -216,6 +250,13 @@ class DMApplier(FrontendPlugin):
             general.comments.setdefault("xdmcp", []).append(
                 "# XDMCP enabled (manual config may be required)"
             )
+
+        # Clean up empty values from all sections
+        self._clean_empty_values(autologin)
+        self._clean_empty_values(theme)
+        self._clean_empty_values(users)
+        self._clean_empty_values(general)
+
         conf.write()
         return conf
 
@@ -334,17 +375,14 @@ class DMApplier(FrontendPlugin):
         # Get or create the greeter section
         greeter_section = conf.setdefault(config_info["section"], {})
 
-        # Apply greeter settings
+        # Apply greeter settings only if they have meaningful content
         if self.dm_config["Greeter.Background"]:
             greeter_section[config_info["background_key"]] = self.dm_config["Greeter.Background"]
         if self.dm_config["Greeter.Theme"]:
             greeter_section[config_info["theme_key"]] = self.dm_config["Greeter.Theme"]
 
-        # Remove settings if they were previously set but now empty
-        if not self.dm_config["Greeter.Background"] and config_info["background_key"] in greeter_section:
-            del greeter_section[config_info["background_key"]]
-        if not self.dm_config["Greeter.Theme"] and config_info["theme_key"] in greeter_section:
-            del greeter_section[config_info["theme_key"]]
+        # Clean up any empty values in the greeter section
+        self._clean_empty_values(greeter_section)
 
         conf.initial_comment = [f"# {greeter_name} custom config"]
         try:
@@ -354,25 +392,105 @@ class DMApplier(FrontendPlugin):
             self.log("E21", {"path": config_info["config_path"], "error": str(e)})  # Failed to generate greeter config
 
     def detect_dm(self):
+        """Detect available and active display managers with fallback methods"""
         result = {"available": [], "active": None}
 
-        if shutil.which("lightdm"):
-            result["available"].append("lightdm")
-        if shutil.which("gdm") or shutil.which("gdm3"):
-            result["available"].append("gdm")
-        if shutil.which("sddm"):
-            result["available"].append("sddm")
+        # Check for available DMs using multiple methods
+        available_dms = self._detect_available_dms()
+        result["available"] = available_dms
 
-        # Check via systemd D-Bus
-        active = self._check_systemd_dm()
-        if active:
-            result["active"] = active
+        # Check active DM with fallbacks
+        active_dm = self._detect_active_dm_with_fallback(available_dms)
+        if active_dm:
+            result["active"] = active_dm
 
         return result
 
+    def _detect_available_dms(self):
+        """Detect available display managers using multiple reliable methods"""
+        available = []
+
+        # Method 1: Check systemd unit files
+        systemd_units = [
+            ("lightdm", "lightdm.service"),
+            ("gdm", "gdm.service"),
+            ("gdm", "gdm3.service"),
+            ("sddm", "sddm.service")
+        ]
+
+        for dm_name, unit_name in systemd_units:
+            if self._check_systemd_unit_exists(unit_name):
+                if dm_name not in available:
+                    available.append(dm_name)
+
+        # Method 2: Check binary availability as fallback
+        binary_checks = [
+            ("lightdm", ["lightdm"]),
+            ("gdm", ["gdm", "gdm3"]),
+            ("sddm", ["sddm"])
+        ]
+
+        for dm_name, binaries in binary_checks:
+            if dm_name not in available:
+                if any(shutil.which(binary) for binary in binaries):
+                    available.append(dm_name)
+
+        return available
+
+    def _detect_active_dm_with_fallback(self, available_dms):
+        """Detect active DM with multiple fallback methods"""
+        # Primary method: systemd D-Bus
+        active_dm = self._check_systemd_dm()
+        if active_dm:
+            return active_dm
+
+        # Fallback 1: Check running processes
+        active_dm = self._check_running_processes(available_dms)
+        if active_dm:
+            return active_dm
+
+        # Fallback 2: Check display manager symlink
+        active_dm = self._check_display_manager_symlink()
+        if active_dm:
+            return active_dm
+
+        return None
+
+    def _check_systemd_unit_exists(self, unit_name):
+        """Check if systemd unit exists without requiring D-Bus"""
+        unit_paths = [
+            f"/etc/systemd/system/{unit_name}",
+            f"/usr/lib/systemd/system/{unit_name}",
+            f"/lib/systemd/system/{unit_name}"
+        ]
+        return any(os.path.exists(path) for path in unit_paths)
+
+    def _check_running_processes(self, available_dms):
+        """Check running processes for display manager indicators"""
+        try:
+            import psutil
+            for proc in psutil.process_iter(['name']):
+                proc_name = proc.info['name'].lower()
+                for dm in available_dms:
+                    if dm in proc_name:
+                        return dm
+        except (ImportError, psutil.NoSuchProcess):
+            pass
+        return None
+
+    def _check_display_manager_symlink(self):
+        """Check /etc/systemd/system/display-manager.service symlink"""
+        symlink_path = "/etc/systemd/system/display-manager.service"
+        if os.path.islink(symlink_path):
+            target = os.readlink(symlink_path)
+            for dm in ["lightdm", "gdm", "sddm"]:
+                if dm in target:
+                    return dm
+        return None
+
     def _check_systemd_dm(self):
         """
-        Check active display manager via systemd D-Bus API.
+        Check active display manager via systemd D-Bus API with improved error handling.
         Returns dm name (lightdm/gdm/sddm) or None if not active.
         """
         try:
@@ -380,21 +498,32 @@ class DMApplier(FrontendPlugin):
             state = dm_unit._get_state()
             if state in ("active", "activating"):
                 unit_path = str(dm_unit.unit)  # D-Bus object path, e.g. /org/.../lightdm_2eservice
-                for dm in ["lightdm", "gdm", "sddm"]:
-                    if dm in unit_path:
-                        return dm
+                # More robust DM name extraction
+                dm_mapping = {
+                    "lightdm": "lightdm",
+                    "gdm": "gdm",
+                    "sddm": "sddm"
+                }
+                for key, dm_name in dm_mapping.items():
+                    if key in unit_path.lower():
+                        return dm_name
         except Exception as e:
             self.log("D2", {"unit": "display-manager.service", "error": str(e)})  # DM config details
         return None
 
     def run(self):
         """
-        Main plugin execution method.
+        Main plugin execution method with improved error handling and validation.
         Detects active display manager and applies configuration.
         """
         self.log("I3")  # Display Manager Applier execution started
 
         try:
+            # Validate configuration before proceeding
+            if not self._validate_configuration():
+                self.log("W10")  # No valid configuration to apply
+                return False
+
             # Detect available and active display managers
             dm_info = self.detect_dm()
             self.log("D30", {"dm_info": dm_info})  # Display manager detection details
@@ -411,13 +540,7 @@ class DMApplier(FrontendPlugin):
                 return False
 
             # Determine config directory based on DM
-            config_dirs = {
-                "lightdm": "/etc/lightdm/lightdm.conf.d",
-                "gdm": "/etc/gdm/custom.conf.d",
-                "sddm": "/etc/sddm.conf.d"
-            }
-
-            config_dir = config_dirs.get(target_dm)
+            config_dir = self._get_config_directory(target_dm)
             if not config_dir:
                 self.log("E22", {"dm": target_dm})  # Unknown display manager config directory
                 return False
@@ -435,6 +558,42 @@ class DMApplier(FrontendPlugin):
         except Exception as e:
             self.log("E24", {"error": str(e)})  # Display Manager Applier execution failed
             return False
+
+    def _validate_configuration(self):
+        """Validate DM configuration before applying"""
+        # Check if we have any meaningful configuration to apply
+        has_meaningful_config = any([
+            self.dm_config["Autologin.Enable"],
+            self.dm_config["Greeter.Theme"],
+            self.dm_config["Greeter.Background"],
+            self.dm_config["Session.Default"],
+            not self.dm_config["Security.AllowRootLogin"],
+            self.dm_config["Remote.XDMCP.Enable"],
+            self.dm_config["Logging.Level"]
+        ])
+
+        # Validate autologin configuration
+        if self.dm_config["Autologin.Enable"] and not self.dm_config["Autologin.User"]:
+            self.log("W10", {"message": "Autologin enabled but no user specified"})
+            return False
+
+        return has_meaningful_config
+
+    def _get_config_directory(self, dm_name):
+        """Get configuration directory for display manager with fallbacks"""
+        config_dirs = {
+            "lightdm": ["/etc/lightdm/lightdm.conf.d", "/etc/lightdm"],
+            "gdm": ["/etc/gdm/custom.conf.d", "/etc/gdm"],
+            "sddm": ["/etc/sddm.conf.d", "/etc/sddm"]
+        }
+
+        dirs = config_dirs.get(dm_name, [])
+        for config_dir in dirs:
+            if os.path.exists(config_dir):
+                return config_dir
+
+        # If no existing directory, use the primary one
+        return dirs[0] if dirs else None
 
 
 def create_machine_applier(dict_dconf_db, username=None, fs_file_cache=None):
