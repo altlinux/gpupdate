@@ -39,7 +39,7 @@ class plugin_manager:
         log('D3')
 
     def run(self):
-        """Run the plugins"""
+        """Run the plugins with appropriate privileges"""
         for plugin_obj in self.plugins:
             if self.is_valid_api_object(plugin_obj):
                 # Set execution context for plugins that support it
@@ -47,7 +47,14 @@ class plugin_manager:
                     plugin_obj.set_context(self.is_machine, self.username)
                 if plugin_obj.enabled:
                     log('D4', {'plugin_name': plugin_obj.plugin_name})
-                    plugin_obj.apply()
+
+                    # Use apply_user for user context, apply for machine context
+                    if not self.is_machine and self.username:
+                        result = plugin_obj.apply_user(self.username)
+                        if result is False:
+                            log('W46', {'plugin_name': plugin_obj.plugin_name, 'username': self.username})
+                    else:
+                        plugin_obj.apply()
                 else:
                     log('D236', {'plugin_name': plugin_obj.plugin_name})
             else:

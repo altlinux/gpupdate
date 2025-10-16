@@ -52,9 +52,39 @@ class plugin(ABC):
 
     @final
     def apply(self):
-        """Apply the plugin"""
+        """Apply the plugin with current privileges"""
         if self.enabled:
             self.run()
+
+    @final
+    def apply_user(self, username):
+        """Apply the plugin with user privileges"""
+        if self.enabled:
+            from util.system import with_privileges
+
+            def run_with_user():
+                try:
+                    result = self.run()
+                    # Ensure result is JSON-serializable
+                    return {"success": True, "result": result}
+                except Exception as e:
+                    # Return error information in JSON-serializable format
+                    return {"success": False, "error": str(e)}
+
+            try:
+                self.log_debug(f"Applying plugin {self.plugin_name} with user privileges for {username}")
+                execution_result = with_privileges(username, run_with_user)
+                if execution_result and execution_result.get("success"):
+                    result = execution_result.get("result", True)
+                    self.log_debug(f"Plugin {self.plugin_name} applied successfully with user privileges")
+                    return result
+                else:
+                    error_msg = execution_result.get("error", "Unknown error") if execution_result else "No result from with_privileges"
+                    self.log_error(f"Plugin execution failed with user privileges: {error_msg}")
+                    return False
+            except Exception as e:
+                self.log_error(f"Failed to apply plugin with user privileges: {str(e)}")
+                return False
 
     @final
     def get_dict_registry(self, prefix=''):

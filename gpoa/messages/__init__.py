@@ -412,6 +412,7 @@ def warning_code(code):
     warning_ids[43] = 'wbinfo SID lookup failed; will try as trusted domain user'
     warning_ids[44] = 'Plugin is not valid API object'
     warning_ids[45] = 'Error loading plugin from file'
+    warning_ids[46] = 'Plugin failed to apply with user privileges'
 
     return warning_ids.get(code, 'Unknown warning code')
 

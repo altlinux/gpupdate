@@ -57,7 +57,7 @@ class DMApplier(FrontendPlugin):
                     2: "LightDM configuration generated successfully",
                     3: "Display Manager Applier execution started",
                     4: "Display manager configuration completed successfully",
-                    5: "LightDM GTK greeter configuration generated successfully"
+                    5: "LightDM greeter configuration generated successfully"
                 },
                 'w': {
                     10: "No display managers detected"

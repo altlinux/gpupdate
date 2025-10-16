@@ -55,3 +55,6 @@ msgstr "Детали обнаружения дисплей менеджера"
 
 msgid "Display manager configuration details"
 msgstr "Детали конфигурации дисплей менеджера"
+
+msgid "Removed empty configuration value"
+msgstr "Удалено пустое значение конфигурации"
