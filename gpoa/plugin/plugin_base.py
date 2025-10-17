@@ -35,18 +35,10 @@ class FrontendPlugin(plugin):
         """
         pass
 
-    def log_info(self, message, data=None):
-        """Log info message with plugin context"""
-        super().log_info(message, data)
 
-    def log_error(self, message, data=None):
-        """Log error message with plugin context"""
-        super().log_error(message, data)
 
-    def log_warning(self, message, data=None):
-        """Log warning message with plugin context"""
-        super().log_warning(message, data)
 
-    def log_debug(self, message, data=None):
-        """Log debug message with plugin context"""
-        super().log_debug(message, data)
+
+
+
+

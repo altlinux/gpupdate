@@ -1114,6 +1114,9 @@ msgstr "Плагин не является допустимым объектом
 msgid "Error loading plugin from file"
 msgstr "Ошибка загрузки плагина из файла"
 
+msgid "Plugin failed to apply with user privileges"
+msgstr "Плагин не смог примениться с правами пользователя"
+
 # Warning_end
 
 # Fatal

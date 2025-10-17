@@ -72,18 +72,13 @@ class plugin(ABC):
                     return {"success": False, "error": str(e)}
 
             try:
-                self.log_debug(f"Applying plugin {self.plugin_name} with user privileges for {username}")
                 execution_result = with_privileges(username, run_with_user)
                 if execution_result and execution_result.get("success"):
                     result = execution_result.get("result", True)
-                    self.log_debug(f"Plugin {self.plugin_name} applied successfully with user privileges")
                     return result
                 else:
-                    error_msg = execution_result.get("error", "Unknown error") if execution_result else "No result from with_privileges"
-                    self.log_error(f"Plugin execution failed with user privileges: {error_msg}")
                     return False
             except Exception as e:
-                self.log_error(f"Failed to apply plugin with user privileges: {str(e)}")
                 return False
 
     @final
@@ -94,48 +89,6 @@ class plugin(ABC):
     def _init_plugin_log(self, message_dict=None, locale_dir=None, domain=None):
         """Initialize plugin-specific logger with message codes."""
         self._log = PluginLog(message_dict, locale_dir, domain, self.plugin_name)
-
-    def log_info(self, message, data=None):
-        """Log info message with plugin context"""
-        if self._log:
-            # Try to use message code format first
-            if isinstance(message, str) and len(message) > 1 and message[0].isalpha() and message[1:].isdigit():
-                self._log.info(message[1:], data)
-            else:
-                # Fallback to simple text logging
-                log("I", {"plugin": self.__class__.__name__, "message": message, "data": data})
-        else:
-            log("I", {"plugin": self.__class__.__name__, "message": message, "data": data})
-
-    def log_error(self, message, data=None):
-        """Log error message with plugin context"""
-        if self._log:
-            if isinstance(message, str) and len(message) > 1 and message[0].isalpha() and message[1:].isdigit():
-                self._log.error(message[1:], data)
-            else:
-                log("E", {"plugin": self.__class__.__name__, "message": message, "data": data})
-        else:
-            log("E", {"plugin": self.__class__.__name__, "message": message, "data": data})
-
-    def log_warning(self, message, data=None):
-        """Log warning message with plugin context"""
-        if self._log:
-            if isinstance(message, str) and len(message) > 1 and message[0].isalpha() and message[1:].isdigit():
-                self._log.warning(message[1:], data)
-            else:
-                log("W", {"plugin": self.__class__.__name__, "message": message, "data": data})
-        else:
-            log("W", {"plugin": self.__class__.__name__, "message": message, "data": data})
-
-    def log_debug(self, message, data=None):
-        """Log debug message with plugin context"""
-        if self._log:
-            if isinstance(message, str) and len(message) > 1 and message[0].isalpha() and message[1:].isdigit():
-                self._log.debug(message[1:], data)
-            else:
-                log("D", {"plugin": self.__class__.__name__, "message": message, "data": data})
-        else:
-            log("D", {"plugin": self.__class__.__name__, "message": message, "data": data})
 
     def log(self, message_code, data=None):
         """
