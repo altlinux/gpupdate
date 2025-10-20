@@ -22,6 +22,7 @@ from pathlib import Path
 
 from gpoa.util.logging import log
 from gpoa.util.paths import gpupdate_plugins_path
+from gpoa.util.util import string_to_literal_eval
 
 from .plugin import plugin
 from gpoa.storage import registry_factory
@@ -35,8 +36,36 @@ class plugin_manager:
         self.username = username
         self.file_cache = fs_file_cache('file_cache', self.username)
         self.list_plugins = []
+        self.dict_dconf_db = self.get_dict_dconf_db()
+        self.filling_settings()
         self.plugins = self.load_plugins()
         log('D3')
+
+    def get_dict_dconf_db(self):
+        dconf_storage = registry_factory()
+        if self.username and not self.is_machine:
+            uid = get_uid_by_username(self.username)
+            dict_dconf_db = dconf_storage.get_dictionary_from_dconf_file_db(uid)
+        else:
+            dict_dconf_db = dconf_storage.get_dictionary_from_dconf_file_db()
+        return dict_dconf_db
+
+    def filling_settings(self):
+        """Filling in settings"""
+        dict_gpupdate_key = string_to_literal_eval(
+            self.dict_dconf_db.get('Software/BaseALT/Policies/GPUpdate',{}))
+        self.plugins_enable = dict_gpupdate_key.get('Plugins')
+        self.plugins_list = dict_gpupdate_key.get('PluginsList')
+
+    def check_enabled_plugin(self, plugin_name):
+        """Check if the plugin is enabled"""
+        if not self.plugins_enable:
+            return False
+
+        if isinstance(self.plugins_list, list):
+            return plugin_name in self.plugins_list
+        # if the list is missing or not a list, consider the plugin enabled
+        return True
 
     def run(self):
         """Run the plugins with appropriate privileges"""
@@ -45,7 +74,7 @@ class plugin_manager:
                 # Set execution context for plugins that support it
                 if hasattr(plugin_obj, 'set_context'):
                     plugin_obj.set_context(self.is_machine, self.username)
-                if plugin_obj.enabled:
+                if self.check_enabled_plugin(plugin_obj.plugin_name):
                     log('D4', {'plugin_name': plugin_obj.plugin_name})
 
                     # Use apply_user for user context, apply for machine context
@@ -126,16 +155,11 @@ class plugin_manager:
                 factory_funcs.append(obj)
 
         # Create plugin instance
-        storage = registry_factory()
-        if self.username and not self.is_machine:
-            uid = get_uid_by_username(self.username)
-            dict_dconf_db = storage.get_dictionary_from_dconf_file_db(uid)
-        else:
-            dict_dconf_db = storage.get_dictionary_from_dconf_file_db()
+
 
         if factory_funcs:
             # Use factory function if available
-            plugin_instance = factory_funcs[0](dict_dconf_db, self.username, self.file_cache)
+            plugin_instance = factory_funcs[0](self.dict_dconf_db, self.username, self.file_cache)
         else:
             # No suitable factory function found for this context
             return None

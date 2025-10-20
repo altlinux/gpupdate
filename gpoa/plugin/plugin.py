@@ -30,56 +30,35 @@ class plugin(ABC):
         self.username = username
         self._log = None
         self.plugin_name = self.__class__.__name__
-        self.enabled = self.check_enabled()
-
-    @final
-    def check_enabled(self):
-        """Check if the plugin is enabled"""
-        plugins_enable = Dconf_registry.get_key_value(
-            '/Software/BaseALT/Policies/GPUpdate/Plugins'
-        )
-        plugins_list = Dconf_registry.get_key_value(
-            '/Software/BaseALT/Policies/GPUpdate/PluginsList'
-        )
-
-        if not plugins_enable:
-            return False
-
-        if isinstance(plugins_list, list):
-            return self.plugin_name in plugins_list
-        # if the list is missing or not a list, consider the plugin enabled
-        return True
 
     @final
     def apply(self):
         """Apply the plugin with current privileges"""
-        if self.enabled:
-            self.run()
+        self.run()
 
     @final
     def apply_user(self, username):
         """Apply the plugin with user privileges"""
-        if self.enabled:
-            from util.system import with_privileges
+        from util.system import with_privileges
 
-            def run_with_user():
-                try:
-                    result = self.run()
-                    # Ensure result is JSON-serializable
-                    return {"success": True, "result": result}
-                except Exception as e:
-                    # Return error information in JSON-serializable format
-                    return {"success": False, "error": str(e)}
-
+        def run_with_user():
             try:
-                execution_result = with_privileges(username, run_with_user)
-                if execution_result and execution_result.get("success"):
-                    result = execution_result.get("result", True)
-                    return result
-                else:
-                    return False
-            except Exception as e:
+                result = self.run()
+                # Ensure result is JSON-serializable
+                return {"success": True, "result": result}
+            except Exception as exc:
+                # Return error information in JSON-serializable format
+                return {"success": False, "error": str(exc)}
+
+        try:
+            execution_result = with_privileges(username, run_with_user)
+            if execution_result and execution_result.get("success"):
+                result = execution_result.get("result", True)
+                return result
+            else:
                 return False
+        except:
+            return False
 
     @final
     def get_dict_registry(self, prefix=''):
