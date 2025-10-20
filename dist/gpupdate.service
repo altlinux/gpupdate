@@ -1,6 +1,7 @@
 [Unit]
 Description=Group policy update for machine
 After=syslog.target network-online.target sssd.service
+Before=systemd-logind.service
 
 [Service]
 Environment=PATH=/bin:/sbin:/usr/bin:/usr/sbin
