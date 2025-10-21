@@ -94,8 +94,9 @@ class DMApplier(FrontendPlugin):
         }
         background_path = self.config.get("Greeter.Background", None)
         if background_path:
-            fs_file_cache.store(background_path)
-            self.dm_config["Greeter.Background"] = fs_file_cache.get(background_path)
+            normalized_path = background_path.replace('\\', '/')
+            fs_file_cache.store(normalized_path)
+            self.dm_config["Greeter.Background"] = fs_file_cache.get(normalized_path)
         else:
             self.dm_config["Greeter.Background"] = ''
         if not self.dm_config["Autologin.User"]:
