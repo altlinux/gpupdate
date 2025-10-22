@@ -68,6 +68,8 @@ Requires: libgvdb-gir
 Requires: desktop-file-utils
 # This is needed for smb file cache support
 Requires: python3-module-smbc >= 1.0.23-alt3
+# This is needed for laps
+Requires: python3-module-libcng_dpapi
 
 Source0: %name-%version.tar
 
