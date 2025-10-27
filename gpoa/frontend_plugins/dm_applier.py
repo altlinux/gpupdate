@@ -117,8 +117,8 @@ class DMApplier(FrontendPlugin):
         try:
             conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
             return conf
-        except Exception as e:
-            self.log("E20", {"path": path, "error": str(e)})  # Configuration file path is invalid or inaccessible
+        except Exception as exc:
+            self.log("E20", {"path": path, "error": str(exc)})  # Configuration file path is invalid or inaccessible
             return None
 
     def _clean_empty_values(self, section):
@@ -147,7 +147,7 @@ class DMApplier(FrontendPlugin):
             return None
 
         conf = self._prepare_conf(path)
-        if not conf:
+        if conf is None:
             return None
         section = conf.setdefault("Seat:*", {})
 
@@ -178,14 +178,14 @@ class DMApplier(FrontendPlugin):
             conf.write()
             self.log("I2", {"path": path})  # LightDM configuration generated successfully
             return conf
-        except Exception as e:
-            self.log("E21", {"path": path, "error": str(e)})  # Failed to generate LightDM configuration
+        except Exception as exc:
+            self.log("E21", {"path": path, "error": str(exc)})  # Failed to generate LightDM configuration
             return None
 
 
     def generate_gdm(self, path):
         conf = self._prepare_conf(path)
-        if not conf:
+        if conf is None:
             return None
         daemon = conf.setdefault("daemon", {})
 
@@ -225,7 +225,7 @@ class DMApplier(FrontendPlugin):
 
     def generate_sddm(self, path):
         conf = self._prepare_conf(path)
-        if not conf:
+        if conf is None:
             return None
         autologin = conf.setdefault("Autologin", {})
 
@@ -389,8 +389,8 @@ class DMApplier(FrontendPlugin):
         try:
             conf.write()
             self.log("I5", {"path": config_info["config_path"], "greeter": greeter_name})  # Greeter config generated
-        except Exception as e:
-            self.log("E21", {"path": config_info["config_path"], "error": str(e)})  # Failed to generate greeter config
+        except Exception as exc:
+            self.log("E21", {"path": config_info["config_path"], "error": str(exc)})  # Failed to generate greeter config
 
     def detect_dm(self):
         """Detect available and active display managers with fallback methods"""
@@ -508,8 +508,8 @@ class DMApplier(FrontendPlugin):
                 for key, dm_name in dm_mapping.items():
                     if key in unit_path.lower():
                         return dm_name
-        except Exception as e:
-            self.log("D2", {"unit": "display-manager.service", "error": str(e)})  # DM config details
+        except Exception as exc:
+            self.log("D2", {"unit": "display-manager.service", "error": str(exc)})  # DM config details
         return None
 
     def run(self):
@@ -556,8 +556,8 @@ class DMApplier(FrontendPlugin):
                 self.log("E23", {"dm": target_dm, "config_dir": config_dir})  # Failed to generate DM config
                 return False
 
-        except Exception as e:
-            self.log("E24", {"error": str(e)})  # Display Manager Applier execution failed
+        except Exception as exc:
+            self.log("E24", {"error": str(exc)})  # Display Manager Applier execution failed
             return False
 
     def _validate_configuration(self):
