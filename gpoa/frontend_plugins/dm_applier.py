@@ -81,27 +81,18 @@ class DMApplier(FrontendPlugin):
 
         self.config = self.get_dict_registry(self.__registry_path)
 
-        # DMConfigGenerator configuration
-        self.dm_config = {
-            "Autologin.Enable": self.config.get("Autologin.Enable", False),
-            "Autologin.User": self.config.get("Autologin.User", ""),
-            "Autologin.Session": self.config.get("Autologin.Session", ""),
-            "Greeter.Theme": self.config.get("Greeter.Theme", ""),
-            "Session.Default": self.config.get("Session.Default", ""),
-            "Security.AllowRootLogin": self.config.get("Security.AllowRootLogin", True),
-            "Remote.XDMCP.Enable": self.config.get("Remote.XDMCP.Enable", False),
-            "Logging.Level": self.config.get("Logging.Level", "")
-        }
+        # DMConfigGenerator configuration - only background settings
         background_path = self.config.get("Greeter.Background", None)
         if background_path:
             normalized_path = background_path.replace('\\', '/')
             fs_file_cache.store(normalized_path)
-            self.dm_config["Greeter.Background"] = fs_file_cache.get(normalized_path)
+            self.dm_config = {
+                "Greeter.Background": fs_file_cache.get(normalized_path)
+            }
         else:
-            self.dm_config["Greeter.Background"] = ''
-        if not self.dm_config["Autologin.User"]:
-            self.dm_config["Autologin.Enable"] = False
-            self.dm_config["Autologin.Session"] = ""
+            self.dm_config = {
+                "Greeter.Background": ''
+            }
 
         self.log("I1")  # Display Manager Applier initialized
 
@@ -152,22 +143,8 @@ class DMApplier(FrontendPlugin):
         section = conf.setdefault("Seat:*", {})
 
         # Set values only if they have meaningful content (avoid writing empty values)
-        if self.dm_config["Autologin.Enable"]:
-            if self.dm_config["Autologin.User"]:
-                section["autologin-user"] = self.dm_config["Autologin.User"]
-            if self.dm_config["Autologin.Session"]:
-                section["autologin-session"] = self.dm_config["Autologin.Session"]
-        if self.dm_config["Greeter.Theme"]:
-            section["greeter-theme-name"] = self.dm_config["Greeter.Theme"]
         if self.dm_config["Greeter.Background"]:
             section["greeter-background"] = self.dm_config["Greeter.Background"]
-        if not self.dm_config["Security.AllowRootLogin"]:
-            section["allow-root"] = "false"
-        if self.dm_config["Remote.XDMCP.Enable"]:
-            x = conf.setdefault("XDMCPServer", {})
-            x["enabled"] = "true"
-        if self.dm_config["Logging.Level"]:
-            section["log-level"] = self.dm_config["Logging.Level"]
 
         # Remove any existing empty values that might have been set previously
         self._clean_empty_values(section)
@@ -190,32 +167,9 @@ class DMApplier(FrontendPlugin):
         daemon = conf.setdefault("daemon", {})
 
         # Set values only if they have meaningful content
-        if self.dm_config["Autologin.Enable"]:
-            daemon["AutomaticLoginEnable"] = "true"
-            if self.dm_config["Autologin.User"]:
-                daemon["AutomaticLogin"] = self.dm_config["Autologin.User"]
-            if self.dm_config["Autologin.Session"]:
-                daemon["AutomaticLoginSession"] = self.dm_config["Autologin.Session"]
-        if self.dm_config["Session.Default"] and self.dm_config["Session.Default"].lower() == "x11":
-            daemon["WaylandEnable"] = "false"
-        if self.dm_config["Remote.XDMCP.Enable"]:
-            conf.setdefault("xdmcp", {})["Enable"] = "true"
-        if self.dm_config["Greeter.Background"] or self.dm_config["Greeter.Theme"]:
+        if self.dm_config["Greeter.Background"]:
             greeter = conf.setdefault("greeter", {})
-            if self.dm_config["Greeter.Background"]:
-                greeter["Background"] = self.dm_config["Greeter.Background"]
-            if self.dm_config["Greeter.Theme"]:
-                greeter["ThemeName"] = self.dm_config["Greeter.Theme"]
-        if not self.dm_config["Security.AllowRootLogin"]:
-            daemon.comments = daemon.comments or {}
-            daemon.comments.setdefault("AutomaticLogin", []).append(
-                "# Root login disabled (handled externally)"
-            )
-        if self.dm_config["Logging.Level"]:
-            daemon.comments = daemon.comments or {}
-            daemon.comments.setdefault("log-comment", []).append(
-                f"# Logging: {self.dm_config['Logging.Level']}"
-            )
+            greeter["Background"] = self.dm_config["Greeter.Background"]
 
         # Clean up empty values
         self._clean_empty_values(daemon)
@@ -230,27 +184,9 @@ class DMApplier(FrontendPlugin):
         autologin = conf.setdefault("Autologin", {})
 
         # Set values only if they have meaningful content
-        if self.dm_config["Autologin.Enable"]:
-            if self.dm_config["Autologin.User"]:
-                autologin["User"] = self.dm_config["Autologin.User"]
-            if self.dm_config["Autologin.Session"]:
-                autologin["Session"] = self.dm_config["Autologin.Session"]
-        theme = conf.setdefault("Theme", {})
-        if self.dm_config["Greeter.Theme"]:
-            theme["Current"] = self.dm_config["Greeter.Theme"]
         if self.dm_config["Greeter.Background"]:
+            theme = conf.setdefault("Theme", {})
             theme["Background"] = self.dm_config["Greeter.Background"]
-        users = conf.setdefault("Users", {})
-        if not self.dm_config["Security.AllowRootLogin"]:
-            users["AllowRootLogin"] = "false"
-        general = conf.setdefault("General", {})
-        if self.dm_config["Logging.Level"]:
-            general["LogLevel"] = self.dm_config["Logging.Level"]
-        if self.dm_config["Remote.XDMCP.Enable"]:
-            general.comments = general.comments or {}
-            general.comments.setdefault("xdmcp", []).append(
-                "# XDMCP enabled (manual config may be required)"
-            )
 
         # Clean up empty values from all sections
         self._clean_empty_values(autologin)
@@ -278,8 +214,8 @@ class DMApplier(FrontendPlugin):
         if dm_name == "lightdm":
             self._generate_lightdm_greeter_config()
 
-        # Return True if configuration was created or if we only have greeter settings
-        return result is not None or (self.dm_config["Greeter.Background"] or self.dm_config["Greeter.Theme"])
+        # Return True if configuration was created or if we have background settings
+        return result is not None or self.dm_config["Greeter.Background"]
 
     def _detect_lightdm_greeter(self):
         """Detect which LightDM greeter is being used"""
@@ -326,8 +262,8 @@ class DMApplier(FrontendPlugin):
     def _generate_lightdm_greeter_config(self):
         """Generate configuration for the detected LightDM greeter"""
 
-        # Only generate if we have greeter settings
-        if not (self.dm_config["Greeter.Background"] or self.dm_config["Greeter.Theme"]):
+        # Only generate if we have background settings
+        if not self.dm_config["Greeter.Background"]:
             return
 
         greeter_name = self._detect_lightdm_greeter()
@@ -376,11 +312,9 @@ class DMApplier(FrontendPlugin):
         # Get or create the greeter section
         greeter_section = conf.setdefault(config_info["section"], {})
 
-        # Apply greeter settings only if they have meaningful content
+        # Apply background setting only if it has meaningful content
         if self.dm_config["Greeter.Background"]:
             greeter_section[config_info["background_key"]] = self.dm_config["Greeter.Background"]
-        if self.dm_config["Greeter.Theme"]:
-            greeter_section[config_info["theme_key"]] = self.dm_config["Greeter.Theme"]
 
         # Clean up any empty values in the greeter section
         self._clean_empty_values(greeter_section)
@@ -562,23 +496,8 @@ class DMApplier(FrontendPlugin):
 
     def _validate_configuration(self):
         """Validate DM configuration before applying"""
-        # Check if we have any meaningful configuration to apply
-        has_meaningful_config = any([
-            self.dm_config["Autologin.Enable"],
-            self.dm_config["Greeter.Theme"],
-            self.dm_config["Greeter.Background"],
-            self.dm_config["Session.Default"],
-            not self.dm_config["Security.AllowRootLogin"],
-            self.dm_config["Remote.XDMCP.Enable"],
-            self.dm_config["Logging.Level"]
-        ])
-
-        # Validate autologin configuration
-        if self.dm_config["Autologin.Enable"] and not self.dm_config["Autologin.User"]:
-            self.log("W10", {"message": "Autologin enabled but no user specified"})
-            return False
-
-        return has_meaningful_config
+        # Check if we have background configuration to apply
+        return bool(self.dm_config["Greeter.Background"])
 
     def _get_config_directory(self, dm_name):
         """Get configuration directory for display manager with fallbacks"""
