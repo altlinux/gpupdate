@@ -34,6 +34,8 @@
 %add_python3_req_skip util.windows
 %add_python3_req_skip util.xml
 %add_python3_req_skip util.gpoa_ini_parsing
+%add_python3_req_skip util.ipacreds
+%add_python3_req_skip frontend.appliers.ini_file
 
 Name: gpupdate
 Version: 0.13.4
@@ -63,6 +65,7 @@ Requires: dconf-profile
 Requires: packagekit
 Requires: dconf
 Requires: libgvdb-gir
+Requires: freeipa-client-samba
 # This is needed by shortcuts_applier
 Requires: desktop-file-utils
 # This is needed for smb file cache support

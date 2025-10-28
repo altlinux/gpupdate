@@ -16,21 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import smbc
+import re
+
+from .applier_backend import applier_backend
+from pathlib import Path
+from gpt.gpt import gpt, get_local_gpt
+from gpt.gpo_dconf_mapping import GpoInfoDconf
+from storage import registry_factory
+from storage.dconf_registry import Dconf_registry, extract_display_name_version
+from storage.fs_file_cache import fs_file_cache
+from util.logging import log
+from util.util import get_uid_by_username
 from util.kerberos import (
       machine_kinit
     , machine_kdestroy
 )
-import os
-from .applier_backend import applier_backend
-from storage import registry_factory
-from util.logging import log
-import smbc
-from pathlib import Path
-from gpt.gpt import gpt, get_local_gpt
-import stat
-from gpt.gpo_dconf_mapping import GpoInfoDconf
-from storage.dconf_registry import Dconf_registry, extract_display_name_version
-from util.util import get_uid_by_username
 
 class freeipa_backend(applier_backend):
     def __init__(self, ipacreds, username, domain, is_machine):
@@ -52,6 +54,7 @@ class freeipa_backend(applier_backend):
         self.gpo_cache_part = 'gpo_cache'
         self.gpo_cache_dir = os.path.join(self.cache_dir, self.gpo_cache_part)
         self.storage.set_info('cache_dir', self.gpo_cache_dir)
+        self.file_cache = fs_file_cache("freeipa_gpo", username)
         logdata = {'cachedir': self.cache_dir}
         log('D7', logdata)
 
@@ -166,7 +169,6 @@ class freeipa_backend(applier_backend):
         return gpts
 
     def _check_sysvol_present(self, gpo):
-
         if not gpo.file_sys_path:
             if getattr(gpo, 'name', '') != 'Local Policy':
                 logdata = {'gponame': getattr(gpo, 'name', 'Unknown')}
@@ -186,7 +188,6 @@ class freeipa_backend(applier_backend):
             return False
 
     def _download_gpos(self, gpos, server):
-        smb_context = smbc.Context(use_kerberos=1)
         cache_dir = self.ipacreds.get_cache_dir()
         domain = self.ipacreds.get_domain().upper()
         gpo_cache_dir = os.path.join(cache_dir, domain, 'POLICIES')
@@ -195,23 +196,23 @@ class freeipa_backend(applier_backend):
         for gpo in gpos:
             if not gpo.file_sys_path:
                 continue
+            smb_remote_path = None
             try:
                 smb_remote_path = self._convert_to_smb_path(gpo.file_sys_path, server)
                 local_gpo_path = os.path.join(gpo_cache_dir, gpo.name)
-                os.makedirs(local_gpo_path, exist_ok=True)
-                self._download_files_recursively(smb_context, smb_remote_path, local_gpo_path)
+
+                self._download_gpo_directory(smb_remote_path, local_gpo_path)
                 gpo.file_sys_path = local_gpo_path
 
             except Exception as e:
                 logdata = {
-                'msg': str(e),
-                'gpo_name': gpo.display_name,
-                'smb_path': smb_remote_path,
+                    'msg': str(e),
+                    'gpo_name': gpo.display_name,
+                    'smb_path': smb_remote_path,
                 }
                 log('E38', logdata)
 
     def _convert_to_smb_path(self, windows_path, server):
-        import re
         match = re.search(r'\\\\[^\\]+\\(.+)', windows_path)
         if not match:
             raise Exception(f"Invalid Windows path format: {windows_path}")
@@ -220,29 +221,26 @@ class freeipa_backend(applier_backend):
 
         return smb_url
 
-    def _download_files_recursively(self, smb_context, remote_folder_path, local_folder_path):
+    def _download_gpo_directory(self, remote_smb_path, local_path):
+        os.makedirs(local_path, exist_ok=True)
         try:
-            opendir = smb_context.opendir(remote_folder_path)
-            for file_entry in opendir.getdents():
-                if file_entry.name in [".", ".."]:
+            entries = self.file_cache.samba_context.opendir(remote_smb_path).getdents()
+            for entry in entries:
+                if entry.name in [".", ".."]:
                     continue
-
-                remote_file_path = f"{remote_folder_path}/{file_entry.name}"
-                local_file_path = os.path.join(local_folder_path, file_entry.name)
-
-                if file_entry.smbc_type == smbc.DIR:
-                    os.makedirs(local_file_path, exist_ok=True)
-                    self._download_files_recursively(smb_context, remote_file_path, local_file_path)
-                elif file_entry.smbc_type == smbc.FILE:
+                remote_entry_path = f"{remote_smb_path}/{entry.name}"
+                local_entry_path = os.path.join(local_path, entry.name)
+                if entry.smbc_type == smbc.DIR:
+                    self._download_gpo_directory(remote_entry_path, local_entry_path)
+                elif entry.smbc_type == smbc.FILE:
                     try:
-                        remote_file = smb_context.open(remote_file_path, os.O_RDONLY)
-                        with open(local_file_path, "wb") as local_file:
-                            local_file.write(remote_file.read())
-                        remote_file.close()
+                        os.makedirs(os.path.dirname(local_entry_path), exist_ok=True)
+                        self.file_cache.store(remote_entry_path, Path(local_entry_path))
                     except Exception as e:
-                        logdata = {'exception': str(e), 'file': file_entry.name}
+                        logdata = {'exception': str(e), 'file': entry.name}
                         log('W30', logdata)
         except Exception as e:
-            logdata = {'exception': str(e), 'remote_folder_path': remote_folder_path}
+            logdata = {'exception': str(e), 'remote_folder_path': remote_smb_path}
             log('W31', logdata)
+
 

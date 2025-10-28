@@ -48,17 +48,11 @@ class ipaopts:
     def get_server(self):
         """
         Return the FreeIPA PDC Emulator server from API.
-        Заменяет получение из config на динамический вызов API.
         """
         try:
-            try:
-                result = api.Command.gpmaster_show_pdc()
-                pdc_server = result['result']['pdc_emulator']
-                return pdc_server
-
-            except Exception as api_error:
-                print(api_error)
-
+            result = api.Command.gpmaster_show_pdc()
+            pdc_server = result['result']['pdc_emulator']
+            return pdc_server
         except Exception as e:
             pass
 

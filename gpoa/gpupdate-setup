@@ -30,6 +30,7 @@ from util.util import (
 )
 from util.config import GPConfig
 from util.paths import get_custom_policy_dir
+from frontend.appliers.ini_file import Ini_file
 
 
 class Runner:
@@ -284,6 +285,16 @@ def enable_gp(policy_name, backend_type):
                 return
         else:
             print(str(result))
+
+        ini_obj = type("ini", (), {})()
+        ini_obj.path = "/etc/samba/smb.conf"
+        ini_obj.section = "global"
+        ini_obj.action = "UPDATE"
+        ini_obj.property = "log level"
+        ini_obj.value = "0"
+
+        Ini_file(ini_obj)
+
 
     # Enable gpupdate-setup.timer for all users
     if not rollback_on_error(cmd_enable_gpupdate_user_timer):

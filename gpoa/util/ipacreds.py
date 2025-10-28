@@ -14,12 +14,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.from .ipa import ipaopts
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import smbc
+import os
+import re
 from ipalib import api
 from pathlib import Path
-import os, re, logging
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
 from util.util import get_uid_by_username
 from .ipa import ipaopts
@@ -77,11 +78,11 @@ class ipacreds(ipaopts):
                         cached_path = dict_gpo_name_version.get(gpo.display_name, {}).get('correct_path')
                         if cached_path and Path(cached_path).exists():
                             gpo.file_sys_path = cached_path
-                            ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True})
+                            ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True}
                         else:
-                            ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path})
+                            ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path}
                     else:
-                        ldata = dict({'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path})
+                        ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path': gpo.file_sys_path}
                     gpos.append(gpo)
             finally:
                 api.Backend.rpcclient.disconnect()
