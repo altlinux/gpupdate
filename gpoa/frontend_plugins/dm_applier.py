@@ -18,6 +18,8 @@
 
 import os
 import shutil
+import subprocess
+import re
 
 # Import only what's absolutely necessary
 try:
@@ -54,25 +56,32 @@ class DMApplier(FrontendPlugin):
             message_dict={
                 'i': {
                     1: "Display Manager Applier initialized",
-                    2: "LightDM configuration generated successfully",
+                    2: "Display manager configuration generated successfully",
                     3: "Display Manager Applier execution started",
                     4: "Display manager configuration completed successfully",
-                    5: "LightDM greeter configuration generated successfully"
+                    5: "LightDM greeter configuration generated successfully",
+                    6: "GDM theme modified successfully"
                 },
                 'w': {
-                    10: "No display managers detected"
+                    10: "No display managers detected",
+                    11: "No background configuration to apply"
                 },
                 'e': {
                     20: "Configuration file path is invalid or inaccessible",
-                    21: "Failed to generate LightDM configuration",
+                    21: "Failed to generate display manager configuration",
                     22: "Unknown display manager config directory",
                     23: "Failed to generate display manager configuration",
-                    24: "Display Manager Applier execution failed"
+                    24: "Display Manager Applier execution failed",
+                    25: "GDM theme gresource not found",
+                    26: "Failed to extract GDM gresource",
+                    27: "Failed to modify GDM background",
+                    28: "Failed to recompile GDM gresource"
                 },
                 'd': {
                     30: "Display manager detection details",
                     31: "Display manager configuration details",
-                    32: "Removed empty configuration value"
+                    32: "Removed empty configuration value",
+                    33: "GDM background modification details"
                 }
             },
             # locale_dir will be set by plugin_manager during plugin loading
@@ -109,7 +118,7 @@ class DMApplier(FrontendPlugin):
             conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
             return conf
         except Exception as exc:
-            self.log("E20", {"path": path, "error": str(exc)})  # Configuration file path is invalid or inaccessible
+            self.log("E20", {"path": path, "error": str(exc)})
             return None
 
     def _clean_empty_values(self, section):
@@ -130,7 +139,7 @@ class DMApplier(FrontendPlugin):
         # Remove the identified keys
         for key in keys_to_remove:
             del section[key]
-            self.log("D32", {"key": key, "section": str(section)})  # Removed empty value
+            self.log("D32", {"key": key, "section": str(section)})
 
     def generate_lightdm(self, path):
         if not path or not os.path.isabs(path):
@@ -153,29 +162,165 @@ class DMApplier(FrontendPlugin):
         conf.initial_comment = ["# LightDM custom config"]
         try:
             conf.write()
-            self.log("I2", {"path": path})  # LightDM configuration generated successfully
+            self.log("I2", {"path": path, "dm": "lightdm"})
             return conf
         except Exception as exc:
-            self.log("E21", {"path": path, "error": str(exc)})  # Failed to generate LightDM configuration
+            self.log("E21", {"path": path, "error": str(exc)})
             return None
 
 
     def generate_gdm(self, path):
-        conf = self._prepare_conf(path)
-        if conf is None:
+        """Generate GDM configuration by modifying gnome-shell-theme.gresource"""
+        if not self.dm_config["Greeter.Background"]:
             return None
-        daemon = conf.setdefault("daemon", {})
 
-        # Set values only if they have meaningful content
-        if self.dm_config["Greeter.Background"]:
-            greeter = conf.setdefault("greeter", {})
-            greeter["Background"] = self.dm_config["Greeter.Background"]
+        background_path = self.dm_config["Greeter.Background"]
 
-        # Clean up empty values
-        self._clean_empty_values(daemon)
+        try:
+            # Find gnome-shell-theme.gresource
+            gresource_path = self._find_gnome_shell_gresource()
+            if not gresource_path:
+                self.log("E25", {"path": "gnome-shell-theme.gresource"})
+                return None
 
-        conf.write()
-        return conf
+            # Extract gresource to temporary directory
+            temp_dir = self._extract_gresource(gresource_path)
+            if not temp_dir:
+                return None
+
+            # Modify background in theme files
+            modified = self._modify_gdm_background(temp_dir, background_path)
+            if not modified:
+                shutil.rmtree(temp_dir)
+                return None
+
+            # Recompile gresource
+            success = self._recompile_gresource(temp_dir, gresource_path)
+
+            # Clean up temporary directory
+            shutil.rmtree(temp_dir)
+
+            if success:
+                self.log("I6", {"path": gresource_path, "background": background_path})
+                return True
+            else:
+                self.log("E28", {"path": gresource_path})
+                return None
+
+        except Exception as exc:
+            self.log("E21", {"path": "gnome-shell-theme.gresource", "error": str(exc), "dm": "gdm"})
+            return None
+
+    def _find_gnome_shell_gresource(self):
+        """Find gnome-shell-theme.gresource file"""
+        possible_paths = [
+            "/usr/share/gnome-shell/gnome-shell-theme.gresource",
+            "/usr/share/gnome-shell/theme/gnome-shell-theme.gresource",
+            "/usr/share/gdm/gnome-shell-theme.gresource",
+            "/usr/local/share/gnome-shell/gnome-shell-theme.gresource"
+        ]
+
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+        return None
+
+    def _extract_gresource(self, gresource_path):
+        """Extract gresource file to temporary directory"""
+        try:
+            temp_dir = "/tmp/gdm_theme_" + str(os.getpid())
+            os.makedirs(temp_dir, exist_ok=True)
+
+            # Extract gresource using glib-compile-resources
+            cmd = ["glib-compile-resources", "--generate-dependencies", gresource_path]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                self.log("E26", {"path": gresource_path, "error": result.stderr})
+                return None
+
+            # Extract files
+            cmd = ["glib-compile-resources", "--target=", "--sourcedir=", temp_dir, gresource_path]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                self.log("E26", {"path": gresource_path, "error": result.stderr})
+                shutil.rmtree(temp_dir)
+                return None
+
+            return temp_dir
+
+        except Exception as exc:
+            self.log("E26", {"path": gresource_path, "error": str(exc)})
+            return None
+
+    def _modify_gdm_background(self, temp_dir, background_path):
+        """Modify background in GDM theme files"""
+        try:
+            # Look for CSS files that might contain background definitions
+            css_files = []
+            for root, dirs, files in os.walk(temp_dir):
+                for file in files:
+                    if file.endswith('.css'):
+                        css_files.append(os.path.join(root, file))
+
+            modified = False
+            for css_file in css_files:
+                with open(css_file, 'r') as f:
+                    content = f.read()
+
+                # Look for background-related CSS rules
+                patterns = [
+                    r'(background:\s*url\()[^)]+(\))',
+                    r'(background-image:\s*url\()[^)]+(\))',
+                    r'(#lockDialogGroup\s*{[^}]*background:\s*url\()[^)]+(\))'
+                ]
+
+                for pattern in patterns:
+                    new_content = re.sub(pattern, f'\\1file:///{background_path}\\2', content)
+                    if new_content != content:
+                        with open(css_file, 'w') as f:
+                            f.write(new_content)
+                        modified = True
+                        self.log("D33", {"file": css_file, "background": background_path})
+                        break
+
+            return modified
+
+        except Exception as exc:
+            self.log("E27", {"path": temp_dir, "error": str(exc)})
+            return False
+
+    def _recompile_gresource(self, temp_dir, gresource_path):
+        """Recompile gresource from modified files"""
+        try:
+            # Find the original .gresource.xml file
+            xml_file = gresource_path.replace('.gresource', '.gresource.xml')
+            if not os.path.exists(xml_file):
+                # Try to find it in the same directory
+                base_dir = os.path.dirname(gresource_path)
+                for file in os.listdir(base_dir):
+                    if file.endswith('.gresource.xml'):
+                        xml_file = os.path.join(base_dir, file)
+                        break
+
+            if not os.path.exists(xml_file):
+                self.log("E28", {"path": xml_file, "error": "Gresource XML file not found"})
+                return False
+
+            # Recompile gresource
+            cmd = ["glib-compile-resources", "--target", gresource_path, xml_file]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode == 0:
+                return True
+            else:
+                self.log("E28", {"path": gresource_path, "error": result.stderr})
+                return False
+
+        except Exception as exc:
+            self.log("E28", {"path": gresource_path, "error": str(exc)})
+            return False
 
     def generate_sddm(self, path):
         conf = self._prepare_conf(path)
@@ -318,9 +463,9 @@ class DMApplier(FrontendPlugin):
         conf.initial_comment = [f"# {greeter_name} custom config"]
         try:
             conf.write()
-            self.log("I5", {"path": config_info["config_path"], "greeter": greeter_name})  # Greeter config generated
+            self.log("I5", {"path": config_info["config_path"], "greeter": greeter_name})
         except Exception as exc:
-            self.log("E21", {"path": config_info["config_path"], "error": str(exc)})  # Failed to generate greeter config
+            self.log("E21", {"path": config_info["config_path"], "error": str(exc)})
 
     def detect_dm(self):
         """Detect available and active display managers with fallback methods"""
@@ -439,7 +584,7 @@ class DMApplier(FrontendPlugin):
                     if key in unit_path.lower():
                         return dm_name
         except Exception as exc:
-            self.log("D2", {"unit": "display-manager.service", "error": str(exc)})  # DM config details
+            self.log("D30", {"unit": "display-manager.service", "error": str(exc)})
         return None
 
     def run(self):
@@ -447,47 +592,47 @@ class DMApplier(FrontendPlugin):
         Main plugin execution method with improved error handling and validation.
         Detects active display manager and applies configuration.
         """
-        self.log("I3")  # Display Manager Applier execution started
+        self.log("I3")
 
         try:
             # Validate configuration before proceeding
             if not self._validate_configuration():
-                self.log("W10")  # No valid configuration to apply
+                self.log("W11")
                 return False
 
             # Detect available and active display managers
             dm_info = self.detect_dm()
-            self.log("D30", {"dm_info": dm_info})  # Display manager detection details
+            self.log("D30", {"dm_info": dm_info})
 
             if not dm_info["available"]:
-                self.log("W10")  # No display managers detected
+                self.log("W10")
                 return False
 
             # Use active DM or first available
             target_dm = dm_info["active"] or (dm_info["available"][0] if dm_info["available"] else None)
 
             if not target_dm:
-                self.log("W10")  # No display managers detected
+                self.log("W10")
                 return False
 
             # Determine config directory based on DM
             config_dir = self._get_config_directory(target_dm)
             if not config_dir:
-                self.log("E22", {"dm": target_dm})  # Unknown display manager config directory
+                self.log("E22", {"dm": target_dm})
                 return False
 
             # Generate configuration
             result = self.write_config(target_dm, config_dir)
 
             if result:
-                self.log("I4", {"dm": target_dm, "config_dir": config_dir})  # DM config completed successfully
+                self.log("I4", {"dm": target_dm, "config_dir": config_dir})
                 return True
             else:
-                self.log("E23", {"dm": target_dm, "config_dir": config_dir})  # Failed to generate DM config
+                self.log("E23", {"dm": target_dm, "config_dir": config_dir})
                 return False
 
         except Exception as exc:
-            self.log("E24", {"error": str(exc)})  # Display Manager Applier execution failed
+            self.log("E24", {"error": str(exc)})
             return False
 
     def _validate_configuration(self):

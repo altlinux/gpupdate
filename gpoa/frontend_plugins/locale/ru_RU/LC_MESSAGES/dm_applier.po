@@ -20,8 +20,8 @@ msgstr ""
 msgid "Display Manager Applier initialized"
 msgstr "Инициализирован апплаер дисплей менеджера"
 
-msgid "LightDM configuration generated successfully"
-msgstr "Конфигурация LightDM успешно сгенерирована"
+msgid "Display manager configuration generated successfully"
+msgstr "Конфигурация дисплей менеджера успешно сгенерирована"
 
 msgid "Display Manager Applier execution started"
 msgstr "Запущено выполнение апплаера дисплей менеджера"
@@ -32,14 +32,20 @@ msgstr "Конфигурация дисплей менеджера успешн�
 msgid "LightDM greeter configuration generated successfully"
 msgstr "Конфигурация LightDM greeter успешно сгенерирована"
 
+msgid "GDM theme modified successfully"
+msgstr "Тема GDM успешно изменена"
+
 msgid "No display managers detected"
 msgstr "Дисплей менеджеры не обнаружены"
+
+msgid "No background configuration to apply"
+msgstr "Нет конфигурации фона для применения"
 
 msgid "Configuration file path is invalid or inaccessible"
 msgstr "Путь к файлу конфигурации недействителен или недоступен"
 
-msgid "Failed to generate LightDM configuration"
-msgstr "Не удалось сгенерировать конфигурацию LightDM"
+msgid "Failed to generate display manager configuration"
+msgstr "Не удалось сгенерировать конфигурацию дисплей менеджера"
 
 msgid "Unknown display manager config directory"
 msgstr "Неизвестный каталог конфигурации дисплей менеджера"
@@ -50,6 +56,18 @@ msgstr "Не удалось сгенерировать конфигурацию 
 msgid "Display Manager Applier execution failed"
 msgstr "Выполнение апплаера дисплей менеджера завершилось ошибкой"
 
+msgid "GDM theme gresource not found"
+msgstr "GDM тема gresource не найдена"
+
+msgid "Failed to extract GDM gresource"
+msgstr "Не удалось извлечь GDM gresource"
+
+msgid "Failed to modify GDM background"
+msgstr "Не удалось изменить фон GDM"
+
+msgid "Failed to recompile GDM gresource"
+msgstr "Не удалось перекомпилировать GDM gresource"
+
 msgid "Display manager detection details"
 msgstr "Детали обнаружения дисплей менеджера"
 
@@ -58,3 +76,6 @@ msgstr "Детали конфигурации дисплей менеджера"
 
 msgid "Removed empty configuration value"
 msgstr "Удалено пустое значение конфигурации"
+
+msgid "GDM background modification details"
+msgstr "Детали изменения фона GDM"
