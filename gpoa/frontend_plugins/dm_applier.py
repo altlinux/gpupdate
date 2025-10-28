@@ -181,7 +181,6 @@ class DMApplier(FrontendPlugin):
         conf = self._prepare_conf(path)
         if conf is None:
             return None
-        autologin = conf.setdefault("Autologin", {})
 
         # Set values only if they have meaningful content
         if self.dm_config["Greeter.Background"]:
@@ -189,10 +188,7 @@ class DMApplier(FrontendPlugin):
             theme["Background"] = self.dm_config["Greeter.Background"]
 
         # Clean up empty values from all sections
-        self._clean_empty_values(autologin)
         self._clean_empty_values(theme)
-        self._clean_empty_values(users)
-        self._clean_empty_values(general)
 
         conf.write()
         return conf
