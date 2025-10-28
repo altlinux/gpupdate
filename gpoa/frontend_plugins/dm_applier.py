@@ -231,16 +231,14 @@ class DMApplier(FrontendPlugin):
             temp_dir = "/tmp/gdm_theme_" + str(os.getpid())
             os.makedirs(temp_dir, exist_ok=True)
 
-            # Extract gresource using glib-compile-resources
-            cmd = ["glib-compile-resources", "--generate-dependencies", gresource_path]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-
-            if result.returncode != 0:
-                self.log("E26", {"path": gresource_path, "error": result.stderr})
+            # Find the XML file first
+            xml_file = self._find_gresource_xml(gresource_path)
+            if not xml_file:
+                self.log("E28", {"path": gresource_path, "error": "Gresource XML file not found"})
                 return None
 
-            # Extract files
-            cmd = ["glib-compile-resources", "--target=", "--sourcedir=", temp_dir, gresource_path]
+            # Extract files using the XML file
+            cmd = ["glib-compile-resources", "--target=", "--sourcedir=", temp_dir, xml_file]
             result = subprocess.run(cmd, capture_output=True, text=True)
 
             if result.returncode != 0:
@@ -253,6 +251,30 @@ class DMApplier(FrontendPlugin):
         except Exception as exc:
             self.log("E26", {"path": gresource_path, "error": str(exc)})
             return None
+
+    def _find_gresource_xml(self, gresource_path):
+        """Find the corresponding XML file for gresource"""
+        # Try to find the XML file in the same directory
+        base_dir = os.path.dirname(gresource_path)
+        
+        # Common XML file names
+        possible_names = [
+            "gnome-shell-theme.gresource.xml",
+            "gnome-shell.gresource.xml",
+            "theme.gresource.xml"
+        ]
+        
+        for xml_name in possible_names:
+            xml_path = os.path.join(base_dir, xml_name)
+            if os.path.exists(xml_path):
+                return xml_path
+        
+        # If not found, try to find any .gresource.xml file
+        for file in os.listdir(base_dir):
+            if file.endswith('.gresource.xml'):
+                return os.path.join(base_dir, file)
+        
+        return None
 
     def _modify_gdm_background(self, temp_dir, background_path):
         """Modify background in GDM theme files"""
@@ -294,18 +316,10 @@ class DMApplier(FrontendPlugin):
     def _recompile_gresource(self, temp_dir, gresource_path):
         """Recompile gresource from modified files"""
         try:
-            # Find the original .gresource.xml file
-            xml_file = gresource_path.replace('.gresource', '.gresource.xml')
-            if not os.path.exists(xml_file):
-                # Try to find it in the same directory
-                base_dir = os.path.dirname(gresource_path)
-                for file in os.listdir(base_dir):
-                    if file.endswith('.gresource.xml'):
-                        xml_file = os.path.join(base_dir, file)
-                        break
-
-            if not os.path.exists(xml_file):
-                self.log("E28", {"path": xml_file, "error": "Gresource XML file not found"})
+            # Find the XML file
+            xml_file = self._find_gresource_xml(gresource_path)
+            if not xml_file:
+                self.log("E28", {"path": gresource_path, "error": "Gresource XML file not found"})
                 return False
 
             # Recompile gresource
