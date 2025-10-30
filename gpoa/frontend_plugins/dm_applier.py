@@ -226,25 +226,58 @@ class DMApplier(FrontendPlugin):
         return None
 
     def _extract_gresource(self, gresource_path):
-        """Extract gresource file to temporary directory"""
+        """Extract gresource file to temporary directory by creating XML from gresource list"""
         try:
             temp_dir = "/tmp/gdm_theme_" + str(os.getpid())
             os.makedirs(temp_dir, exist_ok=True)
 
-            # Find the XML file first
-            xml_file = self._find_gresource_xml(gresource_path)
-            if not xml_file:
-                self.log("E28", {"path": gresource_path, "error": "Gresource XML file not found"})
-                return None
+            # Get list of resources from gresource file
+            cmd_list = ["gresource", "list", gresource_path]
+            result_list = subprocess.run(cmd_list, capture_output=True, text=True)
 
-            # Extract files using the XML file
-            cmd = ["glib-compile-resources", "--target=", "--sourcedir=", temp_dir, xml_file]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-
-            if result.returncode != 0:
-                self.log("E26", {"path": gresource_path, "error": result.stderr})
+            if result_list.returncode != 0:
+                self.log("E26", {"path": gresource_path, "error": result_list.stderr})
                 shutil.rmtree(temp_dir)
                 return None
+
+            resource_paths = result_list.stdout.strip().split('\n')
+            if not resource_paths or not resource_paths[0]:
+                self.log("E26", {"path": gresource_path, "error": "No resources found in gresource file"})
+                shutil.rmtree(temp_dir)
+                return None
+
+            # Extract prefix from resource paths (remove filename from first path)
+            first_resource = resource_paths[0]
+            prefix = os.path.dirname(first_resource)
+
+            # Create temporary XML file using proper XML generation
+            import xml.etree.ElementTree as ET
+
+            # Create root element
+            gresources = ET.Element('gresources')
+            gresource = ET.SubElement(gresources, 'gresource', prefix=prefix)
+
+            for resource_path in resource_paths:
+                # Extract filename from resource path
+                filename = os.path.basename(resource_path)
+                ET.SubElement(gresource, 'file').text = filename
+
+                # Extract the resource to temporary directory
+                cmd_extract = ["gresource", "extract", gresource_path, resource_path]
+                result_extract = subprocess.run(cmd_extract, capture_output=True, text=True)
+
+                if result_extract.returncode == 0:
+                    # Write extracted content to file
+                    output_path = os.path.join(temp_dir, filename)
+                    with open(output_path, 'w') as f:
+                        f.write(result_extract.stdout)
+                else:
+                    self.log("E26", {"path": gresource_path, "error": f"Failed to extract {resource_path}: {result_extract.stderr}"})
+
+            # Write XML file with proper formatting
+            xml_file = os.path.join(temp_dir, "gnome-shell-theme.gresource.xml")
+            tree = ET.ElementTree(gresources)
+            tree.write(xml_file, encoding='utf-8', xml_declaration=True)
 
             return temp_dir
 
@@ -252,59 +285,43 @@ class DMApplier(FrontendPlugin):
             self.log("E26", {"path": gresource_path, "error": str(exc)})
             return None
 
-    def _find_gresource_xml(self, gresource_path):
-        """Find the corresponding XML file for gresource"""
-        # Try to find the XML file in the same directory
-        base_dir = os.path.dirname(gresource_path)
-        
-        # Common XML file names
-        possible_names = [
-            "gnome-shell-theme.gresource.xml",
-            "gnome-shell.gresource.xml",
-            "theme.gresource.xml"
-        ]
-        
-        for xml_name in possible_names:
-            xml_path = os.path.join(base_dir, xml_name)
-            if os.path.exists(xml_path):
-                return xml_path
-        
-        # If not found, try to find any .gresource.xml file
-        for file in os.listdir(base_dir):
-            if file.endswith('.gresource.xml'):
-                return os.path.join(base_dir, file)
-        
-        return None
+
 
     def _modify_gdm_background(self, temp_dir, background_path):
-        """Modify background in GDM theme files"""
+        """Modify background in GDM theme files - specifically target gnome-shell-dark.css and gnome-shell-light.css"""
         try:
-            # Look for CSS files that might contain background definitions
-            css_files = []
-            for root, dirs, files in os.walk(temp_dir):
-                for file in files:
-                    if file.endswith('.css'):
-                        css_files.append(os.path.join(root, file))
+            # Target specific CSS files that contain GDM background definitions
+            target_css_files = ["gnome-shell-dark.css", "gnome-shell-light.css"]
 
             modified = False
-            for css_file in css_files:
+            for css_filename in target_css_files:
+                css_file = os.path.join(temp_dir, css_filename)
+                if not os.path.exists(css_file):
+                    continue
+
                 with open(css_file, 'r') as f:
                     content = f.read()
 
                 # Look for background-related CSS rules
                 patterns = [
-                    r'(background:\s*url\()[^)]+(\))',
-                    r'(background-image:\s*url\()[^)]+(\))',
-                    r'(#lockDialogGroup\s*{[^}]*background:\s*url\()[^)]+(\))'
+                    # Handle only #lockDialogGroup background with file://// (4 slashes)
+                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:////[^)]+\)',
+                    # Handle only #lockDialogGroup background with file:/// (3 slashes)
+                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:///[^)]+\)'
                 ]
 
                 for pattern in patterns:
-                    new_content = re.sub(pattern, f'\\1file:///{background_path}\\2', content)
+                    # Use lambda function to handle optional groups gracefully
+                    def replace_url(match):
+                        groups = match.groups()
+                        return f'{groups[0]}url(file:///{background_path})'
+
+                    new_content = re.sub(pattern, replace_url, content)
                     if new_content != content:
                         with open(css_file, 'w') as f:
                             f.write(new_content)
                         modified = True
-                        self.log("D33", {"file": css_file, "background": background_path})
+                        self.log("D33", {"file": css_filename, "background": background_path})
                         break
 
             return modified
@@ -314,23 +331,28 @@ class DMApplier(FrontendPlugin):
             return False
 
     def _recompile_gresource(self, temp_dir, gresource_path):
-        """Recompile gresource from modified files"""
+        """Recompile gresource from modified files using temporary XML"""
         try:
-            # Find the XML file
-            xml_file = self._find_gresource_xml(gresource_path)
-            if not xml_file:
-                self.log("E28", {"path": gresource_path, "error": "Gresource XML file not found"})
+            # Use the temporary XML file created during extraction
+            xml_file = os.path.join(temp_dir, "gnome-shell-theme.gresource.xml")
+            if not os.path.exists(xml_file):
+                self.log("E28", {"path": gresource_path, "error": "Temporary XML file not found"})
                 return False
 
-            # Recompile gresource
-            cmd = ["glib-compile-resources", "--target", gresource_path, xml_file]
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            # Recompile gresource - run from temp directory where files are located
+            original_cwd = os.getcwd()
+            try:
+                os.chdir(temp_dir)
+                cmd = ["glib-compile-resources", "--target", gresource_path, "gnome-shell-theme.gresource.xml"]
+                result = subprocess.run(cmd, capture_output=True, text=True)
 
-            if result.returncode == 0:
-                return True
-            else:
-                self.log("E28", {"path": gresource_path, "error": result.stderr})
-                return False
+                if result.returncode == 0:
+                    return True
+                else:
+                    self.log("E28", {"path": gresource_path, "error": result.stderr})
+                    return False
+            finally:
+                os.chdir(original_cwd)
 
         except Exception as exc:
             self.log("E28", {"path": gresource_path, "error": str(exc)})
