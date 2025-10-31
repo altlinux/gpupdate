@@ -60,11 +60,14 @@ class DMApplier(FrontendPlugin):
                     3: "Display Manager Applier execution started",
                     4: "Display manager configuration completed successfully",
                     5: "LightDM greeter configuration generated successfully",
-                    6: "GDM theme modified successfully"
+                    6: "GDM theme modified successfully",
+                    7: "GDM backup restored successfully"
                 },
                 'w': {
                     10: "No display managers detected",
-                    11: "No background configuration to apply"
+                    11: "No background configuration to apply",
+                    12: "GDM backup file not found",
+                    13: "Backup mode only supported for GDM"
                 },
                 'e': {
                     20: "Configuration file path is invalid or inaccessible",
@@ -75,13 +78,15 @@ class DMApplier(FrontendPlugin):
                     25: "GDM theme gresource not found",
                     26: "Failed to extract GDM gresource",
                     27: "Failed to modify GDM background",
-                    28: "Failed to recompile GDM gresource"
+                    28: "Failed to recompile GDM gresource",
+                    29: "Failed to restore GDM backup"
                 },
                 'd': {
                     30: "Display manager detection details",
                     31: "Display manager configuration details",
                     32: "Removed empty configuration value",
-                    33: "GDM background modification details"
+                    33: "GDM background modification details",
+                    34: "GDM backup operation details"
                 }
             },
             # locale_dir will be set by plugin_manager during plugin loading
@@ -92,7 +97,8 @@ class DMApplier(FrontendPlugin):
 
         # DMConfigGenerator configuration - only background settings
         background_path = self.config.get("Greeter.Background", None)
-        if background_path:
+        self.backup = background_path == 'backup'
+        if background_path and not self.backup:
             normalized_path = background_path.replace('\\', '/')
             fs_file_cache.store(normalized_path)
             self.dm_config = {
@@ -171,6 +177,10 @@ class DMApplier(FrontendPlugin):
 
     def generate_gdm(self, path):
         """Generate GDM configuration by modifying gnome-shell-theme.gresource"""
+        # Check if we need to restore from backup
+        if self.backup:
+            return self._restore_gdm_backup()
+
         if not self.dm_config["Greeter.Background"]:
             return None
 
@@ -182,6 +192,12 @@ class DMApplier(FrontendPlugin):
             if not gresource_path:
                 self.log("E25", {"path": "gnome-shell-theme.gresource"})
                 return None
+
+            # Create backup if it doesn't exist
+            backup_path = gresource_path + '.backup'
+            if not os.path.exists(backup_path):
+                shutil.copy2(gresource_path, backup_path)
+                self.log("D34", {"action": "backup_created", "backup": backup_path})
 
             # Extract gresource to temporary directory
             temp_dir = self._extract_gresource(gresource_path)
@@ -224,6 +240,29 @@ class DMApplier(FrontendPlugin):
             if os.path.exists(path):
                 return path
         return None
+
+    def _restore_gdm_backup(self):
+        """Restore GDM gresource from backup if available"""
+        try:
+            # Find gnome-shell-theme.gresource
+            gresource_path = self._find_gnome_shell_gresource()
+            if not gresource_path:
+                self.log("E25", {"path": "gnome-shell-theme.gresource"})
+                return None
+
+            backup_path = gresource_path + '.backup'
+            if not os.path.exists(backup_path):
+                self.log("W12", {"backup": backup_path})
+                return None
+
+            # Restore from backup
+            shutil.copy2(backup_path, gresource_path)
+            self.log("I7", {"path": gresource_path})
+            return True
+
+        except Exception as exc:
+            self.log("E29", {"path": "gnome-shell-theme.gresource", "error": str(exc)})
+            return None
 
     def _extract_gresource(self, gresource_path):
         """Extract gresource file to temporary directory by creating XML from gresource list"""
@@ -375,6 +414,10 @@ class DMApplier(FrontendPlugin):
         return conf
 
     def write_config(self, dm_name, directory):
+        if self.backup and dm_name!='gdm':
+            self.log("W13", {"dm": dm_name})
+            return
+
         os.makedirs(directory, exist_ok=True)
         filename = os.path.join(directory, "50-custom.conf")
         gen = {
@@ -634,7 +677,8 @@ class DMApplier(FrontendPlugin):
             # Validate configuration before proceeding
             if not self._validate_configuration():
                 self.log("W11")
-                return False
+                if not self.backup:
+                    return False
 
             # Detect available and active display managers
             dm_info = self.detect_dm()

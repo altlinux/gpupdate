@@ -35,11 +35,20 @@ msgstr "Конфигурация LightDM greeter успешно сгенерир
 msgid "GDM theme modified successfully"
 msgstr "Тема GDM успешно изменена"
 
+msgid "GDM backup restored successfully"
+msgstr "Резервная копия GDM успешно восстановлена"
+
 msgid "No display managers detected"
 msgstr "Дисплей менеджеры не обнаружены"
 
 msgid "No background configuration to apply"
 msgstr "Нет конфигурации фона для применения"
+
+msgid "GDM backup file not found"
+msgstr "Резервная копия GDM не найдена"
+
+msgid "Backup mode only supported for GDM"
+msgstr "Режим восстановления поддерживается только для GDM"
 
 msgid "Configuration file path is invalid or inaccessible"
 msgstr "Путь к файлу конфигурации недействителен или недоступен"
@@ -49,9 +58,6 @@ msgstr "Не удалось сгенерировать конфигурацию 
 
 msgid "Unknown display manager config directory"
 msgstr "Неизвестный каталог конфигурации дисплей менеджера"
-
-msgid "Failed to generate display manager configuration"
-msgstr "Не удалось сгенерировать конфигурацию дисплей менеджера"
 
 msgid "Display Manager Applier execution failed"
 msgstr "Выполнение апплаера дисплей менеджера завершилось ошибкой"
@@ -68,6 +74,9 @@ msgstr "Не удалось изменить фон GDM"
 msgid "Failed to recompile GDM gresource"
 msgstr "Не удалось перекомпилировать GDM gresource"
 
+msgid "Failed to restore GDM backup"
+msgstr "Не удалось восстановить резервную копию GDM"
+
 msgid "Display manager detection details"
 msgstr "Детали обнаружения дисплей менеджера"
 
@@ -79,3 +88,6 @@ msgstr "Удалено пустое значение конфигурации"
 
 msgid "GDM background modification details"
 msgstr "Детали изменения фона GDM"
+
+msgid "GDM backup operation details"
+msgstr "Детали операции резервного копирования GDM"
