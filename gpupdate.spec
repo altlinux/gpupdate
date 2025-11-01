@@ -91,6 +91,12 @@ msgfmt \
 	-o %buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.mo \
 	%buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.po
 
+# Generate plugin translations
+for po_file in %buildroot%python3_sitelibdir/gpoa/frontend_plugins/locale/*/LC_MESSAGES/*.po; do
+	mo_file="${po_file%.po}.mo"
+	msgfmt -o "$mo_file" "$po_file"
+done
+
 mkdir -p \
 	%buildroot%_bindir/ \
 	%buildroot%_sbindir/ \
