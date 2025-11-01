@@ -22,20 +22,31 @@ import subprocess
 from .logging import log
 from .samba import smbopts
 from .util import get_machine_name
+from .ipa import ipaopts
 
 
-def machine_kinit(cache_name=None):
+def machine_kinit(cache_name=None, backend_type=None):
     '''
     Perform kinit with machine credentials
     '''
-    opts = smbopts()
-    host = get_machine_name()
-    realm = opts.get_realm()
-    with_realm = '{}@{}'.format(host, realm)
-    os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_name)
-    kinit_cmd = ['kinit', '-k', with_realm]
+    if backend_type == 'freeipa':
+        keytab_path = '/etc/samba/samba.keytab'
+        opts = ipaopts()
+        host = "cifs/" + opts.get_machine_name()
+        realm = opts.get_realm()
+        with_realm = '{}@{}'.format(host, realm)
+        kinit_cmd = ['kinit', '-kt', keytab_path, with_realm]
+    else:
+        opts = smbopts()
+        host = get_machine_name()
+        realm = opts.get_realm()
+        with_realm = '{}@{}'.format(host, realm)
+        kinit_cmd = ['kinit', '-k', with_realm]
+
     if cache_name:
+        os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_name)
         kinit_cmd.extend(['-c', cache_name])
+
     proc = subprocess.Popen(kinit_cmd)
     proc.wait()
 

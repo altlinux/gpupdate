@@ -279,6 +279,12 @@ msgstr "Не удалось перезапустить unit systemd"
 msgid "Kerberos info unavailable; cannot construct DPAPI parameters"
 msgstr "Информация Kerberos недоступна; невозможно сформировать параметры DPAPI"
 
+msgid "Unable to initialize Freeipa backend"
+msgstr "Невозможно инициализировать бэкэнд Freeipa"
+
+msgid "FreeIPA API Error"
+msgstr "Ошибка API FreeIPA"
+
 # Error_end
 
 # Debug
@@ -974,6 +980,9 @@ msgstr "Плагин отключен"
 
 msgid "Running plugin"
 msgstr "Запуск плагина"
+
+msgid "Failed to load cached versions"
+msgstr "Не удалось загрузить кешированные версии"
 
 # Debug_end
 

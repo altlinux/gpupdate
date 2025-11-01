@@ -69,7 +69,7 @@ def get_user_info(username):
         # Log the error for debugging
         from .logging import log
         logdata = {'username': username, 'exception': str(exc)}
-        log('D235', logdata)
+        log('D237', logdata)
         raise
 
 def get_homedir(username):
@@ -125,7 +125,7 @@ def get_backends():
     '''
     Get the list of backends supported by GPOA
     '''
-    return ['local', 'samba']
+    return ['local', 'samba', 'freeipa']
 
 def get_default_policy_name():
     '''

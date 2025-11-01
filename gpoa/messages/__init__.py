@@ -117,6 +117,8 @@ def error_code(code):
     error_ids[76] = 'Failed to change local user password'
     error_ids[77] = 'Unable to restart systemd unit'
     error_ids[78] = 'Kerberos info unavailable; cannot construct DPAPI parameters'
+    error_ids[79] = 'Unable to initialize Freeipa backend'
+    error_ids[80] = 'FreeIPA API error'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -356,6 +358,7 @@ def debug_code(code):
     debug_ids[234] = 'No logins found after password change'
     debug_ids[235] = 'User not found in passwd database'
     debug_ids[236] = 'Plugin is disabled'
+    debug_ids[237] = 'Failed to load cached versions'
 
     return debug_ids.get(code, 'Unknown debug code')
 

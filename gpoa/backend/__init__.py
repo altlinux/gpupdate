@@ -27,10 +27,11 @@ from util.logging import log
 from util.paths import get_dconf_config_file
 from util.util import get_uid_by_username, touch_file
 from util.windows import smbcreds
+from util.ipacreds import ipacreds
 
 from .nodomain_backend import nodomain_backend
 from .samba_backend import samba_backend
-
+from .freeipa_backend import freeipa_backend
 
 def backend_factory(dc, username, is_machine, no_domain = False):
     '''
@@ -57,6 +58,20 @@ def backend_factory(dc, username, is_machine, no_domain = False):
         except Exception as exc:
             logdata = dict({'error': str(exc)})
             log('E7', logdata)
+
+    if config.get_backend() == 'freeipa' and not no_domain:
+        try:
+            if not dc:
+                dc = config.get_dc()
+                if dc:
+                    ld = {'dc': dc}
+                    log('D52', ld)
+            ipac = ipacreds()
+            domain = ipac.get_domain()
+            back = freeipa_backend(ipac, username, domain, is_machine)
+        except Exception as exc:
+            logdata = {'error': str(exc)}
+            log('E79', logdata)
 
     if config.get_backend() == 'local' or no_domain:
         log('D8')
