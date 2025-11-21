@@ -148,8 +148,8 @@ class laps_applier(applier_frontend):
         self.password_age_days = self.config.get('PasswordAgeDays', 30)
         self.post_authentication_actions = self.config.get('PostAuthenticationActions', 3)
         self.post_authentication_reset_delay = self.config.get('PostAuthenticationResetDelay', 24)
-        name = self.config.get('AdministratorAccountName', 'root')
-        if name and check_local_user_exists(name):
+        name = self.config.get('AdministratorAccountName', '').strip() or 'root'
+        if check_local_user_exists(name):
             self.target_user = name
         else:
             log('W36')
