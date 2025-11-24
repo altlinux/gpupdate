@@ -121,18 +121,26 @@ class smbcreds (smbopts):
         dconf_dict = self.get_dconf_dict(username)
 
         if not self.is_machine and Dconf_registry.get_info('trust'):
-            try:
-                info = with_privileges(username, get_kerberos_domain_info)
-                pdc_dns_name = info.get('pdc_dns_name')
-                if pdc_dns_name:
-                    Dconf_registry.set_info('pdc_dns_name', pdc_dns_name)
-                    gpos = get_gpo_list(pdc_dns_name, self.creds, self.lp, username)
-                    logdata = {'username': username}
-                    log('I12', logdata)
-                    self.process_gpos(gpos, username, dconf_dict)
-                    return gpos
-            except Exception as exc:
-                pass
+            dconf_dict_machine = self.get_dconf_dict()
+            allow_trust_user_policy = dconf_dict_machine.get(
+                'Software/BaseALT/Policies/GPUpdate', {}).get(
+                    'AllowTrustUserPolicy', False)
+            allow_trust_user_policy_win =  dconf_dict_machine.get(
+                'Software\Policies\Microsoft\Windows\System', {}).get(
+                    'AllowX-ForestPolicy-and-RUP', False)
+            if allow_trust_user_policy or allow_trust_user_policy_win:
+                try:
+                    info = with_privileges(username, get_kerberos_domain_info)
+                    pdc_dns_name = info.get('pdc_dns_name')
+                    if pdc_dns_name:
+                        Dconf_registry.set_info('pdc_dns_name', pdc_dns_name)
+                        gpos = get_gpo_list(pdc_dns_name, self.creds, self.lp, username)
+                        logdata = {'username': username}
+                        log('I12', logdata)
+                        self.process_gpos(gpos, username, dconf_dict)
+                        return gpos
+                except Exception as exc:
+                    return []
 
         try:
             log('D48')
@@ -157,7 +165,9 @@ class smbcreds (smbopts):
         Retrieve dconf dictionary either for the machine itself
         or for a specific user depending on the given username
         """
-        if Dconf_registry.get_info('machine_name') == username:
+        if username is None:
+            return Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
+        elif Dconf_registry.get_info('machine_name') == username:
             dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
             self.is_machine = True
         else:
