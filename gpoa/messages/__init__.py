@@ -119,6 +119,7 @@ def error_code(code):
     error_ids[78] = 'Kerberos info unavailable; cannot construct DPAPI parameters'
     error_ids[79] = 'Unable to initialize Freeipa backend'
     error_ids[80] = 'FreeIPA API error'
+    error_ids[81] = 'Error setting trust attribute for shortcut'
     return error_ids.get(code, 'Unknown error code')
 
 def debug_code(code):
@@ -359,6 +360,8 @@ def debug_code(code):
     debug_ids[235] = 'User not found in passwd database'
     debug_ids[236] = 'Plugin is disabled'
     debug_ids[237] = 'Failed to load cached versions'
+    debug_ids[238] = 'The trust attribute is not supported'
+    debug_ids[239] = 'Setting the trust attribute for a shortcut'
 
     return debug_ids.get(code, 'Unknown debug code')
 

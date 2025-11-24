@@ -17,11 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess
+import shutil
 
 from gpt.shortcuts import get_ttype, shortcut
 from util.logging import log
 from util.util import get_homedir, homedir_exists, string_to_literal_eval
 from util.windows import expand_windows_var
+from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled
 
@@ -83,6 +85,23 @@ def apply_shortcut(shortcut, username=None):
     logdata['with_action'] = shortcut.action
     log('D106', logdata)
     shortcut.apply_desktop(dest_abspath)
+
+    try:
+        if getattr(shortcut, 'action', None) in ('C', 'U', 'R'):
+            if Path(dest_abspath).exists() and shutil.which('gio'):
+                user_home = get_homedir(username) if username else None
+                if username and user_home and dest_abspath.startswith(user_home.rstrip('/') + '/'):
+                    command = ['gio', 'set', dest_abspath, 'metadata::trusted', 'true']
+                    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+                    gio_out = (result.stderr or result.stdout or '').strip()
+                    logdata = {'command': command, 'gio_out': gio_out}
+                    if result.returncode != 0:
+                        log('D238', logdata)
+                    else:
+                        log('D239', logdata)
+    except Exception as e:
+        log('E81', logdata)
+
 
 class shortcut_applier(applier_frontend):
     __module_name = 'ShortcutsApplier'
