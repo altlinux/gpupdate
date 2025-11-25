@@ -285,7 +285,7 @@ msgstr "Невозможно инициализировать бэкэнд Freei
 msgid "FreeIPA API Error"
 msgstr "Ошибка API FreeIPA"
 
-msgid "Error setting trust attribute for shortcut'
+msgid "Error setting trust attribute for shortcut"
 msgstr "Ошибка установки атрибута доверия для ярлыка"
 
 # Error_end
@@ -990,7 +990,7 @@ msgstr "Не удалось загрузить кешированные верс
 msgid "The trust attribute is not supported"
 msgstr "Атрибут доверия не поддерживается"
 
-msgid "Setting the trust attribute for a shortcut'
+msgid "Setting the trust attribute for a shortcut"
 msgstr "Установка атрибута доверия для ярлыка"
 
 # Debug_end
