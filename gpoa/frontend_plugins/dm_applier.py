@@ -707,6 +707,8 @@ class DMApplier(FrontendPlugin):
             if result:
                 self.log("I4", {"dm": target_dm, "config_dir": config_dir})
                 return True
+            elif self.backup:
+                return False
             else:
                 self.log("E23", {"dm": target_dm, "config_dir": config_dir})
                 return False
