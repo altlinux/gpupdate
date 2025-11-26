@@ -55,7 +55,7 @@ class plugin_manager:
         dict_gpupdate_key = string_to_literal_eval(
             self.dict_dconf_db.get('Software/BaseALT/Policies/GPUpdate',{}))
         self.plugins_enable = dict_gpupdate_key.get('Plugins')
-        self.plugins_list = dict_gpupdate_key.get('PluginsList')
+        self.plugins_list = string_to_literal_eval(dict_gpupdate_key.get('PluginsList'))
 
     def check_enabled_plugin(self, plugin_name):
         """Check if the plugin is enabled"""
