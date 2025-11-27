@@ -39,7 +39,7 @@
 %add_python3_req_skip frontend.appliers.ini_file
 
 Name: gpupdate
-Version: 0.13.4
+Version: 0.14.0
 Release: alt1
 
 Summary: GPT applier
@@ -211,6 +211,25 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Thu Nov 27 2025 Valery Sinelnikov <greh@altlinux.org> 0.14.0-alt1
+- Added:
+  Comprehensive plugin development documentation in English and Russian
+  GDM backup and restore functionality
+  FreeIPA backend configuration and authentication
+  libcng-dpapi dependency for LAPS support
+  systemd-logind dependency to gpupdate service
+  DMApplier plugin for display manager configuration
+- Changed:
+  Refactored plugin system infrastructure
+  Optimized FreeIPA backend and configuration
+- Fixed:
+  GPO downloading and error handling
+  Firewall reset command path safety check
+  LAPS applier encryption mechanism
+  Drive letters from GPO application instead of labels
+  GPO processing with trusted domain support
+  Shortcuts created via GPO are now marked as trusted (closes:56019)
+
 * Mon Aug 25 2025 Valery Sinelnikov <greh@altlinux.org> 0.13.4-alt1
 - Added:
   Production-ready modules: CUPS, file management, INI config (default),
