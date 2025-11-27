@@ -86,7 +86,33 @@ class DMApplier(FrontendPlugin):
                     31: "Display manager configuration details",
                     32: "Removed empty configuration value",
                     33: "GDM background modification details",
-                    34: "GDM backup operation details"
+                    34: "GDM backup operation details",
+                    35: "GDM CSS file not found",
+                    36: "GDM background pattern analysis",
+                    37: "GDM background added to CSS"
+                },
+                'e': {
+                    20: "Configuration file path is invalid or inaccessible",
+                    21: "Failed to generate display manager configuration",
+                    22: "Unknown display manager config directory",
+                    23: "Failed to generate display manager configuration",
+                    24: "Display Manager Applier execution failed",
+                    25: "GDM theme gresource not found",
+                    26: "Failed to extract GDM gresource",
+                    27: "Failed to modify GDM background",
+                    28: "Failed to recompile GDM gresource",
+                    29: "Failed to restore GDM backup",
+                    30: "Failed to add GDM background"
+                },
+                'i': {
+                    1: "Display Manager Applier initialized",
+                    2: "Display manager configuration generated successfully",
+                    3: "Display Manager Applier execution started",
+                    4: "Display manager configuration completed successfully",
+                    5: "LightDM greeter configuration generated successfully",
+                    6: "GDM theme modified successfully",
+                    7: "GDM backup restored successfully",
+                    8: "GDM fallback configuration generated successfully"
                 }
             },
             # locale_dir will be set by plugin_manager during plugin loading
@@ -191,7 +217,7 @@ class DMApplier(FrontendPlugin):
             gresource_path = self._find_gnome_shell_gresource()
             if not gresource_path:
                 self.log("E25", {"path": "gnome-shell-theme.gresource"})
-                return None
+                return self._generate_gdm_fallback(path, background_path)
 
             # Create backup if it doesn't exist
             backup_path = gresource_path + '.backup'
@@ -202,13 +228,13 @@ class DMApplier(FrontendPlugin):
             # Extract gresource to temporary directory
             temp_dir = self._extract_gresource(gresource_path)
             if not temp_dir:
-                return None
+                return self._generate_gdm_fallback(path, background_path)
 
             # Modify background in theme files
             modified = self._modify_gdm_background(temp_dir, background_path)
             if not modified:
                 shutil.rmtree(temp_dir)
-                return None
+                return self._generate_gdm_fallback(path, background_path)
 
             # Recompile gresource
             success = self._recompile_gresource(temp_dir, gresource_path)
@@ -221,11 +247,11 @@ class DMApplier(FrontendPlugin):
                 return True
             else:
                 self.log("E28", {"path": gresource_path})
-                return None
+                return self._generate_gdm_fallback(path, background_path)
 
         except Exception as exc:
             self.log("E21", {"path": "gnome-shell-theme.gresource", "error": str(exc), "dm": "gdm"})
-            return None
+            return self._generate_gdm_fallback(path, background_path)
 
     def _find_gnome_shell_gresource(self):
         """Find gnome-shell-theme.gresource file"""
@@ -336,17 +362,26 @@ class DMApplier(FrontendPlugin):
             for css_filename in target_css_files:
                 css_file = os.path.join(temp_dir, css_filename)
                 if not os.path.exists(css_file):
+                    self.log("D35", {"file": css_filename, "action": "file_not_found"})
                     continue
 
                 with open(css_file, 'r') as f:
                     content = f.read()
 
-                # Look for background-related CSS rules
+                # Look for background-related CSS rules in #lockDialogGroup
                 patterns = [
-                    # Handle only #lockDialogGroup background with file://// (4 slashes)
+                    # Handle #lockDialogGroup background with file://// (4 slashes)
                     r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:////[^)]+\)',
-                    # Handle only #lockDialogGroup background with file:/// (3 slashes)
-                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:///[^)]+\)'
+                    # Handle #lockDialogGroup background with file:/// (3 slashes)
+                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:///[^)]+\)',
+                    # Handle #lockDialogGroup background with resource:///
+                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(resource:///[^)]+\)',
+                    # Handle #lockDialogGroup background-image with file:////
+                    r'(#lockDialogGroup\s*{[^}]*background-image:\s*[^;]*)url\(file:////[^)]+\)',
+                    # Handle #lockDialogGroup background-image with file:///
+                    r'(#lockDialogGroup\s*{[^}]*background-image:\s*[^;]*)url\(file:///[^)]+\)',
+                    # Handle #lockDialogGroup background-image with resource:///
+                    r'(#lockDialogGroup\s*{[^}]*background-image:\s*[^;]*)url\(resource:///[^)]+\)'
                 ]
 
                 for pattern in patterns:
@@ -363,10 +398,50 @@ class DMApplier(FrontendPlugin):
                         self.log("D33", {"file": css_filename, "background": background_path})
                         break
 
+                if not modified:
+                    # Log what we found in the file for debugging
+                    if "#lockDialogGroup" in content:
+                        self.log("D36", {
+                            "file": css_filename,
+                            "lockDialogGroup_found": True,
+                            "background_patterns": len(re.findall(r'background.*url', content)),
+                            "background_image_patterns": len(re.findall(r'background-image.*url', content))
+                        })
+                        # Try to add background if #lockDialogGroup exists but has no background
+                        modified = self._add_gdm_background(css_file, content, background_path)
+                    else:
+                        self.log("D36", {"file": css_filename, "lockDialogGroup_found": False})
+
             return modified
 
         except Exception as exc:
             self.log("E27", {"path": temp_dir, "error": str(exc)})
+            return False
+
+    def _add_gdm_background(self, css_file, content, background_path):
+        """Add background to #lockDialogGroup if it doesn't exist"""
+        try:
+            # Pattern to find #lockDialogGroup block
+            pattern = r'(#lockDialogGroup\s*\{[^}]*)(\})'
+            
+            def add_background(match):
+                opening = match.group(1)
+                closing = match.group(2)
+                # Add background property before closing brace
+                return f'{opening}\n  background: url(file:///{background_path});{closing}'
+
+            new_content = re.sub(pattern, add_background, content)
+
+            if new_content != content:
+                with open(css_file, 'w') as f:
+                    f.write(new_content)
+                self.log("D37", {"file": os.path.basename(css_file), "action": "background_added", "background": background_path})
+                return True
+
+            return False
+
+        except Exception as exc:
+            self.log("E30", {"file": css_file, "error": str(exc)})
             return False
 
     def _recompile_gresource(self, temp_dir, gresource_path):
@@ -396,6 +471,28 @@ class DMApplier(FrontendPlugin):
         except Exception as exc:
             self.log("E28", {"path": gresource_path, "error": str(exc)})
             return False
+
+    def _generate_gdm_fallback(self, path, background_path):
+        """Generate fallback GDM configuration file when gresource modification fails"""
+        try:
+            conf = self._prepare_conf(path)
+            if conf is None:
+                return None
+
+            # Set background in daemon section
+            daemon = conf.setdefault("daemon", {})
+            daemon["Background"] = background_path
+
+            # Clean up empty values
+            self._clean_empty_values(daemon)
+
+            conf.write()
+            self.log("I8", {"path": path, "background": background_path, "method": "fallback"})
+            return conf
+
+        except Exception as exc:
+            self.log("E21", {"path": path, "error": str(exc), "dm": "gdm"})
+            return None
 
     def generate_sddm(self, path):
         conf = self._prepare_conf(path)

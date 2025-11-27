@@ -91,3 +91,18 @@ msgstr "Детали изменения фона GDM"
 
 msgid "GDM backup operation details"
 msgstr "Детали операции резервного копирования GDM"
+
+msgid "GDM CSS file not found"
+msgstr "CSS файл GDM не найден"
+
+msgid "GDM background pattern analysis"
+msgstr "Анализ паттернов фона GDM"
+
+msgid "GDM background added to CSS"
+msgstr "Фон GDM добавлен в CSS"
+
+msgid "Failed to add GDM background"
+msgstr "Не удалось добавить фон GDM"
+
+msgid "GDM fallback configuration generated successfully"
+msgstr "Резервная конфигурация GDM успешно сгенерирована"
