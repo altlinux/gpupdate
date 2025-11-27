@@ -593,31 +593,20 @@ class DMApplier(FrontendPlugin):
                 "background_key": "background",
                 "theme_key": "theme-name"
             },
-            "lightdm-webkit2-greeter": {
-                "config_path": "/etc/lightdm/lightdm-webkit2-greeter.conf",
-                "section": "greeter",
-                "background_key": "background",
-                "theme_key": "theme"
-            },
-            "lightdm-unity-greeter": {
-                "config_path": "/etc/lightdm/lightdm-unity-greeter.conf",
-                "section": "greeter",
-                "background_key": "background",
-                "theme_key": "theme-name"
-            },
-            "lightdm-slick-greeter": {
-                "config_path": "/etc/lightdm/lightdm-slick-greeter.conf",
-                "section": "greeter",
+            "slick-greeter": {
+                "config_path": "/etc/lightdm/slick-greeter.conf",
+                "section": "Greeter",
                 "background_key": "background",
                 "theme_key": "theme-name"
             },
             "lightdm-kde-greeter": {
                 "config_path": "/etc/lightdm/lightdm-kde-greeter.conf",
-                "section": "greeter",
-                "background_key": "background",
+                "section": "lightdm_theme_userbar",
+                "background_key": "Background",
                 "theme_key": "theme"
             }
         }
+
 
         config_info = greeter_configs.get(greeter_name)
         if not config_info:
