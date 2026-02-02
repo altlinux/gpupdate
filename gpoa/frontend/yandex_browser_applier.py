@@ -132,7 +132,8 @@ class yandex_browser_applier(applier_frontend):
                             'DefaultPrintingSettings',
                             'DefaultPluginsSetting',
                             'SafeBrowsingProtectionLevel',
-                            'SafeBrowsingProtectionLevel_recommended'])
+                            'SafeBrowsingProtectionLevel_recommended',
+                            'DiskCacheSize']) # key 'DiskCacheSize' is added manually; parsing_chrom_admx_intvalues does not extract it automatically
         return valuename_typeint
 
 
