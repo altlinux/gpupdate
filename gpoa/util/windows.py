@@ -160,7 +160,7 @@ class smbcreds (smbopts):
 
         return gpos
 
-    def get_dconf_dict(self, username):
+    def get_dconf_dict(self, username=None):
         """
         Retrieve dconf dictionary either for the machine itself
         or for a specific user depending on the given username
