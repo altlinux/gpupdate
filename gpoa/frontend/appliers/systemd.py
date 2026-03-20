@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ class systemd_unit:
         logdata = {'unit': self.unit_name}
         if self.desired_state == 1:
             self.manager.UnmaskUnitFiles([self.unit_name], dbus.Boolean(False))
+            self.manager.Reload()
             self.manager.EnableUnitFiles([self.unit_name], dbus.Boolean(False), dbus.Boolean(True))
             if self.unit_name == 'gpupdate.service':
                 if self.manager.GetUnitFileState(dbus.String(self.unit_name)) == 'enabled':
