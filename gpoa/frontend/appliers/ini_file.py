@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2022 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from util.arguments import (
       FileAction
     , action_letter2enum
@@ -30,17 +29,18 @@ from util.gpoa_ini_parsing import GpoaConfigObj
 
 
 class Ini_file:
-    def __init__(self, ini_obj, username=None):
+    def __init__(self, ini_obj, username=None, allow_empty_sections=False):
         path = expand_windows_var(ini_obj.path, username).replace('\\', '/')
         self.path = check_path(path, username)
         if not self.path:
             logdata = {'path': ini_obj.path}
             log('D175', logdata)
             return None
-        self.section = ini_obj.section
         self.action = action_letter2enum(ini_obj.action)
-        self.key = ini_obj.property
-        self.value = ini_obj.value
+        self.section = ini_obj.get_original_value('section')
+        self.key = ini_obj.get_original_value('property')
+        self.value = ini_obj.get_original_value('value')
+        self.allow_empty_sections = allow_empty_sections
         try:
             self.config = GpoaConfigObj(str(self.path), unrepr=False)
         except Exception as exc:
@@ -50,19 +50,37 @@ class Ini_file:
 
         self.act()
 
+    def _is_empty_section(self):
+        if not self.section:
+            return True
+        return self.section.strip('"\'') == ''
+
     def _create_action(self):
         if self.path.is_dir():
             return
-        if self.section not in self.config:
-            self.config[self.section] = {}
 
-        self.config[self.section][self.key] = self.value
+        if self.allow_empty_sections and self._is_empty_section():
+            self.config[self.key] = self.value
+        else:
+            if self.section not in self.config:
+                self.config[self.section] = {}
+            self.config[self.section][self.key] = self.value
+
         self.config.write()
-
 
     def _delete_action(self):
         if not self.path.exists() or self.path.is_dir():
             return
+
+        if self.allow_empty_sections and self._is_empty_section():
+            if self.key:
+                if self.key in self.config:
+                    self.config.pop(self.key)
+                    self.config.write()
+            else:
+                self.path.unlink()
+            return
+
         if not self.section:
             self.path.unlink()
             return
@@ -72,7 +90,6 @@ class Ini_file:
             elif self.key in self.config[self.section]:
                 self.config[self.section].pop(self.key)
         self.config.write()
-
 
     def act(self):
         try:

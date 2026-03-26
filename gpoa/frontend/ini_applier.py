@@ -18,9 +18,14 @@
 
 
 from util.logging import log
-
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.ini_file import Ini_file
+
+_REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowEmptySections'
+
+def _is_empty_sections_allowed(storage):
+    flag = storage.get_key_value(_REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS)
+    return flag and str(flag) == '1'
 
 
 class ini_applier(applier_frontend):
@@ -34,8 +39,9 @@ class ini_applier(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
 
     def run(self):
+        allow_empty = _is_empty_sections_allowed(self.storage)
         for inifile in self.inifiles_info:
-            Ini_file(inifile)
+            Ini_file(inifile, allow_empty_sections=allow_empty)
 
     def apply(self):
         if self.__module_enabled:
@@ -43,6 +49,7 @@ class ini_applier(applier_frontend):
             self.run()
         else:
             log('D172')
+
 
 class ini_applier_user(applier_frontend):
     __module_name = 'InifilesApplierUser'
@@ -60,8 +67,9 @@ class ini_applier_user(applier_frontend):
         )
 
     def run(self):
+        allow_empty = _is_empty_sections_allowed(self.storage)
         for inifile in self.inifiles_info:
-            Ini_file(inifile, self.username)
+            Ini_file(inifile, self.username, allow_empty_sections=allow_empty)
 
     def admin_context_apply(self):
         pass
