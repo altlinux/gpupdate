@@ -29,7 +29,7 @@ from util.gpoa_ini_parsing import GpoaConfigObj
 
 
 class Ini_file:
-    def __init__(self, ini_obj, username=None, allow_empty_sections=False):
+    def __init__(self, ini_obj, username=None, allow_empty_sections=False, allow_unquoted_commas=False):
         path = expand_windows_var(ini_obj.path, username).replace('\\', '/')
         self.path = check_path(path, username)
         if not self.path:
@@ -41,8 +41,9 @@ class Ini_file:
         self.key = ini_obj.get_original_value('property')
         self.value = ini_obj.get_original_value('value')
         self.allow_empty_sections = allow_empty_sections
+        self.allow_unquoted_commas = allow_unquoted_commas
         try:
-            self.config = GpoaConfigObj(str(self.path), unrepr=False)
+            self.config = GpoaConfigObj(str(self.path), unrepr=False, allow_unquoted_commas=allow_unquoted_commas)
         except Exception as exc:
             logdata = {'exc': exc}
             log('D176', logdata)
