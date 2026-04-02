@@ -18,6 +18,10 @@
 
 
 import os
+import re
+import tempfile
+from functools import lru_cache
+from typing import Optional
 from pathlib import Path
 
 from samba import NTSTATUSError
@@ -48,7 +52,8 @@ from gpoa.storage import registry_factory
 from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
-from .util import get_homedir, get_uid_by_username
+from .sid import get_sid
+from .util import get_homedir, get_uid_by_username, get_machine_name
 from .xdg import xdg_get_desktop
 
 
@@ -377,34 +382,130 @@ class SiteDomainScanner:
     def select_pdc_emulator_server(self):
         return self.pdc_emulator
 
-def expand_windows_var(text, username=None):
+class WindowsVarExpander:
+    """
+    Expand percent-encoded Windows variables (%HOME%, %AppData%, …) to
+    POSIX paths.
+
+    Design notes
+    ------------
+    - Single-pass regex substitution: O(n) instead of O(n·m).
+    - Case-insensitive lookup: %home% == %HOME% == %Home%.
+    - Per-username variable map is built once and cached (lru_cache).
+    - xdg_get_desktop() result is also cached — no repeated os.popen calls.
+    - Unknown variables are left unchanged (no silent corruption).
+    """
+
+    # Matches any %TOKEN% where TOKEN contains no percent signs
+    _PATTERN = re.compile(r'%([^%]+)%')
+
+    # Variables that hold non-path values — trailing slash must NOT be added
+    _NON_PATH_VARS = {'LOGONUSER', 'USERNAME', 'COMPUTERNAME', 'DOMAINNAME',
+                      'LDAPUSERSID', 'CURRENTPROCESSID'}
+
+    @classmethod
+    def clear_cache(cls) -> None:
+        """Invalidate all cached variable maps (useful in tests)."""
+        cls._build_map.cache_clear()
+        xdg_get_desktop.cache_clear()
+
+    @classmethod
+    def expand(cls, text: str, username: Optional[str] = None) -> str:
+        """
+        Expand Windows-style variables in *text*.
+
+        :param text:     Input string, e.g. ``'%HOME%/docs'``.
+        :param username: When given, user-specific paths are used;
+                         otherwise system-wide defaults apply.
+        :returns:        Expanded string; unknown tokens are preserved.
+        """
+        if '%' not in text:
+            return text
+
+        variables = cls._build_map(username)
+        unknown = []
+
+        def _replace(match: re.Match) -> str:
+            key = match.group(1).upper()
+            value = variables.get(key, match.group(0))
+            if value == match.group(0):
+                unknown.append(match.group(0))
+            return value
+
+        result = cls._PATTERN.sub(_replace, text)
+        return result
+
+    @classmethod
+    @lru_cache(maxsize=32)
+    def _build_map(cls, username: Optional[str] = None) -> dict[str, str]:
+        """
+        Build and cache the UPPER-CASE variable map for *username*.
+        All values are normalised to end with '/'.
+        """
+        if username:
+            homedir      = get_homedir(username)
+            start_menu   = os.path.join(homedir, '.local', 'share', 'applications')
+            appdata      = os.path.join(homedir, '.config')
+            localappdata = os.path.join(homedir, '.local', 'share')
+        else:
+            homedir      = '/etc/skel'
+            start_menu   = '/usr/share/applications'
+            appdata      = '/etc/skel'
+            localappdata = '/etc/skel'
+
+        desktop = xdg_get_desktop(username, homedir)
+        tmp     = os.path.join(tempfile.gettempdir(), username) if username else tempfile.gettempdir()
+
+        info   = get_kerberos_domain_info()
+        pdc    = info.get('pdc_dns_name', '')
+        domain = pdc.split('.', 1)[-1] if '.' in pdc else ''
+
+        raw: dict[str, str] = {
+            'HOME':              homedir,
+            'HOMEPATH':          homedir,
+            'HOMEDRIVE':         '/',
+            'USERPROFILE':       homedir,
+            'SYSTEMROOT':        '/',
+            'SYSTEMDRIVE':       '/',
+            'WINDIR':            '/',
+            'DESKTOPDIR':        desktop,
+            'STARTMENUDIR':      start_menu,
+            'APPDATA':           appdata,
+            'LOCALAPPDATA':      localappdata,
+            'PROGRAMDATA':       '/var/lib',
+            'PROGRAMFILES':      '/usr',
+            'PROGRAMFILES(X86)': '/usr/lib',
+            'PUBLIC':            '/usr/share',
+            'TEMP':              tmp,
+            'TMP':               tmp,
+            'COMPUTERNAME':      get_machine_name(),
+            'DOMAINNAME':        domain,
+            'CURRENTPROCESSID':  str(os.getpid()),
+        }
+
+        if username:
+            raw['LOGONUSER'] = username
+            raw['USERNAME']  = username
+            try:
+                raw['LDAPUSERSID'] = get_sid(domain, username, is_machine=False)
+            except Exception:
+                pass
+
+        result = {}
+        for k, v in raw.items():
+            if k in cls._NON_PATH_VARS or v.endswith('/'):
+                result[k] = v
+            else:
+                result[k] = v + '/'
+
+        return result
+
+
+def expand_windows_var(text: str, username: Optional[str] = None) -> str:
     '''
     Scan the line for percent-encoded variables and expand them.
     '''
-    variables = {}
-    variables['HOME'] = '/etc/skel'
-    variables['HOMEPATH'] = '/etc/skel'
-    variables['HOMEDRIVE'] = '/'
-    variables['SystemRoot'] = '/'
-    variables['StartMenuDir'] = '/usr/share/applications'
-    variables['SystemDrive'] = '/'
-    variables['DesktopDir'] = xdg_get_desktop(username, variables['HOME'])
-
-    if username:
-        variables['LogonUser'] = username
-        variables['HOME'] = get_homedir(username)
-        variables['HOMEPATH'] = get_homedir(username)
-
-        variables['StartMenuDir'] = os.path.join(
-            variables['HOME'], '.local', 'share', 'applications')
-
-    result = text
-    for var in variables.keys():
-        result = result.replace('%{}%'.format(var),
-                                 variables[var] if variables[var][-1] == '/'
-                                 else variables[var] +'/')
-
-    return result
+    return WindowsVarExpander.expand(text, username)
 
 
 def transform_windows_path(text):

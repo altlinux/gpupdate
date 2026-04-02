@@ -18,6 +18,7 @@
 
 
 import os
+from functools import lru_cache
 
 from messages import message_with_code
 
@@ -25,6 +26,7 @@ from .logging import log
 from .util import get_homedir
 
 
+@lru_cache(maxsize=32)
 def xdg_get_desktop(username, homedir = None):
     if username:
         homedir = get_homedir(username)
@@ -37,4 +39,3 @@ def xdg_get_desktop(username, homedir = None):
     stream = os.popen('export HOME={}; xdg-user-dir DESKTOP'.format(homedir))
     output = stream.read()[:-1]
     return output
-
