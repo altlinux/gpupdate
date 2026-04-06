@@ -99,6 +99,7 @@ class GpoaConfigObj(ConfigObj):
 
     def __init__(self, infile=None, **kwargs):
         self.allow_unquoted_commas = kwargs.pop('allow_unquoted_commas', False)
+        self.allow_special_chars = kwargs.pop('allow_special_chars', False)
         super().__init__(infile, **kwargs)
 
     def _handle_comment(self, comment):
@@ -331,6 +332,8 @@ class GpoaConfigObj(ConfigObj):
             elif '\n' in value:
                 # will only happen if multiline is off - e.g. '\n' in key
                 raise ConfigObjError('Value "%s" cannot be safely quoted.' % value)
+            elif self.allow_special_chars:
+                quot = noquot
             elif ((value[0] not in wspace_plus) and
                     (value[-1] not in wspace_plus) and
                     (self.allow_unquoted_commas or (',' not in value))):
@@ -341,7 +344,7 @@ class GpoaConfigObj(ConfigObj):
             # if value has '\n' or "'" *and* '"', it will need triple quotes
             quot = self._get_triple_quote(value)
 
-        if quot == noquot and '#' in value and self.list_values:
+        if quot == noquot and '#' in value and self.list_values and not self.allow_special_chars:
             quot = self._get_single_quote(value)
 
         return quot % value

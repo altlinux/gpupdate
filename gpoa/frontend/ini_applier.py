@@ -23,6 +23,7 @@ from .appliers.ini_file import Ini_file
 
 _REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowEmptySections'
 _REGISTRY_PATH_INI_ALLOW_UNQUOTED_COMMAS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowUnquotedCommas'
+_REGISTRY_PATH_INI_ALLOW_SPECIAL_CHARS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowSpecialChars'
 
 def _is_empty_sections_allowed(storage):
     flag = storage.get_key_value(_REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS)
@@ -30,6 +31,10 @@ def _is_empty_sections_allowed(storage):
 
 def _is_unquoted_commas_allowed(storage):
     flag = storage.get_key_value(_REGISTRY_PATH_INI_ALLOW_UNQUOTED_COMMAS)
+    return flag and str(flag) == '1'
+
+def _is_special_chars_allowed(storage):
+    flag = storage.get_key_value(_REGISTRY_PATH_INI_ALLOW_SPECIAL_CHARS)
     return flag and str(flag) == '1'
 
 
@@ -46,8 +51,9 @@ class ini_applier(applier_frontend):
     def run(self):
         allow_empty = _is_empty_sections_allowed(self.storage)
         allow_unquoted = _is_unquoted_commas_allowed(self.storage)
+        allow_special = _is_special_chars_allowed(self.storage)
         for inifile in self.inifiles_info:
-            Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted)
+            Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
 
     def apply(self):
         if self.__module_enabled:
@@ -75,8 +81,9 @@ class ini_applier_user(applier_frontend):
     def run(self):
         allow_empty = _is_empty_sections_allowed(self.storage)
         allow_unquoted = _is_unquoted_commas_allowed(self.storage)
+        allow_special = _is_special_chars_allowed(self.storage)
         for inifile in self.inifiles_info:
-            Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted)
+            Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
 
     def admin_context_apply(self):
         pass
