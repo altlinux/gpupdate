@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Services clsid="{B霖DD4FE-5B9C-4b74-9F4B-D3D44C6E3F7A}"><Service clsid="{A3C49BD9-35B2-4a07-8C4F-9E3A6D38F2E1}" name="disabled_service" status="disabled_service" image="0" changed="2024-01-01 00:00:00" uid="{DISABLED-SERVICE-001}" disabled="1"><Properties serviceName="DisabledSvc" serviceAction="START" startupType="AUTOMATIC"/></Service>
+<Service clsid="{A3C49BD9-35B2-4a07-8C4F-9E3A6D38F2E1}" name="enabled_service" status="enabled_service" image="0" changed="2024-01-01 00:00:00" uid="{ENABLED-SERVICE-001}"><Properties serviceName="EnabledSvc" serviceAction="START" startupType="AUTOMATIC"/></Service>
+</Services>

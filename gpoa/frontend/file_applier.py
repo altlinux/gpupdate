@@ -37,6 +37,8 @@ class file_applier(applier_frontend):
 
     def run(self):
         for file in self.files:
+            if file.disabled:
+                continue
             Files_cp(file, self.file_cache, self.exe_check)
 
     def apply(self):
@@ -65,6 +67,8 @@ class file_applier_user(applier_frontend):
 
     def run(self):
         for file in self.files:
+            if file.disabled:
+                continue
             Files_cp(file, self.file_cache, self.exe_check, self.username)
 
     def admin_context_apply(self):

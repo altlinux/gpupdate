@@ -34,6 +34,8 @@ def storage_get_drives(storage):
     drive_list = []
 
     for drv_obj in drives:
+        if drv_obj.disabled:
+            continue
         drive_list.append(drv_obj)
 
     return drive_list
@@ -310,6 +312,8 @@ class cifs_applier_user(applier_frontend):
         # Collect data for drive settings
         drive_list = Drive_list()
         for drv in self.drives:
+            if drv.disabled:
+                continue
             drive_settings = {}
             drive_settings['dir'] = drv.dir
             drive_settings['login'] = drv.login

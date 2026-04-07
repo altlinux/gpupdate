@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Drives clsid="{8FDDCC1A-0C3C-43cd-A6B4-71A6DF20DA8C}"><Drive clsid="{935D1B74-9CB8-4e3c-9914-7DD559B7A417}" name="DISABLED:" status="DISABLED:" image="0" changed="2024-01-01 00:00:00" uid="{DISABLED-DRIVE-001}" disabled="1"><Properties action="C" thisDrive="SHOW" allDrives="NOCHANGE" userName="" path="\\server\disabled" label="Disabled Drive" persistent="0" useLetter="1" letter="D"/></Drive>
+<Drive clsid="{935D1B74-9CB8-4e3c-9914-7DD559B7A417}" name="ENABLED:" status="ENABLED:" image="0" changed="2024-01-01 00:00:00" uid="{ENABLED-DRIVE-001}"><Properties action="C" thisDrive="SHOW" allDrives="NOCHANGE" userName="" path="\\server\enabled" label="Enabled Drive" persistent="0" useLetter="1" letter="E"/></Drive>
+</Drives>

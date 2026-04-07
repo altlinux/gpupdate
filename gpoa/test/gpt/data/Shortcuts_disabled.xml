@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Shortcuts clsid="{EA8E37D7-F463-4758-880B-FDA07BF9D212}"><Shortcut clsid="{819F289D-3B93-4297-9E11-796A0C17F34E}" name="disabled_shortcut" status="disabled_shortcut" image="0" changed="2024-01-01 00:00:00" uid="{DISABLED-SHORTCUT-001}" disabled="1"><Properties action="C" shortcutPath="C:\disabled.lnk" targetPath="C:\disabled.exe" arguments="" comment=""/></Shortcut>
+<Shortcut clsid="{819F289D-3B93-4297-9E11-796A0C17F34E}" name="enabled_shortcut" status="enabled_shortcut" image="0" changed="2024-01-01 00:00:00" uid="{ENABLED-SHORTCUT-001}"><Properties action="C" shortcutPath="C:\enabled.lnk" targetPath="C:\enabled.exe" arguments="" comment=""/></Shortcut>
+</Shortcuts>

@@ -34,6 +34,8 @@ def storage_get_printers(storage):
     printers = []
 
     for prnj in printer_objs:
+        if prnj.disabled:
+            continue
         printers.append(prnj)
 
     return printers

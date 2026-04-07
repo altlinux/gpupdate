@@ -76,6 +76,7 @@ def read_drives(drives_file):
         drive_obj.set_label(props.get('label'))
         drive_obj.set_persistent(props.get('persistent'))
         drive_obj.set_useLetter(props.get('useLetter'))
+        drive_obj.set_disabled(drive.get('disabled') == '1')
 
         drives.append(drive_obj)
 
@@ -108,6 +109,7 @@ class drivemap(DynamicAttributes):
         self.label = None
         self.persistent = None
         self.useLetter = None
+        self.disabled = False
 
     def set_login(self, username):
         self.login = username
@@ -142,6 +144,9 @@ class drivemap(DynamicAttributes):
 
     def set_useLetter(self, useLetter):
         self.useLetter = useLetter
+
+    def set_disabled(self, disabled):
+        self.disabled = disabled
 
     def to_json(self):
         drive = {}

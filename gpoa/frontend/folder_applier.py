@@ -40,6 +40,8 @@ class folder_applier(applier_frontend):
         if self.__module_enabled:
             log('D107')
             for directory_obj in self.folders:
+                if directory_obj.disabled:
+                    continue
                 check = expand_windows_var(directory_obj.path).replace('\\', '/')
                 win_var = re.findall(r'%.+?%', check)
                 drive = re.findall(r'^[a-z A-Z]\:',check)
@@ -68,6 +70,8 @@ class folder_applier_user(applier_frontend):
 
     def run(self):
         for directory_obj in self.folders:
+            if directory_obj.disabled:
+                continue
             check = expand_windows_var(directory_obj.path, self.username).replace('\\', '/')
             win_var = re.findall(r'%.+?%', check)
             drive = re.findall(r'^[a-z A-Z]\:',check)

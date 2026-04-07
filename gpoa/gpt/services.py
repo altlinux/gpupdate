@@ -37,6 +37,7 @@ def read_services(service_file):
         srv_obj.set_servicename(props.get('serviceName'))
         srv_obj.set_serviceaction(props.get('serviceAction'))
         timeout = props.get('timeout')
+        srv_obj.set_disabled(srv.get('disabled') == '1')
 
         services.append(srv_obj)
 
@@ -51,6 +52,7 @@ class service(DynamicAttributes):
         self.unit = name
         self.servname = None
         self.serviceaction = None
+        self.disabled = False
 
     def set_clsid(self, clsid):
         self.guid = clsid
@@ -71,4 +73,7 @@ class service(DynamicAttributes):
 
     def set_servact(self, sact):
         self.serviceaction = sact
+
+    def set_disabled(self, disabled):
+        self.disabled = disabled
 

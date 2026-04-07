@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EnvironmentVariables clsid="{BF141A63-327B-438a-B9BF-2C188F13B7AD}"><EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="disabled_var" status="disabled_var" image="2" changed="2024-01-01 00:00:00" uid="{DISABLED-VAR-001}" disabled="1"><Properties action="C" name="DISABLED_VAR" value="disabled_value" user="0" partial="0"/></EnvironmentVariable>
+<EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="enabled_var" status="enabled_var" image="2" changed="2024-01-01 00:00:00" uid="{ENABLED-VAR-001}"><Properties action="C" name="ENABLED_VAR" value="enabled_value" user="0" partial="0"/></EnvironmentVariable>
+</EnvironmentVariables>

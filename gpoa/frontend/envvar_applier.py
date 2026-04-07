@@ -36,7 +36,8 @@ class envvar_applier(applier_frontend):
     def apply(self):
         if self.__module_enabled:
             log('D134')
-            ev = Envvar(self.envvars, 'root')
+            envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
+            ev = Envvar(envvars_filtered, 'root')
             ev.act()
         else:
             log('D135')
@@ -56,7 +57,8 @@ class envvar_applier_user(applier_frontend):
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D136')
-            ev = Envvar(self.envvars, self.username)
+            envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
+            ev = Envvar(envvars_filtered, self.username)
             ev.act()
         else:
             log('D137')

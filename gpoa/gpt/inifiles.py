@@ -31,6 +31,7 @@ def read_inifiles(inifiles_file):
         ini_obj.set_property(prors.get('property', default=None))
         ini_obj.set_value(prors.get('value', default=None))
         ini_obj.set_action(prors.get('action', default='C'))
+        ini_obj.set_disabled(ini.get('disabled') == '1')
 
         inifiles.append(ini_obj)
 
@@ -43,6 +44,7 @@ def merge_inifiles(storage, inifile_objects, policy_name):
 class inifile(DynamicAttributes):
     def __init__(self, path):
         self.path = path
+        self.disabled = False
 
     def set_section(self, section):
         self.section = section
@@ -52,4 +54,6 @@ class inifile(DynamicAttributes):
         self.value = value
     def set_action(self, action):
         self.action = action
+    def set_disabled(self, disabled):
+        self.disabled = disabled
 

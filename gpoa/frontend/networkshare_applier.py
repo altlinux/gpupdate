@@ -37,6 +37,8 @@ class networkshare_applier(applier_frontend):
 
     def run(self):
         for networkshare in self.networkshare_info:
+            if networkshare.disabled:
+                continue
             Networkshare(networkshare, self.username)
 
     def apply(self):

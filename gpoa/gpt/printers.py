@@ -39,6 +39,7 @@ def read_printers(printers_file):
         prn_obj.set_localname(props.get('localName'))
         prn_obj.set_comment(props.get('comment'))
         prn_obj.set_path(props.get('path'))
+        prn_obj.set_disabled(prn.get('disabled') == '1')
 
         printers.append(prn_obj)
 
@@ -79,6 +80,7 @@ class printer(DynamicAttributes):
         self.comment = None
         self.path = None
         self.ip_address = None
+        self.disabled = False
 
     def set_location(self, location):
         '''
@@ -98,6 +100,9 @@ class printer(DynamicAttributes):
 
     def set_ip(self, ipaddr):
         self.ip_address = ipaddr
+
+    def set_disabled(self, disabled):
+        self.disabled = disabled
 
     def to_json(self):
         '''

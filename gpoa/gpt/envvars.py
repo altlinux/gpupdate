@@ -30,6 +30,7 @@ def read_envvars(envvars_file):
         value = props.get('value')
         action = props.get('action', default='C')
         var_obj = envvar(name, value, action)
+        var_obj.set_disabled(var.get('disabled') == '1')
 
         variables.append(var_obj)
 
@@ -44,4 +45,8 @@ class envvar(DynamicAttributes):
         self.name = name
         self.value = value
         self.action = action
+        self.disabled = False
+
+    def set_disabled(self, disabled):
+        self.disabled = disabled
 

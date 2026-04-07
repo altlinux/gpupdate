@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Folders clsid="{77CC39E7-3D16-4f8f-AF86-EC0BBEE2C861}"><Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="disabled_folder" status="disabled_folder" image="1" changed="2024-01-01 00:00:00" uid="{DISABLED-FOLDER-001}" disabled="1"><Properties action="C" path="C:\disabled_folder" deleteFolder="1" deleteSubFolders="1" deleteFiles="1"/></Folder>
+<Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="enabled_folder" status="enabled_folder" image="1" changed="2024-01-01 00:00:00" uid="{ENABLED-FOLDER-001}"><Properties action="C" path="C:\enabled_folder" deleteFolder="1" deleteSubFolders="1" deleteFiles="1"/></Folder>
+</Folders>

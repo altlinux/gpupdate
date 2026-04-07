@@ -33,6 +33,7 @@ def read_networkshares(networksharesxml):
         networkshare_obj.set_comment(props.get('comment', default=None))
         networkshare_obj.set_limitUsers(props.get('limitUsers', default=None))
         networkshare_obj.set_abe(props.get('abe', default=None))
+        networkshare_obj.set_disabled(share.get('disabled') == '1')
         networkshares.append(networkshare_obj)
 
     return networkshares
@@ -44,6 +45,7 @@ def merge_networkshares(storage, networkshares_objects, policy_name):
 class networkshare(DynamicAttributes):
     def __init__(self, name):
         self.name = name
+        self.disabled = False
 
     def set_action(self, action):
         self.action = action
@@ -57,3 +59,5 @@ class networkshare(DynamicAttributes):
         self.limitUsers = limitUsers
     def set_abe(self, abe):
         self.abe = abe
+    def set_disabled(self, disabled):
+        self.disabled = disabled

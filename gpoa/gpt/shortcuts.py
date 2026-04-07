@@ -91,6 +91,7 @@ def read_shortcuts(shortcuts_file):
         sc.set_icon(props.get('iconPath'))
         if props.get('comment'):
             sc.set_comment(props.get('comment'))
+        sc.set_disabled(link.get('disabled') == '1')
 
         shortcuts.append(sc)
 
@@ -137,6 +138,7 @@ class shortcut(DynamicAttributes):
         self.is_in_user_context = self.set_usercontext()
         self.type = ttype
         self.desktop_file_template = None
+        self.disabled = False
 
 
     def items(self):
@@ -208,6 +210,9 @@ class shortcut(DynamicAttributes):
         Adjust shortcut path with expanding windows variables
         '''
         self.expanded_path = path
+
+    def set_disabled(self, disabled):
+        self.disabled = disabled
 
     def is_usercontext(self):
         return self.is_in_user_context

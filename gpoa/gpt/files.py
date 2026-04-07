@@ -34,6 +34,7 @@ def read_files(filesxml):
         fil_obj.set_hidden(props.get('hidden', default=None))
         fil_obj.set_suppress(props.get('suppress', default=None))
         fil_obj.set_executable(props.get('executable', default=None))
+        fil_obj.set_disabled(fil.get('disabled') == '1')
         files.append(fil_obj)
 
     return files
@@ -45,6 +46,7 @@ def merge_files(storage, file_objects, policy_name):
 class fileentry(DynamicAttributes):
     def __init__(self, fromPath):
         self.fromPath = fromPath
+        self.disabled = False
 
     def set_action(self, action):
         self.action = action
@@ -60,3 +62,5 @@ class fileentry(DynamicAttributes):
         self.suppress = suppress
     def set_executable(self, executable):
         self.executable = executable
+    def set_disabled(self, disabled):
+        self.disabled = disabled

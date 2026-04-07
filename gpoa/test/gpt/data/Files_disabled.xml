@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Files clsid="{215B2E53-57CE-475c-80FE-9EEC14635851}"><File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="disabled_file" status="disabled_file" image="1" changed="2024-01-01 00:00:00" uid="{DISABLED-FILE-001}" disabled="1"><Properties action="C" fromPath="C:\source_disabled.txt" targetPath="C:\target_disabled.txt"/></File>
+<File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="enabled_file" status="enabled_file" image="1" changed="2024-01-01 00:00:00" uid="{ENABLED-FILE-001}"><Properties action="C" fromPath="C:\source_enabled.txt" targetPath="C:\target_enabled.txt"/></File>
+</Files>

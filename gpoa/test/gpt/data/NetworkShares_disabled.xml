@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NetworkShares clsid="{B霖91D85-5B4C-4b7a-8E8F-3A6C7E8F37F5}"><NetworkShare clsid="{AB242DE5-79F3-4b04-8E3A-04F40C7E2685}" name="disabled_share" status="disabled_share" image="0" changed="2024-01-01 00:00:00" uid="{DISABLED-SHARE-001}" disabled="1"><Properties action="C" name="DisabledShare" path="C:\disabled_share" comment="Disabled network share"/></NetworkShare>
+<NetworkShare clsid="{AB242DE5-79F3-4b04-8E3A-04F40C7E2685}" name="enabled_share" status="enabled_share" image="0" changed="2024-01-01 00:00:00" uid="{ENABLED-SHARE-001}"><Properties action="C" name="EnabledShare" path="C:\enabled_share" comment="Enabled network share"/></NetworkShare>
+</NetworkShares>

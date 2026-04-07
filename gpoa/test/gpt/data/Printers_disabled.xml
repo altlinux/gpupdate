@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Printers clsid="{A9C4EFB5-5C4D-4a93-9E2D-BCB9BA8BA3F9}"><PortPrinter clsid="{5D9879A1-25B5-23d8-9A14-AB78E94B3F71}" name="disabled_printer" status="disabled_printer" image="0" changed="2024-01-01 00:00:00" uid="{DISABLED-PRINTER-001}" disabled="1"><Properties action="C" path="\\disabled\printer" localName="DisabledPrinter"/></PortPrinter>
+<PortPrinter clsid="{5D9879A1-25B5-23d8-9A14-AB78E94B3F71}" name="enabled_printer" status="enabled_printer" image="0" changed="2024-01-01 00:00:00" uid="{ENABLED-PRINTER-001}"><Properties action="C" path="\\enabled\printer" localName="EnabledPrinter"/></PortPrinter>
+</Printers>

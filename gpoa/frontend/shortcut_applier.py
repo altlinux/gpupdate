@@ -38,6 +38,8 @@ def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
         shortcut_objs += shortcuts_machine
 
     for sc in shortcut_objs:
+        if sc.disabled:
+            continue
         if username:
             sc.set_expanded_path(expand_windows_var(sc.path, username))
         shortcuts.append(sc)
@@ -183,6 +185,8 @@ class shortcut_applier_user(applier_frontend):
 
         if shortcuts:
             for sc in shortcuts:
+                if sc.disabled:
+                    continue
                 if in_usercontext and sc.is_usercontext():
                     apply_shortcut(sc, self.username)
                 if not in_usercontext and not sc.is_usercontext():

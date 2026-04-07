@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IniFiles clsid="{694C651A-08F2-47fa-A427-34C4F62BA207}"><Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="disabled_test" status="disabled_test" image="0" changed="2024-01-01 00:00:00" uid="{DISABLED-TEST-001}" disabled="1"><Properties path="C:\disabled.ini" section="test" value="disabled_value" property="disabled_prop" action="C"/></Ini>
+<Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="enabled_test" status="enabled_test" image="0" changed="2024-01-01 00:00:00" uid="{ENABLED-TEST-001}"><Properties path="C:\enabled.ini" section="test" value="enabled_value" property="enabled_prop" action="C"/></Ini>
+</IniFiles>
