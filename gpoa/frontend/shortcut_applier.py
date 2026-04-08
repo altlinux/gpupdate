@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ from util.windows import expand_windows_var
 from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled
-from storage.gpp_state import GppStateManager, get_element_type_name
+from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
 
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
@@ -39,8 +39,6 @@ def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
         shortcut_objs += shortcuts_machine
 
     for sc in shortcut_objs:
-        if sc.disabled:
-            continue
         if username:
             sc.set_expanded_path(expand_windows_var(sc.path, username))
         shortcuts.append(sc)
@@ -120,8 +118,38 @@ class shortcut_applier(applier_frontend):
         )
         self.state_manager = GppStateManager()
 
+    def _cleanup_removed_elements(self, removed_elements):
+        '''Cleanup shortcuts removed from GPO with removePolicy=True.'''
+        for element in removed_elements:
+            if element.get('action') in CLEANUP_SKIP_ACTIONS:
+                continue
+
+            try:
+                dest = element.get('dest') or element.get('path')
+                if not dest:
+                    continue
+
+                dest = expand_windows_var(dest, None)
+                dest = Path(dest.replace('\\', '/') + '.desktop')
+
+                if dest.exists():
+                    dest.unlink()
+            except Exception as exc:
+                uid = element.get('uid', 'unknown')
+                if element.get('bypass_errors'):
+                    log('W47', {'uid': uid, 'exc': str(exc)})
+                else:
+                    raise
+
     def run(self):
+        # Cleanup removed elements with removePolicy
         shortcuts = storage_get_shortcuts(self.storage)
+        if shortcuts:
+            current_elements = [dict(sc) for sc in shortcuts if not getattr(sc, 'disabled', False)]
+            removed = self.state_manager.find_removed('Shortcuts', current_elements)
+            self._cleanup_removed_elements(removed)
+
+        # Apply current elements
         if shortcuts:
             for sc in shortcuts:
                 element_type = get_element_type_name(sc)
@@ -169,6 +197,29 @@ class shortcut_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager(username)
 
+    def _cleanup_removed_elements(self, removed_elements):
+        '''Cleanup shortcuts removed from GPO with removePolicy=True.'''
+        for element in removed_elements:
+            if element.get('action') in CLEANUP_SKIP_ACTIONS:
+                continue
+
+            try:
+                dest = element.get('dest') or element.get('path')
+                if not dest:
+                    continue
+
+                dest = expand_windows_var(dest, self.username)
+                dest = Path(dest.replace('\\', '/') + '.desktop')
+
+                if dest.exists():
+                    dest.unlink()
+            except Exception as exc:
+                uid = element.get('uid', 'unknown')
+                if element.get('bypass_errors'):
+                    log('W47', {'uid': uid, 'exc': str(exc)})
+                else:
+                    raise
+
     def get_machine_shortcuts(self):
         result = []
         try:
@@ -201,6 +252,13 @@ class shortcut_applier_user(applier_frontend):
             shortcuts_machine = self.get_machine_shortcuts()
         shortcuts = storage_get_shortcuts(self.storage, self.username, shortcuts_machine)
 
+        # Cleanup removed elements with removePolicy
+        if shortcuts:
+            current_elements = [dict(sc) for sc in shortcuts if not getattr(sc, 'disabled', False)]
+            removed = self.state_manager.find_removed('Shortcuts', current_elements)
+            self._cleanup_removed_elements(removed)
+
+        # Apply current elements
         if shortcuts:
             for sc in shortcuts:
                 if sc.disabled:

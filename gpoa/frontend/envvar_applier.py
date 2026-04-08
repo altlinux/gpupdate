@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,10 @@ from util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.envvar import Envvar
-from storage.gpp_state import GppStateManager, get_element_type_name
+from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
+from pathlib import Path
+from util.util import get_homedir
+import os
 
 
 class envvar_applier(applier_frontend):
@@ -35,9 +38,46 @@ class envvar_applier(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager()
 
+    def _cleanup_removed_elements(self, removed_elements):
+        '''Cleanup environment variables removed from GPO with removePolicy=True.'''
+        for element in removed_elements:
+            if element.get('action') in CLEANUP_SKIP_ACTIONS:
+                continue
+
+            try:
+                name = element.get('name')
+                if not name:
+                    continue
+
+                env_file = Path('/etc/environment')
+
+                if not env_file.exists():
+                    continue
+
+                lines = []
+                with open(env_file, 'r') as f:
+                    for line in f:
+                        if not line.strip().startswith(f'{name}='):
+                            lines.append(line)
+
+                with open(env_file, 'w') as f:
+                    f.writelines(lines)
+            except Exception as exc:
+                uid = element.get('uid', 'unknown')
+                if element.get('bypass_errors'):
+                    log('W47', {'uid': uid, 'exc': str(exc)})
+                else:
+                    raise
+
     def apply(self):
         if self.__module_enabled:
             log('D134')
+            # Cleanup removed elements with removePolicy
+            current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]
+            removed = self.state_manager.find_removed('Environmentvariables', current_elements)
+            self._cleanup_removed_elements(removed)
+
+            # Apply current elements
             envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
             envvars_to_apply = []
             for ev in envvars_filtered:
@@ -81,9 +121,55 @@ class envvar_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager(username)
 
+    def _cleanup_removed_elements(self, removed_elements):
+        '''Cleanup environment variables removed from GPO with removePolicy=True.'''
+        for element in removed_elements:
+            if element.get('action') in CLEANUP_SKIP_ACTIONS:
+                continue
+
+            try:
+                name = element.get('name')
+                if not name:
+                    continue
+
+                home = get_homedir(self.username)
+                if not home:
+                    continue
+
+                # User environment files
+                env_files = [
+                    Path(home) / '.pam_environment',
+                    Path(home) / '.bashrc',
+                ]
+
+                for env_file in env_files:
+                    if not env_file.exists():
+                        continue
+
+                    lines = []
+                    with open(env_file, 'r') as f:
+                        for line in f:
+                            if not line.strip().startswith(f'{name}='):
+                                lines.append(line)
+
+                    with open(env_file, 'w') as f:
+                        f.writelines(lines)
+            except Exception as exc:
+                uid = element.get('uid', 'unknown')
+                if element.get('bypass_errors'):
+                    log('W47', {'uid': uid, 'exc': str(exc)})
+                else:
+                    raise
+
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D136')
+            # Cleanup removed elements with removePolicy
+            current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]
+            removed = self.state_manager.find_removed('Environmentvariables', current_elements)
+            self._cleanup_removed_elements(removed)
+
+            # Apply current elements
             envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
             envvars_to_apply = []
             for ev in envvars_filtered:
