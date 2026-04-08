@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from util.gpp_lifecycle import generate_envvar_uid
 
 from .dynamic_attributes import DynamicAttributes
 
@@ -32,6 +33,20 @@ def read_envvars(envvars_file):
         var_obj = envvar(name, value, action)
         var_obj.set_disabled(var.get('disabled') == '1')
 
+        # Lifecycle attributes
+        var_obj.set_uid(var.get('uid'))
+        var_obj.set_remove_policy(var.get('removePolicy') == '1')
+        var_obj.set_bypass_errors(var.get('bypassErrors') == '1')
+        var_obj.set_changed(var.get('changed'))
+
+        # Check for FilterRunOnce
+        filters = var.find('Filters')
+        if filters is not None:
+            run_once = filters.find('FilterRunOnce')
+            var_obj.set_apply_once(run_once is not None)
+        else:
+            var_obj.set_apply_once(False)
+
         variables.append(var_obj)
 
     return variables
@@ -46,7 +61,30 @@ class envvar(DynamicAttributes):
         self.value = value
         self.action = action
         self.disabled = False
+        self.uid = None
+        self.remove_policy = False
+        self.bypass_errors = False
+        self.apply_once = False
+        self.changed = None
 
     def set_disabled(self, disabled):
         self.disabled = disabled
+
+    def set_uid(self, uid):
+        if uid:
+            self.uid = uid
+        else:
+            self.uid = generate_envvar_uid(self)
+
+    def set_remove_policy(self, remove_policy):
+        self.remove_policy = remove_policy
+
+    def set_bypass_errors(self, bypass_errors):
+        self.bypass_errors = bypass_errors
+
+    def set_apply_once(self, apply_once):
+        self.apply_once = apply_once
+
+    def set_changed(self, changed):
+        self.changed = changed
 

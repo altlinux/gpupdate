@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from util.gpp_lifecycle import generate_networkshare_uid
 
 from .dynamic_attributes import DynamicAttributes
 
@@ -34,6 +35,21 @@ def read_networkshares(networksharesxml):
         networkshare_obj.set_limitUsers(props.get('limitUsers', default=None))
         networkshare_obj.set_abe(props.get('abe', default=None))
         networkshare_obj.set_disabled(share.get('disabled') == '1')
+
+        # Lifecycle attributes
+        networkshare_obj.set_uid(share.get('uid'))
+        networkshare_obj.set_remove_policy(share.get('removePolicy') == '1')
+        networkshare_obj.set_bypass_errors(share.get('bypassErrors') == '1')
+        networkshare_obj.set_changed(share.get('changed'))
+
+        # Check for FilterRunOnce
+        filters = share.find('Filters')
+        if filters is not None:
+            run_once = filters.find('FilterRunOnce')
+            networkshare_obj.set_apply_once(run_once is not None)
+        else:
+            networkshare_obj.set_apply_once(False)
+
         networkshares.append(networkshare_obj)
 
     return networkshares
@@ -46,6 +62,11 @@ class networkshare(DynamicAttributes):
     def __init__(self, name):
         self.name = name
         self.disabled = False
+        self.uid = None
+        self.remove_policy = False
+        self.bypass_errors = False
+        self.apply_once = False
+        self.changed = None
 
     def set_action(self, action):
         self.action = action
@@ -61,3 +82,16 @@ class networkshare(DynamicAttributes):
         self.abe = abe
     def set_disabled(self, disabled):
         self.disabled = disabled
+    def set_uid(self, uid):
+        if uid:
+            self.uid = uid
+        else:
+            self.uid = generate_networkshare_uid(self)
+    def set_remove_policy(self, remove_policy):
+        self.remove_policy = remove_policy
+    def set_bypass_errors(self, bypass_errors):
+        self.bypass_errors = bypass_errors
+    def set_apply_once(self, apply_once):
+        self.apply_once = apply_once
+    def set_changed(self, changed):
+        self.changed = changed
