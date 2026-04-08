@@ -24,6 +24,7 @@ from util.windows import expand_windows_var
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.folder import Folder
+from storage.gpp_state import GppStateManager, get_element_type_name
 
 
 class folder_applier(applier_frontend):
@@ -35,6 +36,7 @@ class folder_applier(applier_frontend):
         self.storage = storage
         self.folders = self.storage.get_folders()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
+        self.state_manager = GppStateManager()
 
     def apply(self):
         if self.__module_enabled:
@@ -42,14 +44,29 @@ class folder_applier(applier_frontend):
             for directory_obj in self.folders:
                 if directory_obj.disabled:
                     continue
+                element_type = get_element_type_name(directory_obj)
+                if getattr(directory_obj, 'apply_once', False):
+                    if self.state_manager.should_skip(dict(directory_obj), element_type):
+                        logdata = {'uid': getattr(directory_obj, 'uid', 'unknown')}
+                        log('D240', logdata)
+                        continue
                 check = expand_windows_var(directory_obj.path).replace('\\', '/')
                 win_var = re.findall(r'%.+?%', check)
                 drive = re.findall(r'^[a-z A-Z]\:',check)
                 if drive or win_var:
                     log('D109', {"path": directory_obj.path})
                     continue
-                fld = Folder(directory_obj)
-                fld.act()
+                try:
+                    fld = Folder(directory_obj)
+                    fld.act()
+                    if getattr(directory_obj, 'apply_once', False):
+                        self.state_manager.mark_applied(dict(directory_obj))
+                except Exception as exc:
+                    if getattr(directory_obj, 'bypass_errors', False):
+                        logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
+                        log('W47', logdata)
+                    else:
+                        raise
         else:
             log('D108')
 
@@ -67,19 +84,35 @@ class folder_applier_user(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
+        self.state_manager = GppStateManager(username)
 
     def run(self):
         for directory_obj in self.folders:
             if directory_obj.disabled:
                 continue
+            element_type = get_element_type_name(directory_obj)
+            if getattr(directory_obj, 'apply_once', False):
+                if self.state_manager.should_skip(dict(directory_obj), element_type):
+                    logdata = {'uid': getattr(directory_obj, 'uid', 'unknown')}
+                    log('D240', logdata)
+                    continue
             check = expand_windows_var(directory_obj.path, self.username).replace('\\', '/')
             win_var = re.findall(r'%.+?%', check)
             drive = re.findall(r'^[a-z A-Z]\:',check)
             if drive or win_var:
                 log('D110', {"path": directory_obj.path})
                 continue
-            fld = Folder(directory_obj, self.username)
-            fld.act()
+            try:
+                fld = Folder(directory_obj, self.username)
+                fld.act()
+                if getattr(directory_obj, 'apply_once', False):
+                    self.state_manager.mark_applied(dict(directory_obj))
+            except Exception as exc:
+                if getattr(directory_obj, 'bypass_errors', False):
+                    logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
+                else:
+                    raise
 
     def admin_context_apply(self):
         pass
@@ -90,4 +123,3 @@ class folder_applier_user(applier_frontend):
             self.run()
         else:
             log('D112')
-

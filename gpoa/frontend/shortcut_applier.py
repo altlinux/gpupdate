@@ -26,6 +26,7 @@ from util.windows import expand_windows_var
 from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled
+from storage.gpp_state import GppStateManager, get_element_type_name
 
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
@@ -46,7 +47,7 @@ def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
 
     return shortcuts
 
-def apply_shortcut(shortcut, username=None):
+def apply_shortcut(shortcut, username=None, state_manager=None):
     '''
     Apply the single shortcut file to the disk.
 
@@ -117,12 +118,28 @@ class shortcut_applier(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
+        self.state_manager = GppStateManager()
 
     def run(self):
         shortcuts = storage_get_shortcuts(self.storage)
         if shortcuts:
             for sc in shortcuts:
-                apply_shortcut(sc)
+                element_type = get_element_type_name(sc)
+                if getattr(sc, 'apply_once', False):
+                    if self.state_manager.should_skip(dict(sc), element_type):
+                        logdata = {'uid': getattr(sc, 'uid', 'unknown')}
+                        log('D240', logdata)
+                        continue
+                try:
+                    apply_shortcut(sc)
+                    if getattr(sc, 'apply_once', False):
+                        self.state_manager.mark_applied(dict(sc))
+                except Exception as exc:
+                    if getattr(sc, 'bypass_errors', False):
+                        logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
+                        log('W47', logdata)
+                    else:
+                        raise
             if len(shortcuts) > 0:
                 # According to ArchWiki - this thing is needed to rebuild MIME
                 # type cache in order file bindings to work. This rebuilds
@@ -150,6 +167,7 @@ class shortcut_applier_user(applier_frontend):
         self.storage = storage
         self.username = username
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
+        self.state_manager = GppStateManager(username)
 
     def get_machine_shortcuts(self):
         result = []
@@ -187,10 +205,25 @@ class shortcut_applier_user(applier_frontend):
             for sc in shortcuts:
                 if sc.disabled:
                     continue
-                if in_usercontext and sc.is_usercontext():
-                    apply_shortcut(sc, self.username)
-                if not in_usercontext and not sc.is_usercontext():
-                    apply_shortcut(sc, self.username)
+                element_type = get_element_type_name(sc)
+                if getattr(sc, 'apply_once', False):
+                    if self.state_manager.should_skip(dict(sc), element_type):
+                        logdata = {'uid': getattr(sc, 'uid', 'unknown')}
+                        log('D240', logdata)
+                        continue
+                try:
+                    if in_usercontext and sc.is_usercontext():
+                        apply_shortcut(sc, self.username)
+                    if not in_usercontext and not sc.is_usercontext():
+                        apply_shortcut(sc, self.username)
+                    if getattr(sc, 'apply_once', False):
+                        self.state_manager.mark_applied(dict(sc))
+                except Exception as exc:
+                    if getattr(sc, 'bypass_errors', False):
+                        logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
+                        log('W47', logdata)
+                    else:
+                        raise
         else:
             logdata = {'username': self.username}
             log('D100', logdata)
@@ -208,4 +241,3 @@ class shortcut_applier_user(applier_frontend):
             self.run(False)
         else:
             log('D104')
-

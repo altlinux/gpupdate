@@ -21,6 +21,7 @@ from util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.file_cp import Execution_check, Files_cp
+from storage.gpp_state import GppStateManager, get_element_type_name
 
 
 class file_applier(applier_frontend):
@@ -34,12 +35,28 @@ class file_applier(applier_frontend):
         self.file_cache = file_cache
         self.files = self.storage.get_files()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
+        self.state_manager = GppStateManager()
 
     def run(self):
         for file in self.files:
             if file.disabled:
                 continue
-            Files_cp(file, self.file_cache, self.exe_check)
+            element_type = get_element_type_name(file)
+            if getattr(file, 'apply_once', False):
+                if self.state_manager.should_skip(dict(file), element_type):
+                    logdata = {'uid': getattr(file, 'uid', 'unknown')}
+                    log('D240', logdata)
+                    continue
+            try:
+                Files_cp(file, self.file_cache, self.exe_check)
+                if getattr(file, 'apply_once', False):
+                    self.state_manager.mark_applied(dict(file))
+            except Exception as exc:
+                if getattr(file, 'bypass_errors', False):
+                    logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
+                else:
+                    raise
 
     def apply(self):
         if self.__module_enabled:
@@ -64,12 +81,28 @@ class file_applier_user(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
+        self.state_manager = GppStateManager(username)
 
     def run(self):
         for file in self.files:
             if file.disabled:
                 continue
-            Files_cp(file, self.file_cache, self.exe_check, self.username)
+            element_type = get_element_type_name(file)
+            if getattr(file, 'apply_once', False):
+                if self.state_manager.should_skip(dict(file), element_type):
+                    logdata = {'uid': getattr(file, 'uid', 'unknown')}
+                    log('D240', logdata)
+                    continue
+            try:
+                Files_cp(file, self.file_cache, self.exe_check, self.username)
+                if getattr(file, 'apply_once', False):
+                    self.state_manager.mark_applied(dict(file))
+            except Exception as exc:
+                if getattr(file, 'bypass_errors', False):
+                    logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
+                else:
+                    raise
 
     def admin_context_apply(self):
         if self.__module_enabled:
