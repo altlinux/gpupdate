@@ -113,9 +113,9 @@ def read_shortcuts(shortcuts_file):
 
     return shortcuts
 
-def merge_shortcuts(storage, shortcut_objects, policy_name):
+def merge_shortcuts(storage, shortcut_objects, policy_name, policy_guid=None):
     for shortcut in shortcut_objects:
-        storage.add_shortcut(shortcut, policy_name)
+        storage.add_shortcut(shortcut, policy_name, policy_guid)
 
 
 def find_desktop_entry(binary_path):

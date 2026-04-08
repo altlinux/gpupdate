@@ -187,7 +187,7 @@ class gpt:
                     preference_parser = get_parser(preference_type)
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
-                    preference_merger(self.storage, preference_objects, self.name)
+                    preference_merger(self.storage, preference_objects, self.name, self.guid)
         except Exception as exc:
             logdata = {}
             logdata['gpt'] = self.name
@@ -216,7 +216,7 @@ class gpt:
                     preference_parser = get_parser(preference_type)
                     preference_merger = get_merger(preference_type)
                     preference_objects = preference_parser(preference_path)
-                    preference_merger(self.storage, preference_objects, self.name)
+                    preference_merger(self.storage, preference_objects, self.name, self.guid)
         except Exception as exc:
             logdata = {}
             logdata['gpt'] = self.name

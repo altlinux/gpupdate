@@ -55,9 +55,9 @@ def read_files(filesxml):
 
     return files
 
-def merge_files(storage, file_objects, policy_name):
+def merge_files(storage, file_objects, policy_name, policy_guid=None):
     for fileobj in file_objects:
-        storage.add_file(fileobj, policy_name)
+        storage.add_file(fileobj, policy_name, policy_guid)
 
 class fileentry(DynamicAttributes):
     def __init__(self, fromPath):

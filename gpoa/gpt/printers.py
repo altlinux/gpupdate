@@ -45,9 +45,9 @@ def read_printers(printers_file):
 
     return printers
 
-def merge_printers(storage, printer_objects, policy_name):
+def merge_printers(storage, printer_objects, policy_name, policy_guid=None):
     for device in printer_objects:
-        storage.add_printer(device, policy_name)
+        storage.add_printer(device, policy_name, policy_guid)
 
 def json2printer(json_str):
     '''

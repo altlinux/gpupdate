@@ -362,6 +362,7 @@ def debug_code(code):
     debug_ids[237] = 'Failed to load cached versions'
     debug_ids[238] = 'The trust attribute is not supported'
     debug_ids[239] = 'Setting the trust attribute for a shortcut'
+    debug_ids[240] = 'Skipping GPP element with applyOnce (already applied)'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -419,6 +420,7 @@ def warning_code(code):
     warning_ids[44] = 'Plugin is not valid API object'
     warning_ids[45] = 'Error loading plugin from file'
     warning_ids[46] = 'Plugin failed to apply with user privileges'
+    warning_ids[47] = 'GPP element error bypassed due to bypassErrors flag'
 
     return warning_ids.get(code, 'Unknown warning code')
 

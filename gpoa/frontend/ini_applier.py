@@ -20,6 +20,7 @@
 from util.logging import log
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.ini_file import Ini_file
+from storage.gpp_state import GppStateManager, get_element_type_name
 
 _REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowEmptySections'
 _REGISTRY_PATH_INI_ALLOW_UNQUOTED_COMMAS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowUnquotedCommas'
@@ -47,6 +48,7 @@ class ini_applier(applier_frontend):
         self.storage = storage
         self.inifiles_info = self.storage.get_ini()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
+        self.state_manager = GppStateManager()
 
     def run(self):
         allow_empty = _is_empty_sections_allowed(self.storage)
@@ -55,7 +57,22 @@ class ini_applier(applier_frontend):
         for inifile in self.inifiles_info:
             if inifile.disabled:
                 continue
-            Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
+            element_type = get_element_type_name(inifile)
+            if inifile.apply_once:
+                if self.state_manager.should_skip(dict(inifile), element_type):
+                    logdata = {'uid': getattr(inifile, 'uid', 'unknown')}
+                    log('D240', logdata)
+                    continue
+            try:
+                Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
+                if inifile.apply_once:
+                    self.state_manager.mark_applied(dict(inifile))
+            except Exception as exc:
+                if getattr(inifile, 'bypass_errors', False):
+                    logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
+                else:
+                    raise
 
     def apply(self):
         if self.__module_enabled:
@@ -79,6 +96,7 @@ class ini_applier_user(applier_frontend):
             , self.__module_name
             , self.__module_experimental
         )
+        self.state_manager = GppStateManager(username)
 
     def run(self):
         allow_empty = _is_empty_sections_allowed(self.storage)
@@ -87,7 +105,22 @@ class ini_applier_user(applier_frontend):
         for inifile in self.inifiles_info:
             if inifile.disabled:
                 continue
-            Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
+            element_type = get_element_type_name(inifile)
+            if inifile.apply_once:
+                if self.state_manager.should_skip(dict(inifile), element_type):
+                    logdata = {'uid': getattr(inifile, 'uid', 'unknown')}
+                    log('D240', logdata)
+                    continue
+            try:
+                Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
+                if inifile.apply_once:
+                    self.state_manager.mark_applied(dict(inifile))
+            except Exception as exc:
+                if getattr(inifile, 'bypass_errors', False):
+                    logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
+                else:
+                    raise
 
     def admin_context_apply(self):
         pass

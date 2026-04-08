@@ -70,9 +70,9 @@ def read_folders(folders_file):
 
     return folders
 
-def merge_folders(storage, folder_objects, policy_name):
+def merge_folders(storage, folder_objects, policy_name, policy_guid=None):
     for folder in folder_objects:
-        storage.add_folder(folder, policy_name)
+        storage.add_folder(folder, policy_name, policy_guid)
 
 
 class folderentry(DynamicAttributes):

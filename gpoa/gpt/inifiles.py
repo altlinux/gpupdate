@@ -52,9 +52,9 @@ def read_inifiles(inifiles_file):
 
     return inifiles
 
-def merge_inifiles(storage, inifile_objects, policy_name):
+def merge_inifiles(storage, inifile_objects, policy_name, policy_guid=None):
     for iniobj in inifile_objects:
-        storage.add_ini(iniobj, policy_name)
+        storage.add_ini(iniobj, policy_name, policy_guid)
 
 class inifile(DynamicAttributes):
     def __init__(self, path):

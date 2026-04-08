@@ -97,9 +97,9 @@ def read_drives(drives_file):
 
     return drives
 
-def merge_drives(storage, drive_objects, policy_name):
+def merge_drives(storage, drive_objects, policy_name, policy_guid=None):
     for drive in drive_objects:
-        storage.add_drive(drive, policy_name)
+        storage.add_drive(drive, policy_name, policy_guid)
 
 def json2drive(json_str):
     json_obj = json.loads(json_str)

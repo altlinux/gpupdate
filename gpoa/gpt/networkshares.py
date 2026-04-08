@@ -54,9 +54,9 @@ def read_networkshares(networksharesxml):
 
     return networkshares
 
-def merge_networkshares(storage, networkshares_objects, policy_name):
+def merge_networkshares(storage, networkshares_objects, policy_name, policy_guid=None):
     for networkshareobj in networkshares_objects:
-        storage.add_networkshare(networkshareobj, policy_name)
+        storage.add_networkshare(networkshareobj, policy_name, policy_guid)
 
 class networkshare(DynamicAttributes):
     def __init__(self, name):

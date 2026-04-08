@@ -402,56 +402,65 @@ class Dconf_registry():
 
 
     @classmethod
-    def add_shortcut(cls, sc_obj, policy_name):
+    def add_shortcut(cls, sc_obj, policy_name, policy_guid=None):
         sc_obj.policy_name = policy_name
+        sc_obj.policy_guid = policy_guid
         cls.shortcuts.append(sc_obj)
 
 
     @classmethod
-    def add_printer(cls, pobj, policy_name):
+    def add_printer(cls, pobj, policy_name, policy_guid=None):
         pobj.policy_name = policy_name
+        pobj.policy_guid = policy_guid
         cls.printers.append(pobj)
 
 
     @classmethod
-    def add_drive(cls, dobj, policy_name):
+    def add_drive(cls, dobj, policy_name, policy_guid=None):
         dobj.policy_name = policy_name
+        dobj.policy_guid = policy_guid
         cls.drives.append(dobj)
 
 
     @classmethod
-    def add_folder(cls, fobj, policy_name):
+    def add_folder(cls, fobj, policy_name, policy_guid=None):
         fobj.policy_name = policy_name
+        fobj.policy_guid = policy_guid
         cls.folders.append(fobj)
 
 
     @classmethod
-    def add_envvar(self, evobj, policy_name):
+    def add_envvar(self, evobj, policy_name, policy_guid=None):
         evobj.policy_name = policy_name
+        evobj.policy_guid = policy_guid
         self.environmentvariables.append(evobj)
 
 
     @classmethod
-    def add_script(cls, scrobj, policy_name):
+    def add_script(cls, scrobj, policy_name, policy_guid=None):
         scrobj.policy_name = policy_name
+        scrobj.policy_guid = policy_guid
         cls.scripts.append(scrobj)
 
 
     @classmethod
-    def add_file(cls, fileobj, policy_name):
+    def add_file(cls, fileobj, policy_name, policy_guid=None):
         fileobj.policy_name = policy_name
+        fileobj.policy_guid = policy_guid
         cls.files.append(fileobj)
 
 
     @classmethod
-    def add_ini(cls, iniobj, policy_name):
+    def add_ini(cls, iniobj, policy_name, policy_guid=None):
         iniobj.policy_name = policy_name
+        iniobj.policy_guid = policy_guid
         cls.inifiles.append(iniobj)
 
 
     @classmethod
-    def add_networkshare(cls, networkshareobj, policy_name):
+    def add_networkshare(cls, networkshareobj, policy_name, policy_guid=None):
         networkshareobj.policy_name = policy_name
+        networkshareobj.policy_guid = policy_guid
         cls.networkshares.append(networkshareobj)
 
 
@@ -819,7 +828,8 @@ def get_dconf_envprofile():
 
 
 def convert_elements_to_list_dicts(elements):
-    return list(map(lambda x: dict(x), elements))
+    from util.gpp_lifecycle import element_to_dict
+    return list(map(lambda x: element_to_dict(x), elements))
 
 def remove_duplicate_dicts_in_list(list_dict):
     return convert_elements_to_list_dicts(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))

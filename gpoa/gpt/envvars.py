@@ -51,9 +51,9 @@ def read_envvars(envvars_file):
 
     return variables
 
-def merge_envvars(storage, envvar_objects, policy_name):
+def merge_envvars(storage, envvar_objects, policy_name, policy_guid=None):
     for envv in envvar_objects:
-        storage.add_envvar(envv, policy_name)
+        storage.add_envvar(envv, policy_name, policy_guid)
 
 class envvar(DynamicAttributes):
     def __init__(self, name, value, action):

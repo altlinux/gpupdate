@@ -43,7 +43,7 @@ def read_services(service_file):
 
     return services
 
-def merge_services(storage, service_objects, policy_name):
+def merge_services(storage, service_objects, policy_name, policy_guid=None):
     for srv in service_objects:
         pass
 
