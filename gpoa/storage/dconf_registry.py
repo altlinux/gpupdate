@@ -35,6 +35,7 @@ from gpoa.util.util import (
     touch_file,
     try_dict_to_literal_eval,
 )
+from gpoa.util.gpp_lifecycle import element_to_dict
 
 gi.require_version("Gvdb", "1.0")
 gi.require_version("GLib", "2.0")
@@ -828,7 +829,6 @@ def get_dconf_envprofile():
 
 
 def convert_elements_to_list_dicts(elements):
-    from util.gpp_lifecycle import element_to_dict
     return list(map(lambda x: element_to_dict(x), elements))
 
 def remove_duplicate_dicts_in_list(list_dict):
