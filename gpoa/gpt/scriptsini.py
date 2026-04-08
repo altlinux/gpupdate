@@ -80,15 +80,15 @@ def read_scripts(scripts_file):
 
     return scripts
 
-def merge_scripts(storage, scripts_objects, policy_name):
+def merge_scripts(storage, scripts_objects, policy_name, policy_guid=None):
     for script in scripts_objects.get_logon_scripts():
-        storage.add_script(script, policy_name)
+        storage.add_script(script, policy_name, policy_guid)
     for script in scripts_objects.get_logoff_scripts():
-        storage.add_script(script, policy_name)
+        storage.add_script(script, policy_name, policy_guid)
     for script in scripts_objects.get_startup_scripts():
-        storage.add_script(script, policy_name)
+        storage.add_script(script, policy_name, policy_guid)
     for script in scripts_objects.get_shutdown_scripts():
-        storage.add_script(script, policy_name)
+        storage.add_script(script, policy_name, policy_guid)
 
 class Scripts_lists:
     def __init__ (self):

@@ -19,7 +19,7 @@
 def read_tasks(filename):
     pass
 
-def merge_tasks(storage, task_objects, policy_name):
+def merge_tasks(storage, task_objects, policy_name, policy_guid=None):
     for task in task_objects:
         pass
 

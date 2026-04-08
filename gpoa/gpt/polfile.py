@@ -22,7 +22,7 @@ from util.preg import load_preg
 def read_polfile(filename):
     return load_preg(filename).entries
 
-def merge_polfile(storage, policy_objects, policy_name):
+def merge_polfile(storage, policy_objects, policy_name, policy_guid=None):
     pass
 
 
