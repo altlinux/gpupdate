@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 from util.xml import get_xml_root
+from util.gpp_lifecycle import generate_folder_uid
 
 from .dynamic_attributes import DynamicAttributes
 
@@ -52,8 +52,21 @@ def read_folders(folders_file):
         fld_obj.set_hidden_folder(folder_int2bool(props.get('hidden', default=0)))
         fld_obj.set_disabled(fld.get('disabled') == '1')
 
-        folders.append(fld_obj)
+        # Lifecycle attributes
+        fld_obj.set_uid(fld.get('uid'))
+        fld_obj.set_remove_policy(fld.get('removePolicy') == '1')
+        fld_obj.set_bypass_errors(fld.get('bypassErrors') == '1')
+        fld_obj.set_changed(fld.get('changed'))
 
+        # Check for FilterRunOnce
+        filters = fld.find('Filters')
+        if filters is not None:
+            run_once = filters.find('FilterRunOnce')
+            fld_obj.set_apply_once(run_once is not None)
+        else:
+            fld_obj.set_apply_once(False)
+
+        folders.append(fld_obj)
 
     return folders
 
@@ -71,6 +84,11 @@ class folderentry(DynamicAttributes):
         self.delete_files = False
         self.hidden_folder = False
         self.disabled = False
+        self.uid = None
+        self.remove_policy = False
+        self.bypass_errors = False
+        self.apply_once = False
+        self.changed = None
 
     def set_action(self, action):
         self.action = action
@@ -89,3 +107,21 @@ class folderentry(DynamicAttributes):
 
     def set_disabled(self, disabled):
         self.disabled = disabled
+
+    def set_uid(self, uid):
+        if uid:
+            self.uid = uid
+        else:
+            self.uid = generate_folder_uid(self)
+
+    def set_remove_policy(self, remove_policy):
+        self.remove_policy = remove_policy
+
+    def set_bypass_errors(self, bypass_errors):
+        self.bypass_errors = bypass_errors
+
+    def set_apply_once(self, apply_once):
+        self.apply_once = apply_once
+
+    def set_changed(self, changed):
+        self.changed = changed

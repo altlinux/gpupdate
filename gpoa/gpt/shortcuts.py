@@ -24,7 +24,14 @@ import stat
 from util.paths import get_desktop_files_directory
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
+from util.gpp_lifecycle import generate_shortcut_uid
+from util.paths import get_desktop_files_directory
+from util.windows import transform_windows_path
 from xdg.DesktopEntry import DesktopEntry
+from enum import Enum
+import json
+from pathlib import Path
+import stat
 
 from .dynamic_attributes import DynamicAttributes
 
@@ -74,13 +81,9 @@ def read_shortcuts(shortcuts_file):
 
     for link in get_xml_root(shortcuts_file):
         props = link.find('Properties')
-        # Location of the link itself
         dest = props.get('shortcutPath')
-        # Location where link should follow
         path = transform_windows_path(props.get('targetPath'))
-        # Arguments to executable file
         arguments = props.get('arguments')
-        # URL or FILESYSTEM
         target_type = get_ttype(props.get('targetType'))
 
         sc = shortcut(dest, path, arguments, link.get('name'), props.get('action'), target_type)
@@ -92,6 +95,19 @@ def read_shortcuts(shortcuts_file):
         if props.get('comment'):
             sc.set_comment(props.get('comment'))
         sc.set_disabled(link.get('disabled') == '1')
+
+        # Lifecycle attributes
+        sc.set_uid(link.get('uid'))
+        sc.set_remove_policy(link.get('removePolicy') == '1')
+        sc.set_bypass_errors(link.get('bypassErrors') == '1')
+
+        # Check for FilterRunOnce
+        filters = link.find('Filters')
+        if filters is not None:
+            run_once = filters.find('FilterRunOnce')
+            sc.set_apply_once(run_once is not None)
+        else:
+            sc.set_apply_once(False)
 
         shortcuts.append(sc)
 
@@ -119,13 +135,6 @@ class shortcut(DynamicAttributes):
     _ignore_fields = {"desktop_file_template", "desktop_file"}
 
     def __init__(self, dest, path, arguments, name=None, action=None, ttype=TargetType.FILESYSTEM):
-        '''
-        :param dest: Path to resulting file on file system
-        :param path: Path where the link should point to
-        :param arguments: Arguemnts to eecutable file
-        :param name: Name of the application
-        :param type: Link type - FILESYSTEM or URL
-        '''
         self.dest = self.replace_slashes(dest)
         self.path = path
         self.expanded_path = None
@@ -139,6 +148,10 @@ class shortcut(DynamicAttributes):
         self.type = ttype
         self.desktop_file_template = None
         self.disabled = False
+        self.uid = None
+        self.remove_policy = False
+        self.bypass_errors = False
+        self.apply_once = False
 
 
     def items(self):
@@ -206,13 +219,25 @@ class shortcut(DynamicAttributes):
         self.is_in_user_context = ctx
 
     def set_expanded_path(self, path):
-        '''
-        Adjust shortcut path with expanding windows variables
-        '''
         self.expanded_path = path
 
     def set_disabled(self, disabled):
         self.disabled = disabled
+
+    def set_uid(self, uid):
+        if uid:
+            self.uid = uid
+        else:
+            self.uid = generate_shortcut_uid(self)
+
+    def set_remove_policy(self, remove_policy):
+        self.remove_policy = remove_policy
+
+    def set_bypass_errors(self, bypass_errors):
+        self.bypass_errors = bypass_errors
+
+    def set_apply_once(self, apply_once):
+        self.apply_once = apply_once
 
     def is_usercontext(self):
         return self.is_in_user_context
