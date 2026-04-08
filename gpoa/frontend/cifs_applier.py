@@ -34,8 +34,6 @@ def storage_get_drives(storage):
     drive_list = []
 
     for drv_obj in drives:
-        if drv_obj.disabled:
-            continue
         drive_list.append(drv_obj)
 
     return drive_list

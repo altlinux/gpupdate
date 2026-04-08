@@ -27,8 +27,13 @@ Handles lifecycle state for GPP elements:- Tracking applied elements (for applyO
 from datetime import datetime
 from typing import Dict, List, Any, Set, Optional
 
-from gpoa.storage.dconf_registry import Dconf_registry
+from .dconf_registry import Dconf_registry
 from gpoa.util.logging import log
+
+
+# Actions that should be skipped during cleanup
+# (DELETE actions already perform cleanup during application)
+CLEANUP_SKIP_ACTIONS = {'D', 'DELETE'}
 
 
 def get_previous_elements(element_type: str, username: str = None) -> List[Dict]:
