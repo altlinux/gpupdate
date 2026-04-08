@@ -25,13 +25,7 @@ from util.paths import get_desktop_files_directory
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_shortcut_uid
-from util.paths import get_desktop_files_directory
-from util.windows import transform_windows_path
 from xdg.DesktopEntry import DesktopEntry
-from enum import Enum
-import json
-from pathlib import Path
-import stat
 
 from .dynamic_attributes import DynamicAttributes
 

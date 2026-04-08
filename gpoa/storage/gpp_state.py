@@ -19,13 +19,14 @@
 """
 GPP State Management Module.
 
-Handles lifecycle state for GPP elements:- Tracking applied elements (for applyOnce)
-- Detecting removed elements (for removePolicy)
-- GPO unlink detection and cleanup
+Handles lifecycle state for GPP elements:
+ - Tracking applied elements (for applyOnce)
+ - Detecting removed elements (for removePolicy)
+ - GPO unlink detection and cleanup
 """
 
 from datetime import datetime
-from typing import Dict, List, Any, Set, Optional
+from typing import Dict, List, Set
 
 from .dconf_registry import Dconf_registry
 from gpoa.util.logging import log
@@ -241,13 +242,14 @@ class GppStateManager:
         '''
         return is_element_applied(element, element_type, self.username)
 
-    def mark_applied(self, element: Dict) -> None:
+    def mark_applied(self, element: Dict, element_type: str) -> None:
         '''
         Mark element as applied.
 
         :param element: Element dictionary
+        :param element_type: Type of element
         '''
-        mark_element_applied(element, element)
+        mark_element_applied(element, element_type, self.username)
 
 
 ELEMENT_TYPE_MAP = {

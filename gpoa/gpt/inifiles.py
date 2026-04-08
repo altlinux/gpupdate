@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
-from util.gpp_lifecycle import get_or_generate_uid, generate_ini_uid
+from util.gpp_lifecycle import generate_ini_uid
 
 from .dynamic_attributes import DynamicAttributes
 

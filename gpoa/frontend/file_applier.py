@@ -81,7 +81,7 @@ class file_applier(applier_frontend):
             try:
                 Files_cp(file, self.file_cache, self.exe_check)
                 if getattr(file, 'apply_once', False):
-                    self.state_manager.mark_applied(dict(file))
+                    self.state_manager.mark_applied(dict(file), element_type)
             except Exception as exc:
                 if getattr(file, 'bypass_errors', False):
                     logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
@@ -156,7 +156,7 @@ class file_applier_user(applier_frontend):
             try:
                 Files_cp(file, self.file_cache, self.exe_check, self.username)
                 if getattr(file, 'apply_once', False):
-                    self.state_manager.mark_applied(dict(file))
+                    self.state_manager.mark_applied(dict(file), element_type)
             except Exception as exc:
                 if getattr(file, 'bypass_errors', False):
                     logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}

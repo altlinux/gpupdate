@@ -23,7 +23,6 @@ from .appliers.envvar import Envvar
 from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
 from pathlib import Path
 from util.util import get_homedir
-import os
 
 
 class envvar_applier(applier_frontend):
@@ -94,7 +93,8 @@ class envvar_applier(applier_frontend):
                     envvar.act()
                     for ev in envvars_to_apply:
                         if getattr(ev, 'apply_once', False):
-                            self.state_manager.mark_applied(dict(ev))
+                            ev_type = get_element_type_name(ev)
+                            self.state_manager.mark_applied(dict(ev), ev_type)
                 except Exception as exc:
                     bypass_found = False
                     for ev in envvars_to_apply:
@@ -186,7 +186,8 @@ class envvar_applier_user(applier_frontend):
                     envvar.act()
                     for ev in envvars_to_apply:
                         if getattr(ev, 'apply_once', False):
-                            self.state_manager.mark_applied(dict(ev))
+                            ev_type = get_element_type_name(ev)
+                            self.state_manager.mark_applied(dict(ev), ev_type)
                 except Exception as exc:
                     bypass_found = False
                     for ev in envvars_to_apply:

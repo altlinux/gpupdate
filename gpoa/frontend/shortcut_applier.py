@@ -161,7 +161,7 @@ class shortcut_applier(applier_frontend):
                 try:
                     apply_shortcut(sc)
                     if getattr(sc, 'apply_once', False):
-                        self.state_manager.mark_applied(dict(sc))
+                        self.state_manager.mark_applied(dict(sc), element_type)
                 except Exception as exc:
                     if getattr(sc, 'bypass_errors', False):
                         logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
@@ -275,7 +275,7 @@ class shortcut_applier_user(applier_frontend):
                     if not in_usercontext and not sc.is_usercontext():
                         apply_shortcut(sc, self.username)
                     if getattr(sc, 'apply_once', False):
-                        self.state_manager.mark_applied(dict(sc))
+                        self.state_manager.mark_applied(dict(sc), element_type)
                 except Exception as exc:
                     if getattr(sc, 'bypass_errors', False):
                         logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}

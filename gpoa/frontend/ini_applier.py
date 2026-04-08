@@ -106,7 +106,7 @@ class ini_applier(applier_frontend):
             try:
                 Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
                 if inifile.apply_once:
-                    self.state_manager.mark_applied(dict(inifile))
+                    self.state_manager.mark_applied(dict(inifile), element_type)
             except Exception as exc:
                 if getattr(inifile, 'bypass_errors', False):
                     logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
@@ -192,7 +192,7 @@ class ini_applier_user(applier_frontend):
             try:
                 Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
                 if inifile.apply_once:
-                    self.state_manager.mark_applied(dict(inifile))
+                    self.state_manager.mark_applied(dict(inifile), element_type)
             except Exception as exc:
                 if getattr(inifile, 'bypass_errors', False):
                     logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}

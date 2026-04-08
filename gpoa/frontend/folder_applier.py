@@ -91,7 +91,7 @@ class folder_applier(applier_frontend):
                     fld = Folder(directory_obj)
                     fld.act()
                     if getattr(directory_obj, 'apply_once', False):
-                        self.state_manager.mark_applied(dict(directory_obj))
+                        self.state_manager.mark_applied(dict(directory_obj), element_type)
                 except Exception as exc:
                     if getattr(directory_obj, 'bypass_errors', False):
                         logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
@@ -166,7 +166,7 @@ class folder_applier_user(applier_frontend):
                 fld = Folder(directory_obj, self.username)
                 fld.act()
                 if getattr(directory_obj, 'apply_once', False):
-                    self.state_manager.mark_applied(dict(directory_obj))
+                    self.state_manager.mark_applied(dict(directory_obj), element_type)
             except Exception as exc:
                 if getattr(directory_obj, 'bypass_errors', False):
                     logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
