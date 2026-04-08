@@ -40,7 +40,7 @@
 
 Name: gpupdate
 Version: 0.14.2
-Release: alt1
+Release: alt1.nkse1
 
 Summary: GPT applier
 License: GPLv3+
@@ -211,6 +211,11 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Wed Apr 08 2026 DeVill <alexandor.devill@gmail.com> 0.14.2-alt1.nkse1
+- storage: fix numeric registry key encoding in dconf paths
+  Windows GPO keys with numeric segment names (0, 1, etc.) now correctly
+  encoded/decoded via gpupdate-numseg- prefix for dconf path compatibility
+
 * Thu Feb 26 2026 Danila Skachedubov <skachedubov@altlinux.org> 0.14.2-alt1
 - Fix username resolution for trusted domain users
 
