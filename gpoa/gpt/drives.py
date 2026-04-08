@@ -21,6 +21,7 @@ import json
 
 from Crypto.Cipher import AES
 from util.xml import get_xml_root
+from util.gpp_lifecycle import generate_drive_uid
 
 from .dynamic_attributes import DynamicAttributes
 
@@ -78,6 +79,20 @@ def read_drives(drives_file):
         drive_obj.set_useLetter(props.get('useLetter'))
         drive_obj.set_disabled(drive.get('disabled') == '1')
 
+        # Lifecycle attributes
+        drive_obj.set_uid(drive.get('uid'))
+        drive_obj.set_remove_policy(drive.get('removePolicy') == '1')
+        drive_obj.set_bypass_errors(drive.get('bypassErrors') == '1')
+        drive_obj.set_changed(drive.get('changed'))
+
+        # Check for FilterRunOnce
+        filters = drive.find('Filters')
+        if filters is not None:
+            run_once = filters.find('FilterRunOnce')
+            drive_obj.set_apply_once(run_once is not None)
+        else:
+            drive_obj.set_apply_once(False)
+
         drives.append(drive_obj)
 
     return drives
@@ -110,6 +125,11 @@ class drivemap(DynamicAttributes):
         self.persistent = None
         self.useLetter = None
         self.disabled = False
+        self.uid = None
+        self.remove_policy = False
+        self.bypass_errors = False
+        self.apply_once = False
+        self.changed = None
 
     def set_login(self, username):
         self.login = username
@@ -147,6 +167,24 @@ class drivemap(DynamicAttributes):
 
     def set_disabled(self, disabled):
         self.disabled = disabled
+
+    def set_uid(self, uid):
+        if uid:
+            self.uid = uid
+        else:
+            self.uid = generate_drive_uid(self)
+
+    def set_remove_policy(self, remove_policy):
+        self.remove_policy = remove_policy
+
+    def set_bypass_errors(self, bypass_errors):
+        self.bypass_errors = bypass_errors
+
+    def set_apply_once(self, apply_once):
+        self.apply_once = apply_once
+
+    def set_changed(self, changed):
+        self.changed = changed
 
     def to_json(self):
         drive = {}
