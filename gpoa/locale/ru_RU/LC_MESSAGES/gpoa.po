@@ -1150,5 +1150,5 @@ msgstr "Не удалось получить GPT для пользователя
 msgid "Unknown fatal code"
 msgstr "Неизвестный код фатальной ошибки"
 
-
-
+msgid "Unknown filter type encountered"
+msgstr "Обнаружен неизвестный тип фильтра"

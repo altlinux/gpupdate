@@ -419,6 +419,7 @@ def warning_code(code):
     warning_ids[44] = 'Plugin is not valid API object'
     warning_ids[45] = 'Error loading plugin from file'
     warning_ids[46] = 'Plugin failed to apply with user privileges'
+    warning_ids[47] = 'Unknown filter type encountered, policy will be blocked'
 
     return warning_ids.get(code, 'Unknown warning code')
 
