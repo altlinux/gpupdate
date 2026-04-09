@@ -259,3 +259,53 @@ def check_filter_user(filter_obj, username=None):
 
     return result
 
+
+def check_filter_group(filter_obj, username=None):
+    """Check if user/computer belongs to specified group.
+
+    Args:
+        filter_obj (Filter): Filter object with attributes 'name', 'sid',
+                            'userContext', 'primaryGroup', 'localGroup', 'negate'
+        username (str, optional): Target username for user context check
+
+    Returns:
+        bool: True if user/computer belongs to group
+    """
+    filter_sid = getattr(filter_obj, 'sid', '')
+    filter_name = getattr(filter_obj, 'name', '')
+    user_context = getattr(filter_obj, 'userContext', '0')
+
+    is_user_context = user_context in [1, '1', True]
+
+    result = False
+
+    if filter_sid:
+        domain = _get_domain_for_context(user_context, username)
+
+        if is_user_context:
+            if username is None:
+                username = get_process_user()
+            subject_name = username
+        else:
+            subject_name = get_machine_name()
+
+        if domain:
+            group_sids = _get_group_sids_for_subject(domain, subject_name, is_user_context)
+            result = filter_sid in group_sids
+        else:
+            result = False
+
+    else:
+        if is_user_context:
+            if username is None:
+                username = get_process_user()
+
+            local_groups = get_local_groups_for_username(username)
+
+            group_name = _extract_name_without_domain(filter_name)
+
+            result = group_name in local_groups
+        else:
+            result = False
+
+    return result

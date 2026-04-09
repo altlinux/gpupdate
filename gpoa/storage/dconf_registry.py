@@ -35,7 +35,7 @@ from gpoa.util.util import (
     touch_file,
     try_dict_to_literal_eval,
 )
-from gpoa.util.check_filters import check_filter_computer, check_filter_domain, check_filter_date, check_filter_user
+from gpoa.util.check_filters import check_filter_computer, check_filter_domain, check_filter_date, check_filter_user, check_filter_group
 
 gi.require_version("Gvdb", "1.0")
 gi.require_version("GLib", "2.0")
@@ -613,6 +613,7 @@ def _evaluate_filters(filters, username=None):
         'FilterDomain': check_filter_domain,
         'FilterDate': check_filter_date,
         'FilterUser': check_filter_user,
+        'FilterGroup': check_filter_group,
     }
 
     first_result = True
