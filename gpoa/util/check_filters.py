@@ -24,7 +24,8 @@ import os
 
 from gpoa.util.logging import log
 from gpoa.util.util import get_machine_name
-from gpoa.util.users import get_process_user, is_root
+from gpoa.util.users import get_process_user, is_root, get_local_groups_for_username
+from gpoa.util.sid import get_sid, get_group_sids_for_sid
 
 
 def _get_domain_for_context(user_context, username=None):
@@ -162,3 +163,67 @@ def check_filter_domain(filter_obj, username=None):
     result = (actual_domain.lower() == expected_domain.lower())
 
     return result
+
+
+def check_filter_date(filter_obj, username=None):
+    """Check if current date matches filter.
+
+    Args:
+        filter_obj (Filter): Filter object with attributes 'period', 'dow', 'day', 'month', 'year', 'negate'
+        username (str, optional): Target username (unused for date filter)
+
+    Returns:
+        bool: True if date matches filter
+    """
+    period = getattr(filter_obj, 'period', '').upper()
+    if not period:
+        return True
+
+    today = datetime.date.today()
+    result = False
+
+    dow_map = {
+        'SUN': 0, 'MON': 1, 'TUE': 2, 'WED': 3,
+        'THU': 4, 'FRI': 5, 'SAT': 6
+    }
+
+    if period == 'WEEKLY':
+        dow_str = getattr(filter_obj, 'dow', '').upper()
+        if dow_str in dow_map:
+            current_dow = (today.weekday() + 1) % 7
+            result = (current_dow == dow_map[dow_str])
+        else:
+            result = False
+
+    elif period == 'MONTHLY':
+        day_str = getattr(filter_obj, 'day', '')
+        try:
+            day = int(day_str)
+            result = (today.day == day)
+        except ValueError:
+            result = False
+
+    elif period == 'YEARLY':
+        day_str = getattr(filter_obj, 'day', '')
+        month_str = getattr(filter_obj, 'month', '')
+        year_str = getattr(filter_obj, 'year', '')
+        try:
+            day = int(day_str)
+            month = int(month_str)
+            if day <= 0 or month <= 0 or month > 12:
+                result = False
+            else:
+                if year_str:
+                    year = int(year_str)
+                    result = (today.year == year and today.month == month and today.day == day)
+                else:
+                    result = (today.month == month and today.day == day)
+        except ValueError:
+            result = False
+
+    else:
+        return True
+
+    return result
+
+
