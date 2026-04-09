@@ -65,7 +65,7 @@ class ini_applier_user(applier_frontend):
     def __init__(self, storage, username):
         self.username = username
         self.storage = storage
-        self.inifiles_info = self.storage.get_ini()
+        self.inifiles_info = self.storage.get_ini(self.username)
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name

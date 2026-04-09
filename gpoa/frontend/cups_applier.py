@@ -26,11 +26,11 @@ from util.rpm import is_rpm_installed
 from .applier_frontend import applier_frontend, check_enabled
 
 
-def storage_get_printers(storage):
+def storage_get_printers(storage, username=None):
     '''
     Query printers configuration from storage
     '''
-    printer_objs = storage.get_printers()
+    printer_objs = storage.get_printers(username)
     printers = []
 
     for prnj in printer_objs:
@@ -125,7 +125,7 @@ class cups_applier_user(applier_frontend):
             return
 
         self.cups_connection = cups.Connection()
-        self.printers = storage_get_printers(self.storage)
+        self.printers = storage_get_printers(self.storage, self.username)
 
         if self.printers:
             for prn in self.printers:

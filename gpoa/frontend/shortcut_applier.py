@@ -32,7 +32,7 @@ def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
     '''
     Query storage for shortcuts' rows for username.
     '''
-    shortcut_objs = storage.get_shortcuts()
+    shortcut_objs = storage.get_shortcuts(username)
     shortcuts = []
     if username and shortcuts_machine:
         shortcut_objs += shortcuts_machine

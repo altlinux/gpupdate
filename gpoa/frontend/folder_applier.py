@@ -59,7 +59,7 @@ class folder_applier_user(applier_frontend):
     def __init__(self, storage, username):
         self.storage = storage
         self.username = username
-        self.folders = self.storage.get_folders()
+        self.folders = self.storage.get_folders(self.username)
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name

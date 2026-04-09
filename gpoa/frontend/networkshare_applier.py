@@ -31,7 +31,7 @@ class networkshare_applier(applier_frontend):
     def __init__(self, storage, username = None):
         self.storage = storage
         self.username = username
-        self.networkshare_info = self.storage.get_networkshare()
+        self.networkshare_info = self.storage.get_networkshare(self.username)
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.__module_enabled_user = check_enabled(self.storage, self.__module_name_user, self.__module_experimental)
 
