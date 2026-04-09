@@ -821,8 +821,29 @@ def get_dconf_envprofile():
 def convert_elements_to_list_dicts(elements):
     return list(map(lambda x: dict(x), elements))
 
+def _dict_to_hashable(d):
+    """
+    Convert a dictionary to a hashable tuple, recursively handling lists.
+    """
+    def _value_to_hashable(v):
+        if isinstance(v, dict):
+            return _dict_to_hashable(v)
+        elif isinstance(v, list):
+            return tuple(_value_to_hashable(item) for item in v)
+        elif isinstance(v, tuple):
+            return tuple(_value_to_hashable(item) for item in v)
+        elif isinstance(v, set):
+            return tuple(sorted(_value_to_hashable(item) for item in v))
+        else:
+            # Primitives: str, int, float, bool, None
+            return v
+
+    # Sort items by key for consistent ordering
+    sorted_items = sorted(d.items())
+    return tuple((k, _value_to_hashable(v)) for k, v in sorted_items)
+
 def remove_duplicate_dicts_in_list(list_dict):
-    return convert_elements_to_list_dicts(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))
+    return convert_elements_to_list_dicts(list(OrderedDict((_dict_to_hashable(d), d) for d in list_dict).values()))
 
 def add_preferences_to_global_registry_dict(username, is_machine):
     if is_machine:
