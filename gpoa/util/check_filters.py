@@ -227,3 +227,35 @@ def check_filter_date(filter_obj, username=None):
     return result
 
 
+def check_filter_user(filter_obj, username=None):
+    """Check if target user matches filter.
+
+    Args:
+        filter_obj (Filter): Filter object with attributes 'name', 'sid', 'negate'
+        username (str, optional): Target username to check against filter
+
+    Returns:
+        bool: True if user matches filter
+    """
+    if username is None:
+        username = get_process_user()
+
+    result = False
+    current_sid = ''
+
+    domain = _get_domain_for_context('1', username)
+
+    sid = getattr(filter_obj, 'sid', '')
+    if sid:
+        current_sid = get_sid(domain, username)
+        result = (current_sid == sid)
+    else:
+        filter_name = getattr(filter_obj, 'name', '')
+        if not filter_name:
+            return True
+
+        filter_user = _extract_name_without_domain(filter_name)
+        result = (filter_user.lower() == username.lower())
+
+    return result
+
