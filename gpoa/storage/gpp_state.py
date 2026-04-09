@@ -46,9 +46,9 @@ def get_previous_elements(element_type: str, username: str = None) -> List[Dict]
     :return: List of element dictionaries
     '''
     if username is None or username == 'Machine':
-        prefix = 'Software/BaseALT/Policies/Preferences/Machine'
+        prefix = 'Previous/Software/BaseALT/Policies/Preferences/Machine'
     else:
-        prefix = f'Software/BaseALT/Policies/Preferences/{username}'
+        prefix = f'Previous/Software/BaseALT/Policies/Preferences/{username}'
 
     registry = Dconf_registry.get_storage()
     if prefix not in registry:
