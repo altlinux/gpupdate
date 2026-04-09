@@ -19,6 +19,7 @@
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_envvars(envvars_file):
@@ -30,6 +31,11 @@ def read_envvars(envvars_file):
         value = props.get('value')
         action = props.get('action', default='C')
         var_obj = envvar(name, value, action)
+
+        # Parse and add filters
+        filters = parse_filters(var)
+        if filters:
+            var_obj.filters = filters
 
         variables.append(var_obj)
 

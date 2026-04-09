@@ -19,6 +19,7 @@
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_files(filesxml):
@@ -34,6 +35,12 @@ def read_files(filesxml):
         fil_obj.set_hidden(props.get('hidden', default=None))
         fil_obj.set_suppress(props.get('suppress', default=None))
         fil_obj.set_executable(props.get('executable', default=None))
+
+        # Parse and add filters
+        filters = parse_filters(fil)
+        if filters:
+            fil_obj.filters = filters
+
         files.append(fil_obj)
 
     return files

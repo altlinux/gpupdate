@@ -19,6 +19,7 @@
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_inifiles(inifiles_file):
@@ -31,6 +32,11 @@ def read_inifiles(inifiles_file):
         ini_obj.set_property(prors.get('property', default=None))
         ini_obj.set_value(prors.get('value', default=None))
         ini_obj.set_action(prors.get('action', default='C'))
+
+        # Parse and add filters
+        filters = parse_filters(ini)
+        if filters:
+            ini_obj.filters = filters
 
         inifiles.append(ini_obj)
 

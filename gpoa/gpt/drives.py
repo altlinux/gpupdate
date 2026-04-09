@@ -23,6 +23,7 @@ from Crypto.Cipher import AES
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def decrypt_pass(cpassword):
@@ -76,6 +77,11 @@ def read_drives(drives_file):
         drive_obj.set_label(props.get('label'))
         drive_obj.set_persistent(props.get('persistent'))
         drive_obj.set_useLetter(props.get('useLetter'))
+
+        # Parse and add filters
+        filters = parse_filters(drive)
+        if filters:
+            drive_obj.filters = filters
 
         drives.append(drive_obj)
 

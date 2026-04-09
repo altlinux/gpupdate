@@ -27,6 +27,7 @@ from util.xml import get_xml_root
 from xdg.DesktopEntry import DesktopEntry
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 class TargetType(Enum):
@@ -91,6 +92,11 @@ def read_shortcuts(shortcuts_file):
         sc.set_icon(props.get('iconPath'))
         if props.get('comment'):
             sc.set_comment(props.get('comment'))
+
+        # Parse and add filters
+        filters = parse_filters(link)
+        if filters:
+            sc.filters = filters
 
         shortcuts.append(sc)
 

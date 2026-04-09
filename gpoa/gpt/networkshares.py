@@ -19,6 +19,7 @@
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_networkshares(networksharesxml):
@@ -33,6 +34,12 @@ def read_networkshares(networksharesxml):
         networkshare_obj.set_comment(props.get('comment', default=None))
         networkshare_obj.set_limitUsers(props.get('limitUsers', default=None))
         networkshare_obj.set_abe(props.get('abe', default=None))
+
+        # Parse and add filters
+        filters = parse_filters(share)
+        if filters:
+            networkshare_obj.filters = filters
+
         networkshares.append(networkshare_obj)
 
     return networkshares

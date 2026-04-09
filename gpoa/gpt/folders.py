@@ -20,6 +20,7 @@
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def action_enum2letter(enumitem):
@@ -50,6 +51,11 @@ def read_folders(folders_file):
         fld_obj.set_delete_sub_folders(folder_int2bool(props.get('deleteSubFolders', default=1)))
         fld_obj.set_delete_files(folder_int2bool(props.get('deleteFiles', default=1)))
         fld_obj.set_hidden_folder(folder_int2bool(props.get('hidden', default=0)))
+
+        # Parse and add filters
+        filters = parse_filters(fld)
+        if filters:
+            fld_obj.filters = filters
 
         folders.append(fld_obj)
 

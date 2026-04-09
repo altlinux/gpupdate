@@ -21,6 +21,7 @@ import json
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_printers(printers_file):
@@ -39,6 +40,11 @@ def read_printers(printers_file):
         prn_obj.set_localname(props.get('localName'))
         prn_obj.set_comment(props.get('comment'))
         prn_obj.set_path(props.get('path'))
+
+        # Parse and add filters
+        filters = parse_filters(prn)
+        if filters:
+            prn_obj.filters = filters
 
         printers.append(prn_obj)
 
