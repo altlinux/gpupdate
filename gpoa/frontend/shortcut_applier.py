@@ -153,21 +153,23 @@ class shortcut_applier(applier_frontend):
         if shortcuts:
             for sc in shortcuts:
                 element_type = get_element_type_name(sc)
-                if getattr(sc, 'apply_once', False):
-                    if self.state_manager.should_skip(dict(sc), element_type):
+                sc_dict = dict(sc)
+                apply_once = getattr(sc, 'apply_once', False)
+                bypass_errors = getattr(sc, 'bypass_errors', False)
+                if apply_once:
+                    if self.state_manager.should_skip(sc_dict, element_type):
                         logdata = {'uid': getattr(sc, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue
                 try:
                     apply_shortcut(sc)
-                    if getattr(sc, 'apply_once', False):
-                        self.state_manager.mark_applied(dict(sc), element_type)
+                    if apply_once:
+                        self.state_manager.mark_applied(sc_dict, element_type)
                 except Exception as exc:
-                    if getattr(sc, 'bypass_errors', False):
-                        logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
-                        log('W47', logdata)
-                    else:
+                    if not bypass_errors:
                         raise
+                    logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
             if len(shortcuts) > 0:
                 # According to ArchWiki - this thing is needed to rebuild MIME
                 # type cache in order file bindings to work. This rebuilds
@@ -264,8 +266,11 @@ class shortcut_applier_user(applier_frontend):
                 if sc.disabled:
                     continue
                 element_type = get_element_type_name(sc)
-                if getattr(sc, 'apply_once', False):
-                    if self.state_manager.should_skip(dict(sc), element_type):
+                sc_dict = dict(sc)
+                apply_once = getattr(sc, 'apply_once', False)
+                bypass_errors = getattr(sc, 'bypass_errors', False)
+                if apply_once:
+                    if self.state_manager.should_skip(sc_dict, element_type):
                         logdata = {'uid': getattr(sc, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue
@@ -274,14 +279,13 @@ class shortcut_applier_user(applier_frontend):
                         apply_shortcut(sc, self.username)
                     if not in_usercontext and not sc.is_usercontext():
                         apply_shortcut(sc, self.username)
-                    if getattr(sc, 'apply_once', False):
-                        self.state_manager.mark_applied(dict(sc), element_type)
+                    if apply_once:
+                        self.state_manager.mark_applied(sc_dict, element_type)
                 except Exception as exc:
-                    if getattr(sc, 'bypass_errors', False):
-                        logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
-                        log('W47', logdata)
-                    else:
+                    if not bypass_errors:
                         raise
+                    logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
         else:
             logdata = {'username': self.username}
             log('D100', logdata)

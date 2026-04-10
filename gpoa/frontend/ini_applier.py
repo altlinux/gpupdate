@@ -98,21 +98,23 @@ class ini_applier(applier_frontend):
             if inifile.disabled:
                 continue
             element_type = get_element_type_name(inifile)
-            if inifile.apply_once:
-                if self.state_manager.should_skip(dict(inifile), element_type):
+            ini_dict = dict(inifile)
+            apply_once = getattr(inifile, 'apply_once', False)
+            bypass_errors = getattr(inifile, 'bypass_errors', False)
+            if apply_once:
+                if self.state_manager.should_skip(ini_dict, element_type):
                     logdata = {'uid': getattr(inifile, 'uid', 'unknown')}
                     log('D240', logdata)
                     continue
             try:
                 Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
-                if inifile.apply_once:
-                    self.state_manager.mark_applied(dict(inifile), element_type)
+                if apply_once:
+                    self.state_manager.mark_applied(ini_dict, element_type)
             except Exception as exc:
-                if getattr(inifile, 'bypass_errors', False):
-                    logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
-                    log('W47', logdata)
-                else:
+                if not bypass_errors:
                     raise
+                logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
+                log('W47', logdata)
 
     def apply(self):
         if self.__module_enabled:
@@ -184,21 +186,23 @@ class ini_applier_user(applier_frontend):
             if inifile.disabled:
                 continue
             element_type = get_element_type_name(inifile)
-            if inifile.apply_once:
-                if self.state_manager.should_skip(dict(inifile), element_type):
+            ini_dict = dict(inifile)
+            apply_once = getattr(inifile, 'apply_once', False)
+            bypass_errors = getattr(inifile, 'bypass_errors', False)
+            if apply_once:
+                if self.state_manager.should_skip(ini_dict, element_type):
                     logdata = {'uid': getattr(inifile, 'uid', 'unknown')}
                     log('D240', logdata)
                     continue
             try:
                 Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
-                if inifile.apply_once:
-                    self.state_manager.mark_applied(dict(inifile), element_type)
+                if apply_once:
+                    self.state_manager.mark_applied(ini_dict, element_type)
             except Exception as exc:
-                if getattr(inifile, 'bypass_errors', False):
-                    logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
-                    log('W47', logdata)
-                else:
+                if not bypass_errors:
                     raise
+                logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
+                log('W47', logdata)
 
     def admin_context_apply(self):
         pass

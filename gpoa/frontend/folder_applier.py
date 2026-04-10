@@ -76,8 +76,11 @@ class folder_applier(applier_frontend):
                 if directory_obj.disabled:
                     continue
                 element_type = get_element_type_name(directory_obj)
-                if getattr(directory_obj, 'apply_once', False):
-                    if self.state_manager.should_skip(dict(directory_obj), element_type):
+                obj_dict = dict(directory_obj)
+                apply_once = getattr(directory_obj, 'apply_once', False)
+                bypass_errors = getattr(directory_obj, 'bypass_errors', False)
+                if apply_once:
+                    if self.state_manager.should_skip(obj_dict, element_type):
                         logdata = {'uid': getattr(directory_obj, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue
@@ -90,14 +93,13 @@ class folder_applier(applier_frontend):
                 try:
                     fld = Folder(directory_obj)
                     fld.act()
-                    if getattr(directory_obj, 'apply_once', False):
-                        self.state_manager.mark_applied(dict(directory_obj), element_type)
+                    if apply_once:
+                        self.state_manager.mark_applied(obj_dict, element_type)
                 except Exception as exc:
-                    if getattr(directory_obj, 'bypass_errors', False):
-                        logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
-                        log('W47', logdata)
-                    else:
+                    if not bypass_errors:
                         raise
+                    logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
+                    log('W47', logdata)
         else:
             log('D108')
 
@@ -151,8 +153,11 @@ class folder_applier_user(applier_frontend):
             if directory_obj.disabled:
                 continue
             element_type = get_element_type_name(directory_obj)
-            if getattr(directory_obj, 'apply_once', False):
-                if self.state_manager.should_skip(dict(directory_obj), element_type):
+            obj_dict = dict(directory_obj)
+            apply_once = getattr(directory_obj, 'apply_once', False)
+            bypass_errors = getattr(directory_obj, 'bypass_errors', False)
+            if apply_once:
+                if self.state_manager.should_skip(obj_dict, element_type):
                     logdata = {'uid': getattr(directory_obj, 'uid', 'unknown')}
                     log('D240', logdata)
                     continue
@@ -165,14 +170,13 @@ class folder_applier_user(applier_frontend):
             try:
                 fld = Folder(directory_obj, self.username)
                 fld.act()
-                if getattr(directory_obj, 'apply_once', False):
-                    self.state_manager.mark_applied(dict(directory_obj), element_type)
+                if apply_once:
+                    self.state_manager.mark_applied(obj_dict, element_type)
             except Exception as exc:
-                if getattr(directory_obj, 'bypass_errors', False):
-                    logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
-                    log('W47', logdata)
-                else:
+                if not bypass_errors:
                     raise
+                logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
+                log('W47', logdata)
 
     def admin_context_apply(self):
         pass

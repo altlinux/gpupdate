@@ -73,21 +73,23 @@ class file_applier(applier_frontend):
             if file.disabled:
                 continue
             element_type = get_element_type_name(file)
-            if getattr(file, 'apply_once', False):
-                if self.state_manager.should_skip(dict(file), element_type):
+            file_dict = dict(file)
+            apply_once = getattr(file, 'apply_once', False)
+            bypass_errors = getattr(file, 'bypass_errors', False)
+            if apply_once:
+                if self.state_manager.should_skip(file_dict, element_type):
                     logdata = {'uid': getattr(file, 'uid', 'unknown')}
                     log('D240', logdata)
                     continue
             try:
                 Files_cp(file, self.file_cache, self.exe_check)
-                if getattr(file, 'apply_once', False):
-                    self.state_manager.mark_applied(dict(file), element_type)
+                if apply_once:
+                    self.state_manager.mark_applied(file_dict, element_type)
             except Exception as exc:
-                if getattr(file, 'bypass_errors', False):
-                    logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
-                    log('W47', logdata)
-                else:
+                if not bypass_errors:
                     raise
+                logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
+                log('W47', logdata)
 
     def apply(self):
         if self.__module_enabled:
@@ -148,21 +150,23 @@ class file_applier_user(applier_frontend):
             if file.disabled:
                 continue
             element_type = get_element_type_name(file)
-            if getattr(file, 'apply_once', False):
-                if self.state_manager.should_skip(dict(file), element_type):
+            file_dict = dict(file)
+            apply_once = getattr(file, 'apply_once', False)
+            bypass_errors = getattr(file, 'bypass_errors', False)
+            if apply_once:
+                if self.state_manager.should_skip(file_dict, element_type):
                     logdata = {'uid': getattr(file, 'uid', 'unknown')}
                     log('D240', logdata)
                     continue
             try:
                 Files_cp(file, self.file_cache, self.exe_check, self.username)
-                if getattr(file, 'apply_once', False):
-                    self.state_manager.mark_applied(dict(file), element_type)
+                if apply_once:
+                    self.state_manager.mark_applied(file_dict, element_type)
             except Exception as exc:
-                if getattr(file, 'bypass_errors', False):
-                    logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
-                    log('W47', logdata)
-                else:
+                if not bypass_errors:
                     raise
+                logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
+                log('W47', logdata)
 
     def admin_context_apply(self):
         if self.__module_enabled:

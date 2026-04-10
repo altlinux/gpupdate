@@ -93,4 +93,16 @@ def save_dconf(username, is_machine, nodomain=None):
     Dconf_registry.apply_template(uid)
     add_preferences_to_global_registry_dict(username, is_machine)
     Dconf_registry.update_dict_to_previous()
-    create_dconf_ini_file(target_file,Dconf_registry.global_registry_dict, uid, nodomain)
+    create_dconf_ini_file(target_file, Dconf_registry.global_registry_dict, uid, nodomain)
+
+
+def save_dconf_without_previous(username, is_machine, nodomain=None):
+    if is_machine:
+        uid = None
+    else:
+        uid = get_uid_by_username(username) if not is_machine else None
+    target_file = get_dconf_config_file(uid)
+    touch_file(target_file)
+    Dconf_registry.apply_template(uid)
+    add_preferences_to_global_registry_dict(username, is_machine)
+    create_dconf_ini_file(target_file, Dconf_registry.global_registry_dict, uid, nodomain)

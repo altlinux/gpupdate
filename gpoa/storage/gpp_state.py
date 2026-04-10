@@ -27,6 +27,7 @@ Handles lifecycle state for GPP elements:
 
 from datetime import datetime
 from typing import Dict, List, Set
+from ast import literal_eval
 
 from .dconf_registry import Dconf_registry
 from gpoa.util.logging import log
@@ -59,7 +60,6 @@ def get_previous_elements(element_type: str, username: str = None) -> List[Dict]
         return []
 
     try:
-        from ast import literal_eval
         if isinstance(elements_data, str):
             elements = literal_eval(elements_data)
         else:

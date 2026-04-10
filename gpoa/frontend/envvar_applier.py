@@ -81,25 +81,25 @@ class envvar_applier(applier_frontend):
             envvars_to_apply = []
             for ev in envvars_filtered:
                 element_type = get_element_type_name(ev)
-                if getattr(ev, 'apply_once', False):
-                    if self.state_manager.should_skip(dict(ev), element_type):
+                ev_dict = dict(ev)
+                apply_once = getattr(ev, 'apply_once', False)
+                bypass_errors = getattr(ev, 'bypass_errors', False)
+                if apply_once:
+                    if self.state_manager.should_skip(ev_dict, element_type):
                         logdata = {'uid': getattr(ev, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue
-                envvars_to_apply.append(ev)
+                envvars_to_apply.append((ev, ev_dict, apply_once, bypass_errors))
             if envvars_to_apply:
-                envvar = Envvar(envvars_to_apply, 'root')
+                envvar = Envvar([ev for ev, _, _, _ in envvars_to_apply], 'root')
                 try:
                     envvar.act()
-                    for ev in envvars_to_apply:
-                        if getattr(ev, 'apply_once', False):
+                    for ev, ev_dict, apply_once, _ in envvars_to_apply:
+                        if apply_once:
                             ev_type = get_element_type_name(ev)
-                            self.state_manager.mark_applied(dict(ev), ev_type)
+                            self.state_manager.mark_applied(ev_dict, ev_type)
                 except Exception as exc:
-                    bypass_found = False
-                    for ev in envvars_to_apply:
-                        if getattr(ev, 'bypass_errors', False):
-                            bypass_found = True
+                    bypass_found = any(bypass for _, _, _, bypass in envvars_to_apply)
                     if bypass_found:
                         logdata = {'exc': str(exc)}
                         log('W47', logdata)
@@ -174,25 +174,25 @@ class envvar_applier_user(applier_frontend):
             envvars_to_apply = []
             for ev in envvars_filtered:
                 element_type = get_element_type_name(ev)
-                if getattr(ev, 'apply_once', False):
-                    if self.state_manager.should_skip(dict(ev), element_type):
+                ev_dict = dict(ev)
+                apply_once = getattr(ev, 'apply_once', False)
+                bypass_errors = getattr(ev, 'bypass_errors', False)
+                if apply_once:
+                    if self.state_manager.should_skip(ev_dict, element_type):
                         logdata = {'uid': getattr(ev, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue
-                envvars_to_apply.append(ev)
+                envvars_to_apply.append((ev, ev_dict, apply_once, bypass_errors))
             if envvars_to_apply:
-                envvar = Envvar(envvars_to_apply, self.username)
+                envvar = Envvar([ev for ev, _, _, _ in envvars_to_apply], self.username)
                 try:
                     envvar.act()
-                    for ev in envvars_to_apply:
-                        if getattr(ev, 'apply_once', False):
+                    for ev, ev_dict, apply_once, _ in envvars_to_apply:
+                        if apply_once:
                             ev_type = get_element_type_name(ev)
-                            self.state_manager.mark_applied(dict(ev), ev_type)
+                            self.state_manager.mark_applied(ev_dict, ev_type)
                 except Exception as exc:
-                    bypass_found = False
-                    for ev in envvars_to_apply:
-                        if getattr(ev, 'bypass_errors', False):
-                            bypass_found = True
+                    bypass_found = any(bypass for _, _, _, bypass in envvars_to_apply)
                     if bypass_found:
                         logdata = {'exc': str(exc)}
                         log('W47', logdata)

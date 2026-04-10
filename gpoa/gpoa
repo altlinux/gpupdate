@@ -23,7 +23,7 @@ import signal
 import gettext
 import locale
 
-from backend import backend_factory, save_dconf
+from backend import backend_factory, save_dconf, save_dconf_without_previous
 from frontend.frontend_manager import frontend_manager, determine_username
 from gpoa.plugin import plugin_manager
 from messages import message_with_code
@@ -151,9 +151,9 @@ class gpoa_controller:
                 if back:
                     try:
                         back.retrieve_and_store()
-                        # Start frontend only on successful backend finish
                         save_dconf(self.username, self.is_machine, nodomain)
                         self.start_frontend()
+                        save_dconf_without_previous(self.username, self.is_machine, nodomain)
                     except Exception as exc:
                         logdata = dict({'message': str(exc)})
                         # In case we're handling "E3" - it means that
