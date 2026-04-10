@@ -639,7 +639,7 @@ def _evaluate_filters(filters, username=None):
                 negate = negate.lower() in ('true', '1', 'yes')
         else:
             logdata = {'filter_type': filter_type}
-            log('W47', logdata)
+            log('W48', logdata)
             filter_result = False
             # Unknown filters always block, ignore negate
             negate = False
