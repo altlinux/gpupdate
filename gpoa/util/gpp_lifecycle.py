@@ -21,7 +21,6 @@ Utility functions for GPP element identification and state management.
 """
 
 import hashlib
-from datetime import datetime
 
 
 def generate_element_uid(element_type, **fields):
