@@ -20,6 +20,7 @@ from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_envvar_uid
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_envvars(envvars_file):
@@ -46,6 +47,11 @@ def read_envvars(envvars_file):
             var_obj.set_apply_once(run_once is not None)
         else:
             var_obj.set_apply_once(False)
+
+        # Parse and add filters
+        filters = parse_filters(var)
+        if filters:
+            var_obj.filters = filters
 
         variables.append(var_obj)
 

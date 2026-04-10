@@ -108,7 +108,7 @@ class file_applier_user(applier_frontend):
         self.file_cache = file_cache
         self.username = username
         self.exe_check = Execution_check(storage)
-        self.files = self.storage.get_files()
+        self.files = self.storage.get_files(self.username)
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name

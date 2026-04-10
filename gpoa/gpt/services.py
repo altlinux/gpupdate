@@ -19,6 +19,7 @@
 from util.xml import get_xml_root
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_services(service_file):
@@ -38,6 +39,11 @@ def read_services(service_file):
         srv_obj.set_serviceaction(props.get('serviceAction'))
         timeout = props.get('timeout')
         srv_obj.set_disabled(srv.get('disabled') == '1')
+
+        # Parse and add filters
+        filters = parse_filters(srv)
+        if filters:
+            srv_obj.filters = filters
 
         services.append(srv_obj)
 

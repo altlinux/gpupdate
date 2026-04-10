@@ -116,7 +116,7 @@ class envvar_applier_user(applier_frontend):
     def __init__(self, storage, username):
         self.storage = storage
         self.username = username
-        self.envvars = self.storage.get_envvars()
+        self.envvars = self.storage.get_envvars(self.username)
         Envvar.clear_envvar_file(username)
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager(username)

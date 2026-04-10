@@ -29,8 +29,8 @@ from util.util import get_homedir, get_machine_name, get_uid_by_username, get_us
 from .applier_frontend import applier_frontend, check_enabled
 
 
-def storage_get_drives(storage):
-    drives = storage.get_drives()
+def storage_get_drives(storage, username=None):
+    drives = storage.get_drives(username)
     drive_list = []
 
     for drv_obj in drives:
@@ -254,7 +254,7 @@ class cifs_applier_user(applier_frontend):
 
 
         self.mount_dir = Path(os.path.join(self.home))
-        self.drives = storage_get_drives(self.storage)
+        self.drives = storage_get_drives(self.storage, self.username)
 
         self.template_loader = jinja2.FileSystemLoader(searchpath=self.__template_path)
         self.template_env = jinja2.Environment(loader=self.template_loader)

@@ -20,6 +20,7 @@ from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_networkshare_uid
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_networkshares(networksharesxml):
@@ -49,6 +50,11 @@ def read_networkshares(networksharesxml):
             networkshare_obj.set_apply_once(run_once is not None)
         else:
             networkshare_obj.set_apply_once(False)
+
+        # Parse and add filters
+        parsed_filters = parse_filters(share)
+        if parsed_filters:
+            networkshare_obj.filters = parsed_filters
 
         networkshares.append(networkshare_obj)
 

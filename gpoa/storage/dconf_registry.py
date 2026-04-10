@@ -36,6 +36,7 @@ from gpoa.util.util import (
     try_dict_to_literal_eval,
 )
 from gpoa.util.gpp_lifecycle import element_to_dict
+from gpoa.util.check_filters import check_filter_computer, check_filter_domain, check_filter_date, check_filter_user, check_filter_group
 
 gi.require_version("Gvdb", "1.0")
 gi.require_version("GLib", "2.0")
@@ -466,27 +467,67 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_shortcuts(cls):
-        return cls.shortcuts
+    def get_shortcuts(cls, username=None):
+        '''Get shortcuts filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of shortcuts
+        '''
+        return _filter_objects(cls.shortcuts, username)
 
 
     @classmethod
-    def get_printers(cls):
-        return cls.printers
+    def get_printers(cls, username=None):
+        '''Get printers filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of printers
+        '''
+        return _filter_objects(cls.printers, username)
 
 
     @classmethod
-    def get_drives(cls):
-        return cls.drives
+    def get_drives(cls, username=None):
+        '''Get drives filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of drives
+        '''
+        return _filter_objects(cls.drives, username)
 
     @classmethod
-    def get_folders(cls):
-        return cls.folders
+    def get_folders(cls, username=None):
+        '''Get folders filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of folders
+        '''
+        return _filter_objects(cls.folders, username)
 
 
     @classmethod
-    def get_envvars(cls):
-        return cls.environmentvariables
+    def get_envvars(cls, username=None):
+        '''Get environment variables filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of environment variables
+        '''
+        return _filter_objects(cls.environmentvariables, username)
 
 
     @classmethod
@@ -505,18 +546,42 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_files(cls):
-        return cls.files
+    def get_files(cls, username=None):
+        '''Get files filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of files
+        '''
+        return _filter_objects(cls.files, username)
 
 
     @classmethod
-    def get_networkshare(cls):
-        return cls.networkshares
+    def get_networkshare(cls, username=None):
+        '''Get network shares filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of network shares
+        '''
+        return _filter_objects(cls.networkshares, username)
 
 
     @classmethod
-    def get_ini(cls):
-        return cls.inifiles
+    def get_ini(cls, username=None):
+        '''Get ini files filtered by computer/domain filters.
+
+        Args:
+            username (str, optional): Username for future user filters
+
+        Returns:
+            list: Filtered list of ini files
+        '''
+        return _filter_objects(cls.inifiles, username)
 
 
     @classmethod
@@ -538,6 +603,84 @@ def filter_dict_keys(starting_string, input_dict):
             result[key] = input_dict.get(key)
 
     return result
+
+
+def _evaluate_filters(filters, username=None):
+    '''Evaluate filter list for current context.
+
+    Args:
+        filters (list[Filter]): List of filter objects
+        username (str, optional): Username for future user filters
+
+    Returns:
+        bool: True if all filters pass
+    '''
+    if not filters:
+        return True
+
+    filter_handlers = {
+        'FilterComputer': check_filter_computer,
+        'FilterDomain': check_filter_domain,
+        'FilterDate': check_filter_date,
+        'FilterUser': check_filter_user,
+        'FilterGroup': check_filter_group,
+    }
+
+    first_result = True
+    for i, filter_obj in enumerate(filters):
+        filter_type = filter_obj.filter_type
+        handler = filter_handlers.get(filter_type)
+
+        if handler:
+            filter_result = handler(filter_obj, username)
+            # Get negate attribute for known filters
+            negate = getattr(filter_obj, 'negate', False)
+            if isinstance(negate, str):
+                negate = negate.lower() in ('true', '1', 'yes')
+        else:
+            logdata = {'filter_type': filter_type}
+            log('W47', logdata)
+            filter_result = False
+            # Unknown filters always block, ignore negate
+            negate = False
+
+        if negate:
+            filter_result = not filter_result
+
+        if i == 0:
+            first_result = filter_result
+        else:
+            operator = getattr(filter_obj, 'bool', 'AND')
+            if isinstance(operator, str):
+                operator = operator.upper()
+            else:
+                operator = 'AND'
+
+            if operator == 'OR':
+                first_result = first_result or filter_result
+            else:
+                first_result = first_result and filter_result
+
+    return first_result
+
+
+def _filter_objects(objects, username=None):
+    '''Filter objects by evaluating their filters.
+
+    Args:
+        objects (list): List of objects with optional 'filters' attribute
+        username (str, optional): Username for future user filters
+
+    Returns:
+        list: Filtered list of objects
+    '''
+    filtered = []
+    for obj in objects:
+        filters = getattr(obj, 'filters', [])
+        if _evaluate_filters(filters, username):
+            filtered.append(obj)
+
+    return filtered
 
 
 def find_preg_type(argument):
@@ -831,8 +974,29 @@ def get_dconf_envprofile():
 def convert_elements_to_list_dicts(elements):
     return list(map(lambda x: element_to_dict(x), elements))
 
+def _dict_to_hashable(d):
+    """
+    Convert a dictionary to a hashable tuple, recursively handling lists.
+    """
+    def _value_to_hashable(v):
+        if isinstance(v, dict):
+            return _dict_to_hashable(v)
+        elif isinstance(v, list):
+            return tuple(_value_to_hashable(item) for item in v)
+        elif isinstance(v, tuple):
+            return tuple(_value_to_hashable(item) for item in v)
+        elif isinstance(v, set):
+            return tuple(sorted(_value_to_hashable(item) for item in v))
+        else:
+            # Primitives: str, int, float, bool, None
+            return v
+
+    # Sort items by key for consistent ordering
+    sorted_items = sorted(d.items())
+    return tuple((k, _value_to_hashable(v)) for k, v in sorted_items)
+
 def remove_duplicate_dicts_in_list(list_dict):
-    return convert_elements_to_list_dicts(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))
+    return convert_elements_to_list_dicts(list(OrderedDict((_dict_to_hashable(d), d) for d in list_dict).values()))
 
 def add_preferences_to_global_registry_dict(username, is_machine):
     if is_machine:

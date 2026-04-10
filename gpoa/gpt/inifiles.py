@@ -20,6 +20,7 @@ from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_ini_uid
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_inifiles(inifiles_file):
@@ -47,6 +48,11 @@ def read_inifiles(inifiles_file):
             ini_obj.set_apply_once(run_once is not None)
         else:
             ini_obj.set_apply_once(False)
+
+        # Parse and add filters
+        filters = parse_filters(ini)
+        if filters:
+            ini_obj.filters = filters
 
         inifiles.append(ini_obj)
 

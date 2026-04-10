@@ -20,6 +20,7 @@ from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_file_uid
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def read_files(filesxml):
@@ -50,6 +51,11 @@ def read_files(filesxml):
             fil_obj.set_apply_once(run_once is not None)
         else:
             fil_obj.set_apply_once(False)
+
+        # Parse and add filters
+        parsed_filters = parse_filters(fil)
+        if parsed_filters:
+            fil_obj.filters = parsed_filters
 
         files.append(fil_obj)
 

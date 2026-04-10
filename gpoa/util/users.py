@@ -52,3 +52,30 @@ def username_match_uid(username):
 
     return False
 
+
+def get_local_groups_for_username(username):
+    '''
+    Get list of local group names for a given username.
+
+    Args:
+        username (str): Username
+
+    Returns:
+        list: List of local group names
+    '''
+    try:
+        import grp
+        user_info = pwd.getpwnam(username)
+        user_gid = user_info.pw_gid
+        group_ids = os.getgrouplist(username, user_gid)
+        groups = []
+        for gid in group_ids:
+            try:
+                group_info = grp.getgrgid(gid)
+                groups.append(group_info.gr_name)
+            except KeyError:
+                pass
+        return groups
+    except Exception:
+        return []
+

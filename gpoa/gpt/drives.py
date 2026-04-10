@@ -24,6 +24,7 @@ from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_drive_uid
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 def decrypt_pass(cpassword):
@@ -92,6 +93,11 @@ def read_drives(drives_file):
             drive_obj.set_apply_once(run_once is not None)
         else:
             drive_obj.set_apply_once(False)
+
+        # Parse and add filters
+        filters = parse_filters(drive)
+        if filters:
+            drive_obj.filters = filters
 
         drives.append(drive_obj)
 

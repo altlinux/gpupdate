@@ -21,6 +21,7 @@ from enum import Enum
 class DynamicAttributes:
     def __init__(self, **kwargs):
         self.policy_name = None
+        self.filters = []
         for key, value in kwargs.items():
             self.__setattr__(key, value)
 
@@ -34,10 +35,20 @@ class DynamicAttributes:
         self.__dict__[key] = value
 
     def items(self):
-        return self.__dict__.items()
+        # Return items with filters last
+        filters_val = None
+        for k, v in self.__dict__.items():
+            if k == 'filters':
+                filters_val = v
+                continue
+            yield (k, v)
+        if filters_val is not None:
+            if isinstance(filters_val, list):
+                filters_val = [dict(f) for f in filters_val]
+            yield ('filters', filters_val)
 
     def __iter__(self):
-        return iter(self.__dict__.items())
+        return iter(self.items())
 
     def get_original_value(self, key):
         value = self.__dict__.get(key)

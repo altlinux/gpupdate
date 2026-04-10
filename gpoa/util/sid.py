@@ -22,7 +22,6 @@ import pwd
 import subprocess
 
 import pysss_nss_idmap
-from storage.dconf_registry import Dconf_registry
 
 from .logging import log
 from .util import get_user_info
@@ -32,6 +31,7 @@ def wbinfo_getsid(domain, user):
     '''
     Get SID using wbinfo
     '''
+    from storage.dconf_registry import Dconf_registry
     # This part works only on client
     username = '{}\\{}'.format(domain.upper(), user)
     sid = pysss_nss_idmap.getsidbyname(username)
@@ -84,6 +84,26 @@ def get_sid(domain, username, is_machine = False):
     log('D21', logdata)
 
     return sid
+
+
+def get_group_sids_for_sid(sid):
+    '''
+    Get list of group SIDs for a given SID using wbinfo.
+
+    Args:
+        sid (str): SID of user or computer
+
+    Returns:
+        list: List of group SIDs (strings)
+    '''
+    try:
+        wbinfo_cmd = ['wbinfo', '--user-sids', sid]
+        output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT)
+        lines = output.decode('utf-8').strip().split('\n')
+        group_sids = [line.strip() for line in lines if line.strip()]
+        return group_sids
+    except Exception:
+        return []
 
 class IssuingAuthority(Enum):
     SECURITY_NULL_SID_AUTHORITY = 0

@@ -28,6 +28,7 @@ from util.gpp_lifecycle import generate_shortcut_uid
 from xdg.DesktopEntry import DesktopEntry
 
 from .dynamic_attributes import DynamicAttributes
+from .filter import parse_filters
 
 
 class TargetType(Enum):
@@ -102,6 +103,11 @@ def read_shortcuts(shortcuts_file):
             sc.set_apply_once(run_once is not None)
         else:
             sc.set_apply_once(False)
+
+        # Parse and add filters
+        filters = parse_filters(link)
+        if filters:
+            sc.filters = filters
 
         shortcuts.append(sc)
 
