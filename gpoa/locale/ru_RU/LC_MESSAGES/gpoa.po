@@ -1135,6 +1135,42 @@ msgstr "Ошибка загрузки плагина из файла"
 msgid "Plugin failed to apply with user privileges"
 msgstr "Плагин не смог примениться с правами пользователя"
 
+msgid "Running systemd preferences applier for machine"
+msgstr "Запуск применения systemd preferences для машины"
+
+msgid "Running systemd preferences applier for user in admin context"
+msgstr "Запуск применения systemd preferences для пользователя в административном контексте"
+
+msgid "Running systemd preferences applier for user in user context"
+msgstr "Запуск применения systemd preferences для пользователя в пользовательском контексте"
+
+msgid "Systemd preferences applier is disabled"
+msgstr "Применение systemd preferences отключено"
+
+msgid "Applying systemd preference rule"
+msgstr "Применение правила systemd preference"
+
+msgid "Running daemon-reload for systemd preferences"
+msgstr "Выполняется daemon-reload для systemd preferences"
+
+msgid "Cleaning up removed systemd preferences rule"
+msgstr "Очистка удалённого правила systemd preferences"
+
+msgid "Restarting unit due to changed file dependency"
+msgstr "Перезапуск unit из-за изменённой файловой зависимости"
+
+msgid "Invalid Systemds preference entry"
+msgstr "Некорректная запись Systemds preference"
+
+msgid "User systemd manager is unavailable"
+msgstr "Пользовательский менеджер systemd недоступен"
+
+msgid "Restart skipped for non-restartable unit type"
+msgstr "Перезапуск пропущен для нерестартуемого типа unit"
+
+msgid "daemon-reload for systemd preferences failed"
+msgstr "Ошибка daemon-reload для systemd preferences"
+
 # Warning_end
 
 # Fatal
@@ -1149,6 +1185,5 @@ msgstr "Не удалось получить GPT для пользователя
 
 msgid "Unknown fatal code"
 msgstr "Неизвестный код фатальной ошибки"
-
 
 

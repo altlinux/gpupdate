@@ -190,7 +190,7 @@ def get_policy_variants():
 def string_to_literal_eval(string):
     try:
         literaleval = ast.literal_eval(string)
-    except:
+    except (ValueError, SyntaxError):
         literaleval = string
     return literaleval
 

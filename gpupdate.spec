@@ -2,8 +2,14 @@
 #add_python3_self_prov_path %buildroot%python3_sitelibdir/gpoa
 
 %add_python3_req_skip applaer.systemd
+%add_python3_req_skip frontend.appliers.systemd
+%add_python3_req_skip frontend.change_journal
+%add_python3_req_skip frontend.systemd_applier
+%add_python3_req_skip frontend.systemd_preferences_applier
 %add_python3_req_skip backend
 %add_python3_req_skip frontend.frontend_manager
+%add_python3_req_skip gpt.systemds
+%add_python3_req_skip gpt.systemds_constants
 %add_python3_req_skip gpt.envvars
 %add_python3_req_skip gpt.folders
 %add_python3_req_skip gpt.gpt
@@ -39,7 +45,7 @@
 %add_python3_req_skip frontend.appliers.ini_file
 
 Name: gpupdate
-Version: 0.14.2
+Version: 0.14.3
 Release: alt1
 
 Summary: GPT applier
@@ -211,6 +217,10 @@ fi
 %exclude %python3_sitelibdir/gpoa/test
 
 %changelog
+* Sun Apr 12 2026 Korney Gedert <kiper@altlinux.org> 0.14.3-alt1
+- Added Systemds preferences applier with file-dependency restart support
+- Added change_journal module for dependency snapshot tracking
+
 * Thu Feb 26 2026 Danila Skachedubov <skachedubov@altlinux.org> 0.14.2-alt1
 - Fix username resolution for trusted domain users
 

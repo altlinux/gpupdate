@@ -27,6 +27,7 @@ from util.users import (
 )
 
 from .chromium_applier import chromium_applier
+from .change_journal import reset as reset_change_journal
 from .cifs_applier import cifs_applier, cifs_applier_user
 from .control_applier import control_applier
 from .cups_applier import cups_applier
@@ -46,8 +47,22 @@ from .polkit_applier import polkit_applier, polkit_applier_user
 from .scripts_applier import scripts_applier, scripts_applier_user
 from .shortcut_applier import shortcut_applier, shortcut_applier_user
 from .systemd_applier import systemd_applier
+from .systemd_preferences_applier import (
+    systemd_preferences_applier,
+    systemd_preferences_applier_user,
+)
 from .thunderbird_applier import thunderbird_applier
 from .yandex_browser_applier import yandex_browser_applier
+
+
+def prime_dependency_journal(appliers):
+    applier = appliers.get('systemd_preferences')
+    if not applier:
+        return
+
+    prime = getattr(applier, 'prime_dependency_journal', None)
+    if callable(prime):
+        prime()
 
 
 def determine_username(username=None):
@@ -129,6 +144,11 @@ class frontend_manager:
         self.machine_appliers['ini'] = ini_applier(self.storage)
         self.machine_appliers['kde'] = kde_applier(self.storage)
         self.machine_appliers['package'] = package_applier(self.storage)
+        # systemd_preferences must be registered last: its post_restart() checks
+        # dependency paths that other appliers (e.g. ini) may have modified during
+        # the same apply cycle.  New appliers that write files must be added before
+        # this entry to ensure their changes are visible to the dependency journal.
+        self.machine_appliers['systemd_preferences'] = systemd_preferences_applier(self.storage)
 
     def _init_user_appliers(self):
         # User appliers are expected to work with user-writable
@@ -149,6 +169,7 @@ class frontend_manager:
         self.user_appliers['ini'] = ini_applier_user(self.storage, self.username)
         self.user_appliers['kde'] = kde_applier_user(self.storage, self.username, self.file_cache)
         self.user_appliers['package'] = package_applier_user(self.storage, self.username)
+        self.user_appliers['systemd_preferences'] = systemd_preferences_applier_user(self.storage, self.username)
 
     def machine_apply(self):
         '''
@@ -158,6 +179,12 @@ class frontend_manager:
             log('E13')
             return
         log('D16')
+        reset_change_journal()
+        try:
+            prime_dependency_journal(self.machine_appliers)
+        except Exception as exc:
+            logdata = {'applier_name': 'systemd_preferences', 'msg': str(exc)}
+            log('E24', logdata)
 
         for applier_name, applier_object in self.machine_appliers.items():
             try:
@@ -170,6 +197,12 @@ class frontend_manager:
         '''
         Run appliers for users.
         '''
+        reset_change_journal()
+        try:
+            prime_dependency_journal(self.user_appliers)
+        except Exception as exc:
+            logdata = {'applier': 'systemd_preferences', 'exception': str(exc)}
+            log('E19', logdata)
         if is_root():
             for applier_name, applier_object in self.user_appliers.items():
                 try:
@@ -199,4 +232,3 @@ class frontend_manager:
             self.machine_apply()
         else:
             self.user_apply()
-

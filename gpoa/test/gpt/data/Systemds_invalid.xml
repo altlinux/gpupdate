@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Systemds clsid="{ROOT}" disabled="0">
+  <Service clsid="{C1}" name="good" uid="{U1}">
+    <Properties unit="good" state="enable"/>
+  </Service>
+  <Service clsid="{C2}" name="bad-state" uid="{U2}">
+    <Properties unit="bad" state="unknown"/>
+  </Service>
+  <Service clsid="{C3}" name="bad-apply" uid="{U3}">
+    <Properties unit="bad2" state="enable" applyMode="foo"/>
+  </Service>
+  <Service clsid="{C4}" name="bad-dep" uid="{U4}">
+    <Properties unit="bad3" state="enable">
+      <FileDependencies>
+        <Dependency mode="invalid" path="/tmp/x"/>
+        <Dependency mode="changed"/>
+      </FileDependencies>
+    </Properties>
+  </Service>
+  <Service clsid="{C5}" name="bad-unit-path" uid="{U5}">
+    <Properties unit="../../tmp/evil" state="enable"/>
+  </Service>
+  <Service clsid="{C6}" name="bad-dropin-path" uid="{U6}">
+    <Properties unit="safe" state="enable" dropInName="/tmp/evil.conf"/>
+  </Service>
+</Systemds>

@@ -39,6 +39,7 @@ from .printers import merge_printers, read_printers
 from .scriptsini import merge_scripts, read_scripts
 from .services import merge_services, read_services
 from .shortcuts import merge_shortcuts, read_shortcuts
+from .systemds import merge_systemds, read_systemds
 from .tasks import merge_tasks, read_tasks
 
 
@@ -53,6 +54,7 @@ class FileType(Enum):
     ENVIRONMENTVARIABLES = 'environmentvariables.xml'
     INIFILES = 'inifiles.xml'
     SERVICES = 'services.xml'
+    SYSTEMDS = 'systemd.xml'
     PRINTERS = 'printers.xml'
     SCRIPTS = 'scripts.ini'
     NETWORKSHARES = 'networkshares.xml'
@@ -80,6 +82,7 @@ def pref_parsers():
     parsers[FileType.ENVIRONMENTVARIABLES] = read_envvars
     parsers[FileType.INIFILES] = read_inifiles
     parsers[FileType.SERVICES] = read_services
+    parsers[FileType.SYSTEMDS] = read_systemds
     parsers[FileType.PRINTERS] = read_printers
     parsers[FileType.SCRIPTS] = read_scripts
     parsers[FileType.NETWORKSHARES] = read_networkshares
@@ -102,6 +105,7 @@ def pref_mergers():
     mergers[FileType.ENVIRONMENTVARIABLES] = merge_envvars
     mergers[FileType.INIFILES] = merge_inifiles
     mergers[FileType.SERVICES] = merge_services
+    mergers[FileType.SYSTEMDS] = merge_systemds
     mergers[FileType.PRINTERS] = merge_printers
     mergers[FileType.SCRIPTS] = merge_scripts
     mergers[FileType.NETWORKSHARES] = merge_networkshares
@@ -139,6 +143,7 @@ class gpt:
             , 'files'
             , 'inifiles'
             , 'services'
+            , 'systemd'
             , 'scheduledtasks'
             , 'scripts'
             , 'networkshares'
@@ -285,13 +290,13 @@ def find_preffile(search_path, prefname):
     if not prefdir:
         return None
 
-    # Then search for preference directory
     pref_dir = find_dir(prefdir, prefname)
-    file_name = '{}.xml'.format(prefname)
-    # And then try to find the corresponding file.
-    pref_file = find_file(pref_dir, file_name)
+    if pref_dir:
+        pref_file = find_file(pref_dir, '{}.xml'.format(prefname))
+        if pref_file:
+            return pref_file
 
-    return pref_file
+    return None
 
 def lp2gpt():
     '''

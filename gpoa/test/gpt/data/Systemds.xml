@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Systemds clsid="{ROOT}" disabled="0">
+  <Service clsid="{C1}" name="sshd" uid="{U1}">
+    <Properties unit="sshd" state="enable" now="1" applyMode="always" policyTarget="machine" dropInName="override.conf">
+      <UnitFile mode="text">[Service]
+Restart=always</UnitFile>
+      <FileDependencies>
+        <Dependency mode="changed" path="/etc/ssh/sshd_config"/>
+        <Dependency mode="presence_changed" path="/etc/ssh/sshd_config.d/custom.conf"/>
+      </FileDependencies>
+    </Properties>
+  </Service>
+  <Socket clsid="{C2}" name="cups" uid="{U2}">
+    <Properties unit="cups" state="as_is"/>
+  </Socket>
+  <Timer clsid="{C3}" name="fstrim" uid="{U3}">
+    <Properties unit="fstrim" state="disable" now="0"/>
+  </Timer>
+  <Path clsid="{C4}" name="systemd-path" uid="{U4}">
+    <Properties unit="example-path" state="mask"/>
+  </Path>
+  <Mount clsid="{C5}" name="tmp-mount" uid="{U5}">
+    <Properties unit="tmp" state="unmask"/>
+  </Mount>
+  <Automount clsid="{C6}" name="tmp-automount" uid="{U6}">
+    <Properties unit="tmp" state="preset"/>
+  </Automount>
+  <Swap clsid="{C7}" name="zram" uid="{U7}">
+    <Properties unit="zram" state="as_is"/>
+  </Swap>
+  <Target clsid="{C8}" name="multi-user" uid="{U8}">
+    <Properties unit="multi-user" state="as_is"/>
+  </Target>
+  <Device clsid="{C9}" name="device" uid="{U9}">
+    <Properties unit="sda" state="as_is"/>
+  </Device>
+  <Slice clsid="{C10}" name="slice" uid="{U10}">
+    <Properties unit="app-gpupdate" state="as_is"/>
+  </Slice>
+  <Scope clsid="{C11}" name="scope" uid="{U11}">
+    <Properties unit="session-2" state="as_is"/>
+  </Scope>
+</Systemds>

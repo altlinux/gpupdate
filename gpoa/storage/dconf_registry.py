@@ -97,6 +97,7 @@ class Dconf_registry():
     environmentvariables = []
     inifiles = []
     services = []
+    systemds = []
     printers = []
     scripts = []
     networkshares = []
@@ -454,6 +455,11 @@ class Dconf_registry():
         networkshareobj.policy_name = policy_name
         cls.networkshares.append(networkshareobj)
 
+    @classmethod
+    def add_systemd(cls, systemdobj, policy_name):
+        systemdobj.policy_name = policy_name
+        cls.systemds.append(systemdobj)
+
 
     @classmethod
     def get_shortcuts(cls):
@@ -502,6 +508,10 @@ class Dconf_registry():
     @classmethod
     def get_networkshare(cls):
         return cls.networkshares
+
+    @classmethod
+    def get_systemds(cls):
+        return cls.systemds
 
 
     @classmethod
@@ -821,8 +831,18 @@ def get_dconf_envprofile():
 def convert_elements_to_list_dicts(elements):
     return list(map(lambda x: dict(x), elements))
 
+def _freeze_for_dedup(value):
+    if isinstance(value, dict):
+        return tuple((key, _freeze_for_dedup(val)) for key, val in sorted(value.items()))
+    if isinstance(value, list):
+        return tuple(_freeze_for_dedup(item) for item in value)
+    return value
+
 def remove_duplicate_dicts_in_list(list_dict):
-    return convert_elements_to_list_dicts(list(OrderedDict((tuple(sorted(d.items())), d) for d in list_dict).values()))
+    result = OrderedDict()
+    for item in convert_elements_to_list_dicts(list_dict):
+        result.setdefault(_freeze_for_dedup(item), item)
+    return list(result.values())
 
 def add_preferences_to_global_registry_dict(username, is_machine):
     if is_machine:
@@ -838,6 +858,7 @@ def add_preferences_to_global_registry_dict(username, is_machine):
                             ('Environmentvariables',remove_duplicate_dicts_in_list(Dconf_registry.environmentvariables)),
                             ('Inifiles',remove_duplicate_dicts_in_list(Dconf_registry.inifiles)),
                             ('Services',remove_duplicate_dicts_in_list(Dconf_registry.services)),
+                            ('Systemds',remove_duplicate_dicts_in_list(Dconf_registry.systemds)),
                             ('Printers',remove_duplicate_dicts_in_list(Dconf_registry.printers)),
                             ('Scripts',remove_duplicate_dicts_in_list(Dconf_registry.scripts)),
                             ('Networkshares',remove_duplicate_dicts_in_list(Dconf_registry.networkshares))]

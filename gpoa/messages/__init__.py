@@ -362,6 +362,14 @@ def debug_code(code):
     debug_ids[237] = 'Failed to load cached versions'
     debug_ids[238] = 'The trust attribute is not supported'
     debug_ids[239] = 'Setting the trust attribute for a shortcut'
+    debug_ids[240] = 'Running systemd preferences applier for machine'
+    debug_ids[241] = 'Running systemd preferences applier for user in admin context'
+    debug_ids[242] = 'Running systemd preferences applier for user in user context'
+    debug_ids[243] = 'Systemd preferences applier is disabled'
+    debug_ids[244] = 'Applying systemd preference rule'
+    debug_ids[245] = 'Running daemon-reload for systemd preferences'
+    debug_ids[246] = 'Cleaning up removed systemd preferences rule'
+    debug_ids[247] = 'Restarting unit due to changed file dependency'
 
     return debug_ids.get(code, 'Unknown debug code')
 
@@ -419,6 +427,10 @@ def warning_code(code):
     warning_ids[44] = 'Plugin is not valid API object'
     warning_ids[45] = 'Error loading plugin from file'
     warning_ids[46] = 'Plugin failed to apply with user privileges'
+    warning_ids[47] = 'Invalid Systemds preference entry'
+    warning_ids[48] = 'User systemd manager is unavailable'
+    warning_ids[49] = 'Restart skipped for non-restartable unit type'
+    warning_ids[50] = 'daemon-reload for systemd preferences failed'
 
     return warning_ids.get(code, 'Unknown warning code')
 
@@ -450,4 +462,3 @@ def message_with_code(code):
     retstr = 'core' + '[' + code[0:1] + code[1:].rjust(7, '0') + ']| ' + gettext.gettext(get_message(code))
 
     return retstr
-

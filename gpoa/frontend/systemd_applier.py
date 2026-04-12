@@ -19,7 +19,11 @@
 from util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
-from .appliers.systemd import systemd_unit
+from .appliers.systemd import (
+    SystemdManagerError,
+    is_valid_unit_name,
+    systemd_unit,
+)
 
 
 class systemd_applier(applier_frontend):
@@ -40,18 +44,22 @@ class systemd_applier(applier_frontend):
 
     def run(self):
         for setting in self.systemd_unit_settings:
+            unit_name = str(setting.valuename)
             try:
-                self.units.append(systemd_unit(setting.valuename, int(setting.data)))
-                logdata = {'unit': format(setting.valuename)}
+                desired_state = int(setting.data)
+                if not is_valid_unit_name(unit_name):
+                    raise ValueError('Invalid unit name')
+                self.units.append(systemd_unit(unit_name, desired_state))
+                logdata = {'unit': unit_name}
                 log('I4', logdata)
-            except Exception as exc:
-                logdata = {'unit': format(setting.valuename), 'exc': exc}
+            except (TypeError, ValueError, SystemdManagerError) as exc:
+                logdata = {'unit': unit_name, 'exc': str(exc)}
                 log('I5', logdata)
         for unit in self.units:
             try:
                 unit.apply()
-            except:
-                logdata = {'unit': unit.unit_name}
+            except SystemdManagerError as exc:
+                logdata = {'unit': unit.unit_name, 'error': str(exc)}
                 log('E45', logdata)
 
     def apply(self):
@@ -78,4 +86,3 @@ class systemd_applier_user(applier_frontend):
 
     def admin_context_apply(self):
         pass
-
