@@ -224,10 +224,65 @@ def sanitize_for_json(value):
     return value
 
 
+def _object_to_dict(obj):
+    '''
+    Convert an object with attributes to dictionary.
+    Handles Filter objects and other nested structures.
+    Uses __iter__ if available (for Filter), otherwise __dict__.
+
+    :param obj: Object to convert
+    :return: Dictionary or original value
+    '''
+    if hasattr(obj, '__iter__') and not isinstance(obj, (list, tuple, dict, str)):
+        try:
+            return dict(obj)
+        except (TypeError, ValueError):
+            pass
+    if hasattr(obj, '__dict__'):
+        result = {}
+        for key, val in obj.__dict__.items():
+            if not key.startswith('_'):
+                result[key] = _value_to_serializable(val)
+        return result
+    return str(obj)
+
+
+def _value_to_serializable(value):
+    '''
+    Convert any value to JSON-serializable format.
+    Recursively handles objects, lists, and dicts.
+
+    :param value: Value to convert
+    :return: JSON-serializable value
+    '''
+    if value is None:
+        return None
+    elif isinstance(value, str):
+        return sanitize_for_json(value)
+    elif isinstance(value, (int, float, bool)):
+        return value
+    elif isinstance(value, (list, tuple)):
+        return [_value_to_serializable(item) for item in value]
+    elif isinstance(value, dict):
+        return {k: _value_to_serializable(v) for k, v in value.items()}
+    elif hasattr(value, '__iter__') and not isinstance(value, (list, tuple, dict, str)):
+        try:
+            return dict(value)
+        except (TypeError, ValueError):
+            pass
+    if hasattr(value, '__dict__'):
+        result = {}
+        for key, val in value.__dict__.items():
+            if not key.startswith('_'):
+                result[key] = _value_to_serializable(val)
+        return result
+    return str(value)
+
+
 def element_to_dict(element):
     '''
     Convert GPP element to dictionary for dconf storage.
-    Includes all lifecycle-relevant attributes.
+    Includes all lifecycle-relevant attributes and nested structures like filters.
 
     :param element: GPP element object
     :return: Dictionary ready for JSON serialization
@@ -236,6 +291,6 @@ def element_to_dict(element):
 
     for key, value in element.__dict__.items():
         if not key.startswith('_'):
-            result[key] = sanitize_for_json(value) if isinstance(value, str) else value
+            result[key] = _value_to_serializable(value)
 
     return result
