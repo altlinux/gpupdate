@@ -25,6 +25,7 @@ from util.paths import get_desktop_files_directory
 from util.windows import transform_windows_path
 from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_shortcut_uid
+from util.util import utc_to_local
 from xdg.DesktopEntry import DesktopEntry
 
 from .dynamic_attributes import DynamicAttributes
@@ -183,9 +184,9 @@ class shortcut(DynamicAttributes):
 
     def set_changed(self, change_date):
         '''
-        Set object change date
+        Set object change date, converting UTC to local timezone
         '''
-        self.changed = change_date
+        self.changed = utc_to_local(change_date)
 
     def set_clsid(self, clsid):
         self.clsid = clsid

@@ -21,6 +21,7 @@ import json
 
 from Crypto.Cipher import AES
 from util.xml import get_xml_root
+from util.util import utc_to_local
 from util.gpp_lifecycle import generate_drive_uid
 
 from .dynamic_attributes import DynamicAttributes
@@ -190,7 +191,7 @@ class drivemap(DynamicAttributes):
         self.apply_once = apply_once
 
     def set_changed(self, changed):
-        self.changed = changed
+        self.changed = utc_to_local(changed)
 
     def to_json(self):
         drive = {}

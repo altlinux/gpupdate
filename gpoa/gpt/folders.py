@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from util.xml import get_xml_root
+from util.util import utc_to_local
 from util.gpp_lifecycle import generate_folder_uid
 
 from .dynamic_attributes import DynamicAttributes
@@ -130,4 +131,4 @@ class folderentry(DynamicAttributes):
         self.apply_once = apply_once
 
     def set_changed(self, changed):
-        self.changed = changed
+        self.changed = utc_to_local(changed)

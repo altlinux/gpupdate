@@ -160,7 +160,7 @@ def mark_element_applied(
     if not elem_uid:
         return
 
-    element['applied'] = datetime.now().isoformat()
+    element['applied'] = datetime.now().astimezone().strftime('%d.%m.%Y %H:%M:%S')
 
 
 def get_current_gpo_guids() -> Set[str]:

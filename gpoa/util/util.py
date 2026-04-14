@@ -23,9 +23,29 @@ from pathlib import Path
 import pwd
 import re
 import subprocess
+from datetime import datetime, timezone
 from functools import lru_cache
 
 from .samba import smbopts
+
+
+def utc_to_local(utc_str):
+    '''
+    Convert UTC datetime string to local timezone string.
+    Windows GPP stores changed timestamp in UTC format like "2026-04-14 08:21:48".
+    This function converts it to local timezone.
+
+    :param utc_str: UTC datetime string in format "YYYY-MM-DD HH:MM:SS"
+    :return: Local datetime string in format "DD.MM.YYYY HH:MM:SS", or original string on error
+    '''
+    if not utc_str:
+        return utc_str
+    try:
+        dt_utc = datetime.strptime(utc_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+        dt_local = dt_utc.astimezone()
+        return dt_local.strftime('%d.%m.%Y %H:%M:%S')
+    except (ValueError, TypeError):
+        return utc_str
 
 
 def get_machine_name():
