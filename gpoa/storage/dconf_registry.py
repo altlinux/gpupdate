@@ -618,7 +618,7 @@ def _evaluate_filters(filters, username=None):
     if not filters:
         return True
 
-    filter_handlers = FilterChecker.FILTER_HANDLERS
+    filter_handlers = FilterChecker._get_handlers()
 
     first_result = True
     for i, filter_obj in enumerate(filters):

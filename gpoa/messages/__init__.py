@@ -422,6 +422,13 @@ def warning_code(code):
     warning_ids[46] = 'Plugin failed to apply with user privileges'
     warning_ids[47] = 'GPP element error bypassed due to bypassErrors flag'
     warning_ids[48] = 'Unknown filter type encountered, policy will be blocked'
+    warning_ids[49] = 'Invalid Systemds preference entry'
+    warning_ids[50] = 'User systemd manager is unavailable'
+    warning_ids[51] = 'Restart skipped for non-restartable unit type'
+    warning_ids[52] = 'daemon-reload for systemd preferences failed'
+    warning_ids[53] = 'Unknown period value in date filter'
+    warning_ids[54] = 'Failed to get domain info for filter context'
+    warning_ids[55] = 'Failed to get group SIDs for filter'
 
     return warning_ids.get(code, 'Unknown warning code')
 

@@ -20,6 +20,7 @@
 
 import socket
 import datetime
+import threading
 
 from gpoa.util.logging import log
 from gpoa.util.util import get_machine_name
@@ -27,8 +28,13 @@ from gpoa.util.users import get_process_user, is_root, get_local_groups_for_user
 from gpoa.util.sid import get_sid, get_group_sids_for_sid
 
 
+class UserContext:
+    MACHINE = '0'
+    USER = '1'
+
+
 def _is_user_context(value):
-    return value in (1, '1', True)
+    return value in (UserContext.USER, 1, True)
 
 
 def _extract_name_without_domain(name):
@@ -44,19 +50,32 @@ def _get_group_sids_for_subject(domain, subject_name, is_user):
     try:
         subject_sid = get_sid(domain, subject_name, is_machine=not is_user)
         return get_group_sids_for_sid(subject_sid)
-    except Exception:
+    except Exception as exc:
+        log('W55', {'domain': domain, 'subject': subject_name, 'exc': str(exc)})
         return []
 
 
 class FilterChecker:
     """Filter evaluation with caching for GPO targeting preferences."""
 
+    _lock = threading.Lock()
     _domain_cache = {}
     _groups_cache = {}
     _machine_name_cache = None
     _fqdn_cache = None
+    FILTER_HANDLERS = None
 
-    FILTER_HANDLERS = {}
+    @classmethod
+    def _get_handlers(cls):
+        if cls.FILTER_HANDLERS is None:
+            cls.FILTER_HANDLERS = {
+                'FilterComputer': cls.check_computer,
+                'FilterDomain': cls.check_domain,
+                'FilterDate': cls.check_date,
+                'FilterUser': cls.check_user,
+                'FilterGroup': cls.check_group,
+            }
+        return cls.FILTER_HANDLERS
 
     @staticmethod
     def check_computer(filter_obj, username=None):
@@ -68,9 +87,9 @@ class FilterChecker:
 
         try:
             if filter_type == 'DNS':
-                actual_name = FilterChecker._get_fqdn().lower()
+                actual_name = FilterChecker._resolve_fqdn().lower()
             else:
-                actual_name = FilterChecker._get_machine_name_cached().rstrip('$').lower()
+                actual_name = FilterChecker._resolve_machine_name().rstrip('$').lower()
 
             if actual_name is None:
                 actual_name = ''
@@ -86,7 +105,7 @@ class FilterChecker:
         if not expected_domain:
             return True
 
-        user_context = getattr(filter_obj, 'userContext', '0')
+        user_context = getattr(filter_obj, 'userContext', UserContext.MACHINE)
         actual_domain = FilterChecker._get_domain_for_context(user_context, username)
         return actual_domain.lower() == expected_domain.lower()
 
@@ -139,6 +158,7 @@ class FilterChecker:
                 result = False
 
         else:
+            log('W53', {'period': period})
             return True
 
         return result
@@ -146,11 +166,11 @@ class FilterChecker:
     @staticmethod
     def check_user(filter_obj, username=None):
         if username is None:
-            username = get_process_user()
+            username = FilterChecker._resolve_process_user()
 
         sid = getattr(filter_obj, 'sid', '')
         if sid:
-            domain = FilterChecker._get_domain_for_context('1', username)
+            domain = FilterChecker._get_domain_for_context(UserContext.USER, username)
             current_sid = get_sid(domain, username)
             return current_sid == sid
 
@@ -165,7 +185,7 @@ class FilterChecker:
     def check_group(filter_obj, username=None):
         filter_sid = getattr(filter_obj, 'sid', '')
         filter_name = getattr(filter_obj, 'name', '')
-        user_context = getattr(filter_obj, 'userContext', '0')
+        user_context = getattr(filter_obj, 'userContext', UserContext.MACHINE)
 
         is_user_ctx = _is_user_context(user_context)
 
@@ -174,10 +194,10 @@ class FilterChecker:
 
             if is_user_ctx:
                 if username is None:
-                    username = get_process_user()
+                    username = FilterChecker._resolve_process_user()
                 subject_name = username
             else:
-                subject_name = get_machine_name()
+                subject_name = FilterChecker._resolve_machine_name()
 
             if domain:
                 group_sids = _get_group_sids_for_subject(domain, subject_name, is_user_ctx)
@@ -186,9 +206,9 @@ class FilterChecker:
         else:
             if is_user_ctx:
                 if username is None:
-                    username = get_process_user()
+                    username = FilterChecker._resolve_process_user()
 
-                local_groups = FilterChecker._get_cached_local_groups(username)
+                local_groups = FilterChecker._resolve_local_groups(username)
                 group_name = _extract_name_without_domain(filter_name)
 
                 return group_name in local_groups
@@ -197,10 +217,27 @@ class FilterChecker:
     @classmethod
     def reset_cache(cls):
         """Clear all caches. Call between GPO processing sessions."""
-        cls._domain_cache.clear()
-        cls._groups_cache.clear()
-        cls._machine_name_cache = None
-        cls._fqdn_cache = None
+        with cls._lock:
+            cls._domain_cache.clear()
+            cls._groups_cache.clear()
+            cls._machine_name_cache = None
+            cls._fqdn_cache = None
+
+    @classmethod
+    def _resolve_fqdn(cls):
+        return cls._get_fqdn()
+
+    @classmethod
+    def _resolve_process_user(cls):
+        return get_process_user()
+
+    @classmethod
+    def _resolve_machine_name(cls):
+        return cls._get_machine_name_cached()
+
+    @classmethod
+    def _resolve_local_groups(cls, username):
+        return cls._get_cached_local_groups(username)
 
     @classmethod
     def _get_domain_for_context(cls, user_context, username=None):
@@ -208,55 +245,59 @@ class FilterChecker:
         if cache_key in cls._domain_cache:
             return cls._domain_cache[cache_key]
 
-        from gpoa.util.windows import smbcreds, get_kerberos_domain_info
-        from gpoa.util.system import with_privileges
+        with cls._lock:
+            if cache_key in cls._domain_cache:
+                return cls._domain_cache[cache_key]
 
-        result = ''
-        is_uc = _is_user_context(user_context)
-        try:
-            if is_uc:
-                uname = username or get_process_user()
-                if is_root():
-                    info = with_privileges(uname, get_kerberos_domain_info)
+            from gpoa.util.windows import smbcreds, get_kerberos_domain_info
+            from gpoa.util.system import with_privileges
+
+            result = ''
+            is_uc = _is_user_context(user_context)
+            try:
+                if is_uc:
+                    uname = username or get_process_user()
+                    if is_root():
+                        info = with_privileges(uname, get_kerberos_domain_info)
+                    else:
+                        info = get_kerberos_domain_info()
+                    if 'Exception' not in info:
+                        principal = info.get('principal', '')
+                        if '@' in principal:
+                            result = principal.split('@')[1]
                 else:
-                    info = get_kerberos_domain_info()
-                if 'Exception' not in info:
-                    principal = info.get('principal', '')
-                    if '@' in principal:
-                        result = principal.split('@')[1]
-            else:
-                domain = smbcreds().get_domain()
-                if domain is not None:
-                    result = domain
-        except Exception:
-            pass
+                    domain = smbcreds().get_domain()
+                    if domain is not None:
+                        result = domain
+            except Exception as exc:
+                log('W54', {'user_context': str(user_context), 'username': username or '', 'exc': str(exc)})
 
-        cls._domain_cache[cache_key] = result
-        return result
+            cls._domain_cache[cache_key] = result
+            return result
 
     @classmethod
     def _get_cached_local_groups(cls, username):
-        if username not in cls._groups_cache:
+        if username in cls._groups_cache:
+            return cls._groups_cache[username]
+
+        with cls._lock:
+            if username in cls._groups_cache:
+                return cls._groups_cache[username]
             cls._groups_cache[username] = get_local_groups_for_username(username)
-        return cls._groups_cache[username]
+            return cls._groups_cache[username]
 
     @classmethod
     def _get_machine_name_cached(cls):
         if cls._machine_name_cache is None:
-            cls._machine_name_cache = get_machine_name()
+            with cls._lock:
+                if cls._machine_name_cache is None:
+                    cls._machine_name_cache = get_machine_name()
         return cls._machine_name_cache
 
     @classmethod
     def _get_fqdn(cls):
         if cls._fqdn_cache is None:
-            cls._fqdn_cache = socket.getfqdn()
+            with cls._lock:
+                if cls._fqdn_cache is None:
+                    cls._fqdn_cache = socket.getfqdn()
         return cls._fqdn_cache
-
-
-FilterChecker.FILTER_HANDLERS = {
-    'FilterComputer': FilterChecker.check_computer,
-    'FilterDomain': FilterChecker.check_domain,
-    'FilterDate': FilterChecker.check_date,
-    'FilterUser': FilterChecker.check_user,
-    'FilterGroup': FilterChecker.check_group,
-}
