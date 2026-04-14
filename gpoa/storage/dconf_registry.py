@@ -36,7 +36,7 @@ from gpoa.util.util import (
     try_dict_to_literal_eval,
 )
 from gpoa.util.gpp_lifecycle import element_to_dict
-from gpoa.util.check_filters import check_filter_computer, check_filter_domain, check_filter_date, check_filter_user, check_filter_group
+from gpoa.util.check_filters import FilterChecker
 
 gi.require_version("Gvdb", "1.0")
 gi.require_version("GLib", "2.0")
@@ -618,13 +618,7 @@ def _evaluate_filters(filters, username=None):
     if not filters:
         return True
 
-    filter_handlers = {
-        'FilterComputer': check_filter_computer,
-        'FilterDomain': check_filter_domain,
-        'FilterDate': check_filter_date,
-        'FilterUser': check_filter_user,
-        'FilterGroup': check_filter_group,
-    }
+    filter_handlers = FilterChecker.FILTER_HANDLERS
 
     first_result = True
     for i, filter_obj in enumerate(filters):
