@@ -97,7 +97,7 @@ class envvar_applier(applier_frontend):
                     for ev, ev_dict, apply_once, _ in envvars_to_apply:
                         if apply_once:
                             ev_type = get_element_type_name(ev)
-                            self.state_manager.mark_applied(ev_dict, ev_type)
+                            self.state_manager.mark_applied(ev_dict, ev_type, element_obj=ev)
                 except Exception as exc:
                     bypass_found = any(bypass for _, _, _, bypass in envvars_to_apply)
                     if bypass_found:
@@ -190,7 +190,7 @@ class envvar_applier_user(applier_frontend):
                     for ev, ev_dict, apply_once, _ in envvars_to_apply:
                         if apply_once:
                             ev_type = get_element_type_name(ev)
-                            self.state_manager.mark_applied(ev_dict, ev_type)
+                            self.state_manager.mark_applied(ev_dict, ev_type, element_obj=ev)
                 except Exception as exc:
                     bypass_found = any(bypass for _, _, _, bypass in envvars_to_apply)
                     if bypass_found:

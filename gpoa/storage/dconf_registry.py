@@ -605,6 +605,8 @@ def filter_dict_keys(starting_string, input_dict):
     return result
 
 
+FILTER_RUN_ONCE = 'FilterRunOnce'
+
 def _evaluate_filters(filters, username=None):
     '''Evaluate filter list for current context.
 
@@ -623,6 +625,10 @@ def _evaluate_filters(filters, username=None):
     first_result = True
     for i, filter_obj in enumerate(filters):
         filter_type = filter_obj.filter_type
+
+        if filter_type == FILTER_RUN_ONCE:
+            continue
+
         handler = filter_handlers.get(filter_type)
 
         if handler:

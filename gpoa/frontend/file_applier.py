@@ -84,7 +84,7 @@ class file_applier(applier_frontend):
             try:
                 Files_cp(file, self.file_cache, self.exe_check)
                 if apply_once:
-                    self.state_manager.mark_applied(file_dict, element_type)
+                    self.state_manager.mark_applied(file_dict, element_type, element_obj=file)
             except Exception as exc:
                 if not bypass_errors:
                     raise
@@ -161,7 +161,7 @@ class file_applier_user(applier_frontend):
             try:
                 Files_cp(file, self.file_cache, self.exe_check, self.username)
                 if apply_once:
-                    self.state_manager.mark_applied(file_dict, element_type)
+                    self.state_manager.mark_applied(file_dict, element_type, element_obj=file)
             except Exception as exc:
                 if not bypass_errors:
                     raise

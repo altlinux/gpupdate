@@ -94,7 +94,7 @@ class folder_applier(applier_frontend):
                     fld = Folder(directory_obj)
                     fld.act()
                     if apply_once:
-                        self.state_manager.mark_applied(obj_dict, element_type)
+                        self.state_manager.mark_applied(obj_dict, element_type, element_obj=directory_obj)
                 except Exception as exc:
                     if not bypass_errors:
                         raise
@@ -171,7 +171,7 @@ class folder_applier_user(applier_frontend):
                 fld = Folder(directory_obj, self.username)
                 fld.act()
                 if apply_once:
-                    self.state_manager.mark_applied(obj_dict, element_type)
+                    self.state_manager.mark_applied(obj_dict, element_type, element_obj=directory_obj)
             except Exception as exc:
                 if not bypass_errors:
                     raise

@@ -164,7 +164,7 @@ class shortcut_applier(applier_frontend):
                 try:
                     apply_shortcut(sc)
                     if apply_once:
-                        self.state_manager.mark_applied(sc_dict, element_type)
+                        self.state_manager.mark_applied(sc_dict, element_type, element_obj=sc)
                 except Exception as exc:
                     if not bypass_errors:
                         raise
@@ -280,7 +280,7 @@ class shortcut_applier_user(applier_frontend):
                     if not in_usercontext and not sc.is_usercontext():
                         apply_shortcut(sc, self.username)
                     if apply_once:
-                        self.state_manager.mark_applied(sc_dict, element_type)
+                        self.state_manager.mark_applied(sc_dict, element_type, element_obj=sc)
                 except Exception as exc:
                     if not bypass_errors:
                         raise

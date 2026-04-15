@@ -364,6 +364,8 @@ def debug_code(code):
     debug_ids[239] = 'Setting the trust attribute for a shortcut'
     debug_ids[240] = 'Skipping GPP element with applyOnce (already applied)'
     debug_ids[250] = 'INI value already set, skipping write'
+    debug_ids[251] = 'Checking applyOnce status for element'
+    debug_ids[252] = 'Found previous element with uid'
 
     return debug_ids.get(code, 'Unknown debug code')
 

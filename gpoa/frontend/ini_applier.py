@@ -109,7 +109,7 @@ class ini_applier(applier_frontend):
             try:
                 ini_file_obj = Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once)
                 if apply_once and ini_file_obj and ini_file_obj.modified:
-                    self.state_manager.mark_applied(ini_dict, element_type)
+                    self.state_manager.mark_applied(ini_dict, element_type, element_obj=inifile)
             except Exception as exc:
                 if not bypass_errors:
                     raise
@@ -197,7 +197,7 @@ class ini_applier_user(applier_frontend):
             try:
                 ini_file_obj = Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once)
                 if apply_once and ini_file_obj and ini_file_obj.modified:
-                    self.state_manager.mark_applied(ini_dict, element_type)
+                    self.state_manager.mark_applied(ini_dict, element_type, element_obj=inifile)
             except Exception as exc:
                 if not bypass_errors:
                     raise

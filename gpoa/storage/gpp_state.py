@@ -136,9 +136,19 @@ def is_element_applied(element: Dict, element_type: str, username: str = None) -
     previous = get_previous_elements(element_type, username)
     elem_uid = element.get('uid')
 
+    logdata = {
+        'element_type': element_type,
+        'uid': elem_uid,
+        'previous_count': len(previous)
+    }
+    log('D251', logdata)
+
     for prev_elem in previous:
         if prev_elem.get('uid') == elem_uid:
-            if prev_elem.get('applied'):
+            applied = prev_elem.get('applied')
+            logdata = {'uid': elem_uid, 'applied': applied}
+            log('D252', logdata)
+            if applied:
                 return True
 
     return False
@@ -147,7 +157,8 @@ def is_element_applied(element: Dict, element_type: str, username: str = None) -
 def mark_element_applied(
     element: Dict,
     element_type: str,
-    username: str = None
+    username: str = None,
+    element_obj=None
 ) -> None:
     '''
     Mark an element as applied in dconf storage.
@@ -155,12 +166,17 @@ def mark_element_applied(
     :param element: Element dictionary
     :param element_type: Type of element
     :param username: Username for user preferences, None for machine
+    :param element_obj: Original element object to set applied attribute on
     '''
     elem_uid = element.get('uid')
     if not elem_uid:
         return
 
-    element['applied'] = datetime.now().astimezone().strftime('%d.%m.%Y %H:%M:%S')
+    timestamp = datetime.now().astimezone().strftime('%d.%m.%Y %H:%M:%S')
+    element['applied'] = timestamp
+
+    if element_obj is not None:
+        element_obj.applied = timestamp
 
 
 def get_current_gpo_guids() -> Set[str]:
@@ -242,14 +258,15 @@ class GppStateManager:
         '''
         return is_element_applied(element, element_type, self.username)
 
-    def mark_applied(self, element: Dict, element_type: str) -> None:
+    def mark_applied(self, element: Dict, element_type: str, element_obj=None) -> None:
         '''
         Mark element as applied.
 
         :param element: Element dictionary
         :param element_type: Type of element
+        :param element_obj: Original element object to set applied attribute on
         '''
-        mark_element_applied(element, element_type, self.username)
+        mark_element_applied(element, element_type, self.username, element_obj=element_obj)
 
 
 ELEMENT_TYPE_MAP = {
