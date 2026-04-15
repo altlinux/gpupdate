@@ -363,6 +363,7 @@ def debug_code(code):
     debug_ids[238] = 'The trust attribute is not supported'
     debug_ids[239] = 'Setting the trust attribute for a shortcut'
     debug_ids[240] = 'Skipping GPP element with applyOnce (already applied)'
+    debug_ids[250] = 'INI value already set, skipping write'
 
     return debug_ids.get(code, 'Unknown debug code')
 

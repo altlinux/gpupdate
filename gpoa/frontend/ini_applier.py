@@ -107,8 +107,8 @@ class ini_applier(applier_frontend):
                     log('D240', logdata)
                     continue
             try:
-                Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
-                if apply_once:
+                ini_file_obj = Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once)
+                if apply_once and ini_file_obj and ini_file_obj.modified:
                     self.state_manager.mark_applied(ini_dict, element_type)
             except Exception as exc:
                 if not bypass_errors:
@@ -195,8 +195,8 @@ class ini_applier_user(applier_frontend):
                     log('D240', logdata)
                     continue
             try:
-                Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special)
-                if apply_once:
+                ini_file_obj = Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once)
+                if apply_once and ini_file_obj and ini_file_obj.modified:
                     self.state_manager.mark_applied(ini_dict, element_type)
             except Exception as exc:
                 if not bypass_errors:

@@ -993,6 +993,12 @@ msgstr "Атрибут доверия не поддерживается"
 msgid "Setting the trust attribute for a shortcut"
 msgstr "Установка атрибута доверия для ярлыка"
 
+msgid "Skipping GPP element with applyOnce (already applied)"
+msgstr "Пропуск элемента GPP с applyOnce (уже применён)"
+
+msgid "INI value already set, skipping write"
+msgstr "Значение INI уже установлено, запись пропущена"
+
 # Debug_end
 
 # Warning

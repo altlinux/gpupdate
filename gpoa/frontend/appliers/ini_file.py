@@ -29,9 +29,10 @@ from util.gpoa_ini_parsing import GpoaConfigObj
 
 
 class Ini_file:
-    def __init__(self, ini_obj, username=None, allow_empty_sections=False, allow_unquoted_commas=False, allow_special_chars=False):
+    def __init__(self, ini_obj, username=None, allow_empty_sections=False, allow_unquoted_commas=False, allow_special_chars=False, skip_if_matches=False):
         path = expand_windows_var(ini_obj.path, username).replace('\\', '/')
         self.path = check_path(path, username)
+        self.modified = False
         if not self.path:
             logdata = {'path': ini_obj.path}
             log('D175', logdata)
@@ -43,6 +44,7 @@ class Ini_file:
         self.allow_empty_sections = allow_empty_sections
         self.allow_unquoted_commas = allow_unquoted_commas
         self.allow_special_chars = allow_special_chars
+        self.skip_if_matches = skip_if_matches
         try:
             self.config = GpoaConfigObj(str(self.path), unrepr=False, allow_unquoted_commas=allow_unquoted_commas, allow_special_chars=allow_special_chars)
         except Exception as exc:
@@ -57,9 +59,24 @@ class Ini_file:
             return True
         return self.section.strip('"\'') == ''
 
+    def _value_already_matches(self):
+        if self.allow_empty_sections and self._is_empty_section():
+            if self.key in self.config and self.config[self.key] == self.value:
+                return True
+        else:
+            if self.section in self.config and self.key in self.config[self.section] and self.config[self.section][self.key] == self.value:
+                return True
+        return False
+
     def _create_action(self):
         if self.path.is_dir():
             return
+
+        if self.skip_if_matches and self.action in (FileAction.CREATE, FileAction.UPDATE):
+            if self._value_already_matches():
+                logdata = {'path': str(self.path), 'section': self.section, 'key': self.key}
+                log('D250', logdata)
+                return
 
         if self.allow_empty_sections and self._is_empty_section():
             self.config[self.key] = self.value
@@ -69,6 +86,7 @@ class Ini_file:
             self.config[self.section][self.key] = self.value
 
         self.config.write()
+        self.modified = True
 
     def _delete_action(self):
         if not self.path.exists() or self.path.is_dir():
@@ -79,12 +97,15 @@ class Ini_file:
                 if self.key in self.config:
                     self.config.pop(self.key)
                     self.config.write()
+                    self.modified = True
             else:
                 self.path.unlink()
+                self.modified = True
             return
 
         if not self.section:
             self.path.unlink()
+            self.modified = True
             return
         if self.section in self.config:
             if not self.key:
@@ -92,6 +113,7 @@ class Ini_file:
             elif self.key in self.config[self.section]:
                 self.config[self.section].pop(self.key)
         self.config.write()
+        self.modified = True
 
     def act(self):
         try:
