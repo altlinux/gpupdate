@@ -1,5 +1,5 @@
 .PHONY: test
 
 test:
-	python3 -m unittest discover -t . -s ./test
+	PYTHONPATH=$(CURDIR)/..:$(CURDIR) python3 -m unittest discover -t . -s ./test -v
 

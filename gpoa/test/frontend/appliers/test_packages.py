@@ -18,7 +18,8 @@
 
 import unittest
 
-from frontend.appliers.rpm import rpm
+from util.rpm import Package
+
 
 class PackageTestCase(unittest.TestCase):
     '''
@@ -28,12 +29,20 @@ class PackageTestCase(unittest.TestCase):
         packages_for_install = 'dummy1 dummy2'
         packages_for_remove = 'dummy3'
 
-        test_rpm = rpm(packages_for_install, packages_for_remove)
-        test_rpm.apply()
+        test_pkg = Package(packages_for_install)
+        test_pkg.mark_for_install()
+        test_pkg_remove = Package(packages_for_remove)
+        test_pkg_remove.mark_for_removal()
 
     def test_install_remove_same_package(self):
         packages_for_install = 'gotop'
         packages_for_remove = 'gotop'
 
-        test_rpm = rpm(packages_for_install, packages_for_remove)
-        test_rpm.apply()
+        test_pkg = Package(packages_for_install)
+        test_pkg.mark_for_install()
+        test_pkg_remove = Package(packages_for_remove)
+        test_pkg_remove.mark_for_removal()
+
+
+if __name__ == '__main__':
+    unittest.main()

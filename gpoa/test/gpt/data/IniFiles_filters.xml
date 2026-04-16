@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IniFiles clsid="{694C651A-08F2-47fa-A427-34C4F62BA207}">
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="FilterRunOnce only" status="FilterRunOnce only" image="0" changed="2026-04-16 10:00:00" uid="{FLT-INI-001}">
+    <Properties path="/tmp/gptest_flt_1.ini" section="flt1" property="k1" value="v1" action="C"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="FilterRunOnce with Computer" status="FilterRunOnce with Computer" image="0" changed="2026-04-16 10:01:00" uid="{FLT-INI-002}" bypassErrors="1">
+    <Properties path="/tmp/gptest_flt_2.ini" section="flt2" property="k2" value="v2" action="C"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+      <FilterComputer name="__TESTHOST__" type="NETBIOS" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="FilterComputer match" status="FilterComputer match" image="0" changed="2026-04-16 10:02:00" uid="{FLT-INI-003}">
+    <Properties path="/tmp/gptest_flt_3.ini" section="flt3" property="k3" value="v3" action="C"/>
+    <Filters>
+      <FilterComputer name="__TESTHOST__" type="NETBIOS" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="FilterComputer no match" status="FilterComputer no match" image="0" changed="2026-04-16 10:03:00" uid="{FLT-INI-004}">
+    <Properties path="/tmp/gptest_flt_4.ini" section="flt4" property="k4" value="v4" action="C"/>
+    <Filters>
+      <FilterComputer name="NONEXISTENT_HOST" type="NETBIOS" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="FilterComputer negate" status="FilterComputer negate" image="0" changed="2026-04-16 10:04:00" uid="{FLT-INI-005}">
+    <Properties path="/tmp/gptest_flt_5.ini" section="flt5" property="k5" value="v5" action="C"/>
+    <Filters>
+      <FilterComputer name="NONEXISTENT_HOST" type="NETBIOS" bool="AND" not="1"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="FilterDomain" status="FilterDomain" image="0" changed="2026-04-16 10:05:00" uid="{FLT-INI-006}" bypassErrors="1">
+    <Properties path="/tmp/gptest_flt_6.ini" section="flt6" property="k6" value="v6" action="C"/>
+    <Filters>
+      <FilterDomain name="__TESTDOMAIN__" userContext="0" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="OR filter combo" status="OR filter combo" image="0" changed="2026-04-16 10:06:00" uid="{FLT-INI-007}" bypassErrors="1">
+    <Properties path="/tmp/gptest_flt_7.ini" section="flt7" property="k7" value="v7" action="C"/>
+    <Filters>
+      <FilterComputer name="__TESTHOST__" type="NETBIOS" bool="AND" not="0"/>
+      <FilterDomain name="__TESTDOMAIN__" userContext="0" bool="OR" not="0"/>
+    </Filters>
+  </Ini>
+</IniFiles>

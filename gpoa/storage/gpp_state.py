@@ -30,7 +30,7 @@ from typing import Dict, List, Set
 from ast import literal_eval
 
 from .dconf_registry import Dconf_registry
-from gpoa.util.logging import log
+from util.logging import log
 
 
 # Actions that should be skipped during cleanup

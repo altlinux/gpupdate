@@ -47,7 +47,7 @@ from samba.samdb import SamDB
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
 from util.system import with_privileges
 
-from gpoa.storage import registry_factory
+from storage import registry_factory
 
 from .exceptions import GetGPOListFail
 from .logging import log

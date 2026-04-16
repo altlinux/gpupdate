@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EnvironmentVariables clsid="{BF141A63-327B-438a-B9BF-2C188F13B7AD}">
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Create basic" status="Create basic" image="2" changed="2026-04-16 10:00:00" uid="{LC-EV-001}">
+    <Properties action="C" name="GPTST_EV_C1" value="ev_val_c1" user="0" partial="0"/>
+  </EnvironmentVariable>
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Create apply_once" status="Create apply_once" image="2" changed="2026-04-16 10:01:00" uid="{LC-EV-002}" bypassErrors="1">
+    <Properties action="C" name="GPTST_EV_C2" value="ev_val_c2" user="0" partial="0"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </EnvironmentVariable>
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Create disabled" status="Create disabled" image="2" changed="2026-04-16 10:02:00" uid="{LC-EV-003}" disabled="1">
+    <Properties action="C" name="GPTST_EV_C3" value="ev_val_c3" user="0" partial="0"/>
+  </EnvironmentVariable>
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Create removePolicy" status="Create removePolicy" image="2" changed="2026-04-16 10:03:00" uid="{LC-EV-004}" removePolicy="1" bypassErrors="1">
+    <Properties action="C" name="GPTST_EV_C4" value="ev_val_c4" user="0" partial="0"/>
+  </EnvironmentVariable>
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Update basic" status="Update basic" image="2" changed="2026-04-16 10:04:00" uid="{LC-EV-005}">
+    <Properties action="U" name="GPTST_EV_U1" value="ev_val_u1" user="0" partial="0"/>
+  </EnvironmentVariable>
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Update apply_once" status="Update apply_once" image="2" changed="2026-04-16 10:05:00" uid="{LC-EV-006}">
+    <Properties action="U" name="GPTST_EV_U2" value="ev_val_u2" user="0" partial="0"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </EnvironmentVariable>
+  <EnvironmentVariable clsid="{78570023-8373-4a19-BA80-2F150738EA19}" name="Delete basic" status="Delete basic" image="2" changed="2026-04-16 10:06:00" uid="{LC-EV-007}">
+    <Properties action="D" name="GPTST_EV_D1" value="" user="0" partial="0"/>
+  </EnvironmentVariable>
+</EnvironmentVariables>

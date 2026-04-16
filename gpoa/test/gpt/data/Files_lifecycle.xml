@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Files clsid="{215B2E53-57CE-475c-80FE-9EEC14635851}">
+  <File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="Create basic" status="Create basic" image="1" changed="2026-04-16 10:00:00" uid="{LC-FILE-001}">
+    <Properties action="C" fromPath="/usr/share/doc/gpupdate/copyright" targetPath="/tmp/gptest_lc_file_c1.txt"/>
+  </File>
+  <File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="Create apply_once" status="Create apply_once" image="1" changed="2026-04-16 10:01:00" uid="{LC-FILE-002}" bypassErrors="1">
+    <Properties action="C" fromPath="/usr/share/doc/gpupdate/copyright" targetPath="/tmp/gptest_lc_file_c2.txt"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </File>
+  <File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="Create disabled" status="Create disabled" image="1" changed="2026-04-16 10:02:00" uid="{LC-FILE-003}" disabled="1">
+    <Properties action="C" fromPath="/usr/share/doc/gpupdate/copyright" targetPath="/tmp/gptest_lc_file_c3.txt"/>
+  </File>
+  <File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="Create removePolicy" status="Create removePolicy" image="1" changed="2026-04-16 10:03:00" uid="{LC-FILE-004}" removePolicy="1" bypassErrors="1">
+    <Properties action="C" fromPath="/usr/share/doc/gpupdate/copyright" targetPath="/tmp/gptest_lc_file_c4.txt"/>
+  </File>
+  <File clsid="{50BE44C8-567A-4ed1-B1D0-9234FE1F38AF}" name="Replace apply_once" status="Replace apply_once" image="1" changed="2026-04-16 10:04:00" uid="{LC-FILE-005}">
+    <Properties action="R" fromPath="/usr/share/doc/gpupdate/copyright" targetPath="/tmp/gptest_lc_file_r1.txt"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </File>
+</Files>

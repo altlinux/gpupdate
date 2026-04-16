@@ -18,8 +18,6 @@
 
 import unittest
 
-from util.preg import load_preg
-from frontend.appliers.control import control
 
 class ControlTestCase(unittest.TestCase):
     '''
@@ -33,6 +31,9 @@ class ControlTestCase(unittest.TestCase):
         for the test to be correct - we transform the value to string
         first.
         '''
+        from util.preg import load_preg
+        from frontend.appliers.control import control
+
         preg_file = 'test/frontend/appliers/data/control_int.pol'
 
         preg_data = load_preg(preg_file)
@@ -51,6 +52,8 @@ class ControlTestCase(unittest.TestCase):
         database. So, for the test to be correct - we transform the
         value to string first.
         '''
+        from frontend.appliers.control import control
+
         control_name = 'sshd-gssapi-auth'
         control_value = '50'
 
@@ -62,6 +65,9 @@ class ControlTestCase(unittest.TestCase):
         Test procedure for control framework invocation with string
         value. The type of data loaded from PReg must be 'str'.
         '''
+        from util.preg import load_preg
+        from frontend.appliers.control import control
+
         preg_file = 'test/frontend/appliers/data/control_string.pol'
 
         preg_data = load_preg(preg_file)

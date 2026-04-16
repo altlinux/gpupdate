@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IniFiles clsid="{694C651A-08F2-47fa-A427-34C4F62BA207}">
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Create basic" status="Create basic" image="0" changed="2026-04-16 10:00:00" uid="{LC-INI-001}">
+    <Properties path="/tmp/gptest_lc_c1.ini" section="s1" property="k1" value="v1" action="C"/>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Create apply_once" status="Create apply_once" image="0" changed="2026-04-16 10:01:00" uid="{LC-INI-002}" bypassErrors="1">
+    <Properties path="/tmp/gptest_lc_c2.ini" section="s2" property="k2" value="v2" action="C"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Create disabled" status="Create disabled" image="0" changed="2026-04-16 10:02:00" uid="{LC-INI-003}" disabled="1">
+    <Properties path="/tmp/gptest_lc_c3.ini" section="s3" property="k3" value="v3" action="C"/>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Create removePolicy" status="Create removePolicy" image="0" changed="2026-04-16 10:03:00" uid="{LC-INI-004}" removePolicy="1" bypassErrors="1">
+    <Properties path="/tmp/gptest_lc_c4.ini" section="s4" property="k4" value="v4" action="C"/>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Update basic" status="Update basic" image="0" changed="2026-04-16 10:04:00" uid="{LC-INI-005}">
+    <Properties path="/tmp/gptest_lc_u1.ini" section="us1" property="uk1" value="uv1" action="U"/>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Update apply_once" status="Update apply_once" image="0" changed="2026-04-16 10:05:00" uid="{LC-INI-006}">
+    <Properties path="/tmp/gptest_lc_u2.ini" section="us2" property="uk2" value="uv2" action="U"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Delete key" status="Delete key" image="0" changed="2026-04-16 10:06:00" uid="{LC-INI-007}">
+    <Properties path="/tmp/gptest_lc_d1.ini" section="ds1" property="dk1" action="D"/>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Replace basic" status="Replace basic" image="0" changed="2026-04-16 10:07:00" uid="{LC-INI-008}">
+    <Properties path="/tmp/gptest_lc_r1.ini" section="rs1" property="rk1" value="rv1" action="R"/>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Replace apply_once" status="Replace apply_once" image="0" changed="2026-04-16 10:08:00" uid="{LC-INI-009}">
+    <Properties path="/tmp/gptest_lc_r2.ini" section="rs2" property="rk2" value="rv2" action="R"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Ini>
+  <Ini clsid="{EEFACE84-D3D8-4680-8D4B-BF103E759448}" name="Create no section" status="Create no section" image="0" changed="2026-04-16 10:09:00" uid="{LC-INI-010}" bypassErrors="1">
+    <Properties path="/tmp/gptest_lc_nosec.ini" property="nosec_key" value="nosec_val" action="C"/>
+  </Ini>
+</IniFiles>

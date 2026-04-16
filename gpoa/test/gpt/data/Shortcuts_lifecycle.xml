@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Shortcuts clsid="{872ECB34-B2EC-401b-A585-D32574AA90EE}">
+  <Shortcut clsid="{4F2F7C55-2790-433e-8127-0739D1CFA327}" name="Create basic" status="Create basic" image="1" changed="2026-04-16 10:00:00" uid="{LC-SHORT-001}">
+    <Properties action="C" shortcutPath="%DesktopDir%\lc_short_c1" targetPath="/usr/bin/ls" arguments="" comment="LC basic"/>
+  </Shortcut>
+  <Shortcut clsid="{4F2F7C55-2790-433e-8127-0739D1CFA327}" name="Create apply_once" status="Create apply_once" image="1" changed="2026-04-16 10:01:00" uid="{LC-SHORT-002}" bypassErrors="1">
+    <Properties action="C" shortcutPath="%DesktopDir%\lc_short_c2" targetPath="/usr/bin/cat" arguments="" comment="LC apply_once"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Shortcut>
+  <Shortcut clsid="{4F2F7C55-2790-433e-8127-0739D1CFA327}" name="Create disabled" status="Create disabled" image="1" changed="2026-04-16 10:02:00" uid="{LC-SHORT-003}" disabled="1">
+    <Properties action="C" shortcutPath="%DesktopDir%\lc_short_c3" targetPath="/usr/bin/echo" arguments="" comment="LC disabled"/>
+  </Shortcut>
+  <Shortcut clsid="{4F2F7C55-2790-433e-8127-0739D1CFA327}" name="Create removePolicy" status="Create removePolicy" image="1" changed="2026-04-16 10:03:00" uid="{LC-SHORT-004}" removePolicy="1">
+    <Properties action="C" shortcutPath="%DesktopDir%\lc_short_c4" targetPath="/usr/bin/date" arguments="" comment="LC removePolicy"/>
+  </Shortcut>
+  <Shortcut clsid="{4F2F7C55-2790-433e-8127-0739D1CFA327}" name="Update basic" status="Update basic" image="1" changed="2026-04-16 10:04:00" uid="{LC-SHORT-005}">
+    <Properties action="U" shortcutPath="%DesktopDir%\lc_short_u1" targetPath="/usr/bin/find" arguments="" comment="LC update"/>
+  </Shortcut>
+  <Shortcut clsid="{4F2F7C55-2790-433e-8127-0739D1CFA327}" name="Replace apply_once" status="Replace apply_once" image="1" changed="2026-04-16 10:05:00" uid="{LC-SHORT-006}">
+    <Properties action="R" shortcutPath="%DesktopDir%\lc_short_r1" targetPath="/usr/bin/grep" arguments="" comment="LC replace once"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Shortcut>
+</Shortcuts>

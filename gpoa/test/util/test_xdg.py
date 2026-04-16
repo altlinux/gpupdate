@@ -15,18 +15,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-import unittest
-
-from util.xdg import (
-    xdg_get_desktop_user
-)
-
-class XDGTestCase(unittest.TestCase):
-    def test_get_desktop_dir(self):
-        print('Machine desktop:')
-        print(xdg_get_desktop_user(None))
-        print('Users desktop:')
-        print(xdg_get_desktop_user('nir'))
-

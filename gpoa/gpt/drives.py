@@ -48,7 +48,7 @@ def decrypt_pass(cpassword):
     cpass_len = len(cpassword)
     padded_pass = (cpassword + "=" * ((4 - cpass_len % 4) % 4))
     password = b64decode(padded_pass)
-    decrypter = AES.new(key, AES.MODE_CBC, '\x00' * 16)
+    decrypter = AES.new(key, AES.MODE_CBC, b'\x00' * 16)
 
     # decrypt() returns byte array which is immutable and we need to
     # strip padding, then convert UTF-16LE to UTF-8

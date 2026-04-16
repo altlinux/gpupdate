@@ -18,11 +18,10 @@
 
 import unittest
 import unittest.mock
-
 import os
+import json
 
 import util.paths
-import json
 
 
 class GptShortcutsTestCase(unittest.TestCase):
@@ -38,14 +37,15 @@ class GptShortcutsTestCase(unittest.TestCase):
         sc = gpt.shortcuts.read_shortcuts(testdata_path)
 
         json_obj = json.loads(sc[0].to_json())
-        self.assertIsNotNone(json_obj['Desktop Entry'])
-        self.assertEqual(json_obj['Desktop Entry']['Type'], 'Application')
+        self.assertIn('action', json_obj)
+        self.assertEqual(json_obj['action'], 'R')
+        self.assertIn('path', json_obj)
+        self.assertIn('dest', json_obj)
 
     @unittest.mock.patch('util.paths.cache_dir')
     def test_shortcut_link(self, cdir_mock):
         '''
-        Test generation of .desktop file with Type=Link pointing to
-        Samba share.
+        Test reading shortcut with targetType=URL
         '''
         cdir_mock.return_value = '/var/cache/gpupdate'
 
@@ -54,7 +54,57 @@ class GptShortcutsTestCase(unittest.TestCase):
         sc = gpt.shortcuts.read_shortcuts(testdata_path)
 
         json_obj = json.loads(sc[0].to_json())
-        self.assertIsNotNone(json_obj['Desktop Entry'])
-        self.assertEqual(json_obj['Desktop Entry']['Type'], 'Link')
-        self.assertEqual(json_obj['Desktop Entry']['URL'], 'smb://10.0.0.0/')
+        self.assertIn('type', json_obj)
+        self.assertEqual(json_obj['type'], 'URL')
+        self.assertIn('path', json_obj)
 
+    @unittest.mock.patch('util.paths.cache_dir')
+    def test_shortcut_lifecycle_disabled(self, cdir_mock):
+        '''
+        Test reading disabled shortcut from Shortcuts_disabled.xml
+        '''
+        cdir_mock.return_value = '/var/cache/gpupdate'
+
+        import gpt.shortcuts
+        testdata_path = '{}/test/gpt/data/Shortcuts_disabled.xml'.format(os.getcwd())
+        sc = gpt.shortcuts.read_shortcuts(testdata_path)
+
+        self.assertEqual(len(sc), 2)
+        self.assertTrue(sc[0].disabled)
+        self.assertFalse(sc[1].disabled)
+
+    @unittest.mock.patch('util.paths.cache_dir')
+    def test_shortcut_lifecycle_attributes(self, cdir_mock):
+        '''
+        Test reading lifecycle attributes from Shortcuts_lifecycle.xml
+        '''
+        cdir_mock.return_value = '/var/cache/gpupdate'
+
+        import gpt.shortcuts
+        testdata_path = '{}/test/gpt/data/Shortcuts_lifecycle.xml'.format(os.getcwd())
+        sc = gpt.shortcuts.read_shortcuts(testdata_path)
+
+        self.assertEqual(len(sc), 6)
+        self.assertFalse(sc[0].disabled)
+        self.assertFalse(sc[0].apply_once)
+
+        apply_once_sc = sc[1]
+        self.assertTrue(apply_once_sc.apply_once)
+        self.assertTrue(apply_once_sc.bypass_errors)
+
+        disabled_sc = sc[2]
+        self.assertTrue(disabled_sc.disabled)
+
+        remove_policy_sc = sc[3]
+        self.assertTrue(remove_policy_sc.remove_policy)
+
+        update_sc = sc[4]
+        self.assertEqual(update_sc.action, 'U')
+
+        replace_once_sc = sc[5]
+        self.assertTrue(replace_once_sc.apply_once)
+        self.assertEqual(replace_once_sc.action, 'R')
+
+
+if __name__ == '__main__':
+    unittest.main()

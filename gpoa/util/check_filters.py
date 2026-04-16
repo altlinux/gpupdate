@@ -22,10 +22,10 @@ import socket
 import datetime
 import threading
 
-from gpoa.util.logging import log
-from gpoa.util.util import get_machine_name
-from gpoa.util.users import get_process_user, is_root, get_local_groups_for_username
-from gpoa.util.sid import get_sid, get_group_sids_for_sid
+from util.logging import log
+from util.util import get_machine_name
+from util.users import get_process_user, is_root, get_local_groups_for_username
+from util.sid import get_sid, get_group_sids_for_sid
 
 
 class UserContext:
@@ -249,8 +249,8 @@ class FilterChecker:
             if cache_key in cls._domain_cache:
                 return cls._domain_cache[cache_key]
 
-            from gpoa.util.windows import smbcreds, get_kerberos_domain_info
-            from gpoa.util.system import with_privileges
+            from util.windows import smbcreds, get_kerberos_domain_info
+            from util.system import with_privileges
 
             result = ''
             is_uc = _is_user_context(user_context)

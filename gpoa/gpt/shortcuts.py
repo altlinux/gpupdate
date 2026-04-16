@@ -178,6 +178,9 @@ class shortcut(DynamicAttributes):
                 return replace_name
         return input_name
 
+    def to_json(self):
+        return json.dumps(dict(self), ensure_ascii=False)
+
     def __str__(self):
         result = self.to_json()
         return result

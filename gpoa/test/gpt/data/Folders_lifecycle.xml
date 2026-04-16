@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Folders clsid="{77CC39E7-3D16-4f8f-AF86-EC0BBEE2C861}">
+  <Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="Create basic" status="Create basic" image="1" changed="2026-04-16 10:00:00" uid="{LC-FOLD-001}">
+    <Properties action="C" path="/tmp/gptest_lc_folder_c1" deleteFolder="0" deleteSubFolders="0" deleteFiles="0"/>
+  </Folder>
+  <Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="Create apply_once" status="Create apply_once" image="1" changed="2026-04-16 10:01:00" uid="{LC-FOLD-002}" bypassErrors="1">
+    <Properties action="C" path="/tmp/gptest_lc_folder_c2" deleteFolder="0" deleteSubFolders="0" deleteFiles="0"/>
+    <Filters>
+      <FilterRunOnce hidden="1" bool="AND" not="0"/>
+    </Filters>
+  </Folder>
+  <Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="Create disabled" status="Create disabled" image="1" changed="2026-04-16 10:02:00" uid="{LC-FOLD-003}" disabled="1">
+    <Properties action="C" path="/tmp/gptest_lc_folder_c3" deleteFolder="0" deleteSubFolders="0" deleteFiles="0"/>
+  </Folder>
+  <Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="Create removePolicy" status="Create removePolicy" image="1" changed="2026-04-16 10:03:00" uid="{LC-FOLD-004}" removePolicy="1" bypassErrors="1">
+    <Properties action="C" path="/tmp/gptest_lc_folder_c4" deleteFolder="0" deleteSubFolders="0" deleteFiles="0"/>
+  </Folder>
+  <Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="Delete basic" status="Delete basic" image="2" changed="2026-04-16 10:04:00" uid="{LC-FOLD-005}">
+    <Properties action="D" path="/tmp/gptest_lc_folder_d1" deleteFolder="1" deleteSubFolders="1" deleteFiles="1"/>
+  </Folder>
+  <Folder clsid="{07DA02F5-F9CD-4397-A550-4AE21B6B4BD3}" name="Replace basic" status="Replace basic" image="2" changed="2026-04-16 10:05:00" uid="{LC-FOLD-006}">
+    <Properties action="R" path="/tmp/gptest_lc_folder_r1" deleteFolder="1" deleteSubFolders="0" deleteFiles="0"/>
+  </Folder>
+</Folders>
