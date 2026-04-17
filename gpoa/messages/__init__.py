@@ -366,6 +366,8 @@ def debug_code(code):
     debug_ids[250] = 'INI value already set, skipping write'
     debug_ids[251] = 'Checking applyOnce status for element'
     debug_ids[252] = 'Found previous element with uid'
+    debug_ids[260] = 'Secure file permissions applied'
+    debug_ids[261] = 'Secure file permissions disabled by policy'
 
     return debug_ids.get(code, 'Unknown debug code')
 

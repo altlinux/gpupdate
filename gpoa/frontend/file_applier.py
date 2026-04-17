@@ -20,10 +20,12 @@
 from util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
-from .appliers.file_cp import Execution_check, Files_cp
+from .appliers.file_cp import Execution_check, Files_cp, str2bool as check_str2bool
 from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
 from pathlib import Path
 from util.windows import expand_windows_var
+
+SECURE_PERMS_KEY = 'Software\\BaseALT\\Policies\\GroupPolicies\\Files\\SecurePermissionsDisabled'
 
 
 class file_applier(applier_frontend):
@@ -38,6 +40,14 @@ class file_applier(applier_frontend):
         self.files = self.storage.get_files()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager()
+        self.secure_permissions = self._is_secure_permissions_enabled()
+
+    def _is_secure_permissions_enabled(self):
+        disabled_entry = self.storage.filter_hklm_entry(SECURE_PERMS_KEY)
+        if disabled_entry and check_str2bool(disabled_entry.data):
+            log('D261', {})
+            return False
+        return True
 
     def _cleanup_removed_elements(self, removed_elements):
         '''Cleanup files removed from GPO with removePolicy=True.'''
@@ -82,7 +92,7 @@ class file_applier(applier_frontend):
                     log('D240', logdata)
                     continue
             try:
-                Files_cp(file, self.file_cache, self.exe_check)
+                Files_cp(file, self.file_cache, self.exe_check, secure_permissions=self.secure_permissions)
                 if apply_once:
                     self.state_manager.mark_applied(file_dict, element_type, element_obj=file)
             except Exception as exc:
@@ -115,6 +125,14 @@ class file_applier_user(applier_frontend):
             , self.__module_experimental
         )
         self.state_manager = GppStateManager(username)
+        self.secure_permissions = self._is_secure_permissions_enabled()
+
+    def _is_secure_permissions_enabled(self):
+        disabled_entry = self.storage.filter_hklm_entry(SECURE_PERMS_KEY)
+        if disabled_entry and check_str2bool(disabled_entry.data):
+            log('D261', {})
+            return False
+        return True
 
     def _cleanup_removed_elements(self, removed_elements):
         '''Cleanup files removed from GPO with removePolicy=True.'''
@@ -159,7 +177,7 @@ class file_applier_user(applier_frontend):
                     log('D240', logdata)
                     continue
             try:
-                Files_cp(file, self.file_cache, self.exe_check, self.username)
+                Files_cp(file, self.file_cache, self.exe_check, self.username, secure_permissions=self.secure_permissions)
                 if apply_once:
                     self.state_manager.mark_applied(file_dict, element_type, element_obj=file)
             except Exception as exc:

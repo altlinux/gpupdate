@@ -1005,6 +1005,12 @@ msgstr "Проверка статуса applyOnce для элемента"
 msgid "Found previous element with uid"
 msgstr "Найден предыдущий элемент с uid"
 
+msgid "Secure file permissions applied"
+msgstr "Применены строгие права доступа к файлу"
+
+msgid "Secure file permissions disabled by policy"
+msgstr "Строгие права доступа к файлам отключены политикой"
+
 # Debug_end
 
 # Warning

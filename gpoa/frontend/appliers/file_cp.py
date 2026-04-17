@@ -23,6 +23,7 @@ from util.arguments import (
 )
 from .folder import str2bool
 from util.logging import log
+from util.secure_paths import get_secure_permission, get_secure_dir_permission
 import shutil
 from pathlib import Path
 from util.windows import expand_windows_var
@@ -34,9 +35,10 @@ import pwd
 import grp
 
 class Files_cp:
-    def __init__(self, file_obj, file_cache, exe_check, username=None):
+    def __init__(self, file_obj, file_cache, exe_check, username=None, secure_permissions=True):
         self.file_cache = file_cache
         self.exe_check = exe_check
+        self.secure_permissions = secure_permissions
         targetPath = expand_windows_var(file_obj.targetPath, username).replace('\\', '/')
         self.targetPath = check_target_path(targetPath, username)
         if not self.targetPath:
@@ -65,8 +67,10 @@ class Files_cp:
                 fromFileName = Path(fromFile).name
                 if self.isTargetPathDirectory:
                     targetPath.mkdir(parents = True, exist_ok = True)
+                    self._set_secure_dir_mode(targetPath)
                 else:
                     targetPath.parent.mkdir(parents = True, exist_ok = True)
+                    self._set_secure_dir_mode(targetPath.parent)
                     targetPath = targetPath.parent
                     fromFileName = self.targetPath.name
                 if self.hidden:
@@ -116,6 +120,13 @@ class Files_cp:
     def set_mod_file(self, targetFile, fromFile):
         if not targetFile.is_file():
             return
+        if self.secure_permissions:
+            secure_mode = get_secure_permission(str(targetFile), self.username)
+            if secure_mode is not None:
+                shutil.os.chmod(targetFile, secure_mode)
+                logdata = {'path': str(targetFile), 'mode': oct(secure_mode)}
+                log('D260', logdata)
+                return
         if self.set_exe_file(targetFile, fromFile):
             if self.readOnly:
                 shutil.os.chmod(targetFile, 0o555)
@@ -126,6 +137,18 @@ class Files_cp:
                 shutil.os.chmod(targetFile, 0o444)
             else:
                 shutil.os.chmod(targetFile, 0o644)
+
+    def _set_secure_dir_mode(self, dirpath):
+        if not self.secure_permissions:
+            return
+        dir_mode = get_secure_dir_permission(str(dirpath), self.username)
+        if dir_mode is not None:
+            try:
+                shutil.os.chmod(dirpath, dir_mode)
+                logdata = {'path': str(dirpath), 'mode': oct(dir_mode)}
+                log('D260', logdata)
+            except OSError:
+                pass
 
     def _create_action(self):
         logdata = {}
