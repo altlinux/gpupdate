@@ -23,7 +23,7 @@ from util.arguments import (
 )
 from .folder import str2bool
 from util.logging import log
-from util.secure_paths import get_secure_permission, get_secure_dir_permission
+from util.secure_paths import get_secure_permission, get_secure_dir_permission, get_secure_ownership, get_secure_dir_ownership
 import shutil
 from pathlib import Path
 from util.windows import expand_windows_var
@@ -126,6 +126,7 @@ class Files_cp:
                 shutil.os.chmod(targetFile, secure_mode)
                 logdata = {'path': str(targetFile), 'mode': oct(secure_mode)}
                 log('D260', logdata)
+                self._set_secure_ownership(targetFile)
                 return
         if self.set_exe_file(targetFile, fromFile):
             if self.readOnly:
@@ -147,8 +148,29 @@ class Files_cp:
                 shutil.os.chmod(dirpath, dir_mode)
                 logdata = {'path': str(dirpath), 'mode': oct(dir_mode)}
                 log('D260', logdata)
+                self._set_secure_ownership(dirpath)
             except OSError:
                 pass
+
+    def _set_secure_ownership(self, targetPath):
+        secure_own = get_secure_ownership(str(targetPath), self.username)
+        if secure_own is None:
+            dir_own = get_secure_dir_ownership(str(targetPath), self.username)
+            if dir_own is not None:
+                secure_own = dir_own
+        if secure_own is None:
+            return
+        owner_user, owner_group = secure_own
+        try:
+            uid = pwd.getpwnam(owner_user).pw_uid
+            gid = grp.getgrnam(owner_group).gr_gid
+            stat_info = targetPath.stat() if hasattr(targetPath, 'stat') else shutil.os.stat(targetPath)
+            if stat_info.st_uid != uid or stat_info.st_gid != gid:
+                shutil.os.chown(targetPath, uid, gid)
+                logdata = {'path': str(targetPath), 'user': owner_user, 'group': owner_group}
+                log('D262', logdata)
+        except (KeyError, OSError):
+            pass
 
     def _create_action(self):
         logdata = {}

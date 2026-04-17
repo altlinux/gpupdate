@@ -368,6 +368,7 @@ def debug_code(code):
     debug_ids[252] = 'Found previous element with uid'
     debug_ids[260] = 'Secure file permissions applied'
     debug_ids[261] = 'Secure file permissions disabled by policy'
+    debug_ids[262] = 'Secure file ownership applied'
 
     return debug_ids.get(code, 'Unknown debug code')
 

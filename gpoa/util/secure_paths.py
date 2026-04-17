@@ -18,6 +18,191 @@
 
 import fnmatch
 import os
+import grp
+import pwd
+
+SECURE_OWNERSHIP = {
+    '/etc/sudoers': ('root', 'root'),
+    '/etc/sudoers.d/*': ('root', 'root'),
+    '/etc/crontab': ('root', 'root'),
+    '/etc/cron.d/*': ('root', 'root'),
+    '/var/spool/cron/crontabs/*': ('root', 'root'),
+    '/etc/crypttab': ('root', 'root'),
+    '/etc/ipsec.secrets': ('root', 'root'),
+    '/etc/sssd/sssd.conf': ('root', 'root'),
+    '/etc/krb5.keytab': ('root', 'root'),
+    '/var/kerberos/krb5kdc/kdc.conf': ('root', 'root'),
+    '/var/kerberos/krb5kdc/kadm5.acl': ('root', 'root'),
+    '/var/kerberos/krb5kdc/kadm5.keytab': ('root', 'root'),
+    '/etc/ssh/ssh_host_rsa_key': ('root', 'root'),
+    '/etc/ssh/ssh_host_ed25519_key': ('root', 'root'),
+    '/etc/ssh/ssh_host_ecdsa_key': ('root', 'root'),
+    '/etc/ssh/ssh_host_dsa_key': ('root', 'root'),
+    '/etc/ssh/ssh_host_*_key': ('root', 'root'),
+    '/etc/ssl/private': ('root', 'ssl-cert'),
+    '/etc/ssl/private/*.key': ('root', 'ssl-cert'),
+    '/etc/pki/tls/private': ('root', 'root'),
+    '/etc/pki/tls/private/*.key': ('root', 'root'),
+    '/etc/pki/CA/private': ('root', 'root'),
+    '/etc/pki/CA/private/*.key': ('root', 'root'),
+    '/etc/security/opasswd': ('root', 'root'),
+    '/etc/pam_ldap.conf': ('root', 'root'),
+    '/etc/nss_ldap.conf': ('root', 'root'),
+    '/var/lib/samba/private/secrets.tdb': ('root', 'root'),
+    '/var/lib/samba/private/krb5.conf': ('root', 'root'),
+    '/var/lib/samba/private/*.keytab': ('root', 'root'),
+    '/etc/openldap/slapd.conf': ('root', 'ldap'),
+    '/etc/openvpn/auth.txt': ('root', 'root'),
+    '/etc/openvpn/*.key': ('root', 'root'),
+    '/etc/wireguard/wg0.conf': ('root', 'root'),
+    '~/.ssh/id_rsa': None,
+    '~/.ssh/id_ed25519': None,
+    '~/.ssh/id_ecdsa': None,
+    '~/.ssh/id_dsa': None,
+    '~/.ssh/config': None,
+    '~/.ssh/known_hosts': None,
+    '~/.netrc': None,
+    '~/.pgpass': None,
+    '~/.my.cnf': None,
+    '~/.aws/credentials': None,
+    '~/.aws/config': None,
+    '~/.gnupg/private-keys-v1.d/*.key': None,
+    '~/.google_authenticator': None,
+    '~/.git-credentials': None,
+    '~/.kube/config': None,
+    '~/.vault-token': None,
+    '~/.docker/config.json': None,
+    '~/.config/containers/auth.json': None,
+    '~/.config/gcloud/credentials.db': None,
+    '~/.config/gcloud/application_default_credentials.json': None,
+    '~/.azure/accessTokens.json': None,
+    '~/.azure/msal_token_cache.json': None,
+    '~/.oci/config': None,
+    '~/.terraform.d/credentials.tfrc.json': None,
+    '/etc/kubernetes/pki/*.key': ('root', 'root'),
+    '/etc/ansible/vault_pass': ('root', 'root'),
+    '/etc/containerd/config.toml': ('root', 'root'),
+    '/etc/docker/daemon.json': ('root', 'root'),
+    '/etc/postfix/sasl_passwd': ('root', 'root'),
+    '/etc/postfix/sasl_passwd.db': ('root', 'root'),
+    '/etc/dovecot/private/*.pem': ('root', 'root'),
+    '/etc/exim4/passwd.client': ('root', 'root'),
+    '/etc/chrony.keys': ('root', 'chrony'),
+    '/etc/ntp/keys': ('root', 'root'),
+    '/etc/mysql/mysql.conf.d/mysqld.cnf': ('root', 'root'),
+    '/etc/raddb/clients.conf': ('root', 'root'),
+    '/etc/raddb/users': ('root', 'root'),
+    '/etc/raddb/radiusd.conf': ('root', 'root'),
+    '/etc/vault.d/vault.hcl': ('root', 'root'),
+    '/etc/letsencrypt/live/*/privkey.pem': ('root', 'root'),
+    '/etc/letsencrypt/archive/*/privkey.pem': ('root', 'root'),
+    '/etc/nginx/ssl/*.key': ('root', 'root'),
+    '/etc/apache2/ssl/*.key': ('root', 'root'),
+    '/opt/vault/tls/*.key': ('root', 'root'),
+    '/etc/grafana/grafana.ini': ('root', 'grafana'),
+    '/etc/zabbix/zabbix_agentd.conf': ('zabbix', 'zabbix'),
+    '/etc/zabbix/zabbix_server.conf': ('zabbix', 'zabbix'),
+    '/etc/telegraf/telegraf.conf': ('root', 'telegraf'),
+    '/etc/gshadow': ('root', 'root'),
+}
+
+OWNERSHIP_GLOB_PATTERNS = {k: v for k, v in SECURE_OWNERSHIP.items() if '*' in k}
+OWNERSHIP_EXACT_PATHS = {k: v for k, v in SECURE_OWNERSHIP.items() if '*' not in k}
+
+
+def get_secure_ownership(filepath, username=None):
+    '''Check if a file path requires secure ownership.
+
+    Args:
+        filepath: Path to check (may contain ~ or be absolute)
+        username: Optional username for expanding ~ paths and resolving None entries
+
+    Returns:
+        Tuple (user, group) if path matches, None otherwise.
+        For entries with None in SECURE_OWNERSHIP, returns (username, username).
+    '''
+    if not filepath:
+        return None
+
+    expanded = _expand_user_path(filepath, username)
+
+    for path, ownership in OWNERSHIP_EXACT_PATHS.items():
+        expanded_key = _expand_user_path(path, username)
+        if expanded == expanded_key:
+            if ownership is None:
+                return _resolve_user_group(username)
+            return ownership
+
+    for pattern, ownership in OWNERSHIP_GLOB_PATTERNS.items():
+        expanded_pattern = _expand_user_path(pattern, username)
+        if fnmatch.fnmatch(expanded, expanded_pattern):
+            if ownership is None:
+                return _resolve_user_group(username)
+            return ownership
+
+    return None
+
+
+def get_secure_dir_ownership(dirpath, username=None):
+    '''Check if a directory path requires secure ownership.
+
+    Args:
+        dirpath: Absolute path to check
+        username: Optional username for expanding ~ paths
+
+    Returns:
+        Tuple (user, group) if path matches, None otherwise.
+    '''
+    if not dirpath:
+        return None
+
+    expanded = _expand_user_path(dirpath, username)
+
+    for path, ownership in OWNERSHIP_EXACT_PATHS.items():
+        expanded_key = _expand_user_path(path, username)
+        if expanded == expanded_key:
+            if ownership is None:
+                return _resolve_user_group(username)
+            return ownership
+
+    for pattern, ownership in OWNERSHIP_GLOB_PATTERNS.items():
+        expanded_pattern = _expand_user_path(pattern, username)
+        if fnmatch.fnmatch(expanded, expanded_pattern):
+            if ownership is None:
+                return _resolve_user_group(username)
+            return ownership
+
+    parent = expanded
+    while parent != '/':
+        for path, ownership in OWNERSHIP_EXACT_PATHS.items():
+            expanded_key = _expand_user_path(path, username)
+            if parent == expanded_key:
+                if ownership is None:
+                    return _resolve_user_group(username)
+                return ownership
+        parent = os.path.dirname(parent)
+
+    return None
+
+
+def _resolve_user_group(username):
+    '''Resolve None ownership to (username, primary_group).
+
+    Args:
+        username: Username for resolution. Falls back to 'root' if None.
+
+    Returns:
+        Tuple (user, group) as strings.
+    '''
+    if username is None:
+        return ('root', 'root')
+    try:
+        pwent = pwd.getpwnam(username)
+        grent = grp.getgrgid(pwent.pw_gid)
+        return (username, grent.gr_name)
+    except (KeyError, OSError):
+        return (username, username)
+
 
 SECURE_PERMISSIONS = {
     '/etc/sudoers': 0o440,
