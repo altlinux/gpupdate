@@ -28,6 +28,15 @@ from util.windows import expand_windows_var
 SECURE_PERMS_KEY = 'Software\\BaseALT\\Policies\\GroupPolicies\\Files\\SecurePermissionsDisabled'
 
 
+def is_secure_permissions_enabled(storage):
+    disabled_entries = storage.filter_hklm_entries(SECURE_PERMS_KEY)
+    disabled_entry = disabled_entries.first() if disabled_entries else None
+    if disabled_entry and check_str2bool(disabled_entry.data):
+        log('D261', {})
+        return False
+    return True
+
+
 class file_applier(applier_frontend):
     __module_name = 'FilesApplier'
     __module_experimental = False
@@ -40,14 +49,7 @@ class file_applier(applier_frontend):
         self.files = self.storage.get_files()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager()
-        self.secure_permissions = self._is_secure_permissions_enabled()
-
-    def _is_secure_permissions_enabled(self):
-        disabled_entry = self.storage.filter_hklm_entry(SECURE_PERMS_KEY)
-        if disabled_entry and check_str2bool(disabled_entry.data):
-            log('D261', {})
-            return False
-        return True
+        self.secure_permissions = is_secure_permissions_enabled(self.storage)
 
     def _cleanup_removed_elements(self, removed_elements):
         '''Cleanup files removed from GPO with removePolicy=True.'''
@@ -125,14 +127,7 @@ class file_applier_user(applier_frontend):
             , self.__module_experimental
         )
         self.state_manager = GppStateManager(username)
-        self.secure_permissions = self._is_secure_permissions_enabled()
-
-    def _is_secure_permissions_enabled(self):
-        disabled_entry = self.storage.filter_hklm_entry(SECURE_PERMS_KEY)
-        if disabled_entry and check_str2bool(disabled_entry.data):
-            log('D261', {})
-            return False
-        return True
+        self.secure_permissions = is_secure_permissions_enabled(self.storage)
 
     def _cleanup_removed_elements(self, removed_elements):
         '''Cleanup files removed from GPO with removePolicy=True.'''

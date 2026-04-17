@@ -23,7 +23,12 @@ from util.arguments import (
 )
 from .folder import str2bool
 from util.logging import log
-from util.secure_paths import get_secure_permission, get_secure_dir_permission, get_secure_ownership, get_secure_dir_ownership
+from util.secure_paths import (
+      get_secure_permission
+    , get_secure_dir_permission
+    , get_secure_ownership
+    , get_secure_dir_ownership
+)
 import shutil
 from pathlib import Path
 from util.windows import expand_windows_var
@@ -164,7 +169,7 @@ class Files_cp:
         try:
             uid = pwd.getpwnam(owner_user).pw_uid
             gid = grp.getgrnam(owner_group).gr_gid
-            stat_info = targetPath.stat() if hasattr(targetPath, 'stat') else shutil.os.stat(targetPath)
+            stat_info = targetPath.stat()
             if stat_info.st_uid != uid or stat_info.st_gid != gid:
                 shutil.os.chown(targetPath, uid, gid)
                 logdata = {'path': str(targetPath), 'user': owner_user, 'group': owner_group}

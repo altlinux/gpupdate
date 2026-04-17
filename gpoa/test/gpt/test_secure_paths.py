@@ -26,7 +26,14 @@ gpoa_dir = os.path.abspath(gpoa_dir)
 if gpoa_dir not in sys.path:
     sys.path.insert(0, gpoa_dir)
 
-from util.secure_paths import get_secure_permission, get_secure_dir_permission, get_secure_ownership, get_secure_dir_ownership
+from util.secure_paths import (
+      get_secure_permission
+    , get_secure_dir_permission
+    , get_secure_ownership
+    , get_secure_dir_ownership
+    , SECURE_PERMISSIONS
+    , SECURE_OWNERSHIP
+)
 
 
 class SecurePathsExactMatchTestCase(unittest.TestCase):
@@ -98,8 +105,10 @@ class SecurePathsGlobMatchTestCase(unittest.TestCase):
         self.assertEqual(get_secure_permission('/etc/apache2/ssl/server.key'), 0o600)
 
     def test_letsencrypt_privkey_glob(self):
-        self.assertEqual(get_secure_permission('/etc/letsencrypt/live/example.com/privkey.pem'), 0o600)
-        self.assertEqual(get_secure_permission('/etc/letsencrypt/archive/example.com/privkey.pem'), 0o600)
+        path = '/etc/letsencrypt/live/example.com/privkey.pem'
+        self.assertEqual(get_secure_permission(path), 0o600)
+        path2 = '/etc/letsencrypt/archive/example.com/privkey.pem'
+        self.assertEqual(get_secure_permission(path2), 0o600)
 
     def test_sudoers_d_glob(self):
         self.assertEqual(get_secure_permission('/etc/sudoers.d/custom'), 0o440)
@@ -361,10 +370,26 @@ class SecureOwnershipEdgeCasesTestCase(unittest.TestCase):
         self.assertEqual(get_secure_ownership('/etc/chrony.keys'), ('root', 'chrony'))
 
     def test_zabbix_config(self):
-        self.assertEqual(get_secure_ownership('/etc/zabbix/zabbix_agentd.conf'), ('zabbix', 'zabbix'))
+        self.assertEqual(
+            get_secure_ownership('/etc/zabbix/zabbix_agentd.conf'),
+            ('zabbix', 'zabbix')
+        )
 
     def test_grafana_config(self):
         self.assertEqual(get_secure_ownership('/etc/grafana/grafana.ini'), ('root', 'grafana'))
+
+
+class SecurePathsDictSyncTestCase(unittest.TestCase):
+
+    def test_all_permission_keys_have_ownership(self):
+        for key in SECURE_PERMISSIONS:
+            self.assertIn(key, SECURE_OWNERSHIP,
+                          f'{key} in SECURE_PERMISSIONS but missing from SECURE_OWNERSHIP')
+
+    def test_all_ownership_keys_have_permission(self):
+        for key in SECURE_OWNERSHIP:
+            self.assertIn(key, SECURE_PERMISSIONS,
+                          f'{key} in SECURE_OWNERSHIP but missing from SECURE_PERMISSIONS')
 
 
 if __name__ == '__main__':

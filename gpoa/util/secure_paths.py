@@ -371,7 +371,6 @@ def _expand_user_path(path, username=None):
         return path
 
     if username:
-        import pwd
         try:
             pwent = pwd.getpwnam(username)
             home = pwent.pw_dir

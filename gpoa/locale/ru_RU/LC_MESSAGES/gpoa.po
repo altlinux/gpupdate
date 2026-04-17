@@ -1156,6 +1156,21 @@ msgstr "Ошибка загрузки плагина из файла"
 msgid "Plugin failed to apply with user privileges"
 msgstr "Плагин не смог примениться с правами пользователя"
 
+msgid "GPP element error bypassed due to bypassErrors flag"
+msgstr "Ошибка элемента GPP пропущена по флагу bypassErrors"
+
+msgid "Unknown filter type encountered, policy will be blocked"
+msgstr "Обнаружен неизвестный тип фильтра, политика будет заблокирована"
+
+msgid "Unknown period value in date filter"
+msgstr "Неизвестное значение периода в фильтре даты"
+
+msgid "Failed to get domain info for filter context"
+msgstr "Не удалось получить информацию о домене для контекста фильтра"
+
+msgid "Failed to get group SIDs for filter"
+msgstr "Не удалось получить SID групп для фильтра"
+
 # Warning_end
 
 # Fatal
@@ -1170,15 +1185,3 @@ msgstr "Не удалось получить GPT для пользователя
 
 msgid "Unknown fatal code"
 msgstr "Неизвестный код фатальной ошибки"
-
-msgid "Unknown filter type encountered"
-msgstr "Обнаружен неизвестный тип фильтра"
-
-msgid "Unknown period value in date filter"
-msgstr "Неизвестное значение периода в фильтре даты"
-
-msgid "Failed to get domain info for filter context"
-msgstr "Не удалось получить информацию о домене для контекста фильтра"
-
-msgid "Failed to get group SIDs for filter"
-msgstr "Не удалось получить SID групп для фильтра"
