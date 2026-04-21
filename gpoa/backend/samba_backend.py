@@ -27,10 +27,11 @@ except ImportError:
 from gpt.gpo_dconf_mapping import GpoInfoDconf
 from gpt.gpt import get_local_gpt, gpt
 from storage import registry_factory
+from storage.dconf_registry import Dconf_registry
 from util.kerberos import machine_kdestroy, machine_kinit
 from util.logging import log
 from util.sid import get_sid
-from util.util import get_machine_name
+from util.util import get_machine_name, get_uid_by_username
 
 from .applier_backend import applier_backend
 
@@ -95,6 +96,18 @@ class samba_backend(applier_backend):
         '''
         Retrieve settings and strore it in a database
         '''
+        try:
+            if self._is_machine:
+                Dconf_registry.get_dictionary_from_dconf_file_db(
+                    save_dconf_db=True)
+            else:
+                uid = get_uid_by_username(self.username)
+                Dconf_registry.get_dictionary_from_dconf_file_db(
+                    uid, save_dconf_db=True)
+        except Exception as e:
+            logdata = {'msg': str(e)}
+            log('E72', logdata)
+
         # Get policies for machine at first.
         machine_gpts = []
         try:

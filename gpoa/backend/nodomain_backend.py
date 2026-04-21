@@ -19,6 +19,7 @@
 
 from gpt.gpt import get_local_gpt
 from storage import registry_factory
+from storage.dconf_registry import Dconf_registry
 
 from .applier_backend import applier_backend
 
@@ -33,6 +34,14 @@ class nodomain_backend(applier_backend):
         '''
         Retrieve settings and strore it in a database
         '''
+        try:
+            Dconf_registry.get_dictionary_from_dconf_file_db(
+                save_dconf_db=True)
+        except Exception as e:
+            from util.logging import log
+            logdata = {'msg': str(e)}
+            log('E72', logdata)
+
         # Get policies for machine at first.
         self.storage.wipe_hklm()
         local_policy = get_local_gpt()
