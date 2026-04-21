@@ -254,14 +254,8 @@ class shortcut_applier_user(applier_frontend):
             shortcuts_machine = self.get_machine_shortcuts()
         shortcuts = storage_get_shortcuts(self.storage, self.username, shortcuts_machine)
 
-        # Cleanup removed elements with removePolicy
         if shortcuts:
-            current_elements = [dict(sc) for sc in shortcuts if not getattr(sc, 'disabled', False)]
-            removed = self.state_manager.find_removed('Shortcuts', current_elements)
-            self._cleanup_removed_elements(removed)
-
-        # Apply current elements
-        if shortcuts:
+            # Apply current elements first
             for sc in shortcuts:
                 if sc.disabled:
                     continue
@@ -286,6 +280,12 @@ class shortcut_applier_user(applier_frontend):
                         raise
                     logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
                     log('W47', logdata)
+
+            # Cleanup removed elements after apply (admin context only)
+            if not in_usercontext:
+                current_elements = [dict(s) for s in shortcuts if not getattr(s, 'disabled', False)]
+                removed = self.state_manager.find_removed('Shortcuts', current_elements)
+                self._cleanup_removed_elements(removed)
         else:
             logdata = {'username': self.username}
             log('D100', logdata)
