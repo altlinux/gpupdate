@@ -283,14 +283,17 @@ def element_to_dict(element):
     '''
     Convert GPP element to dictionary for dconf storage.
     Includes all lifecycle-relevant attributes and nested structures like filters.
+    Respects _ignore_fields set on the element class.
 
     :param element: GPP element object
     :return: Dictionary ready for JSON serialization
     '''
-    result = dict(element.items()) if hasattr(element, 'items') else {}
+    ignore = getattr(element, '_ignore_fields', set())
+    result = {}
 
     for key, value in element.__dict__.items():
-        if not key.startswith('_'):
-            result[key] = _value_to_serializable(value)
+        if key.startswith('_') or key in ignore:
+            continue
+        result[key] = _value_to_serializable(value)
 
     return result

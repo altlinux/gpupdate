@@ -133,7 +133,7 @@ def find_desktop_entry(binary_path):
 
 
 class shortcut(DynamicAttributes):
-    _ignore_fields = {"desktop_file_template", "desktop_file"}
+    _ignore_fields = {"desktop_file_template", "desktop_file", "expanded_path", "is_in_user_context"}
 
     def __init__(self, dest, path, arguments, name=None, action=None, ttype=TargetType.FILESYSTEM):
         self.dest = self.replace_slashes(dest)
