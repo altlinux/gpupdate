@@ -25,6 +25,8 @@ Handles lifecycle state for GPP elements:
  - GPO unlink detection and cleanup
 """
 
+import os
+import shutil
 from datetime import datetime
 from typing import Callable, Dict, List, Set
 from ast import literal_eval
@@ -32,6 +34,9 @@ from pathlib import Path
 
 from .dconf_registry import Dconf_registry
 from util.logging import log
+from util.util import get_homedir
+from util.windows import expand_windows_var
+from util.gpoa_ini_parsing import GpoaConfigObj
 
 
 # Actions that should be skipped during cleanup
@@ -319,22 +324,27 @@ def get_element_type_name(element) -> str:
 
 
 def cleanup_file(element: Dict, username: str = None) -> None:
-    from util.windows import expand_windows_var
-
-    target = element.get('targetPath') or element.get('target')
-    if not target:
+    target_dir = element.get('targetPath') or element.get('target')
+    if not target_dir:
         return
 
-    target = expand_windows_var(target, username)
-    target = Path(target.replace('\\', '/'))
+    target_dir = expand_windows_var(target_dir, username)
+    target_dir = target_dir.replace('\\', '/')
 
-    if target.exists() and target.is_file():
-        target.unlink()
+    from_path = element.get('fromPath', '')
+    basename = os.path.basename(from_path.replace('\\', '/'))
+
+    if basename:
+        target_path = Path(target_dir + '/' + basename)
+    else:
+        target_path = Path(target_dir)
+
+    if target_path.exists():
+        if target_path.is_file():
+            target_path.unlink()
 
 
 def cleanup_shortcut(element: Dict, username: str = None) -> None:
-    from util.windows import expand_windows_var
-
     dest = element.get('dest') or element.get('path')
     if not dest:
         return
@@ -347,9 +357,6 @@ def cleanup_shortcut(element: Dict, username: str = None) -> None:
 
 
 def cleanup_folder(element: Dict, username: str = None) -> None:
-    import shutil
-    from util.windows import expand_windows_var
-
     path = element.get('path')
     if not path:
         return
@@ -362,8 +369,6 @@ def cleanup_folder(element: Dict, username: str = None) -> None:
 
 
 def cleanup_envvar(element: Dict, username: str = None) -> None:
-    from util.users import get_homedir
-
     name = element.get('name')
     if not name:
         return
@@ -407,9 +412,6 @@ def cleanup_envvar(element: Dict, username: str = None) -> None:
 
 
 def cleanup_inifile(element: Dict, username: str = None) -> None:
-    from util.windows import expand_windows_var
-    from util.gpoa_ini_parsing import GpoaConfigObj
-
     path = expand_windows_var(element.get('path', ''), username)
     path = Path(path.replace('\\', '/'))
 
