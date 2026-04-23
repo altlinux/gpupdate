@@ -210,9 +210,12 @@ def disable_gp():
     config.set_local_policy_template()
     config.set_backend()
 
-def enable_gp(policy_name, backend_type):
+def enable_gp(policy_name, backend_type, bootstrap=True):
     '''
-    Consistently enable group policy services
+    Consistently enable group policy services.
+
+    :param bootstrap: Run gpoa --nodomain to bootstrap local policy.
+                      Should be True for 'enable', False for 'update'.
     '''
     cmd_set_gpupdate_policy = ['/usr/sbin/control', 'system-policy', 'gpupdate']
     cmd_gpoa_nodomain = ['/usr/sbin/gpoa', '--nodomain', '--loglevel', '5']
@@ -243,9 +246,10 @@ def enable_gp(policy_name, backend_type):
     # Enable oddjobd_gpupdate in PAM config
     if not rollback_on_error(cmd_set_gpupdate_policy):
         return
-    # Bootstrap the Group Policy engine
-    if not rollback_on_error(cmd_gpoa_nodomain):
-        return
+    # Bootstrap the Group Policy engine (only on first enable)
+    if bootstrap:
+        if not rollback_on_error(cmd_gpoa_nodomain):
+            return
     # Enable gpupdate.service
     if not rollback_on_error(cmd_enable_gpupdate_service):
         return
@@ -344,7 +348,13 @@ def act_enable(localpolicy, backend):
     '''
     Enable group policy services
     '''
-    enable_gp(localpolicy, backend)
+    enable_gp(localpolicy, backend, bootstrap=True)
+
+def act_update(localpolicy, backend):
+    '''
+    Update group policy services without touching dconf
+    '''
+    enable_gp(localpolicy, backend, bootstrap=False)
 
 def act_active_policy():
     '''
@@ -374,7 +384,7 @@ def main():
         'set-backend': act_set_backend,
         'write': act_write,
         'enable': act_enable,
-        'update': act_enable,
+        'update': act_update,
         'disable': disable_gp,
         'active-policy': act_active_policy,
         'active-backend': act_active_backend,
