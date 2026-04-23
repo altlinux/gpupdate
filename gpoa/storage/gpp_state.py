@@ -26,8 +26,9 @@ Handles lifecycle state for GPP elements:
 """
 
 from datetime import datetime
-from typing import Dict, List, Set
+from typing import Callable, Dict, List, Set
 from ast import literal_eval
+from pathlib import Path
 
 from .dconf_registry import Dconf_registry
 from util.logging import log
@@ -268,6 +269,30 @@ class GppStateManager:
         '''
         mark_element_applied(element, element_type, self.username, element_obj=element_obj)
 
+    def cleanup_removed(self, element_type: str, current: List[Dict],
+                        handler) -> None:
+        '''
+        Find and cleanup removed elements for a type.
+
+        :param element_type: Type of element ('Files', 'Shortcuts', etc.)
+        :param current: List of current element dicts (from dict(obj))
+        :param handler: Callable(element_dict, username) performing cleanup
+        '''
+        removed = self.find_removed(element_type, current)
+
+        for element in removed:
+            if element.get('action') in CLEANUP_SKIP_ACTIONS:
+                continue
+
+            try:
+                handler(element, self.username)
+            except Exception as exc:
+                uid = element.get('uid', 'unknown')
+                if element.get('bypass_errors'):
+                    log('W47', {'uid': uid, 'exc': str(exc)})
+                else:
+                    raise
+
 
 ELEMENT_TYPE_MAP = {
     'inifile': 'Inifiles',
@@ -291,3 +316,114 @@ def get_element_type_name(element) -> str:
     '''
     class_name = element.__class__.__name__
     return ELEMENT_TYPE_MAP.get(class_name, class_name)
+
+
+def cleanup_file(element: Dict, username: str = None) -> None:
+    from util.windows import expand_windows_var
+
+    target = element.get('targetPath') or element.get('target')
+    if not target:
+        return
+
+    target = expand_windows_var(target, username)
+    target = Path(target.replace('\\', '/'))
+
+    if target.exists() and target.is_file():
+        target.unlink()
+
+
+def cleanup_shortcut(element: Dict, username: str = None) -> None:
+    from util.windows import expand_windows_var
+
+    dest = element.get('dest') or element.get('path')
+    if not dest:
+        return
+
+    dest = expand_windows_var(dest, username)
+    dest = Path(dest.replace('\\', '/') + '.desktop')
+
+    if dest.exists():
+        dest.unlink()
+
+
+def cleanup_folder(element: Dict, username: str = None) -> None:
+    import shutil
+    from util.windows import expand_windows_var
+
+    path = element.get('path')
+    if not path:
+        return
+
+    path = expand_windows_var(path, username)
+    path = Path(path.replace('\\', '/'))
+
+    if path.exists() and path.is_dir():
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def cleanup_envvar(element: Dict, username: str = None) -> None:
+    from util.users import get_homedir
+
+    name = element.get('name')
+    if not name:
+        return
+
+    if username:
+        home = get_homedir(username)
+        if not home:
+            return
+
+        env_files = [
+            Path(home) / '.pam_environment',
+            Path(home) / '.bashrc',
+        ]
+
+        for env_file in env_files:
+            if not env_file.exists():
+                continue
+
+            lines = []
+            with open(env_file, 'r') as f:
+                for line in f:
+                    if not line.strip().startswith(f'{name}='):
+                        lines.append(line)
+
+            with open(env_file, 'w') as f:
+                f.writelines(lines)
+    else:
+        env_file = Path('/etc/environment')
+
+        if not env_file.exists():
+            return
+
+        lines = []
+        with open(env_file, 'r') as f:
+            for line in f:
+                if not line.strip().startswith(f'{name}='):
+                    lines.append(line)
+
+        with open(env_file, 'w') as f:
+            f.writelines(lines)
+
+
+def cleanup_inifile(element: Dict, username: str = None) -> None:
+    from util.windows import expand_windows_var
+    from util.gpoa_ini_parsing import GpoaConfigObj
+
+    path = expand_windows_var(element.get('path', ''), username)
+    path = Path(path.replace('\\', '/'))
+
+    if not path.exists() or path.is_dir():
+        return
+
+    section = element.get('section')
+    prop = element.get('property')
+
+    config = GpoaConfigObj(str(path))
+
+    if section and prop:
+        if section in config and prop in config[section]:
+            del config[section][prop]
+            if not config[section]:
+                del config[section]
+            config.write()

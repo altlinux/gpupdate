@@ -26,7 +26,7 @@ from util.windows import expand_windows_var
 from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled
-from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
+from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_shortcut
 
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
@@ -118,40 +118,18 @@ class shortcut_applier(applier_frontend):
         )
         self.state_manager = GppStateManager()
 
-    def _cleanup_removed_elements(self, removed_elements):
-        '''Cleanup shortcuts removed from GPO with removePolicy=True.'''
-        for element in removed_elements:
-            if element.get('action') in CLEANUP_SKIP_ACTIONS:
-                continue
-
-            try:
-                dest = element.get('dest') or element.get('path')
-                if not dest:
-                    continue
-
-                dest = expand_windows_var(dest, None)
-                dest = Path(dest.replace('\\', '/') + '.desktop')
-
-                if dest.exists():
-                    dest.unlink()
-            except Exception as exc:
-                uid = element.get('uid', 'unknown')
-                if element.get('bypass_errors'):
-                    log('W47', {'uid': uid, 'exc': str(exc)})
-                else:
-                    raise
-
     def run(self):
         # Cleanup removed elements with removePolicy
         shortcuts = storage_get_shortcuts(self.storage)
         if shortcuts:
             current_elements = [dict(sc) for sc in shortcuts if not getattr(sc, 'disabled', False)]
-            removed = self.state_manager.find_removed('Shortcuts', current_elements)
-            self._cleanup_removed_elements(removed)
+            self.state_manager.cleanup_removed('Shortcuts', current_elements, cleanup_shortcut)
 
         # Apply current elements
         if shortcuts:
             for sc in shortcuts:
+                if sc.disabled:
+                    continue
                 element_type = get_element_type_name(sc)
                 sc_dict = dict(sc)
                 apply_once = getattr(sc, 'apply_once', False)
@@ -199,29 +177,6 @@ class shortcut_applier_user(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager(username)
 
-    def _cleanup_removed_elements(self, removed_elements):
-        '''Cleanup shortcuts removed from GPO with removePolicy=True.'''
-        for element in removed_elements:
-            if element.get('action') in CLEANUP_SKIP_ACTIONS:
-                continue
-
-            try:
-                dest = element.get('dest') or element.get('path')
-                if not dest:
-                    continue
-
-                dest = expand_windows_var(dest, self.username)
-                dest = Path(dest.replace('\\', '/') + '.desktop')
-
-                if dest.exists():
-                    dest.unlink()
-            except Exception as exc:
-                uid = element.get('uid', 'unknown')
-                if element.get('bypass_errors'):
-                    log('W47', {'uid': uid, 'exc': str(exc)})
-                else:
-                    raise
-
     def get_machine_shortcuts(self):
         result = []
         try:
@@ -242,8 +197,6 @@ class shortcut_applier_user(applier_frontend):
         except:
             return None
         return result
-
-
 
     def check_enabled_shortcuts_merge(self):
         return self.storage.get_key_value(self.__REGISTRY_PATH_SHORTCATSMERGE)
@@ -284,8 +237,7 @@ class shortcut_applier_user(applier_frontend):
             # Cleanup removed elements after apply (admin context only)
             if not in_usercontext:
                 current_elements = [dict(s) for s in shortcuts if not getattr(s, 'disabled', False)]
-                removed = self.state_manager.find_removed('Shortcuts', current_elements)
-                self._cleanup_removed_elements(removed)
+                self.state_manager.cleanup_removed('Shortcuts', current_elements, cleanup_shortcut)
         else:
             logdata = {'username': self.username}
             log('D100', logdata)

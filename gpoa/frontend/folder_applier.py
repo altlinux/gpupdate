@@ -25,7 +25,7 @@ from util.windows import expand_windows_var
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.folder import Folder
-from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
+from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_folder
 from pathlib import Path
 
 
@@ -40,36 +40,12 @@ class folder_applier(applier_frontend):
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager()
 
-    def _cleanup_removed_elements(self, removed_elements):
-        '''Cleanup folders removed from GPO with removePolicy=True.'''
-        for element in removed_elements:
-            if element.get('action') in CLEANUP_SKIP_ACTIONS:
-                continue
-
-            try:
-                path = element.get('path')
-                if not path:
-                    continue
-
-                path = expand_windows_var(path, None)
-                path = Path(path.replace('\\', '/'))
-
-                if path.exists() and path.is_dir():
-                    shutil.rmtree(path, ignore_errors=True)
-            except Exception as exc:
-                uid = element.get('uid', 'unknown')
-                if element.get('bypass_errors'):
-                    log('W47', {'uid': uid, 'exc': str(exc)})
-                else:
-                    raise
-
     def apply(self):
         if self.__module_enabled:
             log('D107')
             # Cleanup removed elements with removePolicy
             current_elements = [dict(f) for f in self.folders if not f.disabled]
-            removed = self.state_manager.find_removed('Folders', current_elements)
-            self._cleanup_removed_elements(removed)
+            self.state_manager.cleanup_removed('Folders', current_elements, cleanup_folder)
 
             # Apply current elements
             for directory_obj in self.folders:
@@ -119,34 +95,10 @@ class folder_applier_user(applier_frontend):
         )
         self.state_manager = GppStateManager(username)
 
-    def _cleanup_removed_elements(self, removed_elements):
-        '''Cleanup folders removed from GPO with removePolicy=True.'''
-        for element in removed_elements:
-            if element.get('action') in CLEANUP_SKIP_ACTIONS:
-                continue
-
-            try:
-                path = element.get('path')
-                if not path:
-                    continue
-
-                path = expand_windows_var(path, self.username)
-                path = Path(path.replace('\\', '/'))
-
-                if path.exists() and path.is_dir():
-                    shutil.rmtree(path, ignore_errors=True)
-            except Exception as exc:
-                uid = element.get('uid', 'unknown')
-                if element.get('bypass_errors'):
-                    log('W47', {'uid': uid, 'exc': str(exc)})
-                else:
-                    raise
-
     def run(self):
         # Cleanup removed elements with removePolicy
         current_elements = [dict(f) for f in self.folders if not f.disabled]
-        removed = self.state_manager.find_removed('Folders', current_elements)
-        self._cleanup_removed_elements(removed)
+        self.state_manager.cleanup_removed('Folders', current_elements, cleanup_folder)
 
         # Apply current elements
         for directory_obj in self.folders:

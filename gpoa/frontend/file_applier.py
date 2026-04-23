@@ -21,9 +21,7 @@ from util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.file_cp import Execution_check, Files_cp, str2bool as check_str2bool
-from storage.gpp_state import GppStateManager, get_element_type_name, CLEANUP_SKIP_ACTIONS
-from pathlib import Path
-from util.windows import expand_windows_var
+from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_file
 
 SECURE_PERMS_KEY = 'Software\\BaseALT\\Policies\\GroupPolicies\\Files\\SecurePermissionsDisabled'
 
@@ -51,34 +49,10 @@ class file_applier(applier_frontend):
         self.state_manager = GppStateManager()
         self.secure_permissions = is_secure_permissions_enabled(self.storage)
 
-    def _cleanup_removed_elements(self, removed_elements):
-        '''Cleanup files removed from GPO with removePolicy=True.'''
-        for element in removed_elements:
-            if element.get('action') in CLEANUP_SKIP_ACTIONS:
-                continue
-
-            try:
-                target = element.get('targetPath') or element.get('target')
-                if not target:
-                    continue
-
-                target = expand_windows_var(target, None)
-                target = Path(target.replace('\\', '/'))
-
-                if target.exists() and target.is_file():
-                    target.unlink()
-            except Exception as exc:
-                uid = element.get('uid', 'unknown')
-                if element.get('bypass_errors'):
-                    log('W47', {'uid': uid, 'exc': str(exc)})
-                else:
-                    raise
-
     def run(self):
         # Cleanup removed elements with removePolicy
         current_elements = [dict(f) for f in self.files if not f.disabled]
-        removed = self.state_manager.find_removed('Files', current_elements)
-        self._cleanup_removed_elements(removed)
+        self.state_manager.cleanup_removed('Files', current_elements, cleanup_file)
 
         # Apply current elements
         for file in self.files:
@@ -129,34 +103,10 @@ class file_applier_user(applier_frontend):
         self.state_manager = GppStateManager(username)
         self.secure_permissions = is_secure_permissions_enabled(self.storage)
 
-    def _cleanup_removed_elements(self, removed_elements):
-        '''Cleanup files removed from GPO with removePolicy=True.'''
-        for element in removed_elements:
-            if element.get('action') in CLEANUP_SKIP_ACTIONS:
-                continue
-
-            try:
-                target = element.get('targetPath') or element.get('target')
-                if not target:
-                    continue
-
-                target = expand_windows_var(target, self.username)
-                target = Path(target.replace('\\', '/'))
-
-                if target.exists() and target.is_file():
-                    target.unlink()
-            except Exception as exc:
-                uid = element.get('uid', 'unknown')
-                if element.get('bypass_errors'):
-                    log('W47', {'uid': uid, 'exc': str(exc)})
-                else:
-                    raise
-
     def run(self):
         # Cleanup removed elements with removePolicy
         current_elements = [dict(f) for f in self.files if not f.disabled]
-        removed = self.state_manager.find_removed('Files', current_elements)
-        self._cleanup_removed_elements(removed)
+        self.state_manager.cleanup_removed('Files', current_elements, cleanup_file)
 
         # Apply current elements
         for file in self.files:
