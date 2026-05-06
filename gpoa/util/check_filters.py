@@ -78,6 +78,7 @@ class FilterChecker:
                 'FilterUser': cls.check_user,
                 'FilterGroup': cls.check_group,
                 'FilterVariable': cls.check_variable,
+                'FilterTime': cls.check_time,
             }
         return cls.FILTER_HANDLERS
 
@@ -231,6 +232,22 @@ class FilterChecker:
             actual_value = os.environ.get(variable_name, '')
 
         return actual_value == expected_value
+
+    @staticmethod
+    def check_time(filter_obj, username=None):
+        begin_str = getattr(filter_obj, 'begin', '')
+        end_str = getattr(filter_obj, 'end', '')
+        if not begin_str or not end_str:
+            return True
+
+        begin = datetime.time.fromisoformat(begin_str)
+        end = datetime.time.fromisoformat(end_str)
+        now = datetime.datetime.now().time()
+
+        if begin <= end:
+            return begin <= now <= end
+        else:
+            return now >= begin or now <= end
 
     @classmethod
     def _get_user_environ(cls, username):
