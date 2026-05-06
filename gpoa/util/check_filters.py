@@ -20,7 +20,9 @@
 
 import socket
 import datetime
+import os
 import threading
+from pathlib import Path
 
 from util.logging import log
 from util.util import get_machine_name
@@ -63,6 +65,7 @@ class FilterChecker:
     _groups_cache = {}
     _machine_name_cache = None
     _fqdn_cache = None
+    _user_environ_cache = {}
     FILTER_HANDLERS = None
 
     @classmethod
@@ -74,6 +77,7 @@ class FilterChecker:
                 'FilterDate': cls.check_date,
                 'FilterUser': cls.check_user,
                 'FilterGroup': cls.check_group,
+                'FilterVariable': cls.check_variable,
             }
         return cls.FILTER_HANDLERS
 
@@ -214,6 +218,53 @@ class FilterChecker:
                 return group_name in local_groups
             return False
 
+    @staticmethod
+    def check_variable(filter_obj, username=None):
+        variable_name = getattr(filter_obj, 'variableName', '')
+        expected_value = getattr(filter_obj, 'value', '')
+        if not variable_name:
+            return True
+
+        if username:
+            actual_value = FilterChecker._get_user_environ(username).get(variable_name, '')
+        else:
+            actual_value = os.environ.get(variable_name, '')
+
+        return actual_value == expected_value
+
+    @classmethod
+    def _get_user_environ(cls, username):
+        if username in cls._user_environ_cache:
+            return cls._user_environ_cache[username]
+
+        with cls._lock:
+            if username in cls._user_environ_cache:
+                return cls._user_environ_cache[username]
+            env = cls._read_all_user_environ(username)
+            cls._user_environ_cache[username] = env
+            return env
+
+    @staticmethod
+    def _read_all_user_environ(username):
+        target = f'USER={username}'.encode()
+        result = {}
+        for entry in Path('/proc').iterdir():
+            if not entry.name.isdigit():
+                continue
+            try:
+                with open(str(entry / 'environ'), 'rb') as f:
+                    raw = f.read()
+            except (OSError, PermissionError):
+                continue
+            if target in raw.split(b'\0'):
+                for item in raw.split(b'\0'):
+                    if b'=' in item:
+                        k, v = item.split(b'=', 1)
+                        key = k.decode()
+                        val = v.decode()
+                        result[key] = val
+        return result
+
     @classmethod
     def reset_cache(cls):
         """Clear all caches. Call between GPO processing sessions."""
@@ -222,6 +273,7 @@ class FilterChecker:
             cls._groups_cache.clear()
             cls._machine_name_cache = None
             cls._fqdn_cache = None
+            cls._user_environ_cache.clear()
 
     @classmethod
     def _resolve_fqdn(cls):
