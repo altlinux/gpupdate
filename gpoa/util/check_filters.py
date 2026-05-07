@@ -79,6 +79,7 @@ class FilterChecker:
                 'FilterGroup': cls.check_group,
                 'FilterVariable': cls.check_variable,
                 'FilterTime': cls.check_time,
+                'FilterCpu': cls.check_cpu,
             }
         return cls.FILTER_HANDLERS
 
@@ -248,6 +249,26 @@ class FilterChecker:
             return begin <= now <= end
         else:
             return now >= begin or now <= end
+
+    @staticmethod
+    def check_cpu(filter_obj, username=None):
+        speed_mhz = getattr(filter_obj, 'speedMHz', '')
+        if not speed_mhz:
+            return True
+        expected = int(speed_mhz)
+
+        actual = 0
+        try:
+            with open('/proc/cpuinfo') as f:
+                for line in f:
+                    if line.startswith('cpu MHz'):
+                        val = int(float(line.split(':')[1].strip()))
+                        if val > actual:
+                            actual = val
+        except (OSError, ValueError):
+            pass
+
+        return actual >= expected
 
     @classmethod
     def _get_user_environ(cls, username):
