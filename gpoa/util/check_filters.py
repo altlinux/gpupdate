@@ -80,6 +80,7 @@ class FilterChecker:
                 'FilterVariable': cls.check_variable,
                 'FilterTime': cls.check_time,
                 'FilterCpu': cls.check_cpu,
+                'FilterBattery': cls.check_battery,
             }
         return cls.FILTER_HANDLERS
 
@@ -269,6 +270,16 @@ class FilterChecker:
             pass
 
         return actual >= expected
+
+    @staticmethod
+    def check_battery(filter_obj, username=None):
+        try:
+            for entry in Path('/sys/class/power_supply').iterdir():
+                if entry.name.startswith('BAT'):
+                    return True
+        except OSError:
+            pass
+        return False
 
     @classmethod
     def _get_user_environ(cls, username):
