@@ -81,6 +81,7 @@ class FilterChecker:
                 'FilterTime': cls.check_time,
                 'FilterCpu': cls.check_cpu,
                 'FilterBattery': cls.check_battery,
+                'FilterDisk': cls.check_disk,
             }
         return cls.FILTER_HANDLERS
 
@@ -280,6 +281,45 @@ class FilterChecker:
         except OSError:
             pass
         return False
+
+    @staticmethod
+    def check_disk(filter_obj, username=None):
+        drive = getattr(filter_obj, 'drive', '')
+        if drive != '%SystemDrive%':
+            return False
+
+        free_space_str = getattr(filter_obj, 'freeSpace', '')
+        if not free_space_str:
+            return True
+        required_gb = int(free_space_str)
+
+        skip_types = {
+            'proc', 'sysfs', 'devpts', 'devtmpfs', 'tmpfs',
+            'cgroup', 'cgroup2', 'efivarfs', 'securityfs', 'pstore',
+            'debugfs', 'tracefs', 'fusectl', 'configfs', 'ramfs'
+        }
+        total_free_bytes = 0
+        try:
+            with open('/proc/mounts') as f:
+                for line in f:
+                    parts = line.split()
+                    if len(parts) < 3:
+                        continue
+                    device, mountpoint, fstype = parts[0], parts[1], parts[2]
+                    if not device.startswith('/dev/'):
+                        continue
+                    if fstype in skip_types:
+                        continue
+                    try:
+                        stat = os.statvfs(mountpoint)
+                        total_free_bytes += stat.f_bavail * stat.f_frsize
+                    except OSError:
+                        pass
+        except OSError:
+            return False
+
+        free_gb = total_free_bytes // (1024 * 1024 * 1024)
+        return free_gb >= required_gb
 
     @classmethod
     def _get_user_environ(cls, username):
