@@ -5,12 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "gpoa_lib"
 version = "0.1.0"
-dependencies = [
-  "python-dbus",
-  "python-gettext",
-  "configobj",
-  "six",
-]
+
 requires-python = ">=3.8"
 authors = [
   {name = "Valery Sinelnikov", email = "greh@altlinux.org"},
