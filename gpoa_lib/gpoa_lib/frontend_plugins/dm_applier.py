@@ -23,18 +23,16 @@ import re
 
 # Import only what's absolutely necessary
 try:
-    from ..frontend.appliers.systemd import systemd_unit
+    from gpoa_lib.frontend.appliers.systemd import systemd_unit
 except ImportError:
-    # Fallback for testing
     systemd_unit = None
 
 try:
-    from ..util.gpoa_ini_parsing import GpoaConfigObj
+    from gpoa_lib.util.gpoa_ini_parsing import GpoaConfigObj
 except ImportError:
-    # Fallback for testing
     GpoaConfigObj = None
 
-from ..plugin.plugin_base import FrontendPlugin
+from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 
 class DMApplier(FrontendPlugin):
