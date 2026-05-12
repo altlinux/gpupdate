@@ -1,5 +1,7 @@
 %define _unpackaged_files_terminate_build 1
-#add_python3_self_prov_path %buildroot%python3_sitelibdir/gpoa
+# gpoa/ is installed to sitelib but code uses bare imports (import gpt.gpt)
+# while RPM provides generate python3(gpoa.gpt.gpt) — mismatch requires skips.
+# These cannot be reduced until gpoa/ becomes a proper Python package.
 
 %add_python3_req_skip applaer.systemd
 %add_python3_req_skip backend
@@ -158,11 +160,6 @@ for po_file in %buildroot%python3_sitelibdir/gpoa_lib/frontend_plugins/locale/*/
 	msgfmt -o "$mo_file" "$po_file"
 done
 
-# Generate plugin translations for gpoa (legacy path)
-for po_file in %buildroot%python3_sitelibdir/gpoa/frontend_plugins/locale/*/LC_MESSAGES/*.po; do
-	mo_file="${po_file%.po}.mo"
-	msgfmt -o "$mo_file" "$po_file"
-done
 
 mkdir -p \
 	%buildroot%_bindir/ \
