@@ -20,6 +20,7 @@
 
 import socket
 import datetime
+import ipaddress
 import os
 import threading
 from pathlib import Path
@@ -98,6 +99,7 @@ class FilterChecker:
                 'FilterLanguage': cls.check_language,
                 'FilterRam': cls.check_ram,
                 'FilterFile': cls.check_file,
+                'FilterIpRange': cls.check_iprange,
             }
         return cls.FILTER_HANDLERS
 
@@ -408,6 +410,46 @@ class FilterChecker:
             return os.path.isfile(path)
 
         return False
+
+    @staticmethod
+    def check_iprange(filter_obj, username=None):
+        min_str = getattr(filter_obj, 'min', '')
+        if not min_str:
+            return False
+
+        use_ipv6 = getattr(filter_obj, 'useIPv6', '0') == '1'
+        max_str = getattr(filter_obj, 'max', '0')
+
+        try:
+            if use_ipv6:
+                network = ipaddress.IPv6Network(f'{min_str}/{int(max_str)}', strict=False)
+                ip_str = FilterChecker._get_primary_ip(v6=True)
+                if ip_str:
+                    return ipaddress.IPv6Address(ip_str) in network
+            else:
+                min_addr = ipaddress.IPv4Address(min_str)
+                max_addr = ipaddress.IPv4Address(max_str)
+                ip_str = FilterChecker._get_primary_ip(v6=False)
+                if ip_str:
+                    return min_addr <= ipaddress.IPv4Address(ip_str) <= max_addr
+        except (ValueError, OSError):
+            pass
+
+        return False
+
+    @staticmethod
+    def _get_primary_ip(v6=False):
+        try:
+            family = socket.AF_INET6 if v6 else socket.AF_INET
+            target = ('2001:4860:4860::8888', 80) if v6 else ('8.8.8.8', 80)
+            s = socket.socket(family, socket.SOCK_DGRAM)
+            try:
+                s.connect(target)
+                return s.getsockname()[0]
+            finally:
+                s.close()
+        except OSError:
+            return None
 
     @classmethod
     def _get_user_environ(cls, username):
