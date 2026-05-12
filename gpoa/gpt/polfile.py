@@ -1,7 +1,6 @@
-#
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,13 +15,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.preg import load_preg
-
-
-def read_polfile(filename):
-    return load_preg(filename).entries
-
-def merge_polfile(storage, policy_objects, policy_name, policy_guid=None):
-    pass
-
-
+from gpoa_lib.gpt.polfile import *

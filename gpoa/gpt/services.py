@@ -1,7 +1,6 @@
-#
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,70 +15,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from util.xml import get_xml_root
-
-from .dynamic_attributes import DynamicAttributes
-from .filter import parse_filters
-
-
-def read_services(service_file):
-    '''
-    Read Services.xml from GPT.
-    '''
-    services = []
-
-    for srv in get_xml_root(service_file):
-        srv_obj = service(srv.get('name'))
-        srv_obj.set_clsid(srv.get('clsid'))
-        srv_obj.set_usercontext(srv.get('userContext'))
-
-        props = srv.find('Properties')
-        startup_type = props.get('startupType')
-        srv_obj.set_servicename(props.get('serviceName'))
-        srv_obj.set_serviceaction(props.get('serviceAction'))
-        timeout = props.get('timeout')
-        srv_obj.set_disabled(srv.get('disabled') == '1')
-
-        # Parse and add filters
-        filters = parse_filters(srv)
-        if filters:
-            srv_obj.filters = filters
-
-        services.append(srv_obj)
-
-    return services
-
-def merge_services(storage, service_objects, policy_name, policy_guid=None):
-    for srv in service_objects:
-        pass
-
-class service(DynamicAttributes):
-    def __init__(self, name):
-        self.unit = name
-        self.servname = None
-        self.serviceaction = None
-        self.disabled = False
-
-    def set_clsid(self, clsid):
-        self.guid = clsid
-
-    def set_usercontext(self, usercontext=False):
-        ctx = False
-
-        if usercontext in [1, '1', True]:
-            ctx = True
-
-        self.is_in_user_context = ctx
-
-    def is_usercontext(self):
-        return self.is_in_user_context
-
-    def set_servicename(self, sname):
-        self.servname = sname
-
-    def set_servact(self, sact):
-        self.serviceaction = sact
-
-    def set_disabled(self, disabled):
-        self.disabled = disabled
-
+from gpoa_lib.gpt.services import *
