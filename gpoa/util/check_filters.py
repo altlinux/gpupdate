@@ -97,6 +97,7 @@ class FilterChecker:
                 'FilterDisk': cls.check_disk,
                 'FilterLanguage': cls.check_language,
                 'FilterRam': cls.check_ram,
+                'FilterFile': cls.check_file,
             }
         return cls.FILTER_HANDLERS
 
@@ -389,6 +390,22 @@ class FilterChecker:
                         return actual_mb >= required_mb
         except (OSError, ValueError):
             pass
+
+        return False
+
+    @staticmethod
+    def check_file(filter_obj, username=None):
+        path = getattr(filter_obj, 'path', '')
+        if not path:
+            return False
+
+        filter_type = getattr(filter_obj, 'type', 'EXISTS').upper()
+        is_folder = getattr(filter_obj, 'folder', '0') == '1'
+
+        if filter_type == 'EXISTS':
+            if is_folder:
+                return os.path.isdir(path)
+            return os.path.isfile(path)
 
         return False
 
