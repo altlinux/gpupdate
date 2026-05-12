@@ -70,6 +70,7 @@
 %add_python3_req_skip frontend_plugins.dm_applier
 %add_python3_req_skip gpt.drives
 %add_python3_req_skip gpt.files
+%add_python3_req_skip gpt.filter
 %add_python3_req_skip gpt.inifiles
 %add_python3_req_skip gpt.networkshares
 %add_python3_req_skip gpt.polfile
@@ -92,6 +93,7 @@ Requires: control
 
 BuildRequires: rpm-build-python3
 BuildRequires: gettext-tools
+Requires: gpoa-lib = %version-%release
 Requires: python3-module-rpm
 Requires: python3-module-dbus
 Requires: python3-module-configobj
@@ -120,6 +122,20 @@ Source0: %name-%version.tar
 gpupdate is the facility to apply various GPO/GPT settings retrieved
 from Active Directory domain in UNIX environment.
 
+%package -n gpoa-lib
+Summary: Shared library for GPOA - GPO Applier for Linux
+Group: Development/Python
+Requires: python3-module-dbus
+Requires: python3-module-configobj
+Requires: python3-module-samba
+Requires: python3-module-rpm
+
+%description -n gpoa-lib
+gpoa-lib is a shared library providing policy appliers, storage,
+GPT parsing, plugin framework and utility modules for GPOA.
+Can be used independently of gpupdate to apply Group Policy
+settings in Linux environments.
+
 %prep
 %setup -q
 
@@ -136,7 +152,13 @@ msgfmt \
 	-o %buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.mo \
 	%buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.po
 
-# Generate plugin translations
+# Generate plugin translations for gpoa_lib
+for po_file in %buildroot%python3_sitelibdir/gpoa_lib/frontend_plugins/locale/*/LC_MESSAGES/*.po; do
+	mo_file="${po_file%.po}.mo"
+	msgfmt -o "$mo_file" "$po_file"
+done
+
+# Generate plugin translations for gpoa (legacy path)
 for po_file in %buildroot%python3_sitelibdir/gpoa/frontend_plugins/locale/*/LC_MESSAGES/*.po; do
 	mo_file="${po_file%.po}.mo"
 	msgfmt -o "$mo_file" "$po_file"
@@ -226,7 +248,6 @@ fi
 %attr(755,root,root) %python3_sitelibdir/gpoa/scripts_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/pkcon_runner
 %python3_sitelibdir/gpoa
-%python3_sitelibdir/gpoa_lib
 %_datadir/%name
 %_unitdir/%name.service
 %_unitdir/%name-scripts-run.service
@@ -252,6 +273,9 @@ fi
 %exclude %python3_sitelibdir/gpoa/.prospector.yaml
 %exclude %python3_sitelibdir/gpoa/Makefile
 %exclude %python3_sitelibdir/gpoa/test
+
+%files -n gpoa-lib
+%python3_sitelibdir/gpoa_lib
 
 %changelog
 * Wed Apr 15 2026 Valery Sinelnikov <greh@altlinux.org> 0.15.0-alt1
