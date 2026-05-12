@@ -1,7 +1,6 @@
-#
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,9 +15,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Frontend plugins package for GPOA.
-
-This package contains display policy and other frontend-related plugins
-that can be dynamically loaded by the plugin manager.
-"""
+from gpoa_lib.frontend_plugins import *
