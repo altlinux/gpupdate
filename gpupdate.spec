@@ -93,6 +93,8 @@ mkdir -p \
 	%buildroot%python3_sitelibdir/
 cp -r gpoa \
 	%buildroot%python3_sitelibdir/
+cp -r gpoa_lib/gpoa_lib \
+	%buildroot%python3_sitelibdir/gpoa_lib
 
 # Generate translations
 msgfmt \
@@ -189,6 +191,7 @@ fi
 %attr(755,root,root) %python3_sitelibdir/gpoa/scripts_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/pkcon_runner
 %python3_sitelibdir/gpoa
+%python3_sitelibdir/gpoa_lib
 %_datadir/%name
 %_unitdir/%name.service
 %_unitdir/%name-scripts-run.service
