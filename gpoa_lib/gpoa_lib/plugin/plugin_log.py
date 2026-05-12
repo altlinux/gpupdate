@@ -98,31 +98,34 @@ class PluginLog:
                                 self.locale_dir = str(common_locale_dir)
                                 return
                 frame = frame.f_back
-            # Third try: relative to current working directory
-            cwd_locale = Path.cwd() / 'gpoa' / 'frontend_plugins' / 'locale'
-            if cwd_locale.exists():
-                self.locale_dir = str(cwd_locale)
-                return
-            # Fourth try: relative to script location
-            script_dir = Path(__file__).parent.parent.parent / 'frontend_plugins' / 'locale'
-            if script_dir.exists():
-                self.locale_dir = str(script_dir)
-                return
-            # Fifth try: system installation path for frontend plugins
+            for prefix in ('gpoa_lib/gpoa_lib', 'gpoa'):
+                cwd_locale = Path.cwd() / prefix / 'frontend_plugins' / 'locale'
+                if cwd_locale.exists():
+                    self.locale_dir = str(cwd_locale)
+                    return
+            for pkg_dir in (Path(__file__).parent.parent, Path(__file__).parent.parent.parent):
+                candidate = pkg_dir / 'frontend_plugins' / 'locale'
+                if candidate.exists():
+                    self.locale_dir = str(candidate)
+                    return
             system_paths = [
+                '/usr/lib/python3/site-packages/gpoa_lib/gpoa_lib/frontend_plugins/locale',
                 '/usr/lib/python3/site-packages/gpoa/frontend_plugins/locale',
-                '/usr/local/lib/python3/site-packages/gpoa/frontend_plugins/locale'
+                '/usr/local/lib/python3/site-packages/gpoa_lib/gpoa_lib/frontend_plugins/locale',
+                '/usr/local/lib/python3/site-packages/gpoa/frontend_plugins/locale',
             ]
             for path in system_paths:
                 if os.path.exists(path):
                     self.locale_dir = path
                     return
 
-            # Sixth try: system-wide gpupdate package locale directory
-            gpupdate_package_locale = Path('/usr/lib/python3/site-packages/gpoa/locale')
-            if gpupdate_package_locale.exists():
-                self.locale_dir = str(gpupdate_package_locale)
-                return
+            for pkg_locale in (
+                '/usr/lib/python3/site-packages/gpoa_lib/gpoa_lib/locale',
+                '/usr/lib/python3/site-packages/gpoa/locale',
+            ):
+                if os.path.exists(pkg_locale):
+                    self.locale_dir = pkg_locale
+                    return
 
             # Seventh try: system-wide locale directory (fallback)
             system_locale_dir = Path('/usr/share/locale')
