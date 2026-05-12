@@ -96,6 +96,7 @@ class FilterChecker:
                 'FilterBattery': cls.check_battery,
                 'FilterDisk': cls.check_disk,
                 'FilterLanguage': cls.check_language,
+                'FilterRam': cls.check_ram,
             }
         return cls.FILTER_HANDLERS
 
@@ -371,6 +372,25 @@ class FilterChecker:
                 return False
 
         return True
+
+    @staticmethod
+    def check_ram(filter_obj, username=None):
+        total_mb_str = getattr(filter_obj, 'totalMB', '')
+        if not total_mb_str:
+            return False
+        required_mb = int(total_mb_str)
+
+        try:
+            with open('/proc/meminfo') as f:
+                for line in f:
+                    if line.startswith('MemTotal:'):
+                        kb_str = ''.join(c for c in line.split(':')[1].strip() if c.isdigit())
+                        actual_mb = int(kb_str) // 1024
+                        return actual_mb >= required_mb
+        except (OSError, ValueError):
+            pass
+
+        return False
 
     @classmethod
     def _get_user_environ(cls, username):
