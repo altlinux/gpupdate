@@ -39,6 +39,19 @@ def _is_user_context(value):
     return value in (UserContext.USER, 1, True)
 
 
+_LCID_TO_LOCALE = {
+    4: 'zh_CN',
+    7: 'de_DE',
+    9: 'en_US',
+    10: 'es_ES',
+    12: 'fr_FR',
+    16: 'it_IT',
+    17: 'ja_JP',
+    18: 'ko_KO',
+    25: 'ru_RU',
+}
+
+
 def _extract_name_without_domain(name):
     if '\\' in name:
         _, name_part = name.split('\\', 1)
@@ -82,6 +95,7 @@ class FilterChecker:
                 'FilterCpu': cls.check_cpu,
                 'FilterBattery': cls.check_battery,
                 'FilterDisk': cls.check_disk,
+                'FilterLanguage': cls.check_language,
             }
         return cls.FILTER_HANDLERS
 
@@ -320,6 +334,43 @@ class FilterChecker:
 
         free_gb = total_free_bytes // (1024 * 1024 * 1024)
         return free_gb >= required_gb
+
+    @staticmethod
+    def check_language(filter_obj, username=None):
+        lcid_str = getattr(filter_obj, 'language', '')
+        if not lcid_str:
+            return True
+        expected = _LCID_TO_LOCALE.get(int(lcid_str))
+        if expected is None:
+            return False
+
+        use_default = getattr(filter_obj, 'default', '0') == '1'
+        use_system = getattr(filter_obj, 'system', '0') == '1'
+
+        if not use_default and not use_system:
+            return True
+
+        if use_default:
+            if username:
+                user_lang = FilterChecker._get_user_environ(username).get('LANG', '')
+            else:
+                user_lang = os.environ.get('LANG', '')
+            if not user_lang.startswith(expected):
+                return False
+
+        if use_system:
+            system_lang = os.environ.get('LANG', '')
+            try:
+                with open('/etc/locale.conf') as f:
+                    for line in f:
+                        if line.startswith('LANG='):
+                            system_lang = line.strip().split('=', 1)[1].strip('"')
+            except OSError:
+                pass
+            if not system_lang.startswith(expected):
+                return False
+
+        return True
 
     @classmethod
     def _get_user_environ(cls, username):
