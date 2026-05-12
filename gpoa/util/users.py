@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,66 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import pwd
-
-
-def is_root():
-    '''
-    Check if current process has root permissions.
-    '''
-    if os.getuid() == 0:
-        return True
-    return False
-
-
-def get_process_user():
-    '''
-    Get current process username.
-    '''
-    username = None
-
-    uid = os.getuid()
-    username = pwd.getpwuid(uid).pw_name
-
-    return username
-
-
-def username_match_uid(username):
-    '''
-    Check the passed username matches current process UID.
-    '''
-    process_username = get_process_user()
-
-    if process_username == username:
-        return True
-
-    return False
-
-
-def get_local_groups_for_username(username):
-    '''
-    Get list of local group names for a given username.
-
-    Args:
-        username (str): Username
-
-    Returns:
-        list: List of local group names
-    '''
-    try:
-        import grp
-        user_info = pwd.getpwnam(username)
-        user_gid = user_info.pw_gid
-        group_ids = os.getgrouplist(username, user_gid)
-        groups = []
-        for gid in group_ids:
-            try:
-                group_info = grp.getgrgid(gid)
-                groups.append(group_info.gr_name)
-            except KeyError:
-                pass
-        return groups
-    except Exception:
-        return []
-
+from gpoa_lib.util.users import *

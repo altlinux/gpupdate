@@ -21,7 +21,7 @@ import re
 import shutil
 
 from util.logging import log
-from util.windows import expand_windows_var
+from util.windows_vars import expand_windows_var
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.folder import Folder

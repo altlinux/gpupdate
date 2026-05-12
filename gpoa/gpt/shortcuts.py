@@ -22,7 +22,7 @@ from pathlib import Path
 import stat
 
 from util.paths import get_desktop_files_directory
-from util.windows import transform_windows_path
+from util.windows_vars import transform_windows_path
 from util.xml import get_xml_root
 from util.gpp_lifecycle import generate_shortcut_uid
 from util.util import utc_to_local

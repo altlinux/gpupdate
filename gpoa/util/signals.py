@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,21 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import os
-import signal
-
-from .arguments import ExitCodeUpdater
-from .kerberos import machine_kdestroy
-
-
-def signal_handler(sig_number, frame):
-    print('Received signal, exiting gracefully')
-    # Ignore extra signals
-    signal.signal(sig_number, signal.SIG_IGN)
-
-    # Kerberos cache cleanup on interrupt
-    machine_kdestroy()
-
-    os._exit(ExitCodeUpdater.EXIT_SIGINT)
-
+from gpoa_lib.util.signals import *

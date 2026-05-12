@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,97 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
-import json
-import logging
-
-from messages import message_with_code
-
-
-class encoder(json.JSONEncoder):
-    def default(self, obj):
-        result = super(encoder, self)
-        result = result.default(obj)
-
-        if isinstance(obj, set):
-            result = tuple(obj)
-        if isinstance(obj, unicode):
-            result = obj.encode('unicode_escape').decode('ascii')
-
-        return result
-
-
-class slogm(object):
-    '''
-    Structured log message class
-    '''
-    def __init__(self, message, kwargs={}):
-        self.message = message
-        self.kwargs = kwargs
-        if not self.kwargs:
-            self.kwargs = {}
-
-    def __str__(self):
-        now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))
-        args = {}
-        args.update(self.kwargs)
-        if args:
-            result = '{}|{}|{}'.format(now, self.message, args)
-        else:
-            result = '{}|{}'.format(now, self.message)
-
-        return result
-
-def log(message_code, data=None):
-    # New simplified format: message_code can be a single character for level
-    # and data should contain the actual message
-    if isinstance(message_code, str) and len(message_code) == 1:
-        # Simple level-based logging with message in data
-        mtype = message_code
-
-        if data and isinstance(data, dict):
-            # Extract message from data
-            message = data.get('message', 'No message provided')
-            plugin_name = data.get('plugin', 'UnknownPlugin')
-            log_data = data.get('data', {})
-
-            # Format the log message
-            log_message = f"[{plugin_name}] {message}"
-            if log_data:
-                log_message += f" | {log_data}"
-
-            if 'I' == mtype:
-                logging.info(slogm(log_message, data))
-            elif 'W' == mtype:
-                logging.warning(slogm(log_message, data))
-            elif 'E' == mtype:
-                logging.error(slogm(log_message, data))
-            elif 'F' == mtype:
-                logging.fatal(slogm(log_message, data))
-            elif 'D' == mtype:
-                logging.debug(slogm(log_message, data))
-            else:
-                logging.info(slogm(log_message, data))
-            return
-
-    # Fallback to old format for compatibility
-    mtype = message_code[0] if isinstance(message_code, str) and len(message_code) > 0 else 'E'
-
-    if 'I' == mtype:
-        logging.info(slogm(message_with_code(message_code), data))
-        return
-    if 'W' == mtype:
-        logging.warning(slogm(message_with_code(message_code), data))
-        return
-    if 'E' == mtype:
-        logging.error(slogm(message_with_code(message_code), data))
-        return
-    if 'F' == mtype:
-        logging.fatal(slogm(message_with_code(message_code), data))
-        return
-    if 'D' == mtype:
-        logging.debug(slogm(message_with_code(message_code), data))
-        return
-
-    logging.error(slogm(message_with_code(message_code), data))
-
+from gpoa_lib.util.logging import *

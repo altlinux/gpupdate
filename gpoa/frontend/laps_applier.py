@@ -31,7 +31,7 @@ import psutil
 from util.logging import log
 from util.sid import WellKnown21RID
 from util.util import check_local_user_exists, remove_prefix_from_keys, get_machine_name
-from util.windows import get_kerberos_domain_info
+from util.windows_vars import get_kerberos_domain_info
 
 from .applier_frontend import applier_frontend, check_enabled
 

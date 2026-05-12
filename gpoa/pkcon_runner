@@ -19,6 +19,16 @@
 
 import rpm
 import subprocess
+import sys
+
+import os
+_gpoa_dir = os.path.dirname(os.path.abspath(__file__))
+_gpoa_lib_dir = os.path.join(os.path.dirname(_gpoa_dir), 'gpoa_lib')
+if _gpoa_lib_dir not in sys.path:
+    sys.path.insert(0, _gpoa_lib_dir)
+if _gpoa_dir not in sys.path:
+    sys.path.insert(0, _gpoa_dir)
+
 from gpoa.storage import registry_factory
 from util.util import get_uid_by_username, string_to_literal_eval
 import logging

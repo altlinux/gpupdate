@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2020 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,28 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from abc import ABC
-
-
-class cache(ABC):
-    def __init__(self):
-        pass
-
-    @classmethod
-    def store(self, str_id, value):
-        '''
-        '''
-        pass
-
-    @classmethod
-    def get(self, obj_id):
-        '''
-        '''
-        pass
-
-    @classmethod
-    def get_default(self, obj_id, default_value):
-        '''
-        '''
-        pass
-
+from gpoa_lib.storage.cache import *

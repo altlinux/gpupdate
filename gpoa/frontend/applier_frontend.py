@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2024 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,68 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from abc import ABC
-
-
-def check_experimental_enabled(storage):
-    experimental_enable_flag = '/Software/BaseALT/Policies/GPUpdate/GlobalExperimental'
-    flag = storage.get_key_value(experimental_enable_flag)
-
-    result = False
-
-    if flag and '1' == str(flag):
-        result = True
-
-    return result
-
-def check_windows_mapping_enabled(storage):
-    windows_mapping_enable_flag = '/Software/BaseALT/Policies/GPUpdate/WindowsPoliciesMapping'
-    flag = storage.get_key_value(windows_mapping_enable_flag)
-
-    result = True
-    flag = str(flag)
-    if flag and '0' == flag:
-        result = False
-
-    return result
-
-def check_module_enabled(storage, module_name):
-    gpupdate_module_enable_branch = '/Software/BaseALT/Policies/GPUpdate'
-    gpupdate_module_flag = '{}/{}'.format(gpupdate_module_enable_branch, module_name)
-    flag = storage.get_key_value(gpupdate_module_flag)
-
-    result = None
-    flag = str(flag)
-    if flag and flag!='None':
-        if '1' == flag:
-            result =  True
-        else:
-            result =  False
-
-    return result
-
-def check_enabled(storage, module_name, is_experimental):
-    module_enabled = check_module_enabled(storage, module_name)
-    exp_enabled = check_experimental_enabled(storage)
-
-    result = False
-
-    if None == module_enabled:
-        if is_experimental and exp_enabled:
-            result = True
-        if not is_experimental:
-            result = True
-    else:
-        result = module_enabled
-
-    return result
-
-class applier_frontend(ABC):
-    @classmethod
-    def __init__(self, regobj):
-        pass
-
-    @classmethod
-    def apply(self):
-        pass
-
+from gpoa_lib.frontend.applier_frontend import *

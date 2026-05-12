@@ -22,6 +22,14 @@ import os
 import signal
 import gettext
 import locale
+import sys
+
+_gpoa_dir = os.path.dirname(os.path.abspath(__file__))
+_gpoa_lib_dir = os.path.join(os.path.dirname(_gpoa_dir), 'gpoa_lib')
+if _gpoa_lib_dir not in sys.path:
+    sys.path.insert(0, _gpoa_lib_dir)
+if _gpoa_dir not in sys.path:
+    sys.path.insert(0, _gpoa_dir)
 
 from backend import backend_factory, save_dconf, save_dconf_without_previous
 from frontend.frontend_manager import frontend_manager, determine_username
@@ -30,6 +38,8 @@ from messages import message_with_code
 from storage import Dconf_registry
 
 from util.util import get_machine_name
+from util.sid import set_trust_info_callback
+from util.check_filters import set_domain_resolver
 from util.users import (
     is_root,
     get_process_user
@@ -189,6 +199,13 @@ class gpoa_controller:
             pm.run()
 
 def main():
+    set_trust_info_callback(Dconf_registry.set_info)
+
+    def _resolve_domain():
+        from util.windows import smbcreds
+        return smbcreds().get_domain()
+    set_domain_resolver(_resolve_domain)
+
     controller = gpoa_controller()
     controller.run()
 

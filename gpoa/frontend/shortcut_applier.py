@@ -22,7 +22,7 @@ import shutil
 from gpt.shortcuts import get_ttype, shortcut
 from util.logging import log
 from util.util import get_homedir, homedir_exists, string_to_literal_eval
-from util.windows import expand_windows_var
+from util.windows_vars import expand_windows_var
 from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled

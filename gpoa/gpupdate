@@ -25,6 +25,14 @@ import os
 import sys
 import pwd
 import signal
+
+_gpoa_dir = os.path.dirname(os.path.abspath(__file__))
+_gpoa_lib_dir = os.path.join(os.path.dirname(_gpoa_dir), 'gpoa_lib')
+if _gpoa_lib_dir not in sys.path:
+    sys.path.insert(0, _gpoa_lib_dir)
+if _gpoa_dir not in sys.path:
+    sys.path.insert(0, _gpoa_dir)
+
 from storage import Dconf_registry
 
 from util.users import (
@@ -126,9 +134,9 @@ def runner_factory(args, target):
     if args.system:
         return try_directly(username, target, args.loglevel)
     else:
-        return try_by_oddjob(username, target)
+        return try_by_oddjob(username, target, args.force)
 
-def try_by_oddjob(username, target):
+def try_by_oddjob(username, target, force=False):
     '''
     Run group policies applying by oddjob service
     '''
@@ -137,10 +145,10 @@ def try_by_oddjob(username, target):
         computer_runner = None
         user_runner = None
         if target == 'ALL' or target == 'COMPUTER':
-            computer_runner = dbus_runner()
+            computer_runner = dbus_runner(force=force)
         if username:
             if target == 'ALL' or target == 'USER':
-                user_runner = dbus_runner(username)
+                user_runner = dbus_runner(username, force=force)
         return (computer_runner, user_runner)
     else:
         log('W3')

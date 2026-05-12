@@ -22,7 +22,7 @@ from .applier_frontend import applier_frontend, check_enabled
 from .appliers.ini_file import Ini_file
 from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_inifile
 from pathlib import Path
-from util.windows import expand_windows_var
+from util.windows_vars import expand_windows_var
 
 _REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowEmptySections'
 _REGISTRY_PATH_INI_ALLOW_UNQUOTED_COMMAS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowUnquotedCommas'

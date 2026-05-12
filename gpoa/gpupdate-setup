@@ -19,7 +19,15 @@
 
 
 import os
+import sys
 import argparse
+
+_gpoa_dir = os.path.dirname(os.path.abspath(__file__))
+_gpoa_lib_dir = os.path.join(os.path.dirname(_gpoa_dir), 'gpoa_lib')
+if _gpoa_lib_dir not in sys.path:
+    sys.path.insert(0, _gpoa_lib_dir)
+if _gpoa_dir not in sys.path:
+    sys.path.insert(0, _gpoa_dir)
 
 from util.util import (
       runcmd
