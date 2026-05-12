@@ -100,6 +100,7 @@ class FilterChecker:
                 'FilterRam': cls.check_ram,
                 'FilterFile': cls.check_file,
                 'FilterIpRange': cls.check_iprange,
+                'FilterMacRange': cls.check_macrange,
             }
         return cls.FILTER_HANDLERS
 
@@ -450,6 +451,28 @@ class FilterChecker:
                 s.close()
         except OSError:
             return None
+
+    @staticmethod
+    def check_macrange(filter_obj, username=None):
+        min_str = getattr(filter_obj, 'min', '')
+        if not min_str:
+            return False
+        max_str = getattr(filter_obj, 'max', min_str)
+
+        try:
+            min_int = int(min_str.replace(':', '').replace('-', ''), 16)
+            max_int = int(max_str.replace(':', '').replace('-', ''), 16)
+
+            with open('/proc/net/route') as f:
+                for line in f:
+                    parts = line.strip().split()
+                    if parts[1] == '00000000':
+                        with open(f'/sys/class/net/{parts[0]}/address') as af:
+                            mac_int = int(af.read().strip().replace(':', '').replace('-', ''), 16)
+                        return min_int <= mac_int <= max_int
+        except (ValueError, OSError, IndexError):
+            pass
+        return False
 
     @classmethod
     def _get_user_environ(cls, username):
