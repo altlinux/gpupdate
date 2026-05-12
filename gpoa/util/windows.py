@@ -17,32 +17,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import ipaddress
+import optparse
 import os
+import random
 import re
-import tempfile
-from functools import lru_cache
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
+import ldb
+import netifaces
 from samba import NTSTATUSError
+from samba.auth import system_session
 from samba.credentials import Credentials
+import samba.gpo
 
 try:
     from samba.gpclass import check_refresh_gpo_list, get_dc_hostname
 except ImportError:
     from samba.gp.gpclass import get_dc_hostname, check_refresh_gpo_list, get_gpo_list
 
-import ipaddress
-import optparse
-import random
-
-import ldb
-import netifaces
-from samba.auth import system_session
-import samba.gpo
 from samba.net import Net
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
-from samba.param import LoadParm
 from samba.samdb import SamDB
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
 from util.system import with_privileges
@@ -52,9 +48,8 @@ from storage import registry_factory
 from .exceptions import GetGPOListFail
 from .logging import log
 from .samba import smbopts
-from .sid import get_sid
-from .util import get_homedir, get_uid_by_username, get_machine_name
-from .xdg import xdg_get_desktop
+from .util import get_uid_by_username
+from .windows_vars import get_kerberos_domain_info
 
 
 class smbcreds (smbopts):
@@ -382,143 +377,6 @@ class SiteDomainScanner:
     def select_pdc_emulator_server(self):
         return self.pdc_emulator
 
-class WindowsVarExpander:
-    """
-    Expand percent-encoded Windows variables (%HOME%, %AppData%, …) to
-    POSIX paths.
-
-    Design notes
-    ------------
-    - Single-pass regex substitution: O(n) instead of O(n·m).
-    - Case-insensitive lookup: %home% == %HOME% == %Home%.
-    - Per-username variable map is built once and cached (lru_cache).
-    - xdg_get_desktop() result is also cached — no repeated os.popen calls.
-    - Unknown variables are left unchanged (no silent corruption).
-    """
-
-    # Matches any %TOKEN% where TOKEN contains no percent signs
-    _PATTERN = re.compile(r'%([^%]+)%')
-
-    # Variables that hold non-path values — trailing slash must NOT be added
-    _NON_PATH_VARS = {'LOGONUSER', 'USERNAME', 'COMPUTERNAME', 'DOMAINNAME',
-                      'LDAPUSERSID', 'CURRENTPROCESSID'}
-
-    @classmethod
-    def clear_cache(cls) -> None:
-        """Invalidate all cached variable maps (useful in tests)."""
-        cls._build_map.cache_clear()
-        xdg_get_desktop.cache_clear()
-
-    @classmethod
-    def expand(cls, text: str, username: Optional[str] = None) -> str:
-        """
-        Expand Windows-style variables in *text*.
-
-        :param text:     Input string, e.g. ``'%HOME%/docs'``.
-        :param username: When given, user-specific paths are used;
-                         otherwise system-wide defaults apply.
-        :returns:        Expanded string; unknown tokens are preserved.
-        """
-        if '%' not in text:
-            return text
-
-        variables = cls._build_map(username)
-        unknown = []
-
-        def _replace(match: re.Match) -> str:
-            key = match.group(1).upper()
-            value = variables.get(key, match.group(0))
-            if value == match.group(0):
-                unknown.append(match.group(0))
-            return value
-
-        result = cls._PATTERN.sub(_replace, text)
-        return result
-
-    @classmethod
-    @lru_cache(maxsize=32)
-    def _build_map(cls, username: Optional[str] = None) -> dict[str, str]:
-        """
-        Build and cache the UPPER-CASE variable map for *username*.
-        All values are normalised to end with '/'.
-        """
-        if username:
-            homedir      = get_homedir(username)
-            start_menu   = os.path.join(homedir, '.local', 'share', 'applications')
-            appdata      = os.path.join(homedir, '.config')
-            localappdata = os.path.join(homedir, '.local', 'share')
-        else:
-            homedir      = '/etc/skel'
-            start_menu   = '/usr/share/applications'
-            appdata      = '/etc/skel'
-            localappdata = '/etc/skel'
-
-        desktop = xdg_get_desktop(username, homedir)
-        tmp     = os.path.join(tempfile.gettempdir(), username) if username else tempfile.gettempdir()
-
-        info   = get_kerberos_domain_info()
-        pdc    = info.get('pdc_dns_name', '')
-        domain = pdc.split('.', 1)[-1] if '.' in pdc else ''
-
-        raw: dict[str, str] = {
-            'HOME':              homedir,
-            'HOMEPATH':          homedir,
-            'HOMEDRIVE':         '/',
-            'USERPROFILE':       homedir,
-            'SYSTEMROOT':        '/',
-            'SYSTEMDRIVE':       '/',
-            'WINDIR':            '/',
-            'DESKTOPDIR':        desktop,
-            'STARTMENUDIR':      start_menu,
-            'APPDATA':           appdata,
-            'LOCALAPPDATA':      localappdata,
-            'PROGRAMDATA':       '/var/lib',
-            'PROGRAMFILES':      '/usr',
-            'PROGRAMFILES(X86)': '/usr/lib',
-            'PUBLIC':            '/usr/share',
-            'TEMP':              tmp,
-            'TMP':               tmp,
-            'COMPUTERNAME':      get_machine_name(),
-            'DOMAINNAME':        domain,
-            'CURRENTPROCESSID':  str(os.getpid()),
-        }
-
-        if username:
-            raw['LOGONUSER'] = username
-            raw['USERNAME']  = username
-            try:
-                raw['LDAPUSERSID'] = get_sid(domain, username, is_machine=False)
-            except Exception:
-                pass
-
-        result = {}
-        for k, v in raw.items():
-            if k in cls._NON_PATH_VARS or v.endswith('/'):
-                result[k] = v
-            else:
-                result[k] = v + '/'
-
-        return result
-
-
-def expand_windows_var(text: str, username: Optional[str] = None) -> str:
-    '''
-    Scan the line for percent-encoded variables and expand them.
-    '''
-    return WindowsVarExpander.expand(text, username)
-
-
-def transform_windows_path(text):
-    '''
-    Try to make Windows path look like UNIX.
-    '''
-    result = text
-
-    if text.lower().endswith('.exe'):
-        result = text.lower().replace('\\', '/').replace('.exe', '').rpartition('/')[2]
-
-    return result
-
 def check_scroll_enabled():
     storage = registry_factory()
     enable_scroll = '/Software/BaseALT/Policies/GPUpdate/ScrollSysvolDC'
@@ -527,28 +385,3 @@ def check_scroll_enabled():
         return bool(int(data))
     else:
         return False
-
-def get_kerberos_domain_info():
-    """
-    Retrieve information about the AD domain using Kerberos tickets
-    """
-    try:
-        # Initialize credentials and load Samba parameters
-        creds = Credentials()
-        creds.guess()
-        lp = LoadParm()
-
-        # Get current realm
-        realm = creds.get_realm()
-
-        # Query domain controller
-        net = Net(creds, lp, server=None)
-        info = net.finddc(flags=0, domain=realm)
-
-        return {
-            "pdc_dns_name": info.pdc_dns_name,
-            "principal": creds.get_principal(),
-        }
-
-    except Exception as exc:
-        return {'Exception':exc}
