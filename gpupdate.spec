@@ -4,13 +4,6 @@
 %add_python3_req_skip applaer.systemd
 %add_python3_req_skip backend
 %add_python3_req_skip frontend.frontend_manager
-%add_python3_req_skip gpt.envvars
-%add_python3_req_skip gpt.folders
-%add_python3_req_skip gpt.gpt
-%add_python3_req_skip gpt.printers
-%add_python3_req_skip gpt.shortcuts
-%add_python3_req_skip gpt.gpo_dconf_mapping
-%add_python3_req_skip gpt.dynamic_attributes
 %add_python3_req_skip messages
 %add_python3_req_skip plugin
 %add_python3_req_skip storage
@@ -68,15 +61,6 @@
 %add_python3_req_skip frontend.yandex_browser_applier
 %add_python3_req_skip frontend_plugins
 %add_python3_req_skip frontend_plugins.dm_applier
-%add_python3_req_skip gpt.drives
-%add_python3_req_skip gpt.files
-%add_python3_req_skip gpt.filter
-%add_python3_req_skip gpt.inifiles
-%add_python3_req_skip gpt.networkshares
-%add_python3_req_skip gpt.polfile
-%add_python3_req_skip gpt.scriptsini
-%add_python3_req_skip gpt.services
-%add_python3_req_skip gpt.tasks
 
 
 Name: gpupdate

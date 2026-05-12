@@ -23,7 +23,7 @@ import re
 import subprocess
 
 import gi
-from ..gpt.dynamic_attributes import RegistryKeyMetadata
+from .dynamic_attributes import RegistryKeyMetadata
 from ..util.logging import log
 from ..util.paths import get_dconf_config_path
 from ..util.util import (
