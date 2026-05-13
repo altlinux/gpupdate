@@ -28,16 +28,12 @@ class FrontendPlugin(plugin):
         super().__init__(dict_dconf_db, username, fs_file_cache)
 
     @abstractmethod
-    def run(self):
+    def run(self, **kwargs):
         """
         Abstract method that must be implemented by concrete plugins.
         This method should contain the main plugin execution logic.
         """
         pass
-
-
-
-
 
 
 

@@ -78,6 +78,6 @@ class applier_frontend(ABC):
         pass
 
     @classmethod
-    def apply(self):
+    def apply(self, **kwargs):
         pass
 

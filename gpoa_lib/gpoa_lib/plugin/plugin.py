@@ -32,22 +32,20 @@ class plugin(ABC):
         self.plugin_name = self.__class__.__name__
 
     @final
-    def apply(self):
+    def apply(self, **kwargs):
         """Apply the plugin with current privileges"""
-        self.run()
+        self.run(**kwargs)
 
     @final
-    def apply_user(self, username):
+    def apply_user(self, username, **kwargs):
         """Apply the plugin with user privileges"""
         from .util.system import with_privileges
 
         def run_with_user():
             try:
-                result = self.run()
-                # Ensure result is JSON-serializable
+                result = self.run(**kwargs)
                 return {"success": True, "result": result}
             except Exception as exc:
-                # Return error information in JSON-serializable format
                 return {"success": False, "error": str(exc)}
 
         try:
@@ -85,6 +83,6 @@ class plugin(ABC):
             log(level_char, {"plugin": self.__class__.__name__, "message": f"Message {message_code}", "data": data})
 
     @abstractmethod
-    def run(self):
+    def run(self, **kwargs):
         pass
 
