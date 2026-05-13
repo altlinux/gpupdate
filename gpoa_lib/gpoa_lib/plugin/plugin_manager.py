@@ -132,12 +132,9 @@ class plugin_manager:
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if not spec or not spec.loader or module_name in self.list_plugins:
             return None
-        # Save the list of names to prevent repetition
-        self.list_plugins.append(module_name)
 
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-
 
         # Find factory functions based on context
         factory_funcs = []
@@ -150,19 +147,17 @@ class plugin_manager:
 
         for name, obj in inspect.getmembers(module):
             if (inspect.isfunction(obj) and
-                name.lower() in target_factory_names and
+                name in target_factory_names and
                 callable(obj)):
                 factory_funcs.append(obj)
 
-        # Create plugin instance
-
-
-        if factory_funcs:
-            # Use factory function if available
-            plugin_instance = factory_funcs[0](self.dict_dconf_db, self.username, self.file_cache)
-        else:
-            # No suitable factory function found for this context
+        if not factory_funcs:
             return None
+
+        plugin_instance = factory_funcs[0](self.dict_dconf_db, self.username, self.file_cache)
+
+        # Save the list of names to prevent repetition (only after successful load)
+        self.list_plugins.append(module_name)
 
         # Auto-detect locale directory for this plugin and initialize/update logger
         if hasattr(plugin_instance, '_init_plugin_log'):
@@ -211,6 +206,11 @@ class plugin_manager:
 
         return plugin_instance
 
+    def get_plugin(self, name):
+        """Get a plugin instance by name. Returns None if not found."""
+        for plugin_obj in self.plugins:
+            if getattr(plugin_obj, 'plugin_name', '') == name:
+                return plugin_obj
         return None
 
     def is_valid_api_object(self, obj):
