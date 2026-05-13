@@ -19,5 +19,7 @@
 from gpoa_lib.storage.dconf_registry import Dconf_registry
 from gpoa_lib.storage.dynamic_attributes import DynamicAttributes, RegistryKeyMetadata
 from gpoa_lib.storage.gpp_state import GppStateManager
+from gpoa_lib.storage.storage_adapter import StorageAdapter
 from gpoa_lib.frontend.applier_frontend import applier_frontend
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
+from gpoa_lib.applier_runner import ApplierRunner
