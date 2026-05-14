@@ -20,7 +20,10 @@
 
 import socket
 import datetime
+import ipaddress
+import os
 import threading
+from pathlib import Path
 
 from .logging import log
 from .util import get_machine_name
@@ -43,6 +46,19 @@ class UserContext:
 
 def _is_user_context(value):
     return value in (UserContext.USER, 1, True)
+
+
+_LCID_TO_LOCALE = {
+    4: 'zh_CN',
+    7: 'de_DE',
+    9: 'en_US',
+    10: 'es_ES',
+    12: 'fr_FR',
+    16: 'it_IT',
+    17: 'ja_JP',
+    18: 'ko_KO',
+    25: 'ru_RU',
+}
 
 
 def _extract_name_without_domain(name):
@@ -71,6 +87,7 @@ class FilterChecker:
     _groups_cache = {}
     _machine_name_cache = None
     _fqdn_cache = None
+    _user_environ_cache = {}
     FILTER_HANDLERS = None
 
     @classmethod
@@ -82,6 +99,16 @@ class FilterChecker:
                 'FilterDate': cls.check_date,
                 'FilterUser': cls.check_user,
                 'FilterGroup': cls.check_group,
+                'FilterVariable': cls.check_variable,
+                'FilterTime': cls.check_time,
+                'FilterCpu': cls.check_cpu,
+                'FilterBattery': cls.check_battery,
+                'FilterDisk': cls.check_disk,
+                'FilterLanguage': cls.check_language,
+                'FilterRam': cls.check_ram,
+                'FilterFile': cls.check_file,
+                'FilterIpRange': cls.check_iprange,
+                'FilterMacRange': cls.check_macrange,
             }
         return cls.FILTER_HANDLERS
 
@@ -222,6 +249,272 @@ class FilterChecker:
                 return group_name in local_groups
             return False
 
+    @staticmethod
+    def check_variable(filter_obj, username=None):
+        variable_name = getattr(filter_obj, 'variableName', '')
+        expected_value = getattr(filter_obj, 'value', '')
+        if not variable_name:
+            return True
+
+        if username:
+            actual_value = FilterChecker._get_user_environ(username).get(variable_name, '')
+        else:
+            actual_value = os.environ.get(variable_name, '')
+
+        return actual_value == expected_value
+
+    @staticmethod
+    def check_time(filter_obj, username=None):
+        begin_str = getattr(filter_obj, 'begin', '')
+        end_str = getattr(filter_obj, 'end', '')
+        if not begin_str or not end_str:
+            return True
+
+        begin = datetime.time.fromisoformat(begin_str)
+        end = datetime.time.fromisoformat(end_str)
+        now = datetime.datetime.now().time()
+
+        if begin <= end:
+            return begin <= now <= end
+        else:
+            return now >= begin or now <= end
+
+    @staticmethod
+    def check_cpu(filter_obj, username=None):
+        speed_mhz = getattr(filter_obj, 'speedMHz', '')
+        if not speed_mhz:
+            return True
+        expected = int(speed_mhz)
+
+        actual = 0
+        try:
+            with open('/proc/cpuinfo') as f:
+                for line in f:
+                    if line.startswith('cpu MHz'):
+                        val = int(float(line.split(':')[1].strip()))
+                        if val > actual:
+                            actual = val
+        except (OSError, ValueError):
+            pass
+
+        return actual >= expected
+
+    @staticmethod
+    def check_battery(filter_obj, username=None):
+        try:
+            for entry in Path('/sys/class/power_supply').iterdir():
+                if entry.name.startswith('BAT'):
+                    return True
+        except OSError:
+            pass
+        return False
+
+    @staticmethod
+    def check_disk(filter_obj, username=None):
+        drive = getattr(filter_obj, 'drive', '')
+        if drive != '%SystemDrive%':
+            return False
+
+        free_space_str = getattr(filter_obj, 'freeSpace', '')
+        if not free_space_str:
+            return True
+        required_gb = int(free_space_str)
+
+        skip_types = {
+            'proc', 'sysfs', 'devpts', 'devtmpfs', 'tmpfs',
+            'cgroup', 'cgroup2', 'efivarfs', 'securityfs', 'pstore',
+            'debugfs', 'tracefs', 'fusectl', 'configfs', 'ramfs'
+        }
+        total_free_bytes = 0
+        try:
+            with open('/proc/mounts') as f:
+                for line in f:
+                    parts = line.split()
+                    if len(parts) < 3:
+                        continue
+                    device, mountpoint, fstype = parts[0], parts[1], parts[2]
+                    if not device.startswith('/dev/'):
+                        continue
+                    if fstype in skip_types:
+                        continue
+                    try:
+                        stat = os.statvfs(mountpoint)
+                        total_free_bytes += stat.f_bavail * stat.f_frsize
+                    except OSError:
+                        pass
+        except OSError:
+            return False
+
+        free_gb = total_free_bytes // (1024 * 1024 * 1024)
+        return free_gb >= required_gb
+
+    @staticmethod
+    def check_language(filter_obj, username=None):
+        lcid_str = getattr(filter_obj, 'language', '')
+        if not lcid_str:
+            return True
+        expected = _LCID_TO_LOCALE.get(int(lcid_str))
+        if expected is None:
+            return False
+
+        use_default = getattr(filter_obj, 'default', '0') == '1'
+        use_system = getattr(filter_obj, 'system', '0') == '1'
+
+        if not use_default and not use_system:
+            return True
+
+        if use_default:
+            if username:
+                user_lang = FilterChecker._get_user_environ(username).get('LANG', '')
+            else:
+                user_lang = os.environ.get('LANG', '')
+            if not user_lang.startswith(expected):
+                return False
+
+        if use_system:
+            system_lang = os.environ.get('LANG', '')
+            try:
+                with open('/etc/locale.conf') as f:
+                    for line in f:
+                        if line.startswith('LANG='):
+                            system_lang = line.strip().split('=', 1)[1].strip('"')
+            except OSError:
+                pass
+            if not system_lang.startswith(expected):
+                return False
+
+        return True
+
+    @staticmethod
+    def check_ram(filter_obj, username=None):
+        total_mb_str = getattr(filter_obj, 'totalMB', '')
+        if not total_mb_str:
+            return False
+        required_mb = int(total_mb_str)
+
+        try:
+            with open('/proc/meminfo') as f:
+                for line in f:
+                    if line.startswith('MemTotal:'):
+                        kb_str = ''.join(c for c in line.split(':')[1].strip() if c.isdigit())
+                        actual_mb = int(kb_str) // 1024
+                        return actual_mb >= required_mb
+        except (OSError, ValueError):
+            pass
+
+        return False
+
+    @staticmethod
+    def check_file(filter_obj, username=None):
+        path = getattr(filter_obj, 'path', '')
+        if not path:
+            return False
+
+        filter_type = getattr(filter_obj, 'type', 'EXISTS').upper()
+        is_folder = getattr(filter_obj, 'folder', '0') == '1'
+
+        if filter_type == 'EXISTS':
+            if is_folder:
+                return os.path.isdir(path)
+            return os.path.isfile(path)
+
+        return False
+
+    @staticmethod
+    def check_iprange(filter_obj, username=None):
+        min_str = getattr(filter_obj, 'min', '')
+        if not min_str:
+            return False
+
+        use_ipv6 = getattr(filter_obj, 'useIPv6', '0') == '1'
+        max_str = getattr(filter_obj, 'max', '0')
+
+        try:
+            if use_ipv6:
+                network = ipaddress.IPv6Network(f'{min_str}/{int(max_str)}', strict=False)
+                ip_str = FilterChecker._get_primary_ip(v6=True)
+                if ip_str:
+                    return ipaddress.IPv6Address(ip_str) in network
+            else:
+                min_addr = ipaddress.IPv4Address(min_str)
+                max_addr = ipaddress.IPv4Address(max_str)
+                ip_str = FilterChecker._get_primary_ip(v6=False)
+                if ip_str:
+                    return min_addr <= ipaddress.IPv4Address(ip_str) <= max_addr
+        except (ValueError, OSError):
+            pass
+
+        return False
+
+    @staticmethod
+    def _get_primary_ip(v6=False):
+        try:
+            family = socket.AF_INET6 if v6 else socket.AF_INET
+            target = ('2001:4860:4860::8888', 80) if v6 else ('8.8.8.8', 80)
+            s = socket.socket(family, socket.SOCK_DGRAM)
+            try:
+                s.connect(target)
+                return s.getsockname()[0]
+            finally:
+                s.close()
+        except OSError:
+            return None
+
+    @staticmethod
+    def check_macrange(filter_obj, username=None):
+        min_str = getattr(filter_obj, 'min', '')
+        if not min_str:
+            return False
+        max_str = getattr(filter_obj, 'max', min_str)
+
+        try:
+            min_int = int(min_str.replace(':', '').replace('-', ''), 16)
+            max_int = int(max_str.replace(':', '').replace('-', ''), 16)
+
+            with open('/proc/net/route') as f:
+                for line in f:
+                    parts = line.strip().split()
+                    if parts[1] == '00000000':
+                        with open(f'/sys/class/net/{parts[0]}/address') as af:
+                            mac_int = int(af.read().strip().replace(':', '').replace('-', ''), 16)
+                        return min_int <= mac_int <= max_int
+        except (ValueError, OSError, IndexError):
+            pass
+        return False
+
+    @classmethod
+    def _get_user_environ(cls, username):
+        if username in cls._user_environ_cache:
+            return cls._user_environ_cache[username]
+
+        with cls._lock:
+            if username in cls._user_environ_cache:
+                return cls._user_environ_cache[username]
+            env = cls._read_all_user_environ(username)
+            cls._user_environ_cache[username] = env
+            return env
+
+    @staticmethod
+    def _read_all_user_environ(username):
+        target = f'USER={username}'.encode()
+        result = {}
+        for entry in Path('/proc').iterdir():
+            if not entry.name.isdigit():
+                continue
+            try:
+                with open(str(entry / 'environ'), 'rb') as f:
+                    raw = f.read()
+            except (OSError, PermissionError):
+                continue
+            if target in raw.split(b'\0'):
+                for item in raw.split(b'\0'):
+                    if b'=' in item:
+                        k, v = item.split(b'=', 1)
+                        key = k.decode()
+                        val = v.decode()
+                        result[key] = val
+        return result
+
     @classmethod
     def reset_cache(cls):
         """Clear all caches. Call between GPO processing sessions."""
@@ -230,6 +523,7 @@ class FilterChecker:
             cls._groups_cache.clear()
             cls._machine_name_cache = None
             cls._fqdn_cache = None
+            cls._user_environ_cache.clear()
 
     @classmethod
     def _resolve_fqdn(cls):
