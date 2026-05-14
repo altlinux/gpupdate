@@ -166,3 +166,26 @@ class StorageAdapterTestCase(unittest.TestCase):
         entry = adapter.get_hklm_entry('Software\\Test\\key')
         self.assertIsNotNone(entry)
         self.assertEqual(entry.data, 'value')
+
+    def test_get_dict_returns_plain_dict(self):
+        data = {
+            'Software/BaseALT/Policies/Control': {
+                'sshd-gssapi-auth': '1',
+            }
+        }
+        adapter = StorageAdapter.from_dict(data)
+        result = adapter.get_dict()
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result['Software/BaseALT/Policies/Control']['sshd-gssapi-auth'], '1')
+
+    def test_get_dict_returns_copy(self):
+        data = {'Software/Test': {'key': 'value'}}
+        adapter = StorageAdapter.from_dict(data)
+        d1 = adapter.get_dict()
+        d1['Software/Test']['key'] = 'changed'
+        d2 = adapter.get_dict()
+        self.assertEqual(d2['Software/Test']['key'], 'value')
+
+    def test_get_dict_empty(self):
+        adapter = StorageAdapter.from_dict({})
+        self.assertEqual(adapter.get_dict(), {})

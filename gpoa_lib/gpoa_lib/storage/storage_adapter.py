@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import copy
+
 from .dconf_registry import (
     PregDconf,
     convert_string_dconf,
@@ -197,6 +199,9 @@ class StorageAdapter:
     def get_key_value(self, key):
         result = self.get_entry(key, preg=False)
         return result
+
+    def get_dict(self):
+        return copy.deepcopy(self._data)
 
     def check_enable_key(self, key):
         data = self.get_entry(key, preg=False)
