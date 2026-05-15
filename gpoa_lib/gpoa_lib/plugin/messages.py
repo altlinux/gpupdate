@@ -107,7 +107,7 @@ def _load_plugin_translations(domain):
                 break
 
         # If not found through module inspection, try system-wide gpupdate plugins directory
-        gpupdate_plugins_locale = Path('/usr/lib/gpupdate/plugins/locale')
+        gpupdate_plugins_locale = Path('/usr/lib/gpoa/plugins/locale')
         if gpupdate_plugins_locale.exists():
             lang = 'ru_RU'
             lc_messages_dir = gpupdate_plugins_locale / lang / 'LC_MESSAGES'

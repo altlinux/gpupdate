@@ -15,7 +15,7 @@ Plugins allow adding support for new policy types and system settings without mo
 ### Plugin Manager
 
 - **`plugin_manager`** - Loads and executes plugins from directories:
-  - `/usr/lib/gpupdate/plugins/` - system plugins
+  - `/usr/lib/gpoa/plugins/` - system plugins
   - `gpoa_lib/gpoa_lib/frontend_plugins/` - built-in plugins
 
 ## Creating a Simple Plugin
@@ -191,7 +191,7 @@ GPOA supports automatic localization of plugin messages. The system uses standar
 ### Translation File Structure
 
 ```
-/usr/lib/gpupdate/plugins/
+/usr/lib/gpoa/plugins/
 ├── my_plugin/
 │   ├── my_plugin.py
 │   ├── locale/
@@ -275,7 +275,7 @@ cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
 ### Example Plugin Structure with Translations
 
 ```
-/usr/lib/gpupdate/plugins/
+/usr/lib/gpoa/plugins/
 └── my_plugin.py           # Main plugin code
     locale/
     ├── ru/

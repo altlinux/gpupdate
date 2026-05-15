@@ -123,7 +123,7 @@ gpupdate --force
 
 ### Plugin Management
 Plugins are automatically discovered from:
-- `/usr/lib/gpupdate/plugins/` (system-wide plugins)
+- `/usr/lib/gpoa/plugins/` (system-wide plugins)
 - `gpoa_lib/gpoa_lib/frontend_plugins/` (built-in plugins)
 
 ## External API (gpoa-lib)
@@ -182,7 +182,7 @@ value = storage.get_key_value('Software/BaseALT/Policies/Control/sshd-gssapi-aut
 
 ```python
 import sys
-sys.path.insert(0, '/usr/lib/gpupdate/plugins')
+sys.path.insert(0, '/usr/lib/gpoa/plugins')
 
 from gpoa_lib import StorageAdapter
 from udev_applier import UdevApplier

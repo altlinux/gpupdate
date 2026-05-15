@@ -98,7 +98,7 @@ class plugin_manager:
             # Frontend plugins
             Path(gpupdate_plugins_path()).absolute(),
             # System-wide plugins
-            Path("/usr/lib/gpupdate/plugins")
+            Path("/usr/lib/gpoa/plugins")
         ]
 
         for plugin_dir in plugin_dirs:
@@ -176,7 +176,7 @@ class plugin_manager:
 
             # Third try: system-wide gpupdate plugins locale directory
             if not locale_candidate.exists():
-                gpupdate_plugins_locale = Path('/usr/lib/gpupdate/plugins/locale')
+                gpupdate_plugins_locale = Path('/usr/lib/gpoa/plugins/locale')
                 if gpupdate_plugins_locale.exists():
                     locale_candidate = gpupdate_plugins_locale
 
