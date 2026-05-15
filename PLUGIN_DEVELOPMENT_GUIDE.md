@@ -16,7 +16,7 @@ Plugins allow adding support for new policy types and system settings without mo
 
 - **`plugin_manager`** - Loads and executes plugins from directories:
   - `/usr/lib/gpupdate/plugins/` - system plugins
-  - `gpoa/frontend_plugins/` - development plugins
+  - `gpoa_lib/gpoa_lib/frontend_plugins/` - built-in plugins
 
 ## Creating a Simple Plugin
 
@@ -34,7 +34,7 @@ Plugins allow adding support for new policy types and system settings without mo
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-from gpoa.plugin.plugin_base import FrontendPlugin
+from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 
 class ExampleApplier(FrontendPlugin):
@@ -45,7 +45,7 @@ class ExampleApplier(FrontendPlugin):
     # Domain for translations
     domain = 'example_applier'
 
-    def __init__(self, dict_dconf_db, username=None, fs_file_cache=None):
+    def __init__(self, dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
         """
         Initialize the plugin.
 
@@ -53,8 +53,9 @@ class ExampleApplier(FrontendPlugin):
             dict_dconf_db (dict): Dictionary with registry data
             username (str): Username
             fs_file_cache: File system cache
+            registry_path (str): Override registry path for data lookup
         """
-        super().__init__(dict_dconf_db, username, fs_file_cache)
+        super().__init__(dict_dconf_db, username, fs_file_cache, registry_path)
 
         # Initialize logging system
         self._init_plugin_log(
@@ -84,7 +85,8 @@ class ExampleApplier(FrontendPlugin):
             self.log("I1")  # Plugin initialized
 
             # Get data from registry
-            self.config = self.get_dict_registry('Software/BaseALT/Policies/Example')
+            self.config = self.get_dict_registry(
+                self._registry_path or 'Software/BaseALT/Policies/Example')
 
             if not self.config:
                 self.log("W10")  # No configuration found in registry
@@ -100,7 +102,7 @@ class ExampleApplier(FrontendPlugin):
             return False
 
 
-def create_machine_applier(dict_dconf_db, username=None, fs_file_cache=None):
+def create_machine_applier(dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
     """
     Factory function for creating plugin instance for machine context.
 
@@ -108,14 +110,15 @@ def create_machine_applier(dict_dconf_db, username=None, fs_file_cache=None):
         dict_dconf_db (dict): Dictionary with registry data
         username (str): Username
         fs_file_cache: File system cache
+        registry_path (str): Override registry path
 
     Returns:
         ExampleApplier: Plugin instance
     """
-    return ExampleApplier(dict_dconf_db, username, fs_file_cache)
+    return ExampleApplier(dict_dconf_db, username, fs_file_cache, registry_path)
 
 
-def create_user_applier(dict_dconf_db, username=None, fs_file_cache=None):
+def create_user_applier(dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
     """
     Factory function for creating plugin instance for user context.
 
@@ -123,11 +126,12 @@ def create_user_applier(dict_dconf_db, username=None, fs_file_cache=None):
         dict_dconf_db (dict): Dictionary with registry data
         username (str): Username
         fs_file_cache: File system cache
+        registry_path (str): Override registry path
 
     Returns:
         ExampleApplier: Plugin instance
     """
-    return ExampleApplier(dict_dconf_db, username, fs_file_cache)
+    return ExampleApplier(dict_dconf_db, username, fs_file_cache, registry_path)
 ```
 
 ## Key Plugin Elements
@@ -187,15 +191,19 @@ GPOA supports automatic localization of plugin messages. The system uses standar
 ### Translation File Structure
 
 ```
-gpoa/locale/
-├── ru/
-│   └── LC_MESSAGES/
-│       ├── gpoa.mo
-│       └── gpoa.po
-└── en/
-    └── LC_MESSAGES/
-        ├── gpoa.mo
-        └── gpoa.po
+/usr/lib/gpupdate/plugins/
+├── my_plugin/
+│   ├── my_plugin.py
+│   ├── locale/
+│   │   ├── ru/
+│   │   │   └── LC_MESSAGES/
+│   │   │       ├── my_plugin.mo
+│   │   │       └── my_plugin.po
+│   │   └── en/
+│   │       └── LC_MESSAGES/
+│   │           ├── my_plugin.mo
+│   │           └── my_plugin.po
+│   └── README.md
 ```
 
 ### Setting Up Translations in Plugin
@@ -267,31 +275,42 @@ cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
 ### Example Plugin Structure with Translations
 
 ```
-my_plugin/
-├── my_plugin.py          # Main plugin code
-├── locale/
-│   ├── ru/
-│   │   └── LC_MESSAGES/
-│   │       ├── my_plugin.mo
-│   │       └── my_plugin.po
-│   └── en/
-│       └── LC_MESSAGES/
-│           ├── my_plugin.mo
-│           └── my_plugin.po
-└── README.md
+/usr/lib/gpupdate/plugins/
+└── my_plugin.py           # Main plugin code
+    locale/
+    ├── ru/
+    │   └── LC_MESSAGES/
+    │       ├── my_plugin.mo
+    │       └── my_plugin.po
+    └── en/
+        └── LC_MESSAGES/
+            ├── my_plugin.mo
+            └── my_plugin.po
 ```
 
 ## Plugin API
 
 ### Core Methods
 
-- **`__init__(dict_dconf_db, username=None, fs_file_cache=None)`** - initialization
+- **`__init__(dict_dconf_db, username=None, fs_file_cache=None, registry_path=None)`** - initialization
 - **`run()`** - main execution method (abstract)
 - **`apply()`** - execute with current privileges (final)
 - **`apply_user(username)`** - execute with user privileges (final)
 - **`get_dict_registry(prefix='')`** - get registry data
 - **`_init_plugin_log(message_dict=None, locale_dir=None, domain=None)`** - initialize logger
 - **`log(message_code, data=None)`** - logging with message codes
+
+The `registry_path` parameter allows overriding the default registry path when
+using the plugin directly (not through `plugin_manager`):
+
+```python
+from gpoa_lib import StorageAdapter
+from my_plugin import MyPlugin
+
+storage = StorageAdapter.from_dict({'Custom/Path': {'key': 'value'}})
+plugin = MyPlugin(storage.get_dict(), registry_path='Custom/Path')
+plugin.apply()
+```
 
 ### Logging System
 
