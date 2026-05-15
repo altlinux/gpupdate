@@ -24,11 +24,12 @@ from .plugin_log import PluginLog
 from ..storage.dconf_registry import Dconf_registry
 
 class plugin(ABC):
-    def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None):
+    def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None):
         self.dict_dconf_db = dict_dconf_db
         self.file_cache = fs_file_cache
         self.username = username
         self._log = None
+        self._registry_path = registry_path
         self.plugin_name = self.__class__.__name__
 
     @final
