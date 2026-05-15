@@ -199,7 +199,7 @@ plugin = UdevApplier(storage.get_dict(), registry_path='My/Custom/Path')
 plugin.apply()
 ```
 
-See [gpoa_lib/EXAMPLES.md](gpoa_lib/EXAMPLES.md) for complete examples.
+See [EXAMPLES.md](EXAMPLES.md) for complete examples.
 
 ## Plugin Development
 
