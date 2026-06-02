@@ -200,6 +200,7 @@ plugin.apply()
 ```
 
 See [EXAMPLES.md](EXAMPLES.md) for complete examples.
+See [API_REFERENCE.md](API_REFERENCE.md) for the full API reference ([Russian version](API_REFERENCE_RU.md)).
 
 ## Plugin Development
 

@@ -24,6 +24,24 @@ from .plugin_log import PluginLog
 from ..storage.dconf_registry import Dconf_registry
 
 class plugin(ABC):
+    '''
+    Abstract base class for all plugins (both built-in and external).
+
+    Provides ``apply()``, ``apply_user()``, ``get_dict_registry()``,
+    and structured logging via ``_init_plugin_log()`` / ``log()``.
+
+    Parameters
+    ----------
+    dict_dconf_db : dict
+        Policy data (usually from ``StorageAdapter.get_dict()`` or
+        ``plugin_manager``).
+    username : str, optional
+        Target username for user-scoped plugins.
+    fs_file_cache : object, optional
+        File cache instance.
+    registry_path : str, optional
+        Custom registry subkey prefix for this plugin.
+    '''
     def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None):
         self.dict_dconf_db = dict_dconf_db
         self.file_cache = fs_file_cache

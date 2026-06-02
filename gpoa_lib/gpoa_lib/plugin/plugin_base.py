@@ -21,7 +21,34 @@ from .plugin import plugin
 
 class FrontendPlugin(plugin):
     """
-    Base class for frontend plugins with simplified logging support.
+    Base class for external frontend plugins.
+
+    Subclass this, implement :meth:`run`, and install the module under
+    ``/usr/lib/gpoa/plugins/``.  The plugin manager discovers and loads
+    it automatically.
+
+    Parameters
+    ----------
+    dict_dconf_db : dict
+        Policy data passed by the plugin manager.
+    username : str, optional
+        Target username.
+    fs_file_cache : object, optional
+        File cache instance.
+    registry_path : str, optional
+        Registry subkey prefix this plugin reads from.
+
+    Example
+    -------
+    ::
+
+        from gpoa_lib.plugin import FrontendPlugin
+
+        class MyPlugin(FrontendPlugin):
+            def run(self, **kwargs):
+                data = self.get_dict_registry('Software/MyOrg/Policies')
+                for key, value in data.items():
+                    ...
     """
 
     def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None):

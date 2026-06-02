@@ -40,8 +40,39 @@ _TRUE_STRINGS = {
 class StorageAdapter:
     '''
     Drop-in replacement for Dconf_registry for external usage.
-    Reads from a specified dconf database instead of the global GPT registry.
-    Implements Category A interface used by most appliers.
+
+    Reads policy data from a specified dconf database or a plain dict
+    and exposes the same interface that appliers expect (filter_hklm_entries,
+    get_hklm_entry, etc.).
+
+    Construction
+    ~~~~~~~~~~~~
+    Use one of the factory class methods:
+
+    * ``from_dict(data)``              -- from a plain dict
+    * ``from_dconf_db(db_name, uid)``  -- from a dconf binary database
+    * ``from_dconf_db_prefix(...)``    -- dconf + prefix filter
+    * ``from_dconf_db_keys(...)``      -- dconf + specific keys
+
+    Examples
+    --------
+    ::
+
+        adapter = StorageAdapter.from_dict({
+            'Software/BaseALT/Policies/Control': {
+                'sshd-gssapi-auth': '1',
+            }
+        })
+
+        # Query entries
+        for entry in adapter.filter_hklm_entries('Software/BaseALT/Policies/Control'):
+            print(entry.valuename, entry.data)
+
+        # Get raw dict (for passing to plugins)
+        data = adapter.get_dict()
+
+        # Get single value
+        val = adapter.get_key_value('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
     '''
 
     def __init__(self, db_name=None, uid=None, prefix=None, keys=None, data=None):
@@ -59,18 +90,76 @@ class StorageAdapter:
 
     @classmethod
     def from_dconf_db(cls, db_name, uid=None):
+        '''
+        Load policy data from a dconf binary database.
+
+        Parameters
+        ----------
+        db_name : str
+            Database filename under ``/etc/dconf/db/``.
+        uid : int, optional
+            User UID.  When given, resolves the user-specific dconf path.
+
+        Returns
+        -------
+        StorageAdapter
+        '''
         return cls(db_name=db_name, uid=uid)
 
     @classmethod
     def from_dict(cls, data):
+        '''
+        Create an adapter from a plain Python dict.
+
+        Parameters
+        ----------
+        data : dict
+            Nested dict mapping registry paths to key-value pairs.
+
+        Returns
+        -------
+        StorageAdapter
+        '''
         return cls(data=data)
 
     @classmethod
     def from_dconf_db_prefix(cls, db_name, prefix, uid=None):
+        '''
+        Load from a dconf database and keep only keys under *prefix*.
+
+        Parameters
+        ----------
+        db_name : str
+            Database filename under ``/etc/dconf/db/``.
+        prefix : str
+            Registry path prefix to filter by.
+        uid : int, optional
+            User UID.
+
+        Returns
+        -------
+        StorageAdapter
+        '''
         return cls(db_name=db_name, uid=uid, prefix=prefix)
 
     @classmethod
     def from_dconf_db_keys(cls, db_name, keys, uid=None):
+        '''
+        Load from a dconf database and keep only the listed keys.
+
+        Parameters
+        ----------
+        db_name : str
+            Database filename under ``/etc/dconf/db/``.
+        keys : list[str]
+            Exact registry key paths to extract.
+        uid : int, optional
+            User UID.
+
+        Returns
+        -------
+        StorageAdapter
+        '''
         return cls(db_name=db_name, uid=uid, keys=keys)
 
     def _load_from_db(self, db_name, uid=None):

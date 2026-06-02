@@ -16,6 +16,46 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+gpoa_lib --- standalone policy applier library.
+
+Provides storage, appliers, and a plugin framework for applying Group
+Policy settings in Linux environments.  Can be used independently of
+the full gpupdate stack.
+
+Quick start::
+
+    from gpoa_lib import ApplierRunner, StorageAdapter
+
+    # Run an applier from a plain dict (no dconf needed)
+    runner = ApplierRunner(data={
+        'Software/BaseALT/Policies/Control': {'sshd-gssapi-auth': '1'},
+    })
+    runner.run('control')
+
+    # Or read from a dconf database
+    storage = StorageAdapter.from_dconf_db('policy')
+    for entry in storage.filter_hklm_entries('Software/BaseALT/Policies/Control'):
+        print(entry.valuename, entry.data)
+
+Public API
+----------
+StorageAdapter
+    Read policy data from dconf databases or plain dicts.
+ApplierRunner
+    High-level facade for creating and running appliers.
+FrontendPlugin
+    Base class for external plugins.
+applier_frontend
+    Base class for built-in appliers.
+Dconf_registry
+    Low-level dconf access.
+GppStateManager
+    GPP lifecycle management (applyOnce, removePolicy, disabled).
+DynamicAttributes, RegistryKeyMetadata
+    Dynamic registry key metadata.
+"""
+
 from gpoa_lib.storage.dconf_registry import Dconf_registry
 from gpoa_lib.storage.dynamic_attributes import DynamicAttributes, RegistryKeyMetadata
 from gpoa_lib.storage.gpp_state import GppStateManager
