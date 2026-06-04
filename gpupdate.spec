@@ -272,6 +272,8 @@ fi
 
 %files -n gpoa-lib
 %python3_sitelibdir/gpoa_lib
+%doc API_REFERENCE.md API_REFERENCE_RU.md
+%doc README.md PLUGIN_DEVELOPMENT_GUIDE.md PLUGIN_DEVELOPMENT_GUIDE_RU.md EXAMPLES.md
 
 %changelog
 * Wed Apr 15 2026 Valery Sinelnikov <greh@altlinux.org> 0.15.0-alt1
