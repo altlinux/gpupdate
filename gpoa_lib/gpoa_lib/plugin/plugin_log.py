@@ -145,7 +145,7 @@ class PluginLog:
 
             try:
                 # Get system locale
-                system_locale = locale.getdefaultlocale()[0]
+                system_locale = locale.getlocale()[0]
                 languages = [system_locale] if system_locale else ['ru_RU']
 
                 # First try: load from the detected locale_dir without fallback

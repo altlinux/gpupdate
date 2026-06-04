@@ -33,7 +33,7 @@ def set_privileges(username, uid, gid, groups, home):
     '''
     Set current process privileges
     '''
-    defaultlocale = locale.getdefaultlocale()
+    defaultlocale = locale.getlocale()
     os.environ.clear()
     os.environ['HOME'] = home
     os.environ['USER'] = username
