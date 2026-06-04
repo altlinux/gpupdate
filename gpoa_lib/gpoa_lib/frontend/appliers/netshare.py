@@ -46,7 +46,7 @@ class Networkshare:
 
     def check_list_net(self):
         try:
-            res = subprocess.check_output(self.net_cmd_check, encoding='utf-8')
+            res = subprocess.check_output(self.net_cmd_check, encoding='utf-8', timeout=30)
             return res
         except Exception as exc:
             return exc
@@ -54,7 +54,7 @@ class Networkshare:
     def _run_net_full_cmd(self):
         logdata = {}
         try:
-            res = subprocess.check_output(self.net_full_cmd, stderr=subprocess.DEVNULL, encoding='utf-8')
+            res = subprocess.check_output(self.net_full_cmd, stderr=subprocess.DEVNULL, encoding='utf-8', timeout=30)
             if res:
                 logdata['cmd'] = self.net_full_cmd
                 logdata['answer'] = res

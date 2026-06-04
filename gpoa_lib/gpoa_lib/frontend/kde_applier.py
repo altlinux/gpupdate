@@ -133,7 +133,7 @@ def get_kde_version():
         kinfo_path = shutil.which("kinfo", path="/usr/lib/kf5/bin:/usr/bin")
         if not kinfo_path:
             raise FileNotFoundError("Unable to find kinfo")
-        output = subprocess.check_output([kinfo_path], text=True, env={'LANG':'C'})
+        output = subprocess.check_output([kinfo_path], text=True, env={'LANG':'C'}, timeout=15)
         for line in output.splitlines():
             if "KDE Frameworks Version" in line:
                 frameworks_version = line.split(":", 1)[1].strip()
@@ -230,7 +230,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         clear_locks_settings(username, file_name, key)
                         env_path = dict(os.environ)
                         env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
-                        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
+                        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path, timeout=15)
                     except Exception:
                             logdata = {'command': command}
                             log('W22', logdata)
@@ -316,7 +316,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                     data
                     ]
                 try:
-                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
+                    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path, timeout=15)
                 except Exception:
                         logdata = {'command': command}
                         log('E68', logdata)

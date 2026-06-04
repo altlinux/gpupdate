@@ -116,6 +116,10 @@ Requires: desktop-file-utils
 Requires: python3-module-smbc >= 1.0.23-alt3
 # This is needed for laps
 Requires: python3-module-libcng_dpapi
+# These are needed by various appliers
+Requires: python3-module-jinja2
+Requires: python3-module-psutil
+Requires: python3-module-dateutil
 
 Source0: %name-%version.tar
 
@@ -130,6 +134,11 @@ Requires: python3-module-dbus
 Requires: python3-module-configobj
 Requires: python3-module-samba
 Requires: python3-module-rpm
+Requires: python3-module-jinja2
+Requires: python3-module-gobject
+Requires: python3-module-smbc >= 1.0.23-alt3
+Requires: python3-module-libcng_dpapi
+Requires: libgvdb-gir
 
 %description -n gpoa-lib
 gpoa-lib is a shared library providing policy appliers, storage,
@@ -159,7 +168,7 @@ msgfmt \
 
 # Generate plugin translations for gpoa_lib
 for po_file in %buildroot%python3_sitelibdir/gpoa_lib/frontend_plugins/locale/*/LC_MESSAGES/*.po; do
-	mo_file="${po_file%.po}.mo"
+	mo_file="${po_file%%.po}.mo"
 	msgfmt -o "$mo_file" "$po_file"
 done
 

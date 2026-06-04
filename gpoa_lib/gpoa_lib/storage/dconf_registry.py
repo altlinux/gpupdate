@@ -127,11 +127,11 @@ class Dconf_registry():
         logdata = {}
         envprofile = get_dconf_envprofile()
         try:
-            process = subprocess.Popen(['dconf', 'list', path],
-                                       env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            logdata['path'] = path
-            log('D204', logdata)
-            output, error = process.communicate()
+            with subprocess.Popen(['dconf', 'list', path],
+                                       env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+                logdata['path'] = path
+                log('D204', logdata)
+                output, error = process.communicate(timeout=10)
             if not output and not error:
                 return
             if not error:
@@ -158,10 +158,10 @@ class Dconf_registry():
         logdata = {}
         envprofile = get_dconf_envprofile()
         try:
-            process = subprocess.Popen(['dconf', 'read', key],
-                                       env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            logdata['key'] = key
-            output, error = process.communicate()
+            with subprocess.Popen(['dconf', 'read', key],
+                                       env=envprofile, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+                logdata['key'] = key
+                output, error = process.communicate(timeout=10)
 
             if not error:
                 return string_to_literal_eval(string_to_literal_eval(output))
@@ -182,15 +182,16 @@ class Dconf_registry():
             path_dconf_config = get_dconf_config_path(uid)
             db_file = path_dconf_config[:-3]
         try:
-            process = subprocess.Popen(['dconf', 'compile', db_file, path_dconf_config],
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            output, error = process.communicate()
+            with subprocess.Popen(['dconf', 'compile', db_file, path_dconf_config],
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+                output, error = process.communicate(timeout=30)
 
             if error:
                 logdata['error'] = error
                 log('E71', logdata)
             else:
                 logdata['output'] = output
+                log('I16', logdata)
                 log('D206', logdata)
         except Exception as exc:
             logdata['exc'] = exc

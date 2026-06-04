@@ -38,7 +38,8 @@ class fs_file_cache:
         if username and username != get_machine_name():
             try:
                 self.storage_uri = file_cache_path_home(username)
-            except Exception:
+            except Exception as exc:
+                log('D323', {'username': username, 'exc': str(exc)})
                 self.storage_uri = file_cache_dir()
         else:
             self.storage_uri = file_cache_dir()
@@ -87,8 +88,8 @@ class fs_file_cache:
             finally:
                 try:
                     file_handler.close()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    log('D321', {'exc': str(exc)})
                 df.close()
             os.rename(tmpfile, destfile)
             os.chmod(destfile, 0o644)
@@ -128,8 +129,8 @@ class fs_file_cache:
             ls_obj = opendir.getdents()
             try:
                 opendir.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                log('D322', {'exc': str(exc)})
             ls = [obj.name for obj in ls_obj if obj.smbc_type == type_file_smb]
             return ls
         except Exception as exc:

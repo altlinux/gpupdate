@@ -127,7 +127,7 @@ class gsettings_applier(applier_frontend):
 
         # Recompile GSettings schemas with overrides
         try:
-            proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True)
+            proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True, timeout=60)
         except Exception as exc:
             log('E48')
 
@@ -136,6 +136,7 @@ class gsettings_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I20')
             log('D80')
             self.run()
         else:
@@ -262,6 +263,7 @@ class gsettings_applier_user(DualContextApplier):
 
     def user_context_apply(self):
         if self.__module_enabled:
+            log('I21')
             log('D87')
             self.run()
         else:

@@ -13,6 +13,16 @@ authors = [
 description = "Shared library for GPOA - GPO Applier for Linux"
 license = {text = "GPLv3+"}
 
+[project.dependencies]
+jinja2 = ">=3.0"
+defusedxml = ">=0.7"
+
+[project.optional-dependencies]
+samba = ["samba"]
+ldap = ["python-ldap"]
+laps = ["psutil", "python-dateutil"]
+monitoring = ["psutil"]
+
 [project.urls]
 Repository = "https://github.com/altlinux/gpupdate"
 

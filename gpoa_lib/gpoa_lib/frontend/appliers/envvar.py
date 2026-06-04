@@ -78,15 +78,12 @@ class Envvar:
 
     def _delete_action(self, delete_dict, envvar_file):
         lines = envvar_file.readlines()
-        deleted = False
+        names_to_delete = set()
         for name in delete_dict:
-            for line in lines:
-                if line.startswith(name + '='):
-                    lines.remove(line)
-                    deleted = True
-                    break
-        if deleted:
-            envvar_file.writelines(lines)
+            names_to_delete.add(name + '=')
+        new_lines = [line for line in lines if not any(line.startswith(prefix) for prefix in names_to_delete)]
+        if len(new_lines) != len(lines):
+            envvar_file.writelines(new_lines)
 
     def act(self):
         if isfile(self.envvar_file_path):

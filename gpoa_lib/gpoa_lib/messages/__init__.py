@@ -20,473 +20,505 @@
 import gettext
 
 
-def info_code(code):
-    info_ids = {}
-    info_ids[1] = 'Got GPO list for username'
-    info_ids[2] = 'Got GPO'
-    info_ids[3] = 'Working with control'
-    info_ids[4] = 'Working with systemd'
-    info_ids[5] = 'Unable to work with systemd unit'
-    info_ids[6] = 'Starting systemd unit'
-    info_ids[7] = 'Firefox policy'
-    info_ids[8] = 'Chromium policy'
-    info_ids[9] = 'Set user property to'
-    info_ids[10] = 'The line in the configuration file was cleared'
-    info_ids[11] = 'Found GPT in cache'
-    info_ids[12] = 'Got GPO list for trusted user'
-    info_ids[13] = 'Restarting systemd unit'
+_INFO_MESSAGES = {
+    1: 'Got GPO list for username',
+    2: 'Got GPO',
+    3: 'Working with control',
+    4: 'Working with systemd',
+    5: 'Unable to work with systemd unit',
+    6: 'Starting systemd unit',
+    7: 'Firefox policy',
+    8: 'Chromium policy',
+    9: 'Set user property to',
+    10: 'Applying computer part of settings',
+    11: 'GPO update started',
+    12: 'GPO update finished',
+    13: 'Initializing Samba backend for domain',
+    14: 'Initializing local backend without domain',
+    15: 'Establishing connection with AD DC',
+    16: 'Successfully updated dconf database',
+    17: 'Running Control applier for machine',
+    18: 'Running Polkit applier for machine',
+    19: 'Running systemd applier for machine',
+    20: 'Running GSettings applier for machine',
+    21: 'Running GSettings applier for user in user context',
+    22: 'Running Envvar applier for machine',
+    23: 'Running Package applier for machine',
+    24: 'Running CIFS applier for machine',
+}
 
-    return info_ids.get(code, 'Unknown info code')
+_ERROR_MESSAGES = {
+    1: 'Insufficient permissions to run gpupdate',
+    2: 'gpupdate will not be started',
+    3: 'Backend execution error',
+    4: 'Error occurred while running frontend manager',
+    5: 'Error running GPOA for computer',
+    6: 'Error running GPOA for user',
+    7: 'Unable to initialize Samba backend',
+    8: 'Unable to initialize no-domain backend',
+    9: 'Error running plugin',
+    10: 'Unable to determine DC hostname',
+    11: 'Error occurred while running applier with user privileges',
+    12: 'Unable to initialize backend',
+    13: 'Not sufficient privileges to run machine appliers',
+    14: 'Kerberos ticket check failed',
+    15: 'Unable to retrieve domain name via CLDAP query',
+    16: 'Error getting SID using wbinfo, will use SID from cache',
+    17: 'Unable to get GPO list for user from AD DC',
+    18: 'Error getting XDG_DESKTOP_DIR',
+    19: 'Error occurred while running user applier in administrator context',
+    20: 'Error occurred while running user applier in user context (with dropped privileges)',
+    21: 'No reply from oddjobd GPOA runner via D-Bus for current user',
+    22: 'No reply from oddjobd GPOA runner via D-Bus for computer',
+    23: 'No reply from oddjobd GPOA runner via D-Bus for user',
+    24: 'Error occurred while running machine applier',
+    25: 'Error occurred while initializing user applier',
+    26: 'Error merging machine GPT',
+    27: 'Error merging user GPT',
+    28: 'Error merging machine part of GPT',
+    29: 'Error merging user part of GPT',
+    30: 'Error occurred while running dropped privileges process for user context appliers',
+    31: 'Error connecting to DBus Session daemon',
+    32: 'No reply from DBus Session',
+    33: 'Error occurred while running forked process with dropped privileges',
+    34: 'Error running GPOA directly for computer',
+    35: 'Error caching URI to file',
+    36: 'Error getting cached file for URI',
+    37: 'Error caching file URIs',
+    38: 'Unable to cache specified URI',
+    39: 'Unable to work with control',
+    40: 'Control applier for machine will not be started',
+    41: 'Error getting control',
+    42: 'Is not in possible values for control',
+    43: 'Unable to set',
+    44: 'Unable to generate file',
+    45: 'Failed applying unit',
+    46: 'Unable to start systemd unit',
+    47: 'Unable to cache specified URI for machine',
+    48: 'Error recompiling global GSettings schemas',
+    49: 'Error update configuration dconf',
+    50: 'Unable to cache specified URI for user',
+    52: 'Error during attempt to read Chromium preferences for user',
+    53: 'Fail for applying shortcut to file with \'%\'',
+    54: 'Fail for applying shortcut to not absolute path',
+    55: 'Error running pkcon_runner sync for machine',
+    56: 'Error run apt-get update',
+    57: 'Package install error',
+    58: 'Package remove error',
+    59: 'Is not in possible values for control',
+    60: 'Error running pkcon_runner sync for user',
+    61: 'Error running pkcon_runner async for machine',
+    62: 'Error running pkcon_runner async for user',
+    63: 'Error merging user GPT (from machine GPO)',
+    64: 'Error to cleanup directory for machine',
+    65: 'Error to cleanup directory for user',
+    66: 'Error while executing command for widgets',
+    67: 'Error creating environment variables',
+    68: 'Error running kwriteconfig5 command',
+    69: 'Error getting list of keys',
+    70: 'Error getting key value',
+    71: 'Failed to update dconf database',
+    72: 'Exception occurred while updating dconf database',
+    73: 'Failed to retrieve data from dconf database',
+    74: 'Autofs restart failed',
+    75: 'Failed to update LDAP with new password data',
+    76: 'Failed to change local user password',
+    77: 'Unable to restart systemd unit',
+    78: 'Kerberos info unavailable; cannot construct DPAPI parameters',
+    79: 'Unable to initialize Freeipa backend',
+    80: 'FreeIPA API error',
+    81: 'Error setting trust attribute for shortcut',
+}
 
-def error_code(code):
-    error_ids = {}
-    error_ids[1] = 'Insufficient permissions to run gpupdate'
-    error_ids[2] = 'gpupdate will not be started'
-    error_ids[3] = 'Backend execution error'
-    error_ids[4] = 'Error occurred while running frontend manager'
-    error_ids[5] = 'Error running GPOA for computer'
-    error_ids[6] = 'Error running GPOA for user'
-    error_ids[7] = 'Unable to initialize Samba backend'
-    error_ids[8] = 'Unable to initialize no-domain backend'
-    error_ids[9] = 'Error running plugin'
-    error_ids[10] = 'Unable to determine DC hostname'
-    error_ids[11] = 'Error occurred while running applier with user privileges'
-    error_ids[12] = 'Unable to initialize backend'
-    error_ids[13] = 'Not sufficient privileges to run machine appliers'
-    error_ids[14] = 'Kerberos ticket check failed'
-    error_ids[15] = 'Unable to retrieve domain name via CLDAP query'
-    error_ids[16] = 'Error getting SID using wbinfo, will use SID from cache'
-    error_ids[17] = 'Unable to get GPO list for user from AD DC'
-    error_ids[18] = 'Error getting XDG_DESKTOP_DIR'
-    error_ids[19] = 'Error occurred while running user applier in administrator context'
-    error_ids[20] = 'Error occurred while running user applier in user context (with dropped privileges)'
-    error_ids[21] = 'No reply from oddjobd GPOA runner via D-Bus for current user'
-    error_ids[22] = 'No reply from oddjobd GPOA runner via D-Bus for computer'
-    error_ids[23] = 'No reply from oddjobd GPOA runner via D-Bus for user'
-    error_ids[24] = 'Error occurred while running machine applier'
-    error_ids[25] = 'Error occurred while initializing user applier'
-    error_ids[26] = 'Error merging machine GPT'
-    error_ids[27] = 'Error merging user GPT'
-    error_ids[28] = 'Error merging machine part of GPT'
-    error_ids[29] = 'Error merging user part of GPT'
-    error_ids[30] = 'Error occurred while running dropped privileges process for user context appliers'
-    error_ids[31] = 'Error connecting to DBus Session daemon'
-    error_ids[32] = 'No reply from DBus Session'
-    error_ids[33] = 'Error occurred while running forked process with dropped privileges'
-    error_ids[34] = 'Error running GPOA directly for computer'
-    error_ids[35] = 'Error caching URI to file'
-    error_ids[36] = 'Error getting cached file for URI'
-    error_ids[37] = 'Error caching file URIs'
-    error_ids[38] = 'Unable to cache specified URI'
-    error_ids[39] = 'Unable to work with control'
-    error_ids[40] = 'Control applier for machine will not be started'
-    error_ids[41] = 'Error getting control'
-    error_ids[42] = 'Is not in possible values for control'
-    error_ids[43] = 'Unable to set'
-    error_ids[44] = 'Unable to generate file'
-    error_ids[45] = 'Failed applying unit'
-    error_ids[46] = 'Unable to start systemd unit'
-    error_ids[47] = 'Unable to cache specified URI for machine'
-    error_ids[48] = 'Error recompiling global GSettings schemas'
-    error_ids[49] = 'Error update configuration dconf'
-    error_ids[50] = 'Unable to cache specified URI for user'
-    error_ids[52] = 'Error during attempt to read Chromium preferences for user'
-    error_ids[53] = 'Fail for applying shortcut to file with \'%\''
-    error_ids[54] = 'Fail for applying shortcut to not absolute path'
-    error_ids[55] = 'Error running pkcon_runner sync for machine'
-    error_ids[56] = 'Error run apt-get update'
-    error_ids[57] = 'Package install error'
-    error_ids[58] = 'Package remove error'
-    error_ids[59] = 'Is not in possible values for control'
-    error_ids[60] = 'Error running pkcon_runner sync for user'
-    error_ids[61] = 'Error running pkcon_runner async for machine'
-    error_ids[62] = 'Error running pkcon_runner async for user'
-    error_ids[63] = 'Error merging user GPT (from machine GPO)'
-    error_ids[64] = 'Error to cleanup directory for machine'
-    error_ids[65] = 'Error to cleanup directory for user'
-    error_ids[66] = 'Error while executing command for widgets'
-    error_ids[67] = 'Error creating environment variables'
-    error_ids[68] = 'Error running kwriteconfig5 command'
-    error_ids[69] = 'Error getting list of keys'
-    error_ids[70] = 'Error getting key value'
-    error_ids[71] = 'Failed to update dconf database'
-    error_ids[72] = 'Exception occurred while updating dconf database'
-    error_ids[73] = 'Failed to retrieve data from dconf database'
-    error_ids[74] = 'Autofs restart failed'
-    error_ids[75] = 'Failed to update LDAP with new password data'
-    error_ids[76] = 'Failed to change local user password'
-    error_ids[77] = 'Unable to restart systemd unit'
-    error_ids[78] = 'Kerberos info unavailable; cannot construct DPAPI parameters'
-    error_ids[79] = 'Unable to initialize Freeipa backend'
-    error_ids[80] = 'FreeIPA API error'
-    error_ids[81] = 'Error setting trust attribute for shortcut'
-    return error_ids.get(code, 'Unknown error code')
+_DEBUG_MESSAGES = {
+    1: 'The GPOA process was started for user',
+    2: 'Username is not specified - will use username of the current process',
+    3: 'Initializing plugin manager',
+    4: 'Running plugin',
+    6: 'Starting GPOA for user via D-Bus',
+    7: 'Cache directory determined',
+    8: 'Initializing local backend without domain',
+    9: 'Initializing Samba backend for domain',
+    10: 'Group Policy target set for update',
+    11: 'Starting GPOA for computer via D-Bus',
+    12: 'Got exit code',
+    13: 'Starting GPOA via D-Bus',
+    14: 'Starting GPOA via command invocation',
+    15: 'Username for frontend is determined',
+    16: 'Applying computer part of settings',
+    17: 'Kerberos ticket check succeed',
+    18: 'Found AD domain via CLDAP query',
+    19: 'Setting info',
+    20: 'Initializing cache',
+    21: 'Set operational SID',
+    22: 'Got PReg entry',
+    23: 'Looking for preference in user part of GPT',
+    24: 'Looking for preference in machine part of GPT',
+    25: 'Re-caching Local Policy',
+    26: 'Adding HKCU entry',
+    27: 'Skipping HKLM branch deletion key',
+    28: 'Reading and merging machine preference',
+    29: 'Reading and merging user preference',
+    30: 'Found SYSVOL entry',
+    31: 'Trying to load PReg from .pol file',
+    32: 'Finished reading PReg from .pol file',
+    33: 'Determined length of PReg file',
+    34: 'Merging machine settings from PReg file',
+    35: 'Merging machine (user part) settings from PReg file',
+    36: 'Loading PReg from XML',
+    37: 'Setting process permissions',
+    38: 'Samba DC setting is overriden by user setting',
+    39: 'Saving information about drive mapping',
+    40: 'Saving information about printer',
+    41: 'Saving information about link',
+    42: 'Saving information about folder',
+    43: 'No value cached for object',
+    44: 'Key is already present in cache, will update the value',
+    45: 'GPO update started',
+    46: 'GPO update finished',
+    47: 'Retrieving list of GPOs to replicate from AD DC',
+    48: 'Establishing connection with AD DC',
+    49: 'Started GPO replication from AD DC',
+    50: 'Finished GPO replication from AD DC',
+    51: 'Skipping HKCU branch deletion key',
+    52: 'Read domain name from configuration file',
+    53: 'Saving information about environment variables',
+    54: 'Run forked process with dropped privileges',
+    55: 'Run user context applier with dropped privileges',
+    56: 'Kill dbus-daemon and dconf-service in user context',
+    57: 'Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID',
+    58: 'Connection search return org.freedesktop.DBus.Error.NameHasNoOwner',
+    59: 'Running GPOA without GPT update directly for user',
+    60: 'Running GPOA by root for user',
+    61: 'The GPOA process was started for computer',
+    62: 'Path not resolved as UNC URI',
+    63: 'Delete HKLM branch key',
+    64: 'Delete HKCU branch key',
+    65: 'Delete HKLM branch key error',
+    66: 'Delete HKCU branch key error',
+    67: 'Running Control applier for machine',
+    68: 'Setting control',
+    69: 'Deny_All setting found',
+    70: 'Deny_All setting for user',
+    71: 'Deny_All setting not found',
+    72: 'Deny_All setting not found for user',
+    73: 'Running Polkit applier for machine',
+    74: 'Running Polkit applier for user in administrator context',
+    75: 'Polkit applier for machine will not be started',
+    76: 'Polkit applier for user in administrator context will not be started',
+    77: 'Generated file',
+    78: 'Running systemd applier for machine',
+    79: 'Running systemd applier for machine will not be started',
+    80: 'Running GSettings applier for machine',
+    81: 'GSettings applier for machine will not be started',
+    82: 'Removing GSettings policy file from previous run',
+    83: 'Mapping Windows policies to GSettings policies',
+    84: 'GSettings windows policies mapping not enabled',
+    85: 'Applying user setting',
+    86: 'Found GSettings windows mapping',
+    87: 'Running GSettings applier for user in user context',
+    88: 'GSettings applier for user in user context will not be started',
+    89: 'Applying machine setting',
+    90: 'Getting cached file for URI',
+    91: 'Wrote Firefox preferences to',
+    92: 'Found Firefox profile in',
+    93: 'Running Firefox applier for machine',
+    94: 'Firefox applier for machine will not be started',
+    95: 'Running Chromium applier for machine',
+    96: 'Chromium applier for machine will not be started',
+    97: 'Wrote Chromium preferences to',
+    98: 'Running Shortcut applier for machine',
+    99: 'Shortcut applier for machine will not be started',
+    100: 'No shortcuts to process for',
+    101: 'Running Shortcut applier for user in user context',
+    102: 'Shortcut applier for user in user context will not be started',
+    103: 'Running Shortcut applier for user in administrator context',
+    104: 'Shortcut applier for user in administrator context will not be started',
+    105: 'Try to expand path for shortcut',
+    106: 'Applying shortcut file to',
+    107: 'Running Folder applier for machine',
+    108: 'Folder applier for machine will not be started',
+    109: 'Folder creation skipped for machine',
+    110: 'Folder creation skipped for user',
+    111: 'Running Folder applier for user in user context',
+    112: 'Folder applier for user in user context will not be started',
+    113: 'Running CUPS applier for machine',
+    114: 'CUPS applier for machine will not be started',
+    115: 'Running CUPS applier for user in administrator context',
+    116: 'CUPS applier for user in administrator context will not be started',
+    117: 'Running Firewall applier for machine',
+    118: 'Firewall is enabled',
+    119: 'Firewall is disabled, settings will be reset',
+    120: 'Firewall applier will not be started',
+    121: 'Running NTP applier for machine',
+    122: 'NTP server is configured to',
+    123: 'Starting Chrony daemon',
+    124: 'Setting reference NTP server to',
+    125: 'Stopping Chrony daemon',
+    126: 'Configuring NTP server...',
+    127: 'NTP server is enabled',
+    128: 'NTP server is disabled',
+    129: 'NTP server is not configured',
+    130: 'NTP client is enabled',
+    131: 'NTP client is disabled',
+    132: 'NTP client is not configured',
+    133: 'NTP applier for machine will not be started',
+    134: 'Running Envvar applier for machine',
+    135: 'Envvar applier for machine will not be started',
+    136: 'Running Envvar applier for user in admin context',
+    137: 'Envvar applier for user in admin context will not be started',
+    138: 'Running Package applier for machine',
+    139: 'Package applier for machine will not be started',
+    140: 'Running Package applier for user in administrator context',
+    141: 'Package applier for user in administrator context will not be started',
+    142: 'Running pkcon_runner to install and remove packages',
+    143: 'Run apt-get update',
+    144: 'Unable to cache specified URI',
+    145: 'Unable to cache specified URI for machine',
+    146: 'Running CIFS applier for user in administrator context',
+    147: 'CIFS applier for user in administrator context will not be started',
+    148: 'Installing the package',
+    149: 'Removing a package',
+    150: 'Failed to found gsettings for machine',
+    151: 'Failed to found user gsettings',
+    152: 'Configure user Group Policy loopback processing mode',
+    153: 'Saving information about script',
+    154: 'No machine scripts directory to clean up',
+    155: 'No user scripts directory to clean up',
+    156: 'Prepare Scripts applier for machine',
+    157: 'Scripts applier for machine will not be started',
+    158: 'Prepare Scripts applier for user in user context',
+    159: 'Scripts applier for user in user context will not be started',
+    160: 'Clean machine scripts directory',
+    161: 'Clean user scripts directory',
+    162: 'Saving information about file',
+    163: 'Failed to return file path',
+    164: 'Failed to create file',
+    165: 'Failed to delete file',
+    166: 'Failed to update file',
+    167: 'Running File copy applier for machine',
+    168: 'Running File copy applier for machine will not be started',
+    169: 'Running File copy applier for user in administrator context',
+    170: 'Running File copy applier for user in administrator context will not be started',
+    171: 'Running ini applier for machine',
+    172: 'Running ini applier for machine will not be started',
+    173: 'Running ini applier for user in user context',
+    174: 'Running ini applier for user in user context will not be started',
+    175: 'Ini-file path not recognized',
+    176: 'Ini-file is not readable',
+    177: 'Saving information about ini-file',
+    178: 'Dictionary key generation failed',
+    179: 'Running CIFS applier for machine',
+    180: 'CIFS applier for machine will not be started',
+    181: 'Running networkshare applier for machine will not be started',
+    182: 'Apply network share data action failed',
+    183: 'Running yandex_browser_applier for machine',
+    184: 'Yandex_browser_applier for machine will not be started',
+    185: 'Wrote YandexBrowser preferences to',
+    186: 'Saving information about network shares',
+    187: 'Running networkshare applier for machine',
+    188: 'Running networkshare applier for user',
+    189: 'Running networkshare applier for user will not be started',
+    190: 'Applying settings for network share',
+    191: 'File copy',
+    192: 'File update',
+    193: 'Deleting a file',
+    194: 'Failed to create a symlink to the network drives mountpoint',
+    195: 'Failed to create a symlink to the system network drives mountpoint',
+    196: 'Failed to create a symlink to the hidden network drives mountpoint',
+    197: 'Failed to create a symlink to the hidden system network drives mountpoint',
+    198: 'Running KDE applier for machine',
+    199: 'KDE applier for machine will not be started',
+    200: 'Running KDE applier for user in user context',
+    201: 'KDE applier for user in user context will not be started',
+    202: 'Changing the configuration file',
+    203: 'Widget command completed successfully',
+    204: 'Getting a list of keys',
+    205: 'Getting the key value',
+    206: 'Successfully updated dconf database',
+    207: 'Suppressed exception in non-critical path',
+    208: 'No entry found for the specified path',
+    209: 'Creating an ini file with policies for dconf',
+    211: 'SYSVOL entry found in cache',
+    212: 'Wrote Thunderbird preferences to',
+    213: 'Running Thunderbird applier for machine',
+    214: 'Thunderbird applier for machine will not be started',
+    215: 'The environment file has been cleaned',
+    216: 'Cleanup of file environment failed',
+    217: 'Failed to get dictionary',
+    218: 'LAPS applier started',
+    219: 'LAPS applier is disabled',
+    220: 'Rebooting system after password change',
+    221: 'Password changed',
+    222: 'Writing password changes time',
+    223: 'Requirements not met',
+    224: 'The number of hours from the moment of the last user entrance',
+    225: 'The number of hours since the password has last changed',
+    226: 'LDAP updated with new password data',
+    227: 'No active sessions found',
+    228: 'Process terminated',
+    229: 'Password update not needed',
+    230: 'Password successfully updated',
+    231: 'Cleaning the autofs catalog',
+    232: 'No user login records found',
+    233: 'Calculating time since the first user login after their password change',
+    234: 'No logins found after password change',
+    235: 'User not found in passwd database',
+    236: 'Plugin is disabled',
+    237: 'Failed to load cached versions',
+    238: 'The trust attribute is not supported',
+    239: 'Setting the trust attribute for a shortcut',
+    240: 'Skipping GPP element with applyOnce (already applied)',
+    250: 'INI value already set, skipping write',
+    251: 'Checking applyOnce status for element',
+    252: 'Found previous element with uid',
+    260: 'Secure file permissions applied',
+    261: 'Secure file permissions disabled by policy',
+    262: 'Secure file ownership applied',
+    270: 'Failed to detect KDE version',
+    271: 'Failed to get desktop ID from wallpaper config',
+    272: 'Failed to get machine account username',
+    273: 'Failed to detect system language',
+    274: 'Failed to parse dict literal',
+    275: 'Failed to clean data',
+    276: 'Failed to search for directory',
+    277: 'Failed to search for file',
+    278: 'Failed to get GPO list for trust user',
+    279: 'Failed to select AD site servers',
+    280: 'Failed to select all AD servers',
+    281: 'Failed to check server role for DC policy detection',
+    282: 'Failed to read OS release for policy name detection',
+    283: 'Optional dependency not available',
+    284: 'Failed to get Kerberos realm from principal',
+    285: 'Failed to get domain controller FQDN from Kerberos info',
+    286: 'Failed to enumerate running processes for DM detection',
+    287: 'Failed to fetch URI for GSettings',
+    288: 'Failed to remove CIFS symlink',
+    289: 'Failed to set secure directory permissions',
+    290: 'Failed to set secure file ownership',
+    291: 'GSettings config section already exists',
+    292: 'Failed to remove stale GSettings lock file',
+    293: 'Failed to check CPU speed filter',
+    294: 'Failed to check battery filter',
+    295: 'Failed to check disk space filter',
+    296: 'Failed to check language filter',
+    297: 'Failed to check RAM size filter',
+    298: 'Failed to check IP range filter',
+    299: 'Failed to check MAC range filter',
+    300: 'Failed to check oddjobd accessibility via D-Bus',
+    301: 'Failed to check DC policy detection',
+    302: 'Failed to read OS release for policy name detection',
+    303: 'Failed to get local groups for username',
+    304: 'Failed to convert GPP object to dict',
+    305: 'Failed to serialize GPP value',
+    306: 'Failed to query FreeIPA server',
+    307: 'Failed to get dconf-service PID in child process',
+    308: 'Failed to write result to pipe in child process',
+    309: 'Failed to translate plugin message',
+    310: 'Failed to auto-detect plugin locale directory',
+    311: 'Failed to look up user SID for Windows variable expansion',
+    312: 'Failed to load plugin translations',
+    313: 'Failed to initialize plugin translation object',
+    314: 'Failed to format plugin log message',
+    315: 'Failed to get local groups for username',
+    316: 'Failed to parse string as literal',
+    317: 'Failed to check local user existence',
+    318: 'Failed to run external command',
+    319: 'Failed to get group SIDs for SID',
+    320: 'Failed to resolve hostname in filter check',
+    321: 'Failed to close file handler in cache',
+    322: 'Failed to close directory handler in cache',
+    323: 'Failed to get home cache path',
+    324: 'Failed to pop Recommended key from browser policies',
+    325: 'Failed to parse JSON data in browser policy',
+    326: 'Failed to extract browser policies from counts dict',
+}
 
-def debug_code(code):
-    debug_ids = {}
-    debug_ids[1] = 'The GPOA process was started for user'
-    debug_ids[2] = 'Username is not specified - will use username of the current process'
-    debug_ids[3] = 'Initializing plugin manager'
-    debug_ids[4] = 'Running plugin'
-    #debug_ids[5] = ''
-    debug_ids[6] = 'Starting GPOA for user via D-Bus'
-    debug_ids[7] = 'Cache directory determined'
-    debug_ids[8] = 'Initializing local backend without domain'
-    debug_ids[9] = 'Initializing Samba backend for domain'
-    debug_ids[10] = 'Group Policy target set for update'
-    debug_ids[11] = 'Starting GPOA for computer via D-Bus'
-    debug_ids[12] = 'Got exit code'
-    debug_ids[13] = 'Starting GPOA via D-Bus'
-    debug_ids[14] = 'Starting GPOA via command invocation'
-    debug_ids[15] = 'Username for frontend is determined'
-    debug_ids[16] = 'Applying computer part of settings'
-    debug_ids[17] = 'Kerberos ticket check succeed'
-    debug_ids[18] = 'Found AD domain via CLDAP query'
-    debug_ids[19] = 'Setting info'
-    debug_ids[20] = 'Initializing cache'
-    debug_ids[21] = 'Set operational SID'
-    debug_ids[22] = 'Got PReg entry'
-    debug_ids[23] = 'Looking for preference in user part of GPT'
-    debug_ids[24] = 'Looking for preference in machine part of GPT'
-    debug_ids[25] = 'Re-caching Local Policy'
-    debug_ids[26] = 'Adding HKCU entry'
-    debug_ids[27] = 'Skipping HKLM branch deletion key'
-    debug_ids[28] = 'Reading and merging machine preference'
-    debug_ids[29] = 'Reading and merging user preference'
-    debug_ids[30] = 'Found SYSVOL entry'
-    debug_ids[31] = 'Trying to load PReg from .pol file'
-    debug_ids[32] = 'Finished reading PReg from .pol file'
-    debug_ids[33] = 'Determined length of PReg file'
-    debug_ids[34] = 'Merging machine settings from PReg file'
-    debug_ids[35] = 'Merging machine (user part) settings from PReg file'
-    debug_ids[36] = 'Loading PReg from XML'
-    debug_ids[37] = 'Setting process permissions'
-    debug_ids[38] = 'Samba DC setting is overriden by user setting'
-    debug_ids[39] = 'Saving information about drive mapping'
-    debug_ids[40] = 'Saving information about printer'
-    debug_ids[41] = 'Saving information about link'
-    debug_ids[42] = 'Saving information about folder'
-    debug_ids[43] = 'No value cached for object'
-    debug_ids[44] = 'Key is already present in cache, will update the value'
-    debug_ids[45] = 'GPO update started'
-    debug_ids[46] = 'GPO update finished'
-    debug_ids[47] = 'Retrieving list of GPOs to replicate from AD DC'
-    debug_ids[48] = 'Establishing connection with AD DC'
-    debug_ids[49] = 'Started GPO replication from AD DC'
-    debug_ids[50] = 'Finished GPO replication from AD DC'
-    debug_ids[51] = 'Skipping HKCU branch deletion key'
-    debug_ids[52] = 'Read domain name from configuration file'
-    debug_ids[53] = 'Saving information about environment variables'
-    debug_ids[54] = 'Run forked process with dropped privileges'
-    debug_ids[55] = 'Run user context applier with dropped privileges'
-    debug_ids[56] = 'Kill dbus-daemon and dconf-service in user context'
-    debug_ids[57] = 'Found connection by org.freedesktop.DBus.GetConnectionUnixProcessID'
-    debug_ids[58] = 'Connection search return org.freedesktop.DBus.Error.NameHasNoOwner'
-    debug_ids[59] = 'Running GPOA without GPT update directly for user'
-    debug_ids[60] = 'Running GPOA by root for user'
-    debug_ids[61] = 'The GPOA process was started for computer'
-    debug_ids[62] = 'Path not resolved as UNC URI'
-    debug_ids[63] = 'Delete HKLM branch key'
-    debug_ids[64] = 'Delete HKCU branch key'
-    debug_ids[65] = 'Delete HKLM branch key error'
-    debug_ids[66] = 'Delete HKCU branch key error'
-    debug_ids[67] = 'Running Control applier for machine'
-    debug_ids[68] = 'Setting control'
-    debug_ids[69] = 'Deny_All setting found'
-    debug_ids[70] = 'Deny_All setting for user'
-    debug_ids[71] = 'Deny_All setting not found'
-    debug_ids[72] = 'Deny_All setting not found for user'
-    debug_ids[73] = 'Running Polkit applier for machine'
-    debug_ids[74] = 'Running Polkit applier for user in administrator context'
-    debug_ids[75] = 'Polkit applier for machine will not be started'
-    debug_ids[76] = 'Polkit applier for user in administrator context will not be started'
-    debug_ids[77] = 'Generated file'
-    debug_ids[78] = 'Running systemd applier for machine'
-    debug_ids[79] = 'Running systemd applier for machine will not be started'
-    debug_ids[80] = 'Running GSettings applier for machine'
-    debug_ids[81] = 'GSettings applier for machine will not be started'
-    debug_ids[82] = 'Removing GSettings policy file from previous run'
-    debug_ids[83] = 'Mapping Windows policies to GSettings policies'
-    debug_ids[84] = 'GSettings windows policies mapping not enabled'
-    debug_ids[85] = 'Applying user setting'
-    debug_ids[86] = 'Found GSettings windows mapping'
-    debug_ids[87] = 'Running GSettings applier for user in user context'
-    debug_ids[88] = 'GSettings applier for user in user context will not be started'
-    debug_ids[89] = 'Applying machine setting'
-    debug_ids[90] = 'Getting cached file for URI'
-    debug_ids[91] = 'Wrote Firefox preferences to'
-    debug_ids[92] = 'Found Firefox profile in'
-    debug_ids[93] = 'Running Firefox applier for machine'
-    debug_ids[94] = 'Firefox applier for machine will not be started'
-    debug_ids[95] = 'Running Chromium applier for machine'
-    debug_ids[96] = 'Chromium applier for machine will not be started'
-    debug_ids[97] = 'Wrote Chromium preferences to'
-    debug_ids[98] = 'Running Shortcut applier for machine'
-    debug_ids[99] = 'Shortcut applier for machine will not be started'
-    debug_ids[100] = 'No shortcuts to process for'
-    debug_ids[101] = 'Running Shortcut applier for user in user context'
-    debug_ids[102] = 'Shortcut applier for user in user context will not be started'
-    debug_ids[103] = 'Running Shortcut applier for user in administrator context'
-    debug_ids[104] = 'Shortcut applier for user in administrator context will not be started'
-    debug_ids[105] = 'Try to expand path for shortcut'
-    debug_ids[106] = 'Applying shortcut file to'
-    debug_ids[107] = 'Running Folder applier for machine'
-    debug_ids[108] = 'Folder applier for machine will not be started'
-    debug_ids[109] = 'Folder creation skipped for machine'
-    debug_ids[110] = 'Folder creation skipped for user'
-    debug_ids[111] = 'Running Folder applier for user in user context'
-    debug_ids[112] = 'Folder applier for user in user context will not be started'
-    debug_ids[113] = 'Running CUPS applier for machine'
-    debug_ids[114] = 'CUPS applier for machine will not be started'
-    debug_ids[115] = 'Running CUPS applier for user in administrator context'
-    debug_ids[116] = 'CUPS applier for user in administrator context will not be started'
-    debug_ids[117] = 'Running Firewall applier for machine'
-    debug_ids[118] = 'Firewall is enabled'
-    debug_ids[119] = 'Firewall is disabled, settings will be reset'
-    debug_ids[120] = 'Firewall applier will not be started'
-    debug_ids[121] = 'Running NTP applier for machine'
-    debug_ids[122] = 'NTP server is configured to'
-    debug_ids[123] = 'Starting Chrony daemon'
-    debug_ids[124] = 'Setting reference NTP server to'
-    debug_ids[125] = 'Stopping Chrony daemon'
-    debug_ids[126] = 'Configuring NTP server...'
-    debug_ids[127] = 'NTP server is enabled'
-    debug_ids[128] = 'NTP server is disabled'
-    debug_ids[129] = 'NTP server is not configured'
-    debug_ids[130] = 'NTP client is enabled'
-    debug_ids[131] = 'NTP client is disabled'
-    debug_ids[132] = 'NTP client is not configured'
-    debug_ids[133] = 'NTP applier for machine will not be started'
-    debug_ids[134] = 'Running Envvar applier for machine'
-    debug_ids[135] = 'Envvar applier for machine will not be started'
-    debug_ids[136] = 'Running Envvar applier for user in admin context'
-    debug_ids[137] = 'Envvar applier for user in admin context will not be started'
-    debug_ids[138] = 'Running Package applier for machine'
-    debug_ids[139] = 'Package applier for machine will not be started'
-    debug_ids[140] = 'Running Package applier for user in administrator context'
-    debug_ids[141] = 'Package applier for user in administrator context will not be started'
-    debug_ids[142] = 'Running pkcon_runner to install and remove packages'
-    debug_ids[143] = 'Run apt-get update'
-    debug_ids[144] = 'Unable to cache specified URI'
-    debug_ids[145] = 'Unable to cache specified URI for machine'
-    debug_ids[146] = 'Running CIFS applier for user in administrator context'
-    debug_ids[147] = 'CIFS applier for user in administrator context will not be started'
-    debug_ids[148] = 'Installing the package'
-    debug_ids[149] = 'Removing a package'
-    debug_ids[150] = 'Failed to found gsettings for machine'
-    debug_ids[151] = 'Failed to found user gsettings'
-    debug_ids[152] = 'Configure user Group Policy loopback processing mode'
-    debug_ids[153] = 'Saving information about script'
-    debug_ids[154] = 'No machine scripts directory to clean up'
-    debug_ids[155] = 'No user scripts directory to clean up'
-    debug_ids[156] = 'Prepare Scripts applier for machine'
-    debug_ids[157] = 'Scripts applier for machine will not be started'
-    debug_ids[158] = 'Prepare Scripts applier for user in user context'
-    debug_ids[159] = 'Scripts applier for user in user context will not be started'
-    debug_ids[160] = 'Clean machine scripts directory'
-    debug_ids[161] = 'Clean user scripts directory'
-    debug_ids[162] = 'Saving information about file'
-    debug_ids[163] = 'Failed to return file path'
-    debug_ids[164] = 'Failed to create file'
-    debug_ids[165] = 'Failed to delete file'
-    debug_ids[166] = 'Failed to update file'
-    debug_ids[167] = 'Running File copy applier for machine'
-    debug_ids[168] = 'Running File copy applier for machine will not be started'
-    debug_ids[169] = 'Running File copy applier for user in administrator context'
-    debug_ids[170] = 'Running File copy applier for user in administrator context will not be started'
-    debug_ids[171] = 'Running ini applier for machine'
-    debug_ids[172] = 'Running ini applier for machine will not be started'
-    debug_ids[173] = 'Running ini applier for user in user context'
-    debug_ids[174] = 'Running ini applier for user in user context will not be started'
-    debug_ids[175] = 'Ini-file path not recognized'
-    debug_ids[176] = 'Ini-file is not readable'
-    debug_ids[177] = 'Saving information about ini-file'
-    debug_ids[178] = 'Dictionary key generation failed'
-    debug_ids[179] = 'Running CIFS applier for machine'
-    debug_ids[180] = 'CIFS applier for machine will not be started'
-    debug_ids[181] = 'Running networkshare applier for machine will not be started'
-    debug_ids[182] = 'Apply network share data action failed'
-    debug_ids[183] = 'Running yandex_browser_applier for machine'
-    debug_ids[184] = 'Yandex_browser_applier for machine will not be started'
-    debug_ids[185] = 'Wrote YandexBrowser preferences to'
-    debug_ids[186] = 'Saving information about network shares'
-    debug_ids[187] = 'Running networkshare applier for machine'
-    debug_ids[188] = 'Running networkshare applier for user'
-    debug_ids[189] = 'Running networkshare applier for user will not be started'
-    debug_ids[190] = 'Applying settings for network share'
-    debug_ids[191] = 'File copy'
-    debug_ids[192] = 'File update'
-    debug_ids[193] = 'Deleting a file'
-    debug_ids[194] = 'Failed to create a symlink to the network drives mountpoint'
-    debug_ids[195] = 'Failed to create a symlink to the system network drives mountpoint'
-    debug_ids[196] = 'Failed to create a symlink to the hidden network drives mountpoint'
-    debug_ids[197] = 'Failed to create a symlink to the hidden system network drives mountpoint'
-    debug_ids[198] = 'Running KDE applier for machine'
-    debug_ids[199] = 'KDE applier for machine will not be started'
-    debug_ids[200] = 'Running KDE applier for user in user context'
-    debug_ids[201] = 'KDE applier for user in user context will not be started'
-    debug_ids[202] = 'Changing the configuration file'
-    debug_ids[203] = 'Widget command completed successfully'
-    debug_ids[204] = 'Getting a list of keys'
-    debug_ids[205] = 'Getting the key value'
-    debug_ids[206] = 'Successfully updated dconf database'
-    debug_ids[207] = 'Suppressed exception in non-critical path'
-    debug_ids[208] = 'No entry found for the specified path'
-    debug_ids[209] = 'Creating an ini file with policies for dconf'
-    debug_ids[211] = 'SYSVOL entry found in cache'
-    debug_ids[212] = 'Wrote Thunderbird preferences to'
-    debug_ids[213] = 'Running Thunderbird applier for machine'
-    debug_ids[214] = 'Thunderbird applier for machine will not be started'
-    debug_ids[215] = 'The environment file has been cleaned'
-    debug_ids[216] = 'Cleanup of file environment failed'
-    debug_ids[217] = 'Failed to get dictionary'
-    debug_ids[218] = 'LAPS applier started'
-    debug_ids[219] = 'LAPS applier is disabled'
-    debug_ids[220] = 'Rebooting system after password change'
-    debug_ids[221] = 'Password changed'
-    debug_ids[222] = 'Writing password changes time'
-    debug_ids[223] = 'Requirements not met'
-    debug_ids[224] = 'The number of hours from the moment of the last user entrance'
-    debug_ids[225] = 'The number of hours since the password has last changed'
-    debug_ids[226] = 'LDAP updated with new password data'
-    debug_ids[227] = 'No active sessions found'
-    debug_ids[228] = 'Process terminated'
-    debug_ids[229] = 'Password update not needed'
-    debug_ids[230] = 'Password successfully updated'
-    debug_ids[231] = 'Cleaning the autofs catalog'
-    debug_ids[232] = 'No user login records found'
-    debug_ids[233] = 'Calculating time since the first user login after their password change'
-    debug_ids[234] = 'No logins found after password change'
-    debug_ids[235] = 'User not found in passwd database'
-    debug_ids[236] = 'Plugin is disabled'
-    debug_ids[237] = 'Failed to load cached versions'
-    debug_ids[238] = 'The trust attribute is not supported'
-    debug_ids[239] = 'Setting the trust attribute for a shortcut'
-    debug_ids[240] = 'Skipping GPP element with applyOnce (already applied)'
-    debug_ids[250] = 'INI value already set, skipping write'
-    debug_ids[251] = 'Checking applyOnce status for element'
-    debug_ids[252] = 'Found previous element with uid'
-    debug_ids[260] = 'Secure file permissions applied'
-    debug_ids[261] = 'Secure file permissions disabled by policy'
-    debug_ids[262] = 'Secure file ownership applied'
-    debug_ids[270] = 'Failed to detect KDE version'
-    debug_ids[271] = 'Failed to get desktop ID from wallpaper config'
-    debug_ids[272] = 'Failed to get machine account username'
-    debug_ids[273] = 'Failed to detect system language'
-    debug_ids[274] = 'Failed to parse dict literal'
-    debug_ids[275] = 'Failed to clean data'
-    debug_ids[276] = 'Failed to search for directory'
-    debug_ids[277] = 'Failed to search for file'
-    debug_ids[278] = 'Failed to get GPO list for trust user'
-    debug_ids[279] = 'Failed to select AD site servers'
-    debug_ids[280] = 'Failed to select all AD servers'
-    debug_ids[281] = 'Failed to check server role for DC policy detection'
-    debug_ids[282] = 'Failed to read OS release for policy name detection'
-    debug_ids[283] = 'Optional dependency not available'
-    debug_ids[284] = 'Failed to get Kerberos realm from principal'
-    debug_ids[285] = 'Failed to get domain controller FQDN from Kerberos info'
-    debug_ids[286] = 'Failed to enumerate running processes for DM detection'
-    debug_ids[287] = 'Failed to fetch URI for GSettings'
-    debug_ids[288] = 'Failed to remove CIFS symlink'
-    debug_ids[289] = 'Failed to set secure directory permissions'
-    debug_ids[290] = 'Failed to set secure file ownership'
-    debug_ids[291] = 'GSettings config section already exists'
-    debug_ids[292] = 'Failed to remove stale GSettings lock file'
-    debug_ids[293] = 'Failed to check CPU speed filter'
-    debug_ids[294] = 'Failed to check battery filter'
-    debug_ids[295] = 'Failed to check disk space filter'
-    debug_ids[296] = 'Failed to check language filter'
-    debug_ids[297] = 'Failed to check RAM size filter'
-    debug_ids[298] = 'Failed to check IP range filter'
-    debug_ids[299] = 'Failed to check MAC range filter'
-    debug_ids[300] = 'Failed to check oddjobd accessibility via D-Bus'
-    debug_ids[301] = 'Failed to check DC policy detection'
-    debug_ids[302] = 'Failed to read OS release for policy name detection'
-    debug_ids[303] = 'Failed to get local groups for username'
-    debug_ids[304] = 'Failed to convert GPP object to dict'
-    debug_ids[305] = 'Failed to serialize GPP value'
-    debug_ids[306] = 'Failed to query FreeIPA server'
-    debug_ids[307] = 'Failed to get dconf-service PID in child process'
-    debug_ids[308] = 'Failed to write result to pipe in child process'
-    debug_ids[309] = 'Failed to translate plugin message'
-    debug_ids[310] = 'Failed to auto-detect plugin locale directory'
-    debug_ids[311] = 'Failed to look up user SID for Windows variable expansion'
-
-    return debug_ids.get(code, 'Unknown debug code')
-
-def warning_code(code):
-    warning_ids = {}
-    warning_ids[1] = (
+_WARNING_MESSAGES = {
+    1: (
         'Unable to perform gpupdate for non-existent user, '
         'will update machine settings'
-    )
-    warning_ids[2] = (
+    ),
+    2: (
         'Current permissions does not allow to perform gpupdate for '
         'designated user. Will update current user settings'
-    )
-    warning_ids[3] = 'oddjobd is inaccessible'
-    warning_ids[4] = 'No SYSVOL entry assigned to GPO'
-    warning_ids[5] = 'ADP package is not installed - plugin will not be initialized'
-    warning_ids[6] = 'Unable to resolve GSettings parameter'
-    warning_ids[7] = 'No home directory exists for user'
-    warning_ids[8] = 'User\'s shortcut not placed to home directory'
-    warning_ids[9] = 'CUPS is not installed: no printer settings will be deployed'
-    warning_ids[10] = 'Unsupported NTP server type'
-    warning_ids[11] = 'Unable to refresh GPO list'
-    warning_ids[12] = 'Failed to read the list of files'
-    warning_ids[13] = 'Failed to caching the file'
-    warning_ids[14] = 'Could not create a valid list of keys'
-    warning_ids[15] = 'Failed to copy file'
-    warning_ids[16] = 'Failed to create KDE settings list'
-    warning_ids[17] = 'Could not find tools to configure KDE'
-    warning_ids[18] = 'Failed to open KDE settings'
-    warning_ids[19] = 'Failed to change KDE configuration file'
-    warning_ids[20] = 'Error connecting to server'
-    warning_ids[21] = 'Wallpaper configuration file not found'
-    warning_ids[22] = 'The user setting was not installed, conflict with computer setting'
-    warning_ids[23] = 'Action for ini file failed'
-    warning_ids[24] = 'Couldn\'t get the uid'
-    warning_ids[25] = 'Failed to load content from remote host'
-    warning_ids[26] = 'Force mode activated'
-    warning_ids[27] = 'Failed to change password'
-    warning_ids[28] = 'Failed to write password modification time'
-    warning_ids[29] = 'LAPS requirements not met, module disabled'
-    warning_ids[30] = 'Could not resolve encryption principal name. Return admin group SID'
-    warning_ids[31] = 'Failed to get expiration time from LDAP'
-    warning_ids[32] = 'Failed to read password modification time from dconf'
-    warning_ids[33] = 'Failed to get last login time'
-    warning_ids[34] = 'Failed to calculate password age'
-    warning_ids[35] = 'Failed to terminate process'
-    warning_ids[36] = 'The user was not found to change the password'
-    warning_ids[37] = 'Error while cleaning the autofs catalog'
-    warning_ids[38] = 'Problem with timezone detection'
-    warning_ids[39] = 'Error executing last command'
-    warning_ids[40] = 'Last command not found'
-    warning_ids[41] = 'Error getting user login times'
-    warning_ids[42] = 'Invalid timezone in reference datetime'
-    warning_ids[43] = 'wbinfo SID lookup failed; will try as trusted domain user'
-    warning_ids[44] = 'Plugin is not valid API object'
-    warning_ids[45] = 'Error loading plugin from file'
-    warning_ids[46] = 'Plugin failed to apply with user privileges'
-    warning_ids[47] = 'GPP element error bypassed due to bypassErrors flag'
-    warning_ids[48] = 'Unknown filter type encountered, policy will be blocked'
-    warning_ids[49] = 'Invalid Systemds preference entry'
-    warning_ids[50] = 'User systemd manager is unavailable'
-    warning_ids[51] = 'Restart skipped for non-restartable unit type'
-    warning_ids[52] = 'daemon-reload for systemd preferences failed'
-    warning_ids[53] = 'Unknown period value in date filter'
-    warning_ids[54] = 'Failed to get domain info for filter context'
-    warning_ids[55] = 'Failed to get group SIDs for filter'
+    ),
+    3: 'oddjobd is inaccessible',
+    4: 'No SYSVOL entry assigned to GPO',
+    5: 'ADP package is not installed - plugin will not be initialized',
+    6: 'Unable to resolve GSettings parameter',
+    7: 'No home directory exists for user',
+    8: 'User\'s shortcut not placed to home directory',
+    9: 'CUPS is not installed: no printer settings will be deployed',
+    10: 'Unsupported NTP server type',
+    11: 'Unable to refresh GPO list',
+    12: 'Failed to read the list of files',
+    13: 'Failed to caching the file',
+    14: 'Could not create a valid list of keys',
+    15: 'Failed to copy file',
+    16: 'Failed to create KDE settings list',
+    17: 'Could not find tools to configure KDE',
+    18: 'Failed to open KDE settings',
+    19: 'Failed to change KDE configuration file',
+    20: 'Error connecting to server',
+    21: 'Wallpaper configuration file not found',
+    22: 'The user setting was not installed, conflict with computer setting',
+    23: 'Action for ini file failed',
+    24: 'Couldn\'t get the uid',
+    25: 'Failed to load content from remote host',
+    26: 'Force mode activated',
+    27: 'Failed to change password',
+    28: 'Failed to write password modification time',
+    29: 'LAPS requirements not met, module disabled',
+    30: 'Could not resolve encryption principal name. Return admin group SID',
+    31: 'Failed to get expiration time from LDAP',
+    32: 'Failed to read password modification time from dconf',
+    33: 'Failed to get last login time',
+    34: 'Failed to calculate password age',
+    35: 'Failed to terminate process',
+    36: 'The user was not found to change the password',
+    37: 'Error while cleaning the autofs catalog',
+    38: 'Problem with timezone detection',
+    39: 'Error executing last command',
+    40: 'Last command not found',
+    41: 'Error getting user login times',
+    42: 'Invalid timezone in reference datetime',
+    43: 'wbinfo SID lookup failed; will try as trusted domain user',
+    44: 'Plugin is not valid API object',
+    45: 'Error loading plugin from file',
+    46: 'Plugin failed to apply with user privileges',
+    47: 'GPP element error bypassed due to bypassErrors flag',
+    48: 'Unknown filter type encountered, policy will be blocked',
+    49: 'Invalid Systemds preference entry',
+    50: 'User systemd manager is unavailable',
+    51: 'Restart skipped for non-restartable unit type',
+    52: 'daemon-reload for systemd preferences failed',
+    53: 'Unknown period value in date filter',
+    54: 'Failed to get domain info for filter context',
+    55: 'Failed to get group SIDs for filter',
+}
 
-    return warning_ids.get(code, 'Unknown warning code')
+_FATAL_MESSAGES = {
+    1: 'Unable to refresh GPO list',
+    2: 'Error getting GPTs for machine',
+    3: 'Error getting GPTs for user',
+}
+
+
+def info_code(code):
+    return _INFO_MESSAGES.get(code, 'Unknown info code')
+
+def error_code(code):
+    return _ERROR_MESSAGES.get(code, 'Unknown error code')
+
+def debug_code(code):
+    return _DEBUG_MESSAGES.get(code, 'Unknown debug code')
+
+def warning_code(code):
+    return _WARNING_MESSAGES.get(code, 'Unknown warning code')
 
 def fatal_code(code):
-    fatal_ids = {}
-    fatal_ids[1] = 'Unable to refresh GPO list'
-    fatal_ids[2] = 'Error getting GPTs for machine'
-    fatal_ids[3] = 'Error getting GPTs for user'
-
-    return fatal_ids.get(code, 'Unknown fatal code')
+    return _FATAL_MESSAGES.get(code, 'Unknown fatal code')
 
 def get_message(code):
     retstr = 'Unknown message type, no message assigned'
@@ -508,4 +540,3 @@ def message_with_code(code):
     retstr = 'core' + '[' + code[0:1] + code[1:].rjust(7, '0') + ']| ' + gettext.gettext(get_message(code))
 
     return retstr
-

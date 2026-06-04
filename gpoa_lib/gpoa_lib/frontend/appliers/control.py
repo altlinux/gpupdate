@@ -99,14 +99,14 @@ class control:
             if status == None:
                 logdata = {}
                 logdata['control'] = self.control_name
-                logdata['inpossible values'] = self.control_value
+                logdata['impossible values'] = self.control_value
                 log('E42', logdata)
                 return
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
                 logdata = {}
                 logdata['control'] = self.control_name
-                logdata['inpossible values'] = self.control_value
+                logdata['impossible values'] = self.control_value
                 log('E59', logdata)
                 return
             status = self.control_value

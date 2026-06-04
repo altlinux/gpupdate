@@ -61,19 +61,21 @@ class package_applier(applier_frontend):
         if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
             if self.flagSync:
                 try:
-                    subprocess.check_call(self.fulcmd)
+                    subprocess.check_call(self.fulcmd, timeout=300)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E55', logdata)
             else:
                 try:
-                    subprocess.Popen(self.fulcmd,close_fds=False)
+                    with subprocess.Popen(self.fulcmd,close_fds=False) as proc:
+                        proc.wait(timeout=300)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E61', logdata)
 
     def apply(self):
         if self.__module_enabled:
+            log('I23')
             log('D138')
             self.run()
         else:
@@ -125,13 +127,14 @@ class package_applier_user(DualContextApplier):
         if 0 < self.install_packages_setting.count() or 0 < self.remove_packages_setting.count():
             if self.flagSync:
                 try:
-                    subprocess.check_call(self.fulcmd)
+                    subprocess.check_call(self.fulcmd, timeout=300)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E60', logdata)
             else:
                 try:
-                    subprocess.Popen(self.fulcmd,close_fds=False)
+                    with subprocess.Popen(self.fulcmd,close_fds=False) as proc:
+                        proc.wait(timeout=300)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E62', logdata)

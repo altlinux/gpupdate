@@ -157,6 +157,7 @@ class frontend_manager:
         if not is_root():
             log('E13')
             return
+        log('I10')
         log('D16')
 
         for applier_name, applier_object in self.machine_appliers.items():

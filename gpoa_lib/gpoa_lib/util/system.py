@@ -126,14 +126,14 @@ def with_privileges(username, func):
         set_privileges(username, user_uid, user_gid, user_groups, user_home)
 
         # Start dbus-launch to get session bus
-        proc = subprocess.Popen(
+        with subprocess.Popen(
             ['dbus-launch'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
-        )
-        for var in proc.stdout:
-            sp = var.decode('utf-8').split('=', 1)
-            os.environ[sp[0]] = sp[1].strip()
+        ) as proc:
+            for var in proc.stdout:
+                sp = var.decode('utf-8').split('=', 1)
+                os.environ[sp[0]] = sp[1].strip()
 
         # Save DBus session PID
         dbus_pid = int(os.environ['DBUS_SESSION_BUS_PID'])

@@ -56,10 +56,9 @@ class chromium_applier(applier_frontend):
 
         try:
             recommended__json = self.policies_json.pop('Recommended')
-        except Exception:
+        except Exception as exc:
+            log('D324', {'exc': str(exc)})
             recommended__json = {}
-
-        #Replacing all nested dictionaries with a list
         dict_item_to_list = (
             lambda target_dict :
                 {key:[*val.values()] if type(val) == dict else string_to_literal_eval(val) for key,val in target_dict.items()}
@@ -215,11 +214,11 @@ class chromium_applier(applier_frontend):
                     if it_data.data[0] == '[' and it_data.data[-1] == ']':
                         try:
                             branch[parts[-1]] = json.loads(str(it_data.data))
-                        except Exception:
+                        except Exception as exc:
+                            log('D325', {'data': it_data.data, 'exc': str(exc)})
                             branch[parts[-1]] = str(it_data.data).replace('\\', '/')
                     else:
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
-
             except Exception as exc:
                 logdata = {}
                 logdata['Exception'] = exc
@@ -227,5 +226,6 @@ class chromium_applier(applier_frontend):
                 log('D178', logdata)
         try:
             self.policies_json = counts['']
-        except Exception:
+        except Exception as exc:
+            log('D326', {'exc': str(exc)})
             self.policies_json = {}

@@ -101,6 +101,7 @@ class polkit_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            log('I18')
             log('D73')
             for policy in self.policies:
                 policy.generate()

@@ -131,9 +131,8 @@ def _load_plugin_translations(domain):
                         return  # Successfully loaded translations
                     except FileNotFoundError:
                         continue
-    except Exception:
-        # Silently fail if translations cannot be loaded
-        pass
+    except Exception as exc:
+        log('D312', {'domain': domain, 'exc': str(exc)})
 
 def register_plugin_messages(domain, messages_dict):
     """

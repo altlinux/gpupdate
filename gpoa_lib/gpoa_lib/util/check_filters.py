@@ -128,7 +128,8 @@ class FilterChecker:
 
             if actual_name is None:
                 actual_name = ''
-        except Exception:
+        except Exception as exc:
+            log('D320', {'exc': str(exc)})
             actual_name = ''
 
         expected_normalized = expected_name.lower().rstrip('$')

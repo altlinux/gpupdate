@@ -85,7 +85,7 @@ def create_role(role_name, privilege_list):
     try:
         print(privilege_list)
         cmd.extend(privilege_list)
-        subprocess.check_call(cmd)
+        subprocess.check_call(cmd, timeout=30)
     except Exception as exc:
         logging.error(slogm('Error creating role \'{}\': {}'.format(role_name, exc)))
 

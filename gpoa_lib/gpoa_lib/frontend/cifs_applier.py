@@ -148,6 +148,7 @@ class cifs_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I24')
             log('D179')
             self.applier_cifs._admin_context_apply()
         else:
@@ -372,7 +373,7 @@ class cifs_applier_user(DualContextApplier):
 
     def restart_autofs(self):
         try:
-            subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'])
+            subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'], timeout=30)
         except Exception as exc:
             log('E74', {'exc': exc})
 

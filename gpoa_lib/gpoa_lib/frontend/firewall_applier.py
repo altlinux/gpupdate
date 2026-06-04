@@ -61,8 +61,8 @@ class firewall_applier(applier_frontend):
                 self.run()
             else:
                 log('D119')
-                proc = subprocess.Popen(self.__firewall_reset_cmd)
-                proc.wait()
+                with subprocess.Popen(self.__firewall_reset_cmd) as proc:
+                    proc.wait(timeout=30)
         else:
             log('D120')
 

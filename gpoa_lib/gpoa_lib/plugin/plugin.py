@@ -65,6 +65,7 @@ class plugin(ABC):
                 result = self.run(**kwargs)
                 return {"success": True, "result": result}
             except Exception as exc:
+                log('W46', {'plugin': self.plugin_name, 'username': username, 'exc': str(exc)})
                 return {"success": False, "error": str(exc)}
 
         try:
@@ -73,8 +74,11 @@ class plugin(ABC):
                 result = execution_result.get("result", True)
                 return result
             else:
+                log('W46', {'plugin': self.plugin_name, 'username': username,
+                            'error': execution_result.get('error', 'unknown') if execution_result else 'empty result'})
                 return False
-        except Exception:
+        except Exception as exc:
+            log('W46', {'plugin': self.plugin_name, 'username': username, 'exc': str(exc)})
             return False
 
     @final

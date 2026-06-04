@@ -158,7 +158,7 @@ class ApplierRunnerRunTestCase(unittest.TestCase):
     @patch.object(ApplierRunner, 'create')
     def test_run_ok(self, mock_create):
         mock_applier = MagicMock()
-        mock_create.return_value = Result.ok(mock_applier)
+        mock_create.return_value = Result.ok_result(mock_applier)
         runner = ApplierRunner(data={})
         result = runner.run('control')
         self.assertTrue(result)
@@ -176,7 +176,7 @@ class ApplierRunnerRunTestCase(unittest.TestCase):
     def test_run_exception_caught(self, mock_create):
         mock_applier = MagicMock()
         mock_applier.apply.side_effect = RuntimeError('boom')
-        mock_create.return_value = Result.ok(mock_applier)
+        mock_create.return_value = Result.ok_result(mock_applier)
         runner = ApplierRunner(data={})
         result = runner.run('control')
         self.assertFalse(result)
@@ -186,13 +186,13 @@ class ApplierRunnerRunTestCase(unittest.TestCase):
 class ResultTestCase(unittest.TestCase):
 
     def test_ok_result(self):
-        r = Result.ok(42)
+        r = Result.ok_result(42)
         self.assertTrue(r)
         self.assertEqual(r.data, 42)
         self.assertIsNone(r.error)
 
     def test_ok_result_no_data(self):
-        r = Result.ok()
+        r = Result.ok_result()
         self.assertTrue(r)
         self.assertIsNone(r.data)
 
@@ -203,7 +203,7 @@ class ResultTestCase(unittest.TestCase):
         self.assertIsNone(r.data)
 
     def test_result_repr_ok(self):
-        r = Result.ok(42)
+        r = Result.ok_result(42)
         self.assertIn('ok=True', repr(r))
 
     def test_result_repr_fail(self):

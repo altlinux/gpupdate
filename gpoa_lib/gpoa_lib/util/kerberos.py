@@ -47,8 +47,8 @@ def machine_kinit(cache_name=None, backend_type=None):
         os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_name)
         kinit_cmd.extend(['-c', cache_name])
 
-    proc = subprocess.Popen(kinit_cmd)
-    proc.wait()
+    with subprocess.Popen(kinit_cmd) as proc:
+        proc.wait(timeout=15)
 
     result = False
 
@@ -72,7 +72,7 @@ def machine_kdestroy(cache_name=None):
 
     if cache_name or 'KRB5CCNAME' in os.environ:
         proc = subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL)
-        proc.wait()
+        proc.wait(timeout=10)
 
     if cache_name and os.path.exists(cache_name):
         os.unlink(cache_name)
@@ -88,8 +88,8 @@ def check_krb_ticket():
     '''
     result = False
     try:
-        subprocess.check_call(['klist', '-s'])
-        output = subprocess.check_output('klist', stderr=subprocess.STDOUT).decode()
+        subprocess.check_call(['klist', '-s'], timeout=10)
+        output = subprocess.check_output(['klist'], stderr=subprocess.STDOUT, timeout=10).decode()
         result = True
         logdata = {'output': output}
         log('D17', logdata)

@@ -28,7 +28,7 @@ from .util import get_homedir
 
 def _get_system_lang():
     try:
-        out = subprocess.check_output(['localectl', 'status'], text=True)
+        out = subprocess.check_output(['localectl', 'status'], text=True, timeout=15)
         for line in out.splitlines():
             if 'System Locale' in line:
                 return line.split('LANG=', 1)[1].strip()
@@ -52,8 +52,8 @@ def xdg_get_desktop(username, homedir = None):
         lang = _get_system_lang()
         if lang and not lang.startswith('C'):
             env = {**os.environ, 'HOME': homedir, 'LANG': lang, 'LC_ALL': lang}
-            subprocess.run(['xdg-user-dirs-update'], env=env, check=False)
+            subprocess.run(['xdg-user-dirs-update'], env=env, check=False, timeout=15)
 
     env = {**os.environ, 'HOME': homedir}
-    result = subprocess.run(['xdg-user-dir', 'DESKTOP'], env=env, capture_output=True, text=True)
+    result = subprocess.run(['xdg-user-dir', 'DESKTOP'], env=env, capture_output=True, text=True, timeout=15)
     return result.stdout.strip()

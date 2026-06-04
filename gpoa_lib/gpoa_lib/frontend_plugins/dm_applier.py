@@ -277,7 +277,7 @@ class DMApplier(FrontendPlugin):
 
             # Get list of resources from gresource file
             cmd_list = ["gresource", "list", gresource_path]
-            result_list = subprocess.run(cmd_list, capture_output=True, text=True)
+            result_list = subprocess.run(cmd_list, capture_output=True, text=True, timeout=30)
 
             if result_list.returncode != 0:
                 self.log("E26", {"path": gresource_path, "error": result_list.stderr})
@@ -308,7 +308,7 @@ class DMApplier(FrontendPlugin):
 
                 # Extract the resource to temporary directory
                 cmd_extract = ["gresource", "extract", gresource_path, resource_path]
-                result_extract = subprocess.run(cmd_extract, capture_output=True, text=True)
+                result_extract = subprocess.run(cmd_extract, capture_output=True, text=True, timeout=30)
 
                 if result_extract.returncode == 0:
                     # Write extracted content to file
@@ -437,7 +437,7 @@ class DMApplier(FrontendPlugin):
             try:
                 os.chdir(temp_dir)
                 cmd = ["glib-compile-resources", "--target", gresource_path, "gnome-shell-theme.gresource.xml"]
-                result = subprocess.run(cmd, capture_output=True, text=True)
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
                 if result.returncode == 0:
                     return True

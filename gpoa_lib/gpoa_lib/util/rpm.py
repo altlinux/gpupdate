@@ -73,19 +73,16 @@ class Package:
                 return self.remove()
 
     def install(self):
-        fullcmd = self.__install_command
-        fullcmd.append(self.package_name)
-        return subprocess.check_call(fullcmd)
+        fullcmd = [*self.__install_command, self.package_name]
+        return subprocess.check_call(fullcmd, timeout=120)
 
     def reinstall(self):
-        fullcmd = self.__reinstall_command
-        fullcmd.append(self.package_name)
-        return subprocess.check_call(fullcmd)
+        fullcmd = [*self.__reinstall_command, self.package_name]
+        return subprocess.check_call(fullcmd, timeout=120)
 
     def remove(self):
-        fullcmd = self.__remove_command
-        fullcmd.append(self.package_name)
-        return subprocess.check_call(fullcmd)
+        fullcmd = [*self.__remove_command, self.package_name]
+        return subprocess.check_call(fullcmd, timeout=120)
 
     def __repr__(self):
         return self.package_name
@@ -97,7 +94,7 @@ def update():
     '''
     Update APT-RPM database.
     '''
-    subprocess.check_call(['/usr/bin/apt-get', 'update'])
+    subprocess.check_call(['/usr/bin/apt-get', 'update'], timeout=300)
 
 def install_rpm(rpm_name):
     '''

@@ -188,9 +188,11 @@ class samba_backend(applier_backend):
         gpts = []
         if not username:
             username = get_machine_name()
+        log('I11', {'username': username})
         log('D45', {'username': username})
         # util.windows.smbcreds
         gpos = self.sambacreds.update_gpos(username)
+        log('I12')
         log('D46')
         for gpo in gpos:
             if self._check_sysvol_present(gpo):

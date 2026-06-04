@@ -199,7 +199,7 @@ class ApplierRunner:
         else:
             applier = applier_cls(storage)
 
-        return Result.ok(applier)
+        return Result.ok_result(applier)
 
     def run(self, applier_name, prefix=None, keys=None):
         '''Create and run an applier. Returns Result.'''
@@ -211,7 +211,7 @@ class ApplierRunner:
             if hasattr(applier, 'force'):
                 applier.force = self.force
             applier.apply()
-            return Result.ok()
+            return Result.ok_result()
         except Exception as exc:
             logdata = {'applier_name': applier_name, 'msg': str(exc)}
             log('E24', logdata)

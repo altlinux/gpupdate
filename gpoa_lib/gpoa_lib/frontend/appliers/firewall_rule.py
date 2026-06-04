@@ -92,6 +92,6 @@ class FirewallRule:
                 , '-t', tcp_port
                 , '-u', udp_port
             ]
-            proc = subprocess.Popen(portcmd)
-            proc.wait()
+            with subprocess.Popen(portcmd) as proc:
+                proc.wait(timeout=30)
 

@@ -1137,6 +1137,48 @@ msgstr "Не удалось определить каталог локализа
 msgid "Failed to look up user SID for Windows variable expansion"
 msgstr "Не удалось получить SID пользователя для подстановки переменных Windows"
 
+msgid "Failed to load plugin translations"
+msgstr "Не удалось загрузить переводы плагина"
+
+msgid "Failed to initialize plugin translation object"
+msgstr "Не удалось инициализировать объект перевода плагина"
+
+msgid "Failed to format plugin log message"
+msgstr "Не удалось форматировать сообщение журнала плагина"
+
+msgid "Failed to parse string as literal"
+msgstr "Не удалось разобрать строку как литерал"
+
+msgid "Failed to check local user existence"
+msgstr "Не удалось проверить существование локального пользователя"
+
+msgid "Failed to run external command"
+msgstr "Не удалось выполнить внешнюю команду"
+
+msgid "Failed to get group SIDs for SID"
+msgstr "Не удалось получить SID групп для SID"
+
+msgid "Failed to resolve hostname in filter check"
+msgstr "Не удалось разрешить имя хоста при проверке фильтра"
+
+msgid "Failed to close file handler in cache"
+msgstr "Не удалось закрыть файловый дескриптор в кэше"
+
+msgid "Failed to close directory handler in cache"
+msgstr "Не удалось закрыть дескриптор каталога в кэше"
+
+msgid "Failed to get home cache path"
+msgstr "Не удалось получить путь к домашнему кэшу"
+
+msgid "Failed to pop Recommended key from browser policies"
+msgstr "Не удалось извлечь ключ Recommended из политик браузера"
+
+msgid "Failed to parse JSON data in browser policy"
+msgstr "Не удалось разобрать данные JSON в политике браузера"
+
+msgid "Failed to extract browser policies from counts dict"
+msgstr "Не удалось извлечь политики браузера из словаря счётчиков"
+
 # Debug_end
 
 # Warning

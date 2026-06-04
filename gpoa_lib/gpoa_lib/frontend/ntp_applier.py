@@ -62,13 +62,13 @@ class ntp_applier(applier_frontend):
 
     def _chrony_as_client(self):
         command = ['/usr/sbin/control', 'chrony', 'client']
-        proc = subprocess.Popen(command)
-        proc.wait()
+        with subprocess.Popen(command) as proc:
+            proc.wait(timeout=15)
 
     def _chrony_as_server(self):
         command = ['/usr/sbin/control', 'chrony', 'server']
-        proc = subprocess.Popen(command)
-        proc.wait()
+        with subprocess.Popen(command) as proc:
+            proc.wait(timeout=15)
 
     def _start_chrony_client(self, server=None):
         srv = None
@@ -85,26 +85,26 @@ class ntp_applier(applier_frontend):
         log('D123')
 
         proc = subprocess.Popen(start_command)
-        proc.wait()
+        proc.wait(timeout=30)
 
         if srv:
             logdata = {'srv': srv}
             log('D124', logdata)
 
             proc = subprocess.Popen(chrony_disconnect_all)
-            proc.wait()
+            proc.wait(timeout=15)
 
             proc = subprocess.Popen(chrony_set_server)
-            proc.wait()
+            proc.wait(timeout=15)
 
             proc = subprocess.Popen(chrony_connect)
-            proc.wait()
+            proc.wait(timeout=15)
 
     def _stop_chrony_client(self):
         stop_command = ['/usr/bin/systemctl', 'stop', 'chronyd']
         log('D125')
         proc = subprocess.Popen(stop_command)
-        proc.wait()
+        proc.wait(timeout=30)
 
     def run(self):
         server_type = self.storage.get_hklm_entry(self.ntp_server_type)

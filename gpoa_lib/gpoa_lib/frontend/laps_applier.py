@@ -232,13 +232,13 @@ class laps_applier(applier_frontend):
             # Try to resolve as domain\\user format
             domain = self.storage.get_info('domain')
             username = f'{domain}\\{principal_name}'
-            output = subprocess.check_output(['wbinfo', '-n', username])
+            output = subprocess.check_output(['wbinfo', '-n', username], timeout=10)
             sid = output.split()[0].decode('utf-8')
             return sid
         except subprocess.CalledProcessError:
             # Try to resolve directly as SID
             try:
-                output = subprocess.check_output(['wbinfo', '-s', principal_name])
+                output = subprocess.check_output(['wbinfo', '-s', principal_name], timeout=10)
                 return principal_name
             except subprocess.CalledProcessError:
                 # Fallback to admin group SID
@@ -307,7 +307,8 @@ class laps_applier(applier_frontend):
             key_path = self._KEY_PASSWORD_LAST_MODIFIED + self.target_user
             last_modified = subprocess.check_output(
                 ['dconf', 'read', key_path],
-                text=True
+                text=True,
+                timeout=10
             ).strip().strip("'\"")
             return int(last_modified)
         except Exception as exc:
@@ -326,7 +327,7 @@ class laps_applier(applier_frontend):
             # Write current time to dconf
             key_path = self._KEY_PASSWORD_LAST_MODIFIED + self.target_user
             last_modified = f'"{self.current_time_int}"'
-            subprocess.check_output(['dconf', 'write', key_path, last_modified])
+            subprocess.check_output(['dconf', 'write', key_path, last_modified], timeout=10)
             log('D222')
         except Exception as exc:
             logdata = {'exc': exc}
@@ -339,7 +340,8 @@ class laps_applier(applier_frontend):
             result = subprocess.run(
                 ["dbus-daemon", "--fork", "--session", "--print-address"],
                 capture_output=True,
-                text=True
+                text=True,
+                timeout=15
             )
             dbus_address = result.stdout.strip()
             os.environ["DBUS_SESSION_BUS_ADDRESS"] = dbus_address
@@ -531,12 +533,12 @@ class laps_applier(applier_frontend):
         logdata = {'target_user': self.target_user}
         try:
             # Use chpasswd to change the password
-            process = subprocess.Popen(
+            with subprocess.Popen(
                 ["chpasswd"],
                 stdin=subprocess.PIPE,
                 text=True
-            )
-            process.communicate(f"{self.target_user}:{new_password}")
+            ) as process:
+                process.communicate(f"{self.target_user}:{new_password}", timeout=15)
 
             # Record the time of change
             self._write_dconf_pass_last_mod()
@@ -650,7 +652,7 @@ class laps_applier(applier_frontend):
             self._terminate_user_sessions()
         elif self.post_authentication_actions == self._ACTION_REBOOT:
             log('D220')
-            subprocess.run(["reboot"])
+            subprocess.run(["reboot"], timeout=30)
 
     def _terminate_user_sessions(self):
         """
@@ -762,7 +764,7 @@ class laps_applier(applier_frontend):
         login_datetimes = []
 
         try:
-            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env, timeout=15)
             if process.returncode != 0 and not ("no login record" in process.stderr.lower() or "no users logged in" in process.stdout.lower()):
                 log('W39')
                 return []

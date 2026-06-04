@@ -78,6 +78,7 @@ def get_local_groups_for_username(username):
             except KeyError as exc:
                 log('D303', {'exc': str(exc)})
         return groups
-    except Exception:
+    except Exception as exc:
+        log('D315', {'username': username, 'exc': str(exc)})
         return []
 

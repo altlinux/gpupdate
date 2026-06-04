@@ -184,8 +184,8 @@ class PluginLog:
                                 fallback=True
                             )
 
-            except Exception:
-                # If any exception occurs, fall back to NullTranslations
+            except Exception as exc:
+                log('D313', {'domain': self.domain, 'exc': str(exc)})
                 self._translation = gettext.NullTranslations()
 
             # Ensure _translation is set even if all attempts failed
@@ -208,7 +208,8 @@ class PluginLog:
         if data and isinstance(data, dict):
             try:
                 return translated_template.format(**data)
-            except Exception:
+            except Exception as exc:
+                log('D314', {'template': translated_template, 'exc': str(exc)})
                 return "{} | {}".format(translated_template, data)
         return translated_template
 

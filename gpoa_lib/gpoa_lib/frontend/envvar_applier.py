@@ -37,6 +37,7 @@ class envvar_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I22')
             log('D134')
             # Cleanup removed elements with removePolicy
             current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]

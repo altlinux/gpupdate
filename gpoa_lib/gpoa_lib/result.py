@@ -35,7 +35,7 @@ class Result:
             print('Error:', result.error)
 
         # Or use class methods:
-        ok_result = Result.ok({'applied': 3})
+        ok_result = Result.ok_result({'applied': 3})
         err_result = Result.fail('Database not found')
     '''
 
@@ -53,7 +53,7 @@ class Result:
         return f'Result(ok=False, error={self.error!r})'
 
     @classmethod
-    def ok(cls, data=None):
+    def ok_result(cls, data=None):
         '''
         Create a successful result.
 

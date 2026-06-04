@@ -151,6 +151,7 @@ class smbcreds (smbopts):
                     return []
 
         try:
+            log('I15')
             log('D48')
             ads = samba.gpo.ADS_STRUCT(self.selected_dc, self.lp, self.creds)
             if ads.connect():

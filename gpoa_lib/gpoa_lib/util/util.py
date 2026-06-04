@@ -140,7 +140,7 @@ def runcmd(command_name):
             rc = proc.returncode
             return (rc, value)
     except Exception as exc:
-        print(str(exc))
+        log('D318', {'command': str(command_name), 'exc': str(exc)})
 
 def get_backends():
     '''
@@ -211,7 +211,8 @@ def get_policy_variants():
 def string_to_literal_eval(string):
     try:
         literaleval = ast.literal_eval(string)
-    except Exception:
+    except Exception as exc:
+        log('D316', {'string': string, 'exc': str(exc)})
         literaleval = string
     return literaleval
 
@@ -293,5 +294,6 @@ def check_local_user_exists(username):
         # Try to get user information from the password database
         get_user_info(username)
         return True
-    except Exception:
+    except Exception as exc:
+        log('D317', {'username': username, 'exc': str(exc)})
         return False

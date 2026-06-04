@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from xml.etree import ElementTree
+from .xml import get_xml_root
 
 from samba.gp_parse.gp_pol import GPPolParser
 from ..storage.dconf_registry import load_preg_dconf
@@ -42,7 +42,7 @@ def load_xml_preg(xml_path):
     logdata = {'polfile': xml_path}
     log('D36', logdata)
     gpparser = GPPolParser()
-    xml_root = ElementTree.parse(xml_path).getroot()
+    xml_root = get_xml_root(xml_path)
     gpparser.load_xml(xml_root)
     gpparser.pol_file.__ndr_print__()
 

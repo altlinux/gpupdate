@@ -56,7 +56,8 @@ class yandex_browser_applier(applier_frontend):
 
         try:
             recommended__json = self.policies_json.pop('Recommended')
-        except Exception:
+        except Exception as exc:
+            log('D324', {'exc': str(exc)})
             recommended__json = {}
 
         #Replacing all nested dictionaries with a list
@@ -176,7 +177,8 @@ class yandex_browser_applier(applier_frontend):
                     if it_data.data[0] == '[' and it_data.data[-1] == ']':
                         try:
                             branch[parts[-1]] = json.loads(str(it_data.data))
-                        except Exception:
+                        except Exception as exc:
+                            log('D325', {'data': it_data.data, 'exc': str(exc)})
                             branch[parts[-1]] = str(it_data.data).replace('\\', '/')
                     else:
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
@@ -186,5 +188,6 @@ class yandex_browser_applier(applier_frontend):
                 log('D178', logdata)
         try:
             self.policies_json = counts['']
-        except Exception:
+        except Exception as exc:
+            log('D326', {'exc': str(exc)})
             self.policies_json = {}

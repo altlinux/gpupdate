@@ -68,6 +68,7 @@ class control_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            log('I17')
             log('D67')
             self.run()
         else:

@@ -59,6 +59,7 @@ class systemd_applier(applier_frontend):
         Trigger control facility invocation.
         '''
         if self.__module_enabled:
+            log('I19')
             log('D78')
             self.run()
         else:

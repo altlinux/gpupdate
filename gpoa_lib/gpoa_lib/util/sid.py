@@ -47,7 +47,7 @@ def wbinfo_getsid(domain, user):
 
     wbinfo_cmd = ['wbinfo', '-n', username]
     try:
-        output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT, timeout=10)
         if _trust_info_callback:
             _trust_info_callback('trust', False)
         return output.split()[0].decode('utf-8')
@@ -55,7 +55,7 @@ def wbinfo_getsid(domain, user):
         log('W43')
     try:
         wbinfo_cmd[-1] = user
-        output = subprocess.check_output(wbinfo_cmd)
+        output = subprocess.check_output(wbinfo_cmd, timeout=10)
         if _trust_info_callback:
             _trust_info_callback('trust', True)
     except Exception as exc:
@@ -105,11 +105,12 @@ def get_group_sids_for_sid(sid):
     '''
     try:
         wbinfo_cmd = ['wbinfo', '--user-sids', sid]
-        output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(wbinfo_cmd, stderr=subprocess.STDOUT, timeout=10)
         lines = output.decode('utf-8').strip().split('\n')
         group_sids = [line.strip() for line in lines if line.strip()]
         return group_sids
-    except Exception:
+    except Exception as exc:
+        log('D319', {'sid': sid, 'exc': str(exc)})
         return []
 
 class IssuingAuthority(Enum):
