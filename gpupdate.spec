@@ -148,6 +148,10 @@ cp -r gpoa \
 cp -r gpoa_lib/gpoa_lib \
 	%buildroot%python3_sitelibdir/gpoa_lib
 
+# Remove test directory and bytecode from gpoa-lib package
+find %buildroot%python3_sitelibdir/gpoa_lib -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+find %buildroot%python3_sitelibdir/gpoa_lib -name '*.pyc' -delete 2>/dev/null || true
+
 # Generate translations
 msgfmt \
 	-o %buildroot%python3_sitelibdir/gpoa/locale/ru_RU/LC_MESSAGES/gpoa.mo \
@@ -271,6 +275,7 @@ fi
 
 %files -n gpoa-lib
 %python3_sitelibdir/gpoa_lib
+%exclude %python3_sitelibdir/gpoa_lib/test
 %doc API_REFERENCE.md API_REFERENCE_RU.md
 %doc README.md PLUGIN_DEVELOPMENT_GUIDE.md PLUGIN_DEVELOPMENT_GUIDE_RU.md EXAMPLES.md
 
