@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 def check_experimental_enabled(storage):
@@ -76,6 +76,7 @@ class applier_frontend(ABC):
     def __init__(self, regobj):
         pass
 
+    @abstractmethod
     def apply(self, **kwargs):
-        pass
+        raise NotImplementedError
 
