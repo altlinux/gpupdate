@@ -33,10 +33,11 @@ class Ini_file:
         path = expand_windows_var(ini_obj.path, username).replace('\\', '/')
         self.path = check_path(path, username)
         self.modified = False
+        self._valid = False
         if not self.path:
             logdata = {'path': ini_obj.path}
             log('D175', logdata)
-            return None
+            return
         self.action = action_letter2enum(ini_obj.action)
         self.section = ini_obj.get_original_value('section')
         self.key = ini_obj.get_original_value('property')
@@ -52,7 +53,11 @@ class Ini_file:
             log('D176', logdata)
             return
 
+        self._valid = True
         self.act()
+
+    def __bool__(self):
+        return self._valid
 
     def _is_empty_section(self):
         if not self.section:
