@@ -19,6 +19,8 @@
 import os
 import pwd
 
+from .logging import log
+
 
 def is_root():
     '''
@@ -73,8 +75,8 @@ def get_local_groups_for_username(username):
             try:
                 group_info = grp.getgrgid(gid)
                 groups.append(group_info.gr_name)
-            except KeyError:
-                pass
+            except KeyError as exc:
+                log('D207', {'exc': str(exc)})
         return groups
     except Exception:
         return []

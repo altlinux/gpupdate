@@ -385,8 +385,8 @@ class cifs_applier_user(applier_frontend):
                 symlink.unlink()
             elif previous:
                 symlink.unlink()
-        except Exception:
-            pass
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
 
     def del_previous_link(self, previous_value_link , mountpoint_dirname, prefix):
         d_previous = Path(self.homedir + ('/' if prefix else '/net.') + previous_value_link)

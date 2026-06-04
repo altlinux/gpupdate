@@ -47,7 +47,7 @@ try:
     from dateutil import tz
     _DATEUTIL_AVAILABLE = True
 except ImportError:
-    pass
+    log('D207', {'dep': 'dateutil'})
 
 class laps_applier(applier_frontend):
     """
@@ -489,8 +489,8 @@ class laps_applier(applier_frontend):
                 realm = realm.rsplit('@', 1)[-1]
             if isinstance(realm, str) and realm:
                 return realm.upper()
-        except Exception:
-            pass
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
         return None
 
     def _get_domain_controller_fqdn(self, info):
@@ -499,8 +499,8 @@ class laps_applier(applier_frontend):
             pdc = info.get('pdc_dns_name')
             if isinstance(pdc, str) and pdc:
                 return pdc
-        except Exception:
-            pass
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
         return None
 
     def _get_machine_account_username(self):

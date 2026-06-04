@@ -26,6 +26,7 @@ import subprocess
 from datetime import datetime, timezone
 from functools import lru_cache
 
+from .logging import log
 from .samba import smbopts
 
 
@@ -158,8 +159,8 @@ def get_default_policy_name():
     try:
         if smbopts().get_server_role() == 'active directory domain controller':
             return dcpolicy
-    except Exception:
-        pass
+    except Exception as exc:
+        log('D207', {'exc': str(exc)})
 
     try:
         release = '/etc/altlinux-release'
@@ -168,8 +169,8 @@ def get_default_policy_name():
             s = f.readline()
             if re.search('server', s, re.I):
                 localpolicy = 'server'
-    except Exception:
-        pass
+    except Exception as exc:
+        log('D207', {'exc': str(exc)})
 
     return localpolicy
 

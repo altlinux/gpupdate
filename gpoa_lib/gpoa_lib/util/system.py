@@ -145,8 +145,8 @@ def with_privileges(username, func):
         try:
             session = dbus_session()
             dconf_pid = session.get_connection_pid("ca.desrt.dconf")
-        except Exception:
-            pass
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
 
     except Exception as exc:
         log('E33', {'msg': str(exc)})
@@ -166,8 +166,8 @@ def with_privileges(username, func):
     # Serialize result to JSON and send to parent
     try:
         os.write(wfd, json.dumps(result).encode("utf-8"))
-    except Exception:
-        pass
+    except Exception as exc:
+        log('D207', {'exc': str(exc)})
     os.close(wfd)
 
     sys.exit(exitcode)

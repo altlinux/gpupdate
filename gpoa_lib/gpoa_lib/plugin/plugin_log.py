@@ -23,7 +23,7 @@ import logging
 import inspect
 from pathlib import Path
 
-from ..util.logging import slogm
+from ..util.logging import slogm, log
 from .messages import register_plugin_messages
 
 
@@ -132,8 +132,8 @@ class PluginLog:
             if system_locale_dir.exists():
                 self.locale_dir = str(system_locale_dir)
                 return
-        except Exception:
-            pass
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
 
     def _load_translations(self):
         """Load translations for the plugin using system locale."""

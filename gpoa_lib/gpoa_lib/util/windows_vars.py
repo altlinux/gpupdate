@@ -27,6 +27,7 @@ from samba.credentials import Credentials
 from samba.net import Net
 from samba.param import LoadParm
 
+from .logging import log
 from .sid import get_sid
 from .util import get_homedir, get_machine_name
 from .xdg import xdg_get_desktop
@@ -111,8 +112,8 @@ class WindowsVarExpander:
             raw['USERNAME']  = username
             try:
                 raw['LDAPUSERSID'] = get_sid(domain, username, is_machine=False)
-            except Exception:
-                pass
+            except Exception as exc:
+                log('D207', {'exc': str(exc)})
 
         result = {}
         for k, v in raw.items():

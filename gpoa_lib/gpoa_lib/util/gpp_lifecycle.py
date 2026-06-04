@@ -22,6 +22,8 @@ Utility functions for GPP element identification and state management.
 
 import hashlib
 
+from .logging import log
+
 
 def generate_element_uid(element_type, **fields):
     '''
@@ -236,8 +238,8 @@ def _object_to_dict(obj):
     if hasattr(obj, '__iter__') and not isinstance(obj, (list, tuple, dict, str)):
         try:
             return dict(obj)
-        except (TypeError, ValueError):
-            pass
+        except (TypeError, ValueError) as exc:
+            log('D207', {'exc': str(exc)})
     if hasattr(obj, '__dict__'):
         result = {}
         for key, val in obj.__dict__.items():
@@ -268,8 +270,8 @@ def _value_to_serializable(value):
     elif hasattr(value, '__iter__') and not isinstance(value, (list, tuple, dict, str)):
         try:
             return dict(value)
-        except (TypeError, ValueError):
-            pass
+        except (TypeError, ValueError) as exc:
+            log('D207', {'exc': str(exc)})
     if hasattr(value, '__dict__'):
         result = {}
         for key, val in value.__dict__.items():

@@ -30,6 +30,8 @@ import gettext
 import importlib.util
 from pathlib import Path
 
+from ..util.logging import log
+
 _plugin_messages = {}
 _plugin_translations = {}
 
@@ -165,8 +167,8 @@ def get_plugin_message(domain, code):
     if translation:
         try:
             return translation.gettext(message_text)
-        except Exception:
-            pass
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
 
     return message_text
 

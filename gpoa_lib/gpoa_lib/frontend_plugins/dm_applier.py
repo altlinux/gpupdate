@@ -33,6 +33,7 @@ except ImportError:
     GpoaConfigObj = None
 
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
+from ..util.logging import log
 
 
 class DMApplier(FrontendPlugin):
@@ -692,8 +693,8 @@ class DMApplier(FrontendPlugin):
                 for dm in available_dms:
                     if dm in proc_name:
                         return dm
-        except (ImportError, psutil.NoSuchProcess):
-            pass
+        except (ImportError, psutil.NoSuchProcess) as exc:
+            log('D207', {'exc': str(exc)})
         return None
 
     def _check_display_manager_symlink(self):

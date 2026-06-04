@@ -294,8 +294,8 @@ class FilterChecker:
                         val = int(float(line.split(':')[1].strip()))
                         if val > actual:
                             actual = val
-        except (OSError, ValueError):
-            pass
+        except (OSError, ValueError) as exc:
+            log('D207', {'exc': str(exc)})
 
         return actual >= expected
 
@@ -305,8 +305,8 @@ class FilterChecker:
             for entry in Path('/sys/class/power_supply').iterdir():
                 if entry.name.startswith('BAT'):
                     return True
-        except OSError:
-            pass
+        except OSError as exc:
+            log('D207', {'exc': str(exc)})
         return False
 
     @staticmethod
@@ -340,8 +340,8 @@ class FilterChecker:
                     try:
                         stat = os.statvfs(mountpoint)
                         total_free_bytes += stat.f_bavail * stat.f_frsize
-                    except OSError:
-                        pass
+                    except OSError as exc:
+                        log('D207', {'exc': str(exc)})
         except OSError:
             return False
 
@@ -378,8 +378,8 @@ class FilterChecker:
                     for line in f:
                         if line.startswith('LANG='):
                             system_lang = line.strip().split('=', 1)[1].strip('"')
-            except OSError:
-                pass
+            except OSError as exc:
+                log('D207', {'exc': str(exc)})
             if not system_lang.startswith(expected):
                 return False
 
@@ -399,8 +399,8 @@ class FilterChecker:
                         kb_str = ''.join(c for c in line.split(':')[1].strip() if c.isdigit())
                         actual_mb = int(kb_str) // 1024
                         return actual_mb >= required_mb
-        except (OSError, ValueError):
-            pass
+        except (OSError, ValueError) as exc:
+            log('D207', {'exc': str(exc)})
 
         return False
 
@@ -441,8 +441,8 @@ class FilterChecker:
                 ip_str = FilterChecker._get_primary_ip(v6=False)
                 if ip_str:
                     return min_addr <= ipaddress.IPv4Address(ip_str) <= max_addr
-        except (ValueError, OSError):
-            pass
+        except (ValueError, OSError) as exc:
+            log('D207', {'exc': str(exc)})
 
         return False
 
@@ -478,8 +478,8 @@ class FilterChecker:
                         with open(f'/sys/class/net/{parts[0]}/address') as af:
                             mac_int = int(af.read().strip().replace(':', '').replace('-', ''), 16)
                         return min_int <= mac_int <= max_int
-        except (ValueError, OSError, IndexError):
-            pass
+        except (ValueError, OSError, IndexError) as exc:
+            log('D207', {'exc': str(exc)})
         return False
 
     @classmethod
