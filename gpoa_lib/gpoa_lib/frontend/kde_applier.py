@@ -294,17 +294,13 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
         else:
             flag = False
 
-        os.environ["LANGUAGE"] = os.environ["LANG"].split(".")[0]
-        os.environ["XDG_DATA_DIRS"] = "/usr/share/kf5:"
-            #Variable for system detection of directories before files with .colors extension
-        os.environ["DISPLAY"] = ":0"
-            #Variable for command execution plasma-apply-colorscheme
-        os.environ["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
-        os.environ["PATH"] = "/usr/lib/kf5/bin:"
-        os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"#plasma-apply-wallpaperimage
         env_path = dict(os.environ)
+        env_path["LANGUAGE"] = env_path.get("LANG", "").split(".")[0]
+        env_path["XDG_DATA_DIRS"] = "/usr/share/kf5:"
+        env_path["DISPLAY"] = ":0"
+        env_path["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
         env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
-            #environment variable for accessing binary files without hard links
+        env_path["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"
         if not flag:
             if os.path.isfile(path_to_wallpaper):
                 command = [
@@ -351,22 +347,26 @@ def get_id_desktop(path_to_wallpaper):
         return None
 
 def call_dbus_method(file_name):
-    '''
-    Method to call D-Bus method based on the file name
-    '''
+    saved_dbus = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
     os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"
-    if file_name in dbus_methods_mapping:
-        config = dbus_methods_mapping[file_name]
-        try:
-            session_bus = dbus.SessionBus()
-            dbus_object = session_bus.get_object(config['dbus_service'], config['dbus_path'])
-            dbus_iface = dbus.Interface(dbus_object, config['dbus_interface'])
-            if 'dbus_args' in config:
-                getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
-            else:
-                getattr(dbus_iface, config['dbus_method'])()
-        except dbus.exceptions.DBusException as exc:
-            logdata = {'error': str(exc)}
-            log('E31', logdata)
-    else:
-        pass
+    try:
+        if file_name in dbus_methods_mapping:
+            config = dbus_methods_mapping[file_name]
+            try:
+                session_bus = dbus.SessionBus()
+                dbus_object = session_bus.get_object(config['dbus_service'], config['dbus_path'])
+                dbus_iface = dbus.Interface(dbus_object, config['dbus_interface'])
+                if 'dbus_args' in config:
+                    getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
+                else:
+                    getattr(dbus_iface, config['dbus_method'])()
+            except dbus.exceptions.DBusException as exc:
+                logdata = {'error': str(exc)}
+                log('E31', logdata)
+        else:
+            pass
+    finally:
+        if saved_dbus is not None:
+            os.environ["DBUS_SESSION_BUS_ADDRESS"] = saved_dbus
+        else:
+            os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)

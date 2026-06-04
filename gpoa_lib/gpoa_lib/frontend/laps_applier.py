@@ -361,7 +361,7 @@ class laps_applier(applier_frontend):
                 timeout=15
             )
             dbus_address = result.stdout.strip()
-            os.environ["DBUS_SESSION_BUS_ADDRESS"] = dbus_address
+            self._dbus_address = dbus_address
 
 
     def _get_changed_password_hours_ago(self):
