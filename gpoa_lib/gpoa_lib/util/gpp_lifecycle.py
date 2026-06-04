@@ -239,7 +239,7 @@ def _object_to_dict(obj):
         try:
             return dict(obj)
         except (TypeError, ValueError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D304', {'exc': str(exc)})
     if hasattr(obj, '__dict__'):
         result = {}
         for key, val in obj.__dict__.items():
@@ -271,7 +271,7 @@ def _value_to_serializable(value):
         try:
             return dict(value)
         except (TypeError, ValueError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D305', {'exc': str(exc)})
     if hasattr(value, '__dict__'):
         result = {}
         for key, val in value.__dict__.items():

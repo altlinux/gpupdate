@@ -182,7 +182,7 @@ def is_oddjobd_gpupdate_accessible():
         if oddjobd_state == 'active':
             oddjobd_accessible = True
     except Exception as exc:
-        log('D207', {'exc': str(exc)})
+        log('D300', {'exc': str(exc)})
 
     return oddjobd_accessible
 

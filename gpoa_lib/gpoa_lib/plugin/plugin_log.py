@@ -133,7 +133,7 @@ class PluginLog:
                 self.locale_dir = str(system_locale_dir)
                 return
         except Exception as exc:
-            log('D207', {'exc': str(exc)})
+            log('D310', {'exc': str(exc)})
 
     def _load_translations(self):
         """Load translations for the plugin using system locale."""

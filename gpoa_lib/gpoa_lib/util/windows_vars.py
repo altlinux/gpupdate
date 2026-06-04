@@ -113,7 +113,7 @@ class WindowsVarExpander:
             try:
                 raw['LDAPUSERSID'] = get_sid(domain, username, is_machine=False)
             except Exception as exc:
-                log('D207', {'exc': str(exc)})
+                log('D311', {'exc': str(exc)})
 
         result = {}
         for k, v in raw.items():

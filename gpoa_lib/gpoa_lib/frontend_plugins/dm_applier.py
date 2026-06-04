@@ -695,7 +695,7 @@ class DMApplier(FrontendPlugin):
                     if dm in proc_name:
                         return dm
         except (ImportError, psutil.NoSuchProcess) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D286', {'exc': str(exc)})
         return None
 
     def _check_display_manager_symlink(self):

@@ -56,7 +56,7 @@ class ipaopts:
             pdc_server = result['result']['pdc_emulator']
             return pdc_server
         except Exception as e:
-            log('D207', {'exc': str(e)})
+            log('D306', {'exc': str(e)})
 
     def get_machine_name(self):
         """Return the host from the config."""

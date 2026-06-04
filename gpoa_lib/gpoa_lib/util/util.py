@@ -160,7 +160,7 @@ def get_default_policy_name():
         if smbopts().get_server_role() == 'active directory domain controller':
             return dcpolicy
     except Exception as exc:
-        log('D207', {'exc': str(exc)})
+        log('D301', {'exc': str(exc)})
 
     try:
         release = '/etc/altlinux-release'
@@ -170,7 +170,7 @@ def get_default_policy_name():
             if re.search('server', s, re.I):
                 localpolicy = 'server'
     except Exception as exc:
-        log('D207', {'exc': str(exc)})
+        log('D302', {'exc': str(exc)})
 
     return localpolicy
 

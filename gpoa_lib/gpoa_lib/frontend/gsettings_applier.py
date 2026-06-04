@@ -47,7 +47,7 @@ def uri_fetch(schema, path, value, cache):
         logdata['dst'] = retval
         log('D90', logdata)
     except Exception as exc:
-        log('D207', {'exc': str(exc)})
+        log('D287', {'exc': str(exc)})
 
     return retval
 

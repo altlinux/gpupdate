@@ -168,7 +168,7 @@ def get_plugin_message(domain, code):
         try:
             return translation.gettext(message_text)
         except Exception as exc:
-            log('D207', {'exc': str(exc)})
+            log('D309', {'exc': str(exc)})
 
     return message_text
 

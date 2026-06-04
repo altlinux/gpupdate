@@ -155,7 +155,7 @@ class Files_cp:
                 log('D260', logdata)
                 self._set_secure_ownership(dirpath)
             except OSError as exc:
-                log('D207', {'exc': str(exc)})
+                log('D289', {'exc': str(exc)})
 
     def _set_secure_ownership(self, targetPath):
         secure_own = get_secure_ownership(str(targetPath), self.username)
@@ -175,7 +175,7 @@ class Files_cp:
                 logdata = {'path': str(targetPath), 'user': owner_user, 'group': owner_group}
                 log('D262', logdata)
         except (KeyError, OSError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D290', {'exc': str(exc)})
 
     def _create_action(self):
         logdata = {}

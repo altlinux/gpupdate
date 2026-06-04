@@ -295,7 +295,7 @@ class FilterChecker:
                         if val > actual:
                             actual = val
         except (OSError, ValueError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D293', {'exc': str(exc)})
 
         return actual >= expected
 
@@ -306,7 +306,7 @@ class FilterChecker:
                 if entry.name.startswith('BAT'):
                     return True
         except OSError as exc:
-            log('D207', {'exc': str(exc)})
+            log('D294', {'exc': str(exc)})
         return False
 
     @staticmethod
@@ -341,7 +341,7 @@ class FilterChecker:
                         stat = os.statvfs(mountpoint)
                         total_free_bytes += stat.f_bavail * stat.f_frsize
                     except OSError as exc:
-                        log('D207', {'exc': str(exc)})
+                        log('D295', {'exc': str(exc)})
         except OSError:
             return False
 
@@ -379,7 +379,7 @@ class FilterChecker:
                         if line.startswith('LANG='):
                             system_lang = line.strip().split('=', 1)[1].strip('"')
             except OSError as exc:
-                log('D207', {'exc': str(exc)})
+                log('D296', {'exc': str(exc)})
             if not system_lang.startswith(expected):
                 return False
 
@@ -400,7 +400,7 @@ class FilterChecker:
                         actual_mb = int(kb_str) // 1024
                         return actual_mb >= required_mb
         except (OSError, ValueError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D297', {'exc': str(exc)})
 
         return False
 
@@ -442,7 +442,7 @@ class FilterChecker:
                 if ip_str:
                     return min_addr <= ipaddress.IPv4Address(ip_str) <= max_addr
         except (ValueError, OSError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D298', {'exc': str(exc)})
 
         return False
 
@@ -479,7 +479,7 @@ class FilterChecker:
                             mac_int = int(af.read().strip().replace(':', '').replace('-', ''), 16)
                         return min_int <= mac_int <= max_int
         except (ValueError, OSError, IndexError) as exc:
-            log('D207', {'exc': str(exc)})
+            log('D299', {'exc': str(exc)})
         return False
 
     @classmethod

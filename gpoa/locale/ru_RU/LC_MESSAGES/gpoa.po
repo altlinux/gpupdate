@@ -1041,6 +1041,102 @@ msgstr "Не удалось найти каталог"
 msgid "Failed to search for file"
 msgstr "Не удалось найти файл"
 
+msgid "Failed to get GPO list for trust user"
+msgstr "Не удалось получить список GPO для пользователя доверенного домена"
+
+msgid "Failed to select AD site servers"
+msgstr "Не удалось выбрать серверы сайта AD"
+
+msgid "Failed to select all AD servers"
+msgstr "Не удалось получить список всех серверов AD"
+
+msgid "Failed to check server role for DC policy detection"
+msgstr "Не удалось определить роль сервера для выбора политики"
+
+msgid "Failed to read OS release for policy name detection"
+msgstr "Не удалось прочитать релиз ОС для определения имени политики"
+
+msgid "Optional dependency not available"
+msgstr "Необязательная зависимость недоступна"
+
+msgid "Failed to get Kerberos realm from principal"
+msgstr "Не удалось получить realm Kerberos из_principal"
+
+msgid "Failed to get domain controller FQDN from Kerberos info"
+msgstr "Не удалось получить FQDN контроллера домена из информации Kerberos"
+
+msgid "Failed to enumerate running processes for DM detection"
+msgstr "Не удалось получить список процессов для определения менеджера дисплеев"
+
+msgid "Failed to fetch URI for GSettings"
+msgstr "Не удалось получить URI для GSettings"
+
+msgid "Failed to remove CIFS symlink"
+msgstr "Не удалось удалить символьную ссылку CIFS"
+
+msgid "Failed to set secure directory permissions"
+msgstr "Не удалось установить безопасные права доступа к каталогу"
+
+msgid "Failed to set secure file ownership"
+msgstr "Не удалось установить безопасного владельца файла"
+
+msgid "GSettings config section already exists"
+msgstr "Секция конфигурации GSettings уже существует"
+
+msgid "Failed to remove stale GSettings lock file"
+msgstr "Не удалось удалить устаревший файл блокировки GSettings"
+
+msgid "Failed to check CPU speed filter"
+msgstr "Не удалось проверить фильтр скорости CPU"
+
+msgid "Failed to check battery filter"
+msgstr "Не удалось проверить фильтр батареи"
+
+msgid "Failed to check disk space filter"
+msgstr "Не удалось проверить фильтр дискового пространства"
+
+msgid "Failed to check language filter"
+msgstr "Не удалось проверить фильтр языка"
+
+msgid "Failed to check RAM size filter"
+msgstr "Не удалось проверить фильтр размера оперативной памяти"
+
+msgid "Failed to check IP range filter"
+msgstr "Не удалось проверить фильтр диапазона IP-адресов"
+
+msgid "Failed to check MAC range filter"
+msgstr "Не удалось проверить фильтр диапазона MAC-адресов"
+
+msgid "Failed to check oddjobd accessibility via D-Bus"
+msgstr "Не удалось проверить доступность oddjobd через D-Bus"
+
+msgid "Failed to get local groups for username"
+msgstr "Не удалось получить локальные группы для пользователя"
+
+msgid "Failed to convert GPP object to dict"
+msgstr "Не удалось преобразовать объект GPP в словарь"
+
+msgid "Failed to serialize GPP value"
+msgstr "Не удалось сериализовать значение GPP"
+
+msgid "Failed to query FreeIPA server"
+msgstr "Не удалось выполнить запрос к серверу FreeIPA"
+
+msgid "Failed to get dconf-service PID in child process"
+msgstr "Не удалось получить PID dconf-service в дочернем процессе"
+
+msgid "Failed to write result to pipe in child process"
+msgstr "Не удалось записать результат в канал в дочернем процессе"
+
+msgid "Failed to translate plugin message"
+msgstr "Не удалось перевести сообщение плагина"
+
+msgid "Failed to auto-detect plugin locale directory"
+msgstr "Не удалось определить каталог локализации плагина"
+
+msgid "Failed to look up user SID for Windows variable expansion"
+msgstr "Не удалось получить SID пользователя для подстановки переменных Windows"
+
 # Debug_end
 
 # Warning

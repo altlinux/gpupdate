@@ -146,7 +146,7 @@ def with_privileges(username, func):
             session = dbus_session()
             dconf_pid = session.get_connection_pid("ca.desrt.dconf")
         except Exception as exc:
-            log('D207', {'exc': str(exc)})
+            log('D307', {'exc': str(exc)})
 
     except Exception as exc:
         log('E33', {'msg': str(exc)})
@@ -167,7 +167,7 @@ def with_privileges(username, func):
     try:
         os.write(wfd, json.dumps(result).encode("utf-8"))
     except Exception as exc:
-        log('D207', {'exc': str(exc)})
+        log('D308', {'exc': str(exc)})
     os.close(wfd)
 
     sys.exit(exitcode)

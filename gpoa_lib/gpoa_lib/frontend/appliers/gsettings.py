@@ -34,7 +34,7 @@ class system_gsetting:
         try:
             config.add_section(self.schema)
         except configparser.DuplicateSectionError as exc:
-            log('D207', {'exc': str(exc)})
+            log('D291', {'exc': str(exc)})
 
         value = self.value
         if self.helper_function:
@@ -90,7 +90,7 @@ class system_gsettings:
         try:
             os.remove(self.__path_locks)
         except OSError as error:
-            log('D207', {'exc': str(error)})
+            log('D292', {'exc': str(error)})
 
         with open(self.__path_locks,'w') as file_locks:
             for lock in self.locks:
