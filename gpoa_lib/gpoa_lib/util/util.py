@@ -165,8 +165,8 @@ def get_default_policy_name():
     try:
         release = '/etc/altlinux-release'
         if os.path.isfile(release):
-            f = open(release)
-            s = f.readline()
+            with open(release) as f:
+                s = f.readline()
             if re.search('server', s, re.I):
                 localpolicy = 'server'
     except Exception as exc:

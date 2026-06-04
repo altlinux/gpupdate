@@ -147,6 +147,7 @@ class smbcreds (smbopts):
                         self.process_gpos(gpos, username, dconf_dict)
                         return gpos
                 except Exception as exc:
+                    log('D207', {'exc': str(exc)})
                     return []
 
         try:
@@ -364,7 +365,8 @@ class SiteDomainScanner:
                 servers = self.get_ad_site_servers(our_site)
             random.shuffle(servers)
             return servers
-        except Exception as e:
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
             return []
 
     def select_all_servers(self):
@@ -372,7 +374,8 @@ class SiteDomainScanner:
             servers = self.get_ad_all_servers()
             random.shuffle(servers)
             return servers
-        except Exception as e:
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
             return []
 
     def select_pdc_emulator_server(self):
@@ -383,5 +386,8 @@ def check_scroll_enabled():
     enable_scroll = '/Software/BaseALT/Policies/GPUpdate/ScrollSysvolDC'
     entry = storage.get_hklm_entry(enable_scroll)
     if entry and entry.data:
-        return bool(int(entry.data))
+        try:
+            return bool(int(entry.data))
+        except (ValueError, TypeError):
+            pass
     return False

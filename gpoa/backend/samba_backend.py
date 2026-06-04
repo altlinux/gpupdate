@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from pathlib import Path
 
 # Facility to determine GPTs for user
 try:
@@ -171,9 +172,12 @@ class samba_backend(applier_backend):
             # GPO named "Local Policy" has no entry by its nature so
             # no reason to print warning.
             if gpo.display_name in self.storage._dict_gpo_name_version_cache.keys():
-                gpo.file_sys_path = self.storage._dict_gpo_name_version_cache.get(gpo.display_name, {}).get('correct_path')
-                self._cached = True
-                return True
+                cached_info = self.storage._dict_gpo_name_version_cache.get(gpo.display_name, {})
+                cached_path = cached_info.get('correct_path')
+                if cached_path and Path(cached_path).exists():
+                    gpo.file_sys_path = cached_path
+                    self._cached = True
+                    return True
             elif 'Local Policy' != gpo.name:
                 logdata = {'gponame': gpo.name}
                 log('W4', logdata)

@@ -85,6 +85,10 @@ class fs_file_cache:
                         break
                     df.write(data)
             finally:
+                try:
+                    file_handler.close()
+                except Exception:
+                    pass
                 df.close()
             os.rename(tmpfile, destfile)
             os.chmod(destfile, 0o644)
@@ -122,6 +126,10 @@ class fs_file_cache:
             uri_path = UNCPath(uri)
             opendir = self.samba_context.opendir(str(uri_path))
             ls_obj = opendir.getdents()
+            try:
+                opendir.close()
+            except Exception:
+                pass
             ls = [obj.name for obj in ls_obj if obj.smbc_type == type_file_smb]
             return ls
         except Exception as exc:

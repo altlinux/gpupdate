@@ -126,7 +126,8 @@ class Script(DynamicAttributes):
     def __init__(self, action, script_dir, script_filename):
         action_upper = action.upper()
         self.action = action_upper
-        self.path = os.path.join(script_dir, action_upper, script_filename.upper())
+        safe_filename = os.path.basename(script_filename)
+        self.path = os.path.join(script_dir, action_upper, safe_filename.upper())
         self.args = None
         if not os.path.isfile(self.path):
             self.number = None
