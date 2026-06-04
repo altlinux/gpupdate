@@ -19,6 +19,7 @@
 
 from .dconf_registry import Dconf_registry
 from .storage_adapter import StorageAdapter
+from .storage_writer import StorageWriter
 
 
 def registry_factory(registry_name='', envprofile=None , username=None):

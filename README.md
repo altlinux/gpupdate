@@ -41,7 +41,7 @@ The `gpoa/` directory contains thin wrappers that re-export from `gpoa_lib/` for
 - **Plugin System**: Extensible architecture for custom policy types
 - **Targeting Filters**: 15 filter types (computer, domain, user, group, date, time, CPU, battery, disk, RAM, language, file, environment variable, IP range, MAC range)
 - **Privilege Separation**: Secure execution with proper privilege contexts
-- **External API**: `StorageAdapter` and `ApplierRunner` for using gpoa-lib as a standalone library
+- **External API**: `StorageAdapter`, `StorageWriter`, `ApplierRunner`, and `Result` for using gpoa-lib as a standalone library
 
 ### Supported Policy Areas
 - **System Configuration**: Control facilities, systemd units, environment variables, NTP, firewall
@@ -139,7 +139,9 @@ from gpoa_lib import ApplierRunner
 
 # From a dconf database
 runner = ApplierRunner(db_name='mydb')
-runner.run('control')
+result = runner.run('control')
+if not result:
+    print('Error:', result.error)
 
 # From a plain dict (no dconf needed)
 runner = ApplierRunner(data={
@@ -149,8 +151,18 @@ runner = ApplierRunner(data={
 })
 runner.run('control')
 
+# Auto-detect applier from key path
+runner.run_auto(['Software/BaseALT/Policies/Control/sshd-gssapi-auth'])
+
+# Force re-apply from a specific database
+runner = ApplierRunner(db_name='policy', force=True)
+runner.run('control')
+
 # List available appliers
 print(ApplierRunner.list_appliers())
+
+# Resolve applier name from key path
+print(ApplierRunner.resolve('Software/BaseALT/Policies/Control/sshd'))
 ```
 
 ### StorageAdapter
@@ -176,6 +188,20 @@ data = storage.get_dict()
 # Query specific entries
 entries = storage.filter_hklm_entries('Software/BaseALT/Policies/Control')
 value = storage.get_key_value('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
+```
+
+### StorageWriter
+
+Write policy data to arbitrary dconf databases:
+
+```python
+from gpoa_lib import StorageWriter
+
+writer = StorageWriter('local')
+writer.write_keys({
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth': '1',
+})
+writer.compile()
 ```
 
 ### Running Plugins with Custom Data

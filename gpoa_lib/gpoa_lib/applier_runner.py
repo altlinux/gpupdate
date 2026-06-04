@@ -18,6 +18,7 @@
 
 from .storage.storage_adapter import StorageAdapter
 from .storage.fs_file_cache import fs_file_cache
+from .result import Result
 from .util.logging import log
 
 
@@ -124,10 +125,11 @@ class ApplierRunner:
         runner.run('control', keys=['Software/X/key1', 'Software/X/key2'])
     '''
 
-    def __init__(self, db_name=None, uid=None, data=None):
+    def __init__(self, db_name=None, uid=None, data=None, force=False):
         self.db_name = db_name
         self.uid = uid
         self._data = data
+        self.force = force
         self._file_cache = None
 
     def _get_storage(self, prefix=None, keys=None):
@@ -168,13 +170,13 @@ class ApplierRunner:
             keys: List of specific registry keys to use
 
         Returns:
-            Applier instance or None if applier_name not found
+            Result with applier instance as data, or failed Result if not found
         '''
         amap = _get_applier_map()
         if applier_name not in amap:
             logdata = {'applier_name': applier_name, 'available': list(amap.keys())}
             log('W44', logdata)
-            return None
+            return Result.fail(f'Unknown applier: {applier_name}')
 
         entry = amap[applier_name]
         applier_cls = entry['class']
@@ -191,23 +193,86 @@ class ApplierRunner:
         extra = entry.get('extra', ())
 
         if 'file_cache' in extra:
-            return applier_cls(storage, self._get_file_cache())
+            applier = applier_cls(storage, self._get_file_cache())
         elif 'username' in extra:
-            return applier_cls(storage, self._uid_to_username(self.uid))
+            applier = applier_cls(storage, self._uid_to_username(self.uid))
+        else:
+            applier = applier_cls(storage)
 
-        return applier_cls(storage)
+        return Result.ok(applier)
 
     def run(self, applier_name, prefix=None, keys=None):
-        '''Create and run an applier.'''
-        applier = self.create(applier_name, prefix, keys)
-        if applier is not None:
-            try:
-                applier.apply()
-            except Exception as exc:
-                logdata = {'applier_name': applier_name, 'msg': str(exc)}
-                log('E24', logdata)
+        '''Create and run an applier. Returns Result.'''
+        create_result = self.create(applier_name, prefix, keys)
+        if not create_result:
+            return create_result
+        applier = create_result.data
+        try:
+            applier.apply(force=self.force)
+            return Result.ok()
+        except Exception as exc:
+            logdata = {'applier_name': applier_name, 'msg': str(exc)}
+            log('E24', logdata)
+            return Result.fail(str(exc))
 
     @staticmethod
     def list_appliers():
         '''Return list of available applier names.'''
         return list(_get_applier_map().keys())
+
+    @staticmethod
+    def resolve(key_or_prefix):
+        '''
+        Determine the applier name from a registry key path or prefix.
+
+        Matches the given path against each applier's ``branch`` in the
+        internal map.  The comparison is case-insensitive and normalises
+        back-slashes.
+
+        Parameters
+        ----------
+        key_or_prefix : str
+            Full registry path or prefix.
+
+        Returns
+        -------
+        str or None
+            Applier name if a match is found, otherwise ``None``.
+
+        Examples
+        --------
+        ::
+
+            >>> ApplierRunner.resolve('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
+            'control'
+            >>> ApplierRunner.resolve('Software/Policies/Mozilla/Firefox')
+            'firefox'
+        '''
+        amap = _get_applier_map()
+        normalized = _normalize_path(key_or_prefix).lower()
+        for name, entry in amap.items():
+            branch = _normalize_path(entry.get('branch', '')).lower()
+            if branch and normalized.startswith(branch):
+                return name
+        return None
+
+    def run_auto(self, keys):
+        '''
+        Automatically detect the applier from key paths and run it.
+
+        Parameters
+        ----------
+        keys : list[str]
+            Registry key paths to apply.
+
+        Returns
+        -------
+        str or None
+            Name of the applier that was run, or ``None`` if no match.
+        '''
+        if not keys:
+            return None
+        name = ApplierRunner.resolve(keys[0])
+        if name:
+            self.run(name, keys=keys)
+        return name

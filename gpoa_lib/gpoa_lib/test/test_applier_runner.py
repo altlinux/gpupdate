@@ -19,6 +19,7 @@
 import unittest
 
 from gpoa_lib.applier_runner import ApplierRunner, _get_applier_map, _join_prefix
+from gpoa_lib.result import Result
 
 
 class ApplierRunnerHelpersTestCase(unittest.TestCase):
@@ -70,8 +71,9 @@ class ApplierRunnerCreateTestCase(unittest.TestCase):
             }
         }
         runner = ApplierRunner(data=data)
-        applier = runner.create('control')
-        self.assertIsNotNone(applier)
+        result = runner.create('control')
+        self.assertTrue(result)
+        self.assertIsNotNone(result.data)
 
     def test_create_with_custom_prefix(self):
         data = {
@@ -80,8 +82,8 @@ class ApplierRunnerCreateTestCase(unittest.TestCase):
             }
         }
         runner = ApplierRunner(data=data)
-        applier = runner.create('control', prefix='Software/MyOrg/Policies')
-        self.assertIsNotNone(applier)
+        result = runner.create('control', prefix='Software/MyOrg/Policies')
+        self.assertTrue(result)
 
     def test_create_with_keys(self):
         data = {
@@ -90,15 +92,16 @@ class ApplierRunnerCreateTestCase(unittest.TestCase):
             }
         }
         runner = ApplierRunner(data=data)
-        applier = runner.create('control', keys=[
+        result = runner.create('control', keys=[
             'Software/BaseALT/Policies/Control/sshd-gssapi-auth',
         ])
-        self.assertIsNotNone(applier)
+        self.assertTrue(result)
 
     def test_create_unknown_applier(self):
         runner = ApplierRunner(data={})
-        applier = runner.create('nonexistent')
-        self.assertIsNone(applier)
+        result = runner.create('nonexistent')
+        self.assertFalse(result)
+        self.assertIsNotNone(result.error)
 
     def test_create_systemd_from_dict(self):
         data = {
@@ -107,5 +110,71 @@ class ApplierRunnerCreateTestCase(unittest.TestCase):
             }
         }
         runner = ApplierRunner(data=data)
-        applier = runner.create('systemd')
-        self.assertIsNotNone(applier)
+        result = runner.create('systemd')
+        self.assertTrue(result)
+
+
+class ApplierRunnerResolveTestCase(unittest.TestCase):
+
+    def test_resolve_control(self):
+        name = ApplierRunner.resolve('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
+        self.assertEqual(name, 'control')
+
+    def test_resolve_firefox(self):
+        name = ApplierRunner.resolve('Software/Policies/Mozilla/Firefox')
+        self.assertEqual(name, 'firefox')
+
+    def test_resolve_kde(self):
+        name = ApplierRunner.resolve('Software/BaseALT/Policies/KDE')
+        self.assertEqual(name, 'kde')
+
+    def test_resolve_unknown(self):
+        name = ApplierRunner.resolve('Software/Unknown/Path')
+        self.assertIsNone(name)
+
+    def test_resolve_backslashes(self):
+        name = ApplierRunner.resolve(r'SOFTWARE\BaseALT\Policies\Control\test')
+        self.assertEqual(name, 'control')
+
+    def test_resolve_case_insensitive(self):
+        name = ApplierRunner.resolve('software/basealt/policies/control/test')
+        self.assertEqual(name, 'control')
+
+
+class ApplierRunnerForceTestCase(unittest.TestCase):
+
+    def test_force_default_false(self):
+        runner = ApplierRunner(data={})
+        self.assertFalse(runner.force)
+
+    def test_force_true(self):
+        runner = ApplierRunner(data={}, force=True)
+        self.assertTrue(runner.force)
+
+
+class ResultTestCase(unittest.TestCase):
+
+    def test_ok_result(self):
+        r = Result.ok(42)
+        self.assertTrue(r)
+        self.assertEqual(r.data, 42)
+        self.assertIsNone(r.error)
+
+    def test_ok_result_no_data(self):
+        r = Result.ok()
+        self.assertTrue(r)
+        self.assertIsNone(r.data)
+
+    def test_fail_result(self):
+        r = Result.fail('something went wrong')
+        self.assertFalse(r)
+        self.assertEqual(r.error, 'something went wrong')
+        self.assertIsNone(r.data)
+
+    def test_result_repr_ok(self):
+        r = Result.ok(42)
+        self.assertIn('ok=True', repr(r))
+
+    def test_result_repr_fail(self):
+        r = Result.fail('err')
+        self.assertIn('ok=False', repr(r))

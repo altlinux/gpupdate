@@ -8,18 +8,20 @@
 
 ## Содержание
 
-1. [StorageAdapter](#storageadapter)
-2. [ApplierRunner](#applierrunner)
-3. [plugin (абстрактный базовый класс)](#plugin)
-4. [FrontendPlugin](#frontendplugin)
-5. [plugin_manager](#plugin_manager)
-6. [Dconf_registry](#dconf_registry)
-7. [GppStateManager](#gppstatemanager)
-8. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-9. [Типы данных](#типы-данных)
-10. [Фильтры (FilterChecker)](#фильтры)
-11. [Вспомогательные функции](#вспомогательные-функции)
-12. [Функции путей](#функции-путей)
+1. [Result](#result)
+2. [StorageAdapter](#storageadapter)
+3. [StorageWriter](#storagewriter)
+4. [ApplierRunner](#applierrunner)
+5. [plugin (абстрактный базовый класс)](#plugin)
+6. [FrontendPlugin](#frontendplugin)
+7. [plugin_manager](#plugin_manager)
+8. [Dconf_registry](#dconf_registry)
+9. [GppStateManager](#gppstatemanager)
+10. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+11. [Типы данных](#типы-данных)
+12. [Фильтры (FilterChecker)](#фильтры)
+13. [Вспомогательные функции](#вспомогательные-функции)
+14. [Функции путей](#функции-путей)
 
 ---
 
@@ -27,7 +29,9 @@
 
 ```python
 from gpoa_lib import (
+    Result,
     StorageAdapter,
+    StorageWriter,
     ApplierRunner,
     FrontendPlugin,
     applier_frontend,
@@ -36,6 +40,64 @@ from gpoa_lib import (
     DynamicAttributes,
     RegistryKeyMetadata,
 )
+```
+
+---
+
+## Result
+
+`gpoa_lib.result.Result`
+
+Типобезопасная обёртка возвращаемых значений для операций gpoa_lib.
+Следует тому же шаблону, что и `Result` в Rust/Go: успешные операции
+несут `data`, неудачные --- `error`.
+
+### Конструктор
+
+```python
+Result(ok, data=None, error=None)
+```
+
+| Параметр | Тип    | Описание |
+|----------|--------|----------|
+| `ok`     | `bool` | Успешность операции. |
+| `data`   | any    | Данные при успешном результате. |
+| `error`  | `str`  | Описание ошибки при неудаче. |
+
+### Методы класса
+
+#### `Result.ok(data=None)`
+
+Создать успешный результат.
+
+**Возвращает:** `Result`
+
+#### `Result.fail(error)`
+
+Создать неудачный результат.
+
+| Параметр | Тип                    | Описание |
+|----------|------------------------|----------|
+| `error`  | `str` или `Exception` | Описание ошибки. |
+
+**Возвращает:** `Result`
+
+### Атрибуты
+
+| Атрибут | Тип    | Описание |
+|---------|--------|----------|
+| `ok`    | `bool` | `True` при успехе, `False` при неудаче. |
+| `data`  | any    | Данные (имеют смысл только при `ok=True`). |
+| `error` | `str`  | Строка ошибки (имеет смысл только при `ok=False`). |
+
+### Использование
+
+```python
+result = runner.run('control')
+if result:
+    print('Применено:', result.data)
+else:
+    print('Ошибка:', result.error)
 ```
 
 ---
@@ -251,6 +313,84 @@ data = adapter.get_dict()
 
 ---
 
+## StorageWriter
+
+`gpoa_lib.storage.storage_writer.StorageWriter`
+
+Записывает данные политик в произвольную базу dconf и компилирует её.
+
+### Конструктор
+
+```python
+StorageWriter(db_name, uid=None, append=False)
+```
+
+| Параметр  | Тип    | Описание |
+|-----------|--------|----------|
+| `db_name` | `str`  | Имя базы данных в `/etc/dconf/db/`. Например, `'local'` записывает в `/etc/dconf/db/local.d/local.ini`. |
+| `uid`     | `int`  | Необязательный UID пользователя для пользовательских баз. |
+| `append`  | `bool` | Если `True`, дописать в существующий INI вместо перезаписи. По умолчанию `False`. |
+
+### Методы
+
+#### `write(data)`
+
+Записать вложенный словарь `{секция: {ключ: значение}}` в INI-файл базы данных
+и создать записи блокировок.
+
+```python
+writer = StorageWriter('local')
+writer.write({
+    'Software/BaseALT/Policies/Control': {
+        'sshd-gssapi-auth': '1',
+    }
+})
+writer.compile()
+```
+
+| Параметр | Тип    | Описание |
+|----------|--------|----------|
+| `data`   | `dict` | Вложенный словарь секций и пар ключ-значение. |
+
+---
+
+#### `write_keys(keys_dict)`
+
+Записать плоский словарь `{полный_путь: значение}`.  Пути разделяются по
+последнему `/` на секцию и имя значения.
+
+```python
+writer = StorageWriter('local')
+writer.write_keys({
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth': '1',
+    'Software/BaseALT/Policies/Control/ssh-gssapi-auth': 'enabled',
+})
+writer.compile()
+```
+
+| Параметр     | Тип    | Описание |
+|--------------|--------|----------|
+| `keys_dict`  | `dict` | Плоский словарь, сопоставляющий полные пути реестра со значениями. |
+
+---
+
+#### `delete_keys(keys)`
+
+Удалить указанные ключи из INI-файла базы данных.  Перезаписывает файл,
+исключая перечисленные ключи.
+
+| Параметр | Тип         | Описание |
+|----------|-------------|----------|
+| `keys`   | `list[str]` | Полные пути реестра для удаления. |
+
+---
+
+#### `compile()`
+
+Скомпилировать базу данных из INI-источников, выполнив `dconf compile`.
+
+---
+
 ## ApplierRunner
 
 `gpoa_lib.applier_runner.ApplierRunner`
@@ -262,7 +402,7 @@ data = adapter.get_dict()
 ### Конструктор
 
 ```python
-ApplierRunner(db_name=None, uid=None, data=None)
+ApplierRunner(db_name=None, uid=None, data=None, force=False)
 ```
 
 | Параметр  | Тип         | Описание |
@@ -270,6 +410,7 @@ ApplierRunner(db_name=None, uid=None, data=None)
 | `db_name` | `str` или `None` | Имя базы dconf (передаётся в `StorageAdapter`). |
 | `uid`     | `int` или `None` | UID пользователя. |
 | `data`    | `dict` или `None` | Словарь; при указании доступ к dconf не выполняется. |
+| `force`   | `bool` | Если `True`, читать только из указанной базы (обход объединённого профиля) и повторно применять, даже если целевое состояние уже достигнуто. По умолчанию `False`. |
 
 ### Методы
 
@@ -279,8 +420,9 @@ ApplierRunner(db_name=None, uid=None, data=None)
 
 ```python
 runner = ApplierRunner(data=my_dict)
-applier = runner.create('control')
-if applier:
+result = runner.create('control')
+if result:
+    applier = result.data
     applier.apply()
 ```
 
@@ -290,20 +432,67 @@ if applier:
 | `prefix`        | `str`       | Переопределить базовый префикс. Имя применителя добавляется автоматически: `prefix + '/' + applier_name`. |
 | `keys`          | `list[str]` | Конкретные ключи реестра для загрузки. |
 
-**Возвращает:** экземпляр применителя или `None`, если `applier_name` неизвестен.
+**Возвращает:** `Result` --- `result.data` содержит экземпляр применителя при успехе.
 
 ---
 
 #### `run(applier_name, prefix=None, keys=None)`
 
 Создать применитель и вызвать его метод `apply()`.  Исключения перехватываются
-и журналируются с кодом `E24`.
+и возвращаются как неудачный `Result`.
 
 ```python
 runner = ApplierRunner(data=my_dict)
-runner.run('control')
+result = runner.run('control')
+if not result:
+    print('Ошибка:', result.error)
+
 runner.run('gsettings', prefix='Software/MyOrg')
 ```
+
+**Возвращает:** `Result`
+
+---
+
+#### `resolve(key_or_prefix)`
+
+Определить имя применителя по пути ключа реестра или префиксу.  Сравнение
+нечувствительно к регистру и нормализует обратные слеши.
+
+```python
+>>> ApplierRunner.resolve('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
+'control'
+>>> ApplierRunner.resolve('Software/Policies/Mozilla/Firefox')
+'firefox'
+>>> ApplierRunner.resolve('Software/Unknown/Path')
+None
+```
+
+| Параметр        | Тип   | Описание |
+|-----------------|-------|----------|
+| `key_or_prefix` | `str` | Полный путь реестра или префикс. |
+
+**Возвращает:** `str` или `None`
+
+---
+
+#### `run_auto(keys)`
+
+Автоматически определить применитель по первому пути ключа и запустить его.
+
+```python
+runner = ApplierRunner(data=my_dict)
+name = runner.run_auto([
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth',
+])
+print(name)  # 'control'
+```
+
+| Параметр | Тип         | Описание |
+|----------|-------------|----------|
+| `keys`   | `list[str]` | Пути ключей реестра для применения. |
+
+**Возвращает:** `str` или `None` --- имя запущенного применителя.
 
 ---
 
@@ -522,7 +711,7 @@ plugin_manager(is_machine, username)
 | `get_key_values(keys)` | Прочитать несколько ключей. |
 | `get_matching_keys(path)` | Рекурсивно вывести список ключей под путём dconf. |
 | `get_dictionary_from_dconf_file_db(uid=None, path_bin=None, save_dconf_db=False)` | Прочитать бинарную базу GVdb в словарь. |
-| `dconf_update(uid=None)` | Скомпилировать базу dconf из INI-источников. |
+| `dconf_update(uid=None, db_name=None)` | Скомпилировать базу dconf. Если задан `db_name`, компилируется `/etc/dconf/db/{db_name}`; иначе --- `policy` (или `policy{uid}`). |
 | `filter_entries(startswith, registry_dict=None)` | Фильтровать глобальный словарь реестра по префиксу. |
 | `apply_template(uid)` | Записать профиль dconf для пользователя. |
 | `set_info(key, data)` | Сохранить метаданные. |
@@ -839,6 +1028,8 @@ set_domain_resolver(resolver_func)
 | `local_policy_cache()` | `Path` | Каталог кэша локальной политики. |
 | `get_dconf_config_path(uid=None)` | `str` | Каталог INI dconf (`/etc/dconf/db/policy.d/` или `policy{uid}.d/`). |
 | `get_dconf_config_file(uid=None)` | `str` | Путь к INI-файлу dconf. |
+| `get_dconf_db_path(db_name)` | `str` | Путь к каталогу INI для произвольной базы данных (`/etc/dconf/db/{db_name}.d/`). |
+| `get_dconf_db_file(db_name)` | `str` | Путь к INI-файлу для произвольной базы данных (`/etc/dconf/db/{db_name}.d/{db_name}.ini`). |
 | `gpupdate_plugins_path()` | `str` | Путь к встроенным плагинам. |
 | `get_desktop_files_directory()` | `str` | `/usr/share/applications` |
 

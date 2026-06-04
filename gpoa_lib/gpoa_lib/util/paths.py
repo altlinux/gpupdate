@@ -107,6 +107,12 @@ def get_dconf_config_file(uid = None):
     else:
         return '/etc/dconf/db/policy.d/policy.ini'
 
+def get_dconf_db_path(db_name):
+    return f'/etc/dconf/db/{db_name}.d/'
+
+def get_dconf_db_file(db_name):
+    return f'/etc/dconf/db/{db_name}.d/{db_name}.ini'
+
 def get_desktop_files_directory():
     return '/usr/share/applications'
 

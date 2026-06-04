@@ -7,8 +7,9 @@
 from gpoa_lib import ApplierRunner
 
 runner = ApplierRunner(db_name='mydb')
-ctrl = runner.create('control')
-ctrl.apply()
+result = runner.create('control')
+if result:
+    result.data.apply()
 ```
 
 ### Method 2: ApplierRunner from dconf database + custom prefix
@@ -177,7 +178,120 @@ pm.run()
 # Get a specific loaded plugin by name
 plugin = pm.get_plugin('my_plugin')
 if plugin:
-    plugin.apply()
+plugin.apply()
+```
+
+## StorageWriter Examples
+
+### Write to local database
+```python
+from gpoa_lib import StorageWriter
+
+writer = StorageWriter('local')
+writer.write_keys({
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth': '1',
+    'Software/BaseALT/Policies/Control/ssh-gssapi-auth': 'enabled',
+})
+writer.compile()
+```
+
+### Write nested dict and compile
+```python
+from gpoa_lib import StorageWriter
+
+writer = StorageWriter('mydb')
+writer.write({
+    'Software/BaseALT/Policies/Control': {
+        'sshd-gssapi-auth': '1',
+    }
+})
+writer.compile()
+```
+
+### Delete keys from database
+```python
+from gpoa_lib import StorageWriter
+
+writer = StorageWriter('local')
+writer.delete_keys([
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth',
+])
+writer.compile()
+```
+
+## Result Examples
+
+### Handle run result
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(data={
+    'Software/BaseALT/Policies/Control': {'sshd-gssapi-auth': '1'},
+})
+result = runner.run('control')
+if result:
+    print('Applied successfully')
+else:
+    print('Error:', result.error)
+```
+
+### Check create result
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(data={})
+result = runner.create('control')
+if result:
+    applier = result.data
+    applier.apply()
+else:
+    print(f'Could not create: {result.error}')
+```
+
+## Auto-resolve Examples
+
+### Resolve applier name from key path
+```python
+from gpoa_lib import ApplierRunner
+
+name = ApplierRunner.resolve('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
+print(name)  # 'control'
+
+name = ApplierRunner.resolve('Software/Policies/Mozilla/Firefox')
+print(name)  # 'firefox'
+```
+
+### Run with auto-detection
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(data={
+    'Software/BaseALT/Policies/Control': {'sshd-gssapi-auth': '1'},
+})
+name = runner.run_auto([
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth',
+])
+print(name)  # 'control'
+```
+
+## Force Application Examples
+
+### Force re-apply from specific database
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(db_name='policy', force=True)
+result = runner.run('control')
+```
+
+### Force from dict with auto-resolve
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(data={
+    'Software/BaseALT/Policies/KDE': {'kwinrc': '1'},
+}, force=True)
+result = runner.run('kde')
 ```
 
 ### Standalone plugin without plugin_manager

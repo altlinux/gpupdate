@@ -8,18 +8,20 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 
 ## Table of Contents
 
-1. [StorageAdapter](#storageadapter)
-2. [ApplierRunner](#applierrunner)
-3. [plugin (abstract base)](#plugin)
-4. [FrontendPlugin](#frontendplugin)
-5. [plugin_manager](#plugin_manager)
-6. [Dconf_registry](#dconf_registry)
-7. [GppStateManager](#gppstatemanager)
-8. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-9. [Data Types](#data-types)
-10. [Filters (FilterChecker)](#filters)
-11. [Utility Functions](#utility-functions)
-12. [Path Functions](#path-functions)
+1. [Result](#result)
+2. [StorageAdapter](#storageadapter)
+3. [StorageWriter](#storagewriter)
+4. [ApplierRunner](#applierrunner)
+5. [plugin (abstract base)](#plugin)
+6. [FrontendPlugin](#frontendplugin)
+7. [plugin_manager](#plugin_manager)
+8. [Dconf_registry](#dconf_registry)
+9. [GppStateManager](#gppstatemanager)
+10. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+11. [Data Types](#data-types)
+12. [Filters (FilterChecker)](#filters)
+13. [Utility Functions](#utility-functions)
+14. [Path Functions](#path-functions)
 
 ---
 
@@ -27,7 +29,9 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 
 ```python
 from gpoa_lib import (
+    Result,
     StorageAdapter,
+    StorageWriter,
     ApplierRunner,
     FrontendPlugin,
     applier_frontend,
@@ -36,6 +40,64 @@ from gpoa_lib import (
     DynamicAttributes,
     RegistryKeyMetadata,
 )
+```
+
+---
+
+## Result
+
+`gpoa_lib.result.Result`
+
+Type-safe return wrapper for gpoa_lib operations.  Follows the same pattern as
+`Result` in Rust/Go: successful operations carry `data`, failed ones carry
+`error`.
+
+### Constructor
+
+```python
+Result(ok, data=None, error=None)
+```
+
+| Parameter | Type   | Description |
+|----------|--------|-------------|
+| `ok`     | `bool` | Whether the operation succeeded. |
+| `data`   | any    | Payload on success. |
+| `error`  | `str`  | Error description on failure. |
+
+### Class Methods
+
+#### `Result.ok(data=None)`
+
+Create a successful result.
+
+**Returns:** `Result`
+
+#### `Result.fail(error)`
+
+Create a failed result.
+
+| Parameter | Type         | Description |
+|----------|--------------|-------------|
+| `error`  | `str` or `Exception` | Error description. |
+
+**Returns:** `Result`
+
+### Attributes
+
+| Attribute | Type  | Description |
+|-----------|-------|-------------|
+| `ok`      | `bool` | `True` on success, `False` on failure. |
+| `data`    | any    | Payload (only meaningful when `ok=True`). |
+| `error`   | `str`  | Error string (only meaningful when `ok=False`). |
+
+### Usage
+
+```python
+result = runner.run('control')
+if result:
+    print('Applied:', result.data)
+else:
+    print('Error:', result.error)
 ```
 
 ---
@@ -250,6 +312,84 @@ Check whether a registry key is "truthy".  Recognises string values
 
 ---
 
+## StorageWriter
+
+`gpoa_lib.storage.storage_writer.StorageWriter`
+
+Write policy data to an arbitrary dconf database and compile it.
+
+### Constructor
+
+```python
+StorageWriter(db_name, uid=None, append=False)
+```
+
+| Parameter | Type   | Description |
+|----------|--------|-------------|
+| `db_name` | `str`  | Database name under `/etc/dconf/db/`. For example `'local'` writes to `/etc/dconf/db/local.d/local.ini`. |
+| `uid`     | `int`  | Optional user UID for per-user databases. |
+| `append`  | `bool` | If `True`, append to existing INI instead of overwriting. Default `False`. |
+
+### Methods
+
+#### `write(data)`
+
+Write a nested dict `{section: {key: value}}` to the database INI file and
+create lock entries.
+
+```python
+writer = StorageWriter('local')
+writer.write({
+    'Software/BaseALT/Policies/Control': {
+        'sshd-gssapi-auth': '1',
+    }
+})
+writer.compile()
+```
+
+| Parameter | Type  | Description |
+|----------|-------|-------------|
+| `data`   | `dict` | Nested dict of sections and key-value pairs. |
+
+---
+
+#### `write_keys(keys_dict)`
+
+Write a flat dict `{full_path: value}`.  Paths are split at the last `/` into
+section and value name.
+
+```python
+writer = StorageWriter('local')
+writer.write_keys({
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth': '1',
+    'Software/BaseALT/Policies/Control/ssh-gssapi-auth': 'enabled',
+})
+writer.compile()
+```
+
+| Parameter   | Type  | Description |
+|------------|-------|-------------|
+| `keys_dict` | `dict` | Flat dict mapping full registry paths to values. |
+
+---
+
+#### `delete_keys(keys)`
+
+Remove specific keys from the database INI file.  Rewrites the file excluding
+the listed keys.
+
+| Parameter | Type        | Description |
+|----------|-------------|-------------|
+| `keys`   | `list[str]` | Full registry paths to remove. |
+
+---
+
+#### `compile()`
+
+Compile the database from its INI sources by running `dconf compile`.
+
+---
+
 ## ApplierRunner
 
 `gpoa_lib.applier_runner.ApplierRunner`
@@ -261,14 +401,15 @@ file_cache), and error logging.
 ### Constructor
 
 ```python
-ApplierRunner(db_name=None, uid=None, data=None)
+ApplierRunner(db_name=None, uid=None, data=None, force=False)
 ```
 
-| Parameter | Type        | Description |
+| Parameter | Type         | Description |
 |----------|-------------|-------------|
 | `db_name` | `str` or `None` | Dconf database name (passed to `StorageAdapter`). |
 | `uid`     | `int` or `None` | User UID. |
 | `data`    | `dict` or `None` | Plain dict; when given, no dconf access is performed. |
+| `force`   | `bool` | If `True`, read from the specified database only (bypass merged profile) and re-apply even if target state is already reached. Default `False`. |
 
 ### Methods
 
@@ -278,8 +419,9 @@ Create an applier instance without running it.
 
 ```python
 runner = ApplierRunner(data=my_dict)
-applier = runner.create('control')
-if applier:
+result = runner.create('control')
+if result:
+    applier = result.data
     applier.apply()
 ```
 
@@ -289,20 +431,67 @@ if applier:
 | `prefix`       | `str`       | Override base prefix. Applier name is appended: `prefix + '/' + applier_name`. |
 | `keys`         | `list[str]` | Specific registry keys to load. |
 
-**Returns:** applier instance or `None` if `applier_name` is unknown.
+**Returns:** `Result` -- `result.data` holds the applier instance on success.
 
 ---
 
 #### `run(applier_name, prefix=None, keys=None)`
 
 Create an applier and call its `apply()` method.  Exceptions are caught and
-logged with code `E24`.
+returned as a failed `Result`.
 
 ```python
 runner = ApplierRunner(data=my_dict)
-runner.run('control')
+result = runner.run('control')
+if not result:
+    print('Error:', result.error)
+
 runner.run('gsettings', prefix='Software/MyOrg')
 ```
+
+**Returns:** `Result`
+
+---
+
+#### `resolve(key_or_prefix)`
+
+Determine the applier name from a registry key path or prefix.  Comparison is
+case-insensitive and normalises backslashes.
+
+```python
+>>> ApplierRunner.resolve('Software/BaseALT/Policies/Control/sshd-gssapi-auth')
+'control'
+>>> ApplierRunner.resolve('Software/Policies/Mozilla/Firefox')
+'firefox'
+>>> ApplierRunner.resolve('Software/Unknown/Path')
+None
+```
+
+| Parameter       | Type  | Description |
+|----------------|-------|-------------|
+| `key_or_prefix` | `str` | Full registry path or prefix. |
+
+**Returns:** `str` or `None`
+
+---
+
+#### `run_auto(keys)`
+
+Automatically detect the applier from the first key path and run it.
+
+```python
+runner = ApplierRunner(data=my_dict)
+name = runner.run_auto([
+    'Software/BaseALT/Policies/Control/sshd-gssapi-auth',
+])
+print(name)  # 'control'
+```
+
+| Parameter | Type        | Description |
+|----------|-------------|-------------|
+| `keys`   | `list[str]` | Registry key paths to apply. |
+
+**Returns:** `str` or `None` -- name of the applier that was run.
 
 ---
 
@@ -519,7 +708,7 @@ External consumers should prefer `StorageAdapter`.
 | `get_key_values(keys)` | Read multiple keys. |
 | `get_matching_keys(path)` | Recursively list keys under a dconf path. |
 | `get_dictionary_from_dconf_file_db(uid=None, path_bin=None, save_dconf_db=False)` | Read a GVdb binary database into a dict. |
-| `dconf_update(uid=None)` | Compile dconf database from INI sources. |
+| `dconf_update(uid=None, db_name=None)` | Compile dconf database. If `db_name` is given, compiles `/etc/dconf/db/{db_name}`; otherwise compiles `policy` (or `policy{uid}`). |
 | `filter_entries(startswith, registry_dict=None)` | Filter the global registry dict by prefix. |
 | `apply_template(uid)` | Write dconf profile for a user. |
 | `set_info(key, data)` | Store metadata. |
@@ -836,6 +1025,8 @@ environments.
 | `local_policy_cache()` | `Path` | Cache directory for local policy. |
 | `get_dconf_config_path(uid=None)` | `str` | dconf INI directory (`/etc/dconf/db/policy.d/` or `policy{uid}.d/`). |
 | `get_dconf_config_file(uid=None)` | `str` | dconf INI file path. |
+| `get_dconf_db_path(db_name)` | `str` | Path to INI directory for an arbitrary database (`/etc/dconf/db/{db_name}.d/`). |
+| `get_dconf_db_file(db_name)` | `str` | Path to INI file for an arbitrary database (`/etc/dconf/db/{db_name}.d/{db_name}.ini`). |
 | `gpupdate_plugins_path()` | `str` | Path to bundled frontend plugins. |
 | `get_desktop_files_directory()` | `str` | `/usr/share/applications` |
 
