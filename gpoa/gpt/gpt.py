@@ -240,7 +240,7 @@ def find_dir(search_path, name):
             if os.path.isdir(dir_path) and name.lower() == str(entry).lower():
                 return dir_path
     except Exception as exc:
-        pass
+        log('D276', {'path': search_path, 'name': name, 'exc': str(exc)})
 
     return None
 
@@ -261,8 +261,7 @@ def find_file(search_path, name):
             if os.path.isfile(file_path) and name.lower() == str(entry).lower():
                 return file_path
     except Exception as exc:
-        #logging.error(exc)
-        pass
+        log('D277', {'path': search_path, 'name': name, 'exc': str(exc)})
 
     return None
 

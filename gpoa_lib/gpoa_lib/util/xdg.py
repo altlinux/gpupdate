@@ -32,7 +32,8 @@ def _get_system_lang():
         for line in out.splitlines():
             if 'System Locale' in line:
                 return line.split('LANG=', 1)[1].strip()
-    except Exception:
+    except Exception as exc:
+        log('D273', {'exc': str(exc)})
         return None
 
 

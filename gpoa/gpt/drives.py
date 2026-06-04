@@ -53,11 +53,9 @@ def decrypt_pass(cpassword):
     # decrypt() returns byte array which is immutable and we need to
     # strip padding, then convert UTF-16LE to UTF-8
     binstr = decrypter.decrypt(password)
-    by = []
-    for item in binstr:
-        if item != 16:
-            by.append(item)
-    utf16str = bytes(by).decode('utf-16', 'ignore')
+    pad_len = binstr[-1]
+    binstr = binstr[:-pad_len]
+    utf16str = binstr.decode('utf-16', 'ignore')
     utf8str = utf16str.encode('utf8')
 
     return utf8str.decode()

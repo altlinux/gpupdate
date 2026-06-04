@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.<Paste>
 
-from xml.etree import ElementTree
+try:
+    from defusedxml.ElementTree import parse as _et_parse
+except ImportError:
+    from xml.etree.ElementTree import parse as _et_parse
 
 
 def get_xml_root(xml_file):
-    '''
-    Get top-level element of XML file from disk.
-    '''
-    xml_contents = ElementTree.parse(xml_file)
+    xml_contents = _et_parse(xml_file)
     xml_root = xml_contents.getroot()
 
     return xml_root

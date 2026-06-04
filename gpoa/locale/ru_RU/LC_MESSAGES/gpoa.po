@@ -1017,6 +1017,30 @@ msgstr "Применены строгие права владения файло
 msgid "Suppressed exception in non-critical path"
 msgstr "Подавлено исключение в некритичном участке кода"
 
+msgid "Failed to detect KDE version"
+msgstr "Не удалось определить версию KDE"
+
+msgid "Failed to get desktop ID from wallpaper config"
+msgstr "Не удалось получить ID рабочего стола из конфигурации обоев"
+
+msgid "Failed to get machine account username"
+msgstr "Не удалось получить имя учётной записи компьютера"
+
+msgid "Failed to detect system language"
+msgstr "Не удалось определить язык системы"
+
+msgid "Failed to parse dict literal"
+msgstr "Не удалось разобрать словарь"
+
+msgid "Failed to clean data"
+msgstr "Не удалось очистить данные"
+
+msgid "Failed to search for directory"
+msgstr "Не удалось найти каталог"
+
+msgid "Failed to search for file"
+msgstr "Не удалось найти файл"
+
 # Debug_end
 
 # Warning

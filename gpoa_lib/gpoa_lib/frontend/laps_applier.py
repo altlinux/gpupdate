@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime, timedelta, timezone
+import json
 import logging
 import os
 import re
@@ -413,7 +414,7 @@ class laps_applier(applier_frontend):
         Returns:
             str: JSON formatted password information
         """
-        return f'{{"n":"{self.target_user}","t":"{self.expiration_date_int}","p":"{password}"}}'
+        return json.dumps({"n": self.target_user, "t": self.expiration_date_int, "p": password})
 
     def _create_password_blob(self, password):
         """
@@ -513,7 +514,8 @@ class laps_applier(applier_frontend):
             if not name:
                 return None
             return name if name.endswith('$') else f'{name}$'
-        except Exception:
+        except Exception as exc:
+            log('D272', {'exc': str(exc)})
             return None
 
     def _change_user_password(self, new_password):

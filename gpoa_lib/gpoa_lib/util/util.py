@@ -222,7 +222,8 @@ def try_dict_to_literal_eval(string):
             return literaleval
         else:
             return None
-    except Exception:
+    except Exception as exc:
+        log('D274', {'exc': str(exc)})
         return None
 
 def touch_file(filename):
@@ -281,8 +282,8 @@ def clean_data(data):
     try:
         cleaned_string = data.translate(get_trans_table())
         return cleaned_string
-    except Exception:
-        return None
+    except Exception as exc:
+        log('D275', {'exc': str(exc)})
 
 def check_local_user_exists(username):
     """

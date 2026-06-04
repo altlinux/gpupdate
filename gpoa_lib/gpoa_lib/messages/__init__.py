@@ -369,6 +369,14 @@ def debug_code(code):
     debug_ids[260] = 'Secure file permissions applied'
     debug_ids[261] = 'Secure file permissions disabled by policy'
     debug_ids[262] = 'Secure file ownership applied'
+    debug_ids[270] = 'Failed to detect KDE version'
+    debug_ids[271] = 'Failed to get desktop ID from wallpaper config'
+    debug_ids[272] = 'Failed to get machine account username'
+    debug_ids[273] = 'Failed to detect system language'
+    debug_ids[274] = 'Failed to parse dict literal'
+    debug_ids[275] = 'Failed to clean data'
+    debug_ids[276] = 'Failed to search for directory'
+    debug_ids[277] = 'Failed to search for file'
 
     return debug_ids.get(code, 'Unknown debug code')
 

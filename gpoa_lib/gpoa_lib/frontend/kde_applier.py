@@ -139,7 +139,8 @@ def get_kde_version():
                 frameworks_version = line.split(":", 1)[1].strip()
                 major_frameworks_version = int(frameworks_version.split(".")[0])
                 return major_frameworks_version
-    except Exception:
+    except Exception as exc:
+        log('D270', {'exc': str(exc)})
         return None
 
 
@@ -341,7 +342,8 @@ def get_id_desktop(path_to_wallpaper):
             file_content = file.read()
         match = re.search(pattern, file_content)
         return match.group(1) if match else None
-    except Exception:
+    except Exception as exc:
+        log('D271', {'path': path_to_wallpaper, 'exc': str(exc)})
         return None
 
 def call_dbus_method(file_name):
