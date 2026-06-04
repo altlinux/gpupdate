@@ -50,11 +50,9 @@ def xdg_get_desktop(username, homedir = None):
     if not os.path.exists(user_dirs_conf):
         lang = _get_system_lang()
         if lang and not lang.startswith('C'):
-            os.popen(
-                'export HOME={home}; export LANG={lang}; export LC_ALL={lang}; '
-                'xdg-user-dirs-update'.format(home=homedir, lang=lang)
-            ).read()
+            env = {**os.environ, 'HOME': homedir, 'LANG': lang, 'LC_ALL': lang}
+            subprocess.run(['xdg-user-dirs-update'], env=env, check=False)
 
-    stream = os.popen('export HOME={}; xdg-user-dir DESKTOP'.format(homedir))
-    output = stream.read()[:-1]
-    return output
+    env = {**os.environ, 'HOME': homedir}
+    result = subprocess.run(['xdg-user-dir', 'DESKTOP'], env=env, capture_output=True, text=True)
+    return result.stdout.strip()
