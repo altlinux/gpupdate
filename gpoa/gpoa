@@ -39,7 +39,7 @@ from storage import Dconf_registry
 
 from util.util import get_machine_name
 from util.sid import set_trust_info_callback
-from util.check_filters import set_domain_resolver
+
 from util.users import (
     is_root,
     get_process_user
@@ -200,11 +200,6 @@ class gpoa_controller:
 
 def main():
     set_trust_info_callback(Dconf_registry.set_info)
-
-    def _resolve_domain():
-        from util.windows import smbcreds
-        return smbcreds().get_domain()
-    set_domain_resolver(_resolve_domain)
 
     controller = gpoa_controller()
     controller.run()

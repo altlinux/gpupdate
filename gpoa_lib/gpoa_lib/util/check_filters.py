@@ -31,14 +31,6 @@ from .users import get_process_user, is_root, get_local_groups_for_username
 from .sid import get_sid, get_group_sids_for_sid
 
 
-_domain_resolver = None
-
-
-def set_domain_resolver(resolver_func):
-    global _domain_resolver
-    _domain_resolver = resolver_func
-
-
 class UserContext:
     MACHINE = '0'
     USER = '1'
@@ -141,8 +133,14 @@ class FilterChecker:
             return True
 
         user_context = getattr(filter_obj, 'userContext', UserContext.MACHINE)
-        actual_domain = FilterChecker._get_domain_for_context(user_context, username)
-        return actual_domain.lower() == expected_domain.lower()
+        info = FilterChecker._get_domain_info(user_context, username)
+
+        if '.' in expected_domain:
+            actual = info.get('fqdn', '')
+        else:
+            actual = info.get('netbios', '')
+
+        return actual.lower() == expected_domain.lower()
 
     @staticmethod
     def check_date(filter_obj, username=None):
@@ -205,7 +203,8 @@ class FilterChecker:
 
         sid = getattr(filter_obj, 'sid', '')
         if sid:
-            domain = FilterChecker._get_domain_for_context(UserContext.USER, username)
+            domain_info = FilterChecker._get_domain_info(UserContext.USER, username)
+            domain = domain_info.get('fqdn', '') or domain_info.get('netbios', '')
             current_sid = get_sid(domain, username)
             return current_sid == sid
 
@@ -225,7 +224,8 @@ class FilterChecker:
         is_user_ctx = _is_user_context(user_context)
 
         if filter_sid:
-            domain = FilterChecker._get_domain_for_context(user_context, username)
+            domain_info = FilterChecker._get_domain_info(user_context, username)
+            domain = domain_info.get('fqdn', '') or domain_info.get('netbios', '')
 
             if is_user_ctx:
                 if username is None:
@@ -542,7 +542,7 @@ class FilterChecker:
         return cls._get_cached_local_groups(username)
 
     @classmethod
-    def _get_domain_for_context(cls, user_context, username=None):
+    def _get_domain_info(cls, user_context, username=None):
         cache_key = (str(user_context), username or '')
         if cache_key in cls._domain_cache:
             return cls._domain_cache[cache_key]
@@ -554,7 +554,7 @@ class FilterChecker:
             from .windows_vars import get_kerberos_domain_info
             from .system import with_privileges
 
-            result = ''
+            result = {'netbios': '', 'fqdn': ''}
             is_uc = _is_user_context(user_context)
             try:
                 if is_uc:
@@ -563,13 +563,18 @@ class FilterChecker:
                         info = with_privileges(uname, get_kerberos_domain_info)
                     else:
                         info = get_kerberos_domain_info()
-                    if 'Exception' not in info:
+                else:
+                    info = get_kerberos_domain_info()
+
+                if 'Exception' not in info:
+                    result['netbios'] = info.get('domain_name', '')
+                    result['fqdn'] = info.get('dns_domain', '')
+                    if not result['fqdn']:
                         principal = info.get('principal', '')
                         if '@' in principal:
-                            result = principal.split('@')[1]
-                else:
-                    if _domain_resolver:
-                        result = _domain_resolver()
+                            result['fqdn'] = principal.split('@')[1]
+                    if not result['netbios'] and result['fqdn']:
+                        result['netbios'] = result['fqdn'].split('.')[0]
             except Exception as exc:
                 log('W54', {'user_context': str(user_context), 'username': username or '', 'exc': str(exc)})
 
