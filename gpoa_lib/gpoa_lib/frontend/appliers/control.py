@@ -58,7 +58,7 @@ class control:
             valErr = proc.stderr.readline().decode('utf-8')
             if valErr:
                 raise ValueError(valErr)
-            proc.wait()
+            proc.wait(timeout=30)
         return values
 
     def _map_control_status(self, int_status):
@@ -89,7 +89,7 @@ class control:
         popen_call = ['/usr/sbin/control', self.control_name]
         with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
             line = proc.stdout.readline().decode('utf-8').rstrip('\n\r')
-            proc.wait()
+            proc.wait(timeout=30)
 
         return line
 

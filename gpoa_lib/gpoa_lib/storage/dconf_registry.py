@@ -450,63 +450,72 @@ class Dconf_registry():
     def add_shortcut(cls, sc_obj, policy_name, policy_guid=None):
         sc_obj.policy_name = policy_name
         sc_obj.policy_guid = policy_guid
-        cls.shortcuts.append(sc_obj)
+        with cls._lock:
+            cls.shortcuts.append(sc_obj)
 
 
     @classmethod
     def add_printer(cls, pobj, policy_name, policy_guid=None):
         pobj.policy_name = policy_name
         pobj.policy_guid = policy_guid
-        cls.printers.append(pobj)
+        with cls._lock:
+            cls.printers.append(pobj)
 
 
     @classmethod
     def add_drive(cls, dobj, policy_name, policy_guid=None):
         dobj.policy_name = policy_name
         dobj.policy_guid = policy_guid
-        cls.drives.append(dobj)
+        with cls._lock:
+            cls.drives.append(dobj)
 
 
     @classmethod
     def add_folder(cls, fobj, policy_name, policy_guid=None):
         fobj.policy_name = policy_name
         fobj.policy_guid = policy_guid
-        cls.folders.append(fobj)
+        with cls._lock:
+            cls.folders.append(fobj)
 
 
     @classmethod
     def add_envvar(cls, evobj, policy_name, policy_guid=None):
         evobj.policy_name = policy_name
         evobj.policy_guid = policy_guid
-        cls.environmentvariables.append(evobj)
+        with cls._lock:
+            cls.environmentvariables.append(evobj)
 
 
     @classmethod
     def add_script(cls, scrobj, policy_name, policy_guid=None):
         scrobj.policy_name = policy_name
         scrobj.policy_guid = policy_guid
-        cls.scripts.append(scrobj)
+        with cls._lock:
+            cls.scripts.append(scrobj)
 
 
     @classmethod
     def add_file(cls, fileobj, policy_name, policy_guid=None):
         fileobj.policy_name = policy_name
         fileobj.policy_guid = policy_guid
-        cls.files.append(fileobj)
+        with cls._lock:
+            cls.files.append(fileobj)
 
 
     @classmethod
     def add_ini(cls, iniobj, policy_name, policy_guid=None):
         iniobj.policy_name = policy_name
         iniobj.policy_guid = policy_guid
-        cls.inifiles.append(iniobj)
+        with cls._lock:
+            cls.inifiles.append(iniobj)
 
 
     @classmethod
     def add_networkshare(cls, networkshareobj, policy_name, policy_guid=None):
         networkshareobj.policy_name = policy_name
         networkshareobj.policy_guid = policy_guid
-        cls.networkshares.append(networkshareobj)
+        with cls._lock:
+            cls.networkshares.append(networkshareobj)
 
 
     @classmethod

@@ -136,7 +136,7 @@ def runcmd(command_name):
     try:
         with subprocess.Popen(command_name, stdout=subprocess.PIPE) as proc:
             value = proc.stdout.read().decode('utf-8')
-            proc.wait()
+            proc.wait(timeout=30)
             rc = proc.returncode
             return (rc, value)
     except Exception as exc:
