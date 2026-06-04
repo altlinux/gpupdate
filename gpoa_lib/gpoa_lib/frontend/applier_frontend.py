@@ -80,3 +80,14 @@ class applier_frontend(ABC):
     def apply(self, **kwargs):
         raise NotImplementedError
 
+
+class DualContextApplier(applier_frontend):
+    def apply(self, **kwargs):
+        self.admin_context_apply()
+
+    def admin_context_apply(self):
+        pass
+
+    def user_context_apply(self):
+        pass
+

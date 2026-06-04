@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .applier_frontend import applier_frontend
+from .applier_frontend import applier_frontend, DualContextApplier
 from .chromium_applier import chromium_applier
 from .cifs_applier import cifs_applier, cifs_applier_user
 from .control_applier import control_applier
