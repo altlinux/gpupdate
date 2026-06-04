@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
+from unittest.mock import MagicMock, patch
 
 from gpoa_lib.applier_runner import ApplierRunner, _get_applier_map, _join_prefix
 from gpoa_lib.result import Result
@@ -150,6 +151,36 @@ class ApplierRunnerForceTestCase(unittest.TestCase):
     def test_force_true(self):
         runner = ApplierRunner(data={}, force=True)
         self.assertTrue(runner.force)
+
+
+class ApplierRunnerRunTestCase(unittest.TestCase):
+
+    @patch.object(ApplierRunner, 'create')
+    def test_run_ok(self, mock_create):
+        mock_applier = MagicMock()
+        mock_create.return_value = Result.ok(mock_applier)
+        runner = ApplierRunner(data={})
+        result = runner.run('control')
+        self.assertTrue(result)
+        mock_applier.apply.assert_called_once()
+
+    @patch.object(ApplierRunner, 'create')
+    def test_run_fail_unknown(self, mock_create):
+        mock_create.return_value = Result.fail('Unknown applier: nonexistent')
+        runner = ApplierRunner(data={})
+        result = runner.run('nonexistent')
+        self.assertFalse(result)
+        self.assertIn('Unknown', result.error)
+
+    @patch.object(ApplierRunner, 'create')
+    def test_run_exception_caught(self, mock_create):
+        mock_applier = MagicMock()
+        mock_applier.apply.side_effect = RuntimeError('boom')
+        mock_create.return_value = Result.ok(mock_applier)
+        runner = ApplierRunner(data={})
+        result = runner.run('control')
+        self.assertFalse(result)
+        self.assertIn('boom', result.error)
 
 
 class ResultTestCase(unittest.TestCase):
