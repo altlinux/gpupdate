@@ -18,7 +18,7 @@
 
 from ..util.logging import log
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.systemd import systemd_unit
 
 
@@ -64,7 +64,7 @@ class systemd_applier(applier_frontend):
         else:
             log('D79')
 
-class systemd_applier_user(applier_frontend):
+class systemd_applier_user(DualContextApplier):
     __module_name = 'SystemdApplierUser'
     __module_experimental = False
     __module_enabled = True

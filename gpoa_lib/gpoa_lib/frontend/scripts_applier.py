@@ -22,7 +22,7 @@ import shutil
 
 from ..util.logging import log
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.folder import remove_dir_tree
 
 
@@ -75,7 +75,7 @@ class scripts_applier(applier_frontend):
         else:
             log('D157')
 
-class scripts_applier_user(applier_frontend):
+class scripts_applier_user(DualContextApplier):
     __module_name = 'ScriptsApplierUser'
     __module_experimental = False
     __module_enabled = True

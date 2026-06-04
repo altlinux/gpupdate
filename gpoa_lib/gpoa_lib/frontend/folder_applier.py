@@ -22,7 +22,7 @@ import re
 from ..util.logging import log
 from ..util.windows_vars import expand_windows_var
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.folder import Folder
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_folder
 
@@ -77,7 +77,7 @@ class folder_applier(applier_frontend):
         else:
             log('D108')
 
-class folder_applier_user(applier_frontend):
+class folder_applier_user(DualContextApplier):
     __module_name = 'FoldersApplierUser'
     __module_experimental = False
     __module_enabled = True

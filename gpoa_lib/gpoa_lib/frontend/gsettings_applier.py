@@ -27,6 +27,7 @@ from ..util.logging import log
 
 from .applier_frontend import (
     applier_frontend,
+    DualContextApplier,
     check_enabled,
     check_windows_mapping_enabled,
 )
@@ -170,7 +171,7 @@ class GSettingsMapping:
         '''
         pass
 
-class gsettings_applier_user(applier_frontend):
+class gsettings_applier_user(DualContextApplier):
     __module_name = 'GSettingsApplierUser'
     __module_experimental = False
     __module_enabled = True

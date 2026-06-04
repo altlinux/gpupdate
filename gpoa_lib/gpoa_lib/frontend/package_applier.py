@@ -21,7 +21,7 @@ import subprocess
 
 from ..util.logging import log
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 
 
 class package_applier(applier_frontend):
@@ -80,7 +80,7 @@ class package_applier(applier_frontend):
             log('D139')
 
 
-class package_applier_user(applier_frontend):
+class package_applier_user(DualContextApplier):
     __module_name = 'PackagesApplierUser'
     __module_experimental = False
     __module_enabled = True

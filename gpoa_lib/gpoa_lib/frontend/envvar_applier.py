@@ -18,7 +18,7 @@
 
 from ..util.logging import log
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.envvar import Envvar
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_envvar
 
@@ -74,7 +74,7 @@ class envvar_applier(applier_frontend):
         else:
             log('D135')
 
-class envvar_applier_user(applier_frontend):
+class envvar_applier_user(DualContextApplier):
     __module_name = 'EnvvarsApplierUser'
     __module_experimental = False
     __module_enabled = True

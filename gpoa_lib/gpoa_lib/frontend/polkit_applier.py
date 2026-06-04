@@ -20,6 +20,7 @@ from ..util.logging import log
 
 from .applier_frontend import (
     applier_frontend,
+    DualContextApplier,
     check_enabled,
     check_windows_mapping_enabled,
 )
@@ -106,7 +107,7 @@ class polkit_applier(applier_frontend):
         else:
             log('D75')
 
-class polkit_applier_user(applier_frontend):
+class polkit_applier_user(DualContextApplier):
     __module_name = 'PolkitApplierUser'
     __module_experimental = False
     __module_enabled = True

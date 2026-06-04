@@ -18,7 +18,7 @@
 
 
 from ..util.logging import log
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.ini_file import Ini_file
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_inifile
 
@@ -89,7 +89,7 @@ class ini_applier(applier_frontend):
             log('D172')
 
 
-class ini_applier_user(applier_frontend):
+class ini_applier_user(DualContextApplier):
     __module_name = 'InifilesApplierUser'
     __module_experimental = False
     __module_enabled = True

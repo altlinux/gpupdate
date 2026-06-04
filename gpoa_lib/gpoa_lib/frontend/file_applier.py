@@ -19,7 +19,7 @@
 
 from ..util.logging import log
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.file_cp import Execution_check, Files_cp, str2bool as check_str2bool
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_file
 
@@ -84,7 +84,7 @@ class file_applier(applier_frontend):
         else:
             log('D168')
 
-class file_applier_user(applier_frontend):
+class file_applier_user(DualContextApplier):
     __module_name = 'FilesApplierUser'
     __module_experimental = False
     __module_enabled = True

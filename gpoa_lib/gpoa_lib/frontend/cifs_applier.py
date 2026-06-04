@@ -25,7 +25,7 @@ import jinja2
 from ..util.logging import log
 from ..util.util import get_homedir, get_machine_name, get_uid_by_username, get_user_info
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 
 
 def storage_get_drives(storage, username=None):
@@ -153,7 +153,7 @@ class cifs_applier(applier_frontend):
         else:
             log('D180')
 
-class cifs_applier_user(applier_frontend):
+class cifs_applier_user(DualContextApplier):
     __module_name = 'CIFSApplierUser'
     __module_enabled = True
     __module_experimental = False

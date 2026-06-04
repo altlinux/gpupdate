@@ -26,7 +26,7 @@ from ..util.exceptions import NotUNCPathError
 from ..util.logging import log
 from ..util.util import get_homedir
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 
 
 class kde_applier(applier_frontend):
@@ -61,7 +61,7 @@ class kde_applier(applier_frontend):
         else:
             log('D199')
 
-class kde_applier_user(applier_frontend):
+class kde_applier_user(DualContextApplier):
     __module_name = 'KdeApplierUser'
     __module_experimental = True
     __module_enabled = False
