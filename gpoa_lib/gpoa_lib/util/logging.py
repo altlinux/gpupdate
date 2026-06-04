@@ -30,8 +30,6 @@ class encoder(json.JSONEncoder):
 
         if isinstance(obj, set):
             result = tuple(obj)
-        if isinstance(obj, unicode):
-            result = obj.encode('unicode_escape').decode('ascii')
 
         return result
 
@@ -40,11 +38,9 @@ class slogm(object):
     '''
     Structured log message class
     '''
-    def __init__(self, message, kwargs={}):
+    def __init__(self, message, kwargs=None):
         self.message = message
-        self.kwargs = kwargs
-        if not self.kwargs:
-            self.kwargs = {}
+        self.kwargs = kwargs if kwargs is not None else {}
 
     def __str__(self):
         now = str(datetime.datetime.now().isoformat(sep=' ', timespec='milliseconds'))

@@ -109,10 +109,12 @@ def clean_data_firefox(data):
 
 
 
-def create_dict(firefox_keys, registry_branch, excp=[]):
+def create_dict(firefox_keys, registry_branch, excp=None):
     '''
     Collect dictionaries from registry keys into a general dictionary
     '''
+    if excp is None:
+        excp = []
     get_boolean = lambda data: data in ['1', 'true', 'True', True, 1] if isinstance(data, (str, int)) else False
     get_parts = lambda hivekey, registry: hivekey.replace(registry, '').split('/')
     counts = {}
