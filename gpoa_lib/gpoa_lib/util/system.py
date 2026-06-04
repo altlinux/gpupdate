@@ -127,8 +127,7 @@ def with_privileges(username, func):
 
         # Start dbus-launch to get session bus
         proc = subprocess.Popen(
-            'dbus-launch',
-            shell=True,
+            ['dbus-launch'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
