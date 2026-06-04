@@ -165,3 +165,34 @@ class UNCPath:
     def __str__(self):
         return self.get_uri()
 
+
+def systemctl_path():
+    return '/usr/bin/systemctl'
+
+def chronyc_path():
+    return '/usr/bin/chronyc'
+
+def control_util_path():
+    return '/usr/sbin/control'
+
+def glib_compile_schemas_path():
+    return '/usr/bin/glib-compile-schemas'
+
+def apt_get_path():
+    return '/usr/bin/apt-get'
+
+def chrony_config_path():
+    return '/etc/chrony.conf'
+
+def samba_keytab_path():
+    return '/etc/samba/samba.keytab'
+
+def glib_schemas_dir():
+    return '/usr/share/glib-2.0/schemas'
+
+def alterator_net_iptables_path():
+    return '/usr/bin/alterator-net-iptables'
+
+def pkcon_runner_path():
+    return '/usr/libexec/gpupdate/pkcon_runner'
+

@@ -83,6 +83,7 @@ class ini_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I34')
             log('D171')
             self.run()
         else:

@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from os.path import isfile
+from pathlib import Path
 
 from ...util.arguments import (
       FileAction
@@ -53,14 +54,9 @@ class Envvar:
             log('D216', {'path': file_path, 'exc': exc})
 
     def _open_envvar_file(self):
-        fd = None
-        if isfile(self.envvar_file_path):
-            fd = open(self.envvar_file_path, 'r+')
-        else:
-            fd = open(self.envvar_file_path, 'w')
-            fd.close()
-            fd = open(self.envvar_file_path, 'r+')
-        return fd
+        if not isfile(self.envvar_file_path):
+            Path(self.envvar_file_path).touch()
+        return open(self.envvar_file_path, 'r+')
 
     def _create_action(self, create_dict, envvar_file):
         lines_old = envvar_file.readlines()

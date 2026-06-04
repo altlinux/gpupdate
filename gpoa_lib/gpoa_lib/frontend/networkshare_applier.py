@@ -43,6 +43,7 @@ class networkshare_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I35')
             log('D187')
             self.run()
         else:

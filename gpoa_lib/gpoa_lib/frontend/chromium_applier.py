@@ -84,6 +84,7 @@ class chromium_applier(applier_frontend):
         All actual job done here.
         '''
         if self.__module_enabled:
+            log('I26')
             log('D95')
             self.create_dict(self.chromium_keys)
             self.machine_apply()

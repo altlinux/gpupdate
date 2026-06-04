@@ -79,6 +79,7 @@ class file_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I32')
             log('D167')
             self.run()
         else:

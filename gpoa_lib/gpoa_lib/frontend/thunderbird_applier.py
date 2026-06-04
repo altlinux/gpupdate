@@ -61,6 +61,7 @@ class thunderbird_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I27')
             log('D213')
             self.machine_apply()
         else:

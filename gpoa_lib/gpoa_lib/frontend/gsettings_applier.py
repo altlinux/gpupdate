@@ -20,7 +20,10 @@ import os
 import pwd
 import subprocess
 
-from gi.repository import Gio
+try:
+    from gi.repository import Gio
+except ImportError:
+    Gio = None
 from ..storage.dconf_registry import Dconf_registry
 from ..util.exceptions import NotUNCPathError
 from ..util.logging import log

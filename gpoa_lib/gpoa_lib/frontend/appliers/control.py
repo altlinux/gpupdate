@@ -118,9 +118,10 @@ class control:
         try:
             popen_call = ['/usr/sbin/control', self.control_name, status]
             with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
-                proc.wait()
-        except Exception:
+                proc.wait(timeout=30)
+        except Exception as exc:
             logdata = {}
             logdata['control'] = self.control_name
             logdata['status'] = status
+            logdata['exc'] = exc
             log('E43', logdata)

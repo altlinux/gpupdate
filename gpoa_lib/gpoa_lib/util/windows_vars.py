@@ -23,9 +23,14 @@ import tempfile
 from functools import lru_cache
 from typing import Optional
 
-from samba.credentials import Credentials
-from samba.net import Net
-from samba.param import LoadParm
+try:
+    from samba.credentials import Credentials
+    from samba.net import Net
+    from samba.param import LoadParm
+except ImportError:
+    Credentials = None
+    Net = None
+    LoadParm = None
 
 from .logging import log
 from .sid import get_sid

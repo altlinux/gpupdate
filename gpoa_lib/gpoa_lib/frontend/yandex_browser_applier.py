@@ -84,6 +84,7 @@ class yandex_browser_applier(applier_frontend):
         All actual job done here.
         '''
         if self.__module_enabled:
+            log('I28')
             log('D183')
             self.create_dict(self.yandex_keys)
             self.machine_apply()

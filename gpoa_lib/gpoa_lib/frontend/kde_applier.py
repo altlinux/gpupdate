@@ -20,8 +20,12 @@ import os
 import re
 import shutil
 import subprocess
+from pathlib import Path
 
-import dbus
+try:
+    import dbus
+except ImportError:
+    dbus = None
 from ..util.exceptions import NotUNCPathError
 from ..util.logging import log
 from ..util.util import get_homedir
@@ -201,7 +205,7 @@ def apply(all_kde_settings, locks_dict, username = None):
         for file_name, sections in all_kde_settings.items():
             path = f'{get_homedir(username)}/.config/{file_name}'
             if not os.path.exists(path):
-                open(path, 'a').close()
+                Path(path).touch()
             else:
                 pass
             for section, keys in sections.items():
@@ -231,8 +235,8 @@ def apply(all_kde_settings, locks_dict, username = None):
                         env_path = dict(os.environ)
                         env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path, timeout=15)
-                    except Exception:
-                            logdata = {'command': command}
+                    except Exception as exc:
+                            logdata = {'command': command, 'exc': exc}
                             log('W22', logdata)
             new_content = []
             file_path = f'{get_homedir(username)}/.config/{file_name}'
@@ -317,8 +321,8 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                     ]
                 try:
                     subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path, timeout=15)
-                except Exception:
-                        logdata = {'command': command}
+                except Exception as exc:
+                        logdata = {'command': command, 'exc': exc}
                         log('E68', logdata)
                 if plasmaupdate == 1:
                     call_dbus_method("wallpaper")

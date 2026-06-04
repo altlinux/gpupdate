@@ -40,6 +40,7 @@ class folder_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I31')
             log('D107')
             # Cleanup removed elements with removePolicy
             current_elements = [dict(f) for f in self.folders if not f.disabled]

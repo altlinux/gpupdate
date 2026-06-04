@@ -72,6 +72,7 @@ class firefox_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
+            log('I25')
             log('D93')
             self.machine_apply()
         else:

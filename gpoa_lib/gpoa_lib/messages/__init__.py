@@ -45,6 +45,18 @@ _INFO_MESSAGES = {
     22: 'Running Envvar applier for machine',
     23: 'Running Package applier for machine',
     24: 'Running CIFS applier for machine',
+    25: 'Running Firefox applier for machine',
+    26: 'Running Chromium applier for machine',
+    27: 'Running Thunderbird applier for machine',
+    28: 'Running Yandex Browser applier for machine',
+    29: 'Running Firewall applier for machine',
+    30: 'Running NTP applier for machine',
+    31: 'Running Folder applier for machine',
+    32: 'Running File copy applier for machine',
+    33: 'Running Scripts applier for machine',
+    34: 'Running INI applier for machine',
+    35: 'Running NetworkShare applier for machine',
+    36: 'Running LAPS applier for machine',
 }
 
 _ERROR_MESSAGES = {

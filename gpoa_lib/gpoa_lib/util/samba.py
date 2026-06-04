@@ -20,7 +20,10 @@
 import optparse
 import socket
 
-from samba import getopt as options
+try:
+    from samba import getopt as options
+except ImportError:
+    options = None
 
 
 class smbopts:

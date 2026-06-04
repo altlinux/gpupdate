@@ -55,6 +55,7 @@ class firewall_applier(applier_frontend):
             log('D120', {'not_found_cmd': self.__firewall_reset_cmd_path})
             return
         if self.__module_enabled:
+            log('I29')
             log('D117')
             if '1' == self.firewall_enabled:
                 log('D118')

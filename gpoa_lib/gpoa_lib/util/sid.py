@@ -51,8 +51,8 @@ def wbinfo_getsid(domain, user):
         if _trust_info_callback:
             _trust_info_callback('trust', False)
         return output.split()[0].decode('utf-8')
-    except Exception:
-        log('W43')
+    except Exception as exc:
+        log('W43', {'exc': str(exc)})
     try:
         wbinfo_cmd[-1] = user
         output = subprocess.check_output(wbinfo_cmd, timeout=10)
@@ -83,8 +83,8 @@ def get_sid(domain, username, is_machine = False):
     # domain user
     try:
         sid = wbinfo_getsid(domain, username)
-    except Exception:
-        logdata = {'sid': sid}
+    except Exception as exc:
+        logdata = {'sid': sid, 'exc': exc}
         log('E16', logdata)
 
     logdata = {'sid': sid}

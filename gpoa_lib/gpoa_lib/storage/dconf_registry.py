@@ -16,13 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import threading
 from collections import OrderedDict
 import itertools
 from pathlib import Path
 import re
 import subprocess
 
-import gi
+REG_SZ = 1
+REG_DWORD = 4
+REG_MULTI_SZ = 7
+DCONF_LOCK_ENABLED = 1
+DCONF_DB_DIR_SUFFIX = '.d/'
+INI_EXTENSION = '.ini'
+POL_EXTENSION = '.pol'
+
 from .dynamic_attributes import RegistryKeyMetadata
 from ..util.constants import TRUE_STRINGS
 from ..util.ini_writer import write_ini_sections
@@ -40,9 +48,15 @@ from ..util.util import (
 from ..util.gpp_lifecycle import element_to_dict
 from ..util.check_filters import FilterChecker
 
-gi.require_version("Gvdb", "1.0")
-gi.require_version("GLib", "2.0")
-from gi.repository import GLib, Gvdb
+try:
+    import gi
+    gi.require_version("Gvdb", "1.0")
+    gi.require_version("GLib", "2.0")
+    from gi.repository import GLib, Gvdb
+except (ImportError, ValueError):
+    gi = None
+    GLib = None
+    Gvdb = None
 
 
 class PregDconf():
@@ -105,7 +119,39 @@ class Dconf_registry():
     scripts = []
     networkshares = []
 
+    _lock = threading.Lock()
+
     _true_strings = TRUE_STRINGS
+
+    @classmethod
+    def reset(cls):
+        with cls._lock:
+            cls._gpo_name = set()
+            cls.global_registry_dict = {cls._GpoPriority: {}}
+            cls.previous_global_registry_dict = {}
+            cls._gpt_read_flag = False
+            cls._force = False
+            cls.__dconf_dict_flag = False
+            cls.__dconf_dict = {}
+            cls._dconf_db = {}
+            cls._dict_gpo_name_version_cache = {}
+            cls._username = None
+            cls._uid = None
+            cls._envprofile = None
+            cls.list_keys = []
+            cls._info = {}
+            cls._counter_gpt = itertools.count(0)
+            cls.shortcuts = []
+            cls.folders = []
+            cls.files = []
+            cls.drives = []
+            cls.scheduledtasks = []
+            cls.environmentvariables = []
+            cls.inifiles = []
+            cls.services = []
+            cls.printers = []
+            cls.scripts = []
+            cls.networkshares = []
 
     @classmethod
     def set_info(cls, key , data):
@@ -180,7 +226,7 @@ class Dconf_registry():
             db_file = f'/etc/dconf/db/{db_name}'
         else:
             path_dconf_config = get_dconf_config_path(uid)
-            db_file = path_dconf_config[:-3]
+            db_file = path_dconf_config.removesuffix(DCONF_DB_DIR_SUFFIX)
         try:
             with subprocess.Popen(['dconf', 'compile', db_file, path_dconf_config],
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
@@ -256,7 +302,7 @@ class Dconf_registry():
                 keys_tmp = key.split('/')
                 update_dict(output_dict.setdefault('/'.join(keys_tmp[:-1])[1:], {}), {keys_tmp[-1]: str(value)})
 
-        log('D207')
+        log('D207', {'keys': len(output_dict)})
         return output_dict
 
 
@@ -588,7 +634,9 @@ class Dconf_registry():
 
     @classmethod
     def wipe_hklm(cls):
-        cls.global_registry_dict = dict({cls._GpoPriority:{}})
+        with cls._lock:
+            cls.global_registry_dict = {cls._GpoPriority: {}}
+            cls.list_keys = []
 
 
 def filter_dict_keys(starting_string, input_dict):
@@ -682,9 +730,9 @@ def _filter_objects(objects, username=None):
 
 def find_preg_type(argument):
     if isinstance(argument, int):
-        return 4
+        return REG_DWORD
     else:
-        return 1
+        return REG_SZ
 
 
 def update_dict(dict1, dict2, save_key=None):
@@ -820,7 +868,8 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
             dd_target = dd.setdefault(key_d,{})
             key_source = f"Source/{key_d}"
             dd_target_source = dd.setdefault(key_source, {})
-            data_list = dd_target.setdefault(all_list_key[-1], []).append(data)
+            dd_target.setdefault(all_list_key[-1], []).append(data)
+            data_list = dd_target[all_list_key[-1]]
             mod_previous_value = get_mod_previous_value(key_source, all_list_key[-1])
             previous_value = get_previous_value(key_d, all_list_key[-1])
             if previous_value != str(data_list):
@@ -852,7 +901,8 @@ def create_dconf_file_locks(filename_ini, data):
     tmp_lock = filename_ini.split('/')[:-1]
 
     # Construct the path to the lock file
-    file_lock = '/'.join(tmp_lock + ['locks', tmp_lock[-1][:-1] + 'pol'])
+    base_name = tmp_lock[-1].removesuffix(INI_EXTENSION)
+    file_lock = '/'.join(tmp_lock + ['locks', base_name + POL_EXTENSION])
 
     # Create an empty lock file
     touch_file(file_lock)
@@ -881,7 +931,7 @@ def get_keys_dconf_locks(data):
     # Iterate through all keys in the flattened dictionary
     for key in flatten_data:
         # Check if the key starts with "Locks/" and its value is 1
-        if key.startswith('Locks/') and flatten_data[key] == 1:
+        if key.startswith('Locks/') and flatten_data[key] == DCONF_LOCK_ENABLED:
             # Remove the "Locks" prefix and append to the result
             result.append(key.removeprefix('Locks'))
 
@@ -890,11 +940,11 @@ def get_keys_dconf_locks(data):
 
 def check_data(data, t_data):
     if isinstance(data, bytes):
-        if t_data == 7:
+        if t_data == REG_MULTI_SZ:
             return clean_data(data.decode('utf-16').replace('\x00',''))
         else:
             return None
-    elif t_data == 4:
+    elif t_data == REG_DWORD:
         return data
     return clean_data(data)
 

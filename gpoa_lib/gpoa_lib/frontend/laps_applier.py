@@ -26,10 +26,6 @@ import string
 import struct
 import subprocess
 
-from dateutil import tz
-import ldb
-import psutil
-from ldap.filter import escape_filter_chars
 from ..util.logging import log
 from ..util.sid import WellKnown21RID
 from ..util.util import check_local_user_exists, remove_prefix_from_keys, get_machine_name
@@ -37,19 +33,40 @@ from ..util.windows_vars import get_kerberos_domain_info
 
 from .applier_frontend import applier_frontend, check_enabled
 
-from libcng_dpapi import (
-    create_protection_descriptor,
-    protect_secret,
-    unprotect_secret,
-    NcryptError
-)
-
 _DATEUTIL_AVAILABLE = False
 try:
     from dateutil import tz
     _DATEUTIL_AVAILABLE = True
 except ImportError:
     log('D283', {'dep': 'dateutil'})
+
+try:
+    import ldb
+except ImportError:
+    ldb = None
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+try:
+    from ldap.filter import escape_filter_chars
+except ImportError:
+    escape_filter_chars = None
+
+try:
+    from libcng_dpapi import (
+        create_protection_descriptor,
+        protect_secret,
+        unprotect_secret,
+        NcryptError
+    )
+except ImportError:
+    create_protection_descriptor = None
+    protect_secret = None
+    unprotect_secret = None
+    NcryptError = None
 
 class laps_applier(applier_frontend):
     """
@@ -723,6 +740,7 @@ class laps_applier(applier_frontend):
         Main entry point for the LAPS applier.
         """
         if self.__module_enabled:
+            log('I36')
             log('D218')
             self.update_laps_password()
         else:

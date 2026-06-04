@@ -70,6 +70,7 @@ class scripts_applier(applier_frontend):
     def apply(self):
         self.cleaning_cache()
         if self.__module_enabled:
+            log('I33')
             log('D156')
             self.run()
         else:

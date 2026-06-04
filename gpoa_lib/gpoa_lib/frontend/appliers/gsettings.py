@@ -18,7 +18,11 @@
 
 import configparser
 import os
-from gi.repository import Gio, GLib
+try:
+    from gi.repository import Gio, GLib
+except ImportError:
+    Gio = None
+    GLib = None
 
 from ...util.logging import log
 

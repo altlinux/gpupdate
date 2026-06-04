@@ -19,7 +19,10 @@
 
 from .xml import get_xml_root
 
-from samba.gp_parse.gp_pol import GPPolParser
+try:
+    from samba.gp_parse.gp_pol import GPPolParser
+except ImportError:
+    GPPolParser = None
 from ..storage.dconf_registry import load_preg_dconf
 
 from .logging import log
