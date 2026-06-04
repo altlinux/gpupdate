@@ -143,6 +143,8 @@ def transform_windows_path(text):
     return result
 
 def get_kerberos_domain_info():
+    if Credentials is None or Net is None or LoadParm is None:
+        return {'Exception': 'samba libraries not available'}
     try:
         creds = Credentials()
         creds.guess()

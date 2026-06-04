@@ -29,6 +29,8 @@ except ImportError:
 class smbopts:
 
     def __init__(self, prog=None):
+        if options is None:
+            raise RuntimeError('samba-python3 is required for smbopts')
         self.parser = optparse.OptionParser(prog)
         self.sambaopts = options.SambaOptions(self.parser)
         self.lp = self.sambaopts.get_loadparm()

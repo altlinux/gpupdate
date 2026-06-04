@@ -149,10 +149,8 @@ def start_gpupdate_user():
 
 
 def is_oddjobd_gpupdate_accessible():
-    '''
-    Check if oddjobd is running via systemd so it will be possible
-    to run gpoa via D-Bus
-    '''
+    if dbus is None:
+        return False
     oddjobd_accessible = False
 
     try:
