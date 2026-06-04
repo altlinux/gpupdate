@@ -38,7 +38,7 @@ class fs_file_cache:
         if username and username != get_machine_name():
             try:
                 self.storage_uri = file_cache_path_home(username)
-            except:
+            except Exception:
                 self.storage_uri = file_cache_dir()
         else:
             self.storage_uri = file_cache_dir()

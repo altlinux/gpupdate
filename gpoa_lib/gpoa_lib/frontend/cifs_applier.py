@@ -18,7 +18,6 @@
 
 import os
 from pathlib import Path
-import pwd
 import string
 import subprocess
 
@@ -260,7 +259,7 @@ class cifs_applier_user(applier_frontend):
         self.template_env = jinja2.Environment(loader=self.template_loader)
 
         self.template_mountpoints = self.template_env.get_template(self.__template_mountpoints)
-        self.template_indentity = self.template_env.get_template(self.__template_identity)
+        self.template_identity = self.template_env.get_template(self.__template_identity)
         self.template_auto = self.template_env.get_template(self.__template_auto)
 
         self.template_mountpoints_hide = self.template_env.get_template(self.__template_mountpoints_hide)
@@ -386,7 +385,7 @@ class cifs_applier_user(applier_frontend):
                 symlink.unlink()
             elif previous:
                 symlink.unlink()
-        except:
+        except Exception:
             pass
 
     def del_previous_link(self, previous_value_link , mountpoint_dirname, prefix):

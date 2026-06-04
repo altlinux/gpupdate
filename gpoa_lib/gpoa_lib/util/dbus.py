@@ -181,7 +181,7 @@ def is_oddjobd_gpupdate_accessible():
 
         if oddjobd_state == 'active':
             oddjobd_accessible = True
-    except:
+    except Exception:
         pass
 
     return oddjobd_accessible

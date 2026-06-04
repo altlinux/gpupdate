@@ -92,14 +92,12 @@ class system_gsettings:
         except OSError as error:
             pass
 
-        file_locks = open(self.__path_locks,'w')
-        for lock in self.locks:
-            file_locks.write(lock +'\n')
-        file_locks.close()
+        with open(self.__path_locks,'w') as file_locks:
+            for lock in self.locks:
+                file_locks.write(lock +'\n')
 
-        profile = open(self.__path_profile ,'w')
-        profile.write(self.__profile_data)
-        profile.close()
+        with open(self.__path_profile ,'w') as profile:
+            profile.write(self.__profile_data)
 
 def glib_map(value, glib_type):
     result_value = value

@@ -20,10 +20,11 @@ import os
 import sys
 
 _gpoa_dir = os.path.dirname(os.path.abspath(__file__))
-_parent_dir = os.path.dirname(_gpoa_dir)
+_project_root = os.path.dirname(_gpoa_dir)
+_gpoa_lib_dir = os.path.join(_project_root, 'gpoa_lib')
 
-if _parent_dir not in sys.path:
-    sys.path.insert(0, _parent_dir)
+if _gpoa_lib_dir not in sys.path:
+    sys.path.insert(0, _gpoa_lib_dir)
 
 if _gpoa_dir not in sys.path:
     sys.path.insert(0, _gpoa_dir)

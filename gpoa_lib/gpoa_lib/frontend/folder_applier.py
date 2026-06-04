@@ -18,7 +18,6 @@
 
 
 import re
-import shutil
 
 from ..util.logging import log
 from ..util.windows_vars import expand_windows_var
@@ -26,7 +25,6 @@ from ..util.windows_vars import expand_windows_var
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.folder import Folder
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_folder
-from pathlib import Path
 
 
 class folder_applier(applier_frontend):

@@ -59,7 +59,8 @@ class DMApplier(FrontendPlugin):
                     4: "Display manager configuration completed successfully",
                     5: "LightDM greeter configuration generated successfully",
                     6: "GDM theme modified successfully",
-                    7: "GDM backup restored successfully"
+                    7: "GDM backup restored successfully",
+                    8: "GDM fallback configuration generated successfully"
                 },
                 'w': {
                     10: "No display managers detected",
@@ -77,7 +78,8 @@ class DMApplier(FrontendPlugin):
                     26: "Failed to extract GDM gresource",
                     27: "Failed to modify GDM background",
                     28: "Failed to recompile GDM gresource",
-                    29: "Failed to restore GDM backup"
+                    29: "Failed to restore GDM backup",
+                    30: "Failed to add GDM background"
                 },
                 'd': {
                     30: "Display manager detection details",
@@ -88,29 +90,6 @@ class DMApplier(FrontendPlugin):
                     35: "GDM CSS file not found",
                     36: "GDM background pattern analysis",
                     37: "GDM background added to CSS"
-                },
-                'e': {
-                    20: "Configuration file path is invalid or inaccessible",
-                    21: "Failed to generate display manager configuration",
-                    22: "Unknown display manager config directory",
-                    23: "Failed to generate display manager configuration",
-                    24: "Display Manager Applier execution failed",
-                    25: "GDM theme gresource not found",
-                    26: "Failed to extract GDM gresource",
-                    27: "Failed to modify GDM background",
-                    28: "Failed to recompile GDM gresource",
-                    29: "Failed to restore GDM backup",
-                    30: "Failed to add GDM background"
-                },
-                'i': {
-                    1: "Display Manager Applier initialized",
-                    2: "Display manager configuration generated successfully",
-                    3: "Display Manager Applier execution started",
-                    4: "Display manager configuration completed successfully",
-                    5: "LightDM greeter configuration generated successfully",
-                    6: "GDM theme modified successfully",
-                    7: "GDM backup restored successfully",
-                    8: "GDM fallback configuration generated successfully"
                 }
             },
             # locale_dir will be set by plugin_manager during plugin loading

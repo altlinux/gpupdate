@@ -56,7 +56,7 @@ class chromium_applier(applier_frontend):
 
         try:
             recommended__json = self.policies_json.pop('Recommended')
-        except:
+        except Exception:
             recommended__json = {}
 
         #Replacing all nested dictionaries with a list
@@ -215,7 +215,7 @@ class chromium_applier(applier_frontend):
                     if it_data.data[0] == '[' and it_data.data[-1] == ']':
                         try:
                             branch[parts[-1]] = json.loads(str(it_data.data))
-                        except:
+                        except Exception:
                             branch[parts[-1]] = str(it_data.data).replace('\\', '/')
                     else:
                         branch[parts[-1]] = str(it_data.data).replace('\\', '/')
@@ -227,5 +227,5 @@ class chromium_applier(applier_frontend):
                 log('D178', logdata)
         try:
             self.policies_json = counts['']
-        except:
+        except Exception:
             self.policies_json = {}

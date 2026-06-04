@@ -50,9 +50,9 @@ def check_module_enabled(storage, module_name):
     flag = str(flag)
     if flag and flag!='None':
         if '1' == flag:
-            result =  True
+            result = True
         else:
-            result =  False
+            result = False
 
     return result
 
@@ -73,11 +73,9 @@ def check_enabled(storage, module_name, is_experimental):
     return result
 
 class applier_frontend(ABC):
-    @classmethod
     def __init__(self, regobj):
         pass
 
-    @classmethod
     def apply(self, **kwargs):
         pass
 

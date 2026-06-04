@@ -158,7 +158,7 @@ def get_default_policy_name():
     try:
         if smbopts().get_server_role() == 'active directory domain controller':
             return dcpolicy
-    except:
+    except Exception:
         pass
 
     try:
@@ -168,7 +168,7 @@ def get_default_policy_name():
             s = f.readline()
             if re.search('server', s, re.I):
                 localpolicy = 'server'
-    except:
+    except Exception:
         pass
 
     return localpolicy
@@ -210,7 +210,7 @@ def get_policy_variants():
 def string_to_literal_eval(string):
     try:
         literaleval = ast.literal_eval(string)
-    except:
+    except Exception:
         literaleval = string
     return literaleval
 
@@ -221,7 +221,7 @@ def try_dict_to_literal_eval(string):
             return literaleval
         else:
             return None
-    except:
+    except Exception:
         return None
 
 def touch_file(filename):
@@ -280,7 +280,7 @@ def clean_data(data):
     try:
         cleaned_string = data.translate(get_trans_table())
         return cleaned_string
-    except:
+    except Exception:
         return None
 
 def check_local_user_exists(username):
@@ -291,5 +291,5 @@ def check_local_user_exists(username):
         # Try to get user information from the password database
         get_user_info(username)
         return True
-    except:
+    except Exception:
         return False

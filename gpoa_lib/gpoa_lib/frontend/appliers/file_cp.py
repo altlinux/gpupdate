@@ -301,18 +301,18 @@ def check_target_path(path_to_check, username = None):
 
 class Execution_check():
 
-    __etension_marker_key_name = 'ExtensionMarker'
+    __extension_marker_key_name = 'ExtensionMarker'
     __marker_usage_path_key_name = 'MarkerUsagePath'
     __hklm_branch = 'Software\\BaseALT\\Policies\\GroupPolicies\\Files'
 
     def __init__(self, storage):
-        etension_marker_branch = '{}\\{}%'.format(self.__hklm_branch, self.__etension_marker_key_name)
+        extension_marker_branch = '{}\\{}%'.format(self.__hklm_branch, self.__extension_marker_key_name)
         marker_usage_path_branch = '{}\\{}%'.format(self.__hklm_branch, self.__marker_usage_path_key_name)
-        self.etension_marker = storage.filter_hklm_entries(etension_marker_branch)
+        self.extension_marker = storage.filter_hklm_entries(extension_marker_branch)
         self.marker_usage_path = storage.filter_hklm_entries(marker_usage_path_branch)
         self.list_paths = []
         self.list_markers = []
-        for marker in self.etension_marker:
+        for marker in self.extension_marker:
             self.list_markers.append(marker.data)
         for usage_path in self.marker_usage_path:
             self.list_paths.append(usage_path.data)

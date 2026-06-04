@@ -24,6 +24,8 @@ import subprocess
 
 import gi
 from .dynamic_attributes import RegistryKeyMetadata
+from ..util.constants import TRUE_STRINGS
+from ..util.ini_writer import write_ini_sections
 from ..util.logging import log
 from ..util.paths import get_dconf_config_path
 from ..util.util import (
@@ -103,18 +105,7 @@ class Dconf_registry():
     scripts = []
     networkshares = []
 
-    _true_strings = {
-        "True",
-        "true",
-        "TRUE",
-        "yes",
-        "Yes",
-        "enabled",
-        "enable",
-        "Enabled",
-        "Enable",
-        '1'
-    }
+    _true_strings = TRUE_STRINGS
 
     @classmethod
     def set_info(cls, key , data):
@@ -199,7 +190,7 @@ class Dconf_registry():
                 logdata['error'] = error
                 log('E71', logdata)
             else:
-                logdata['outpupt'] = output
+                logdata['output'] = output
                 log('D206', logdata)
         except Exception as exc:
             logdata['exc'] = exc
@@ -256,10 +247,10 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_dictionary_from_dconf(self, *startswith_list):
+    def get_dictionary_from_dconf(cls, *startswith_list):
         output_dict = {}
         for startswith in startswith_list:
-            dconf_dict = self.get_key_values(self.get_matching_keys(startswith))
+            dconf_dict = cls.get_key_values(cls.get_matching_keys(startswith))
             for key, value in dconf_dict.items():
                 keys_tmp = key.split('/')
                 update_dict(output_dict.setdefault('/'.join(keys_tmp[:-1])[1:], {}), {keys_tmp[-1]: str(value)})
@@ -269,19 +260,20 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_dictionary_from_dconf_file_db(self, uid=None, path_bin=None, save_dconf_db=False):
+    def get_dictionary_from_dconf_file_db(cls, uid=None, path_bin=None, save_dconf_db=False):
         logdata = {}
         error_skip = None
         if path_bin:
             error_skip = True
         elif not uid:
-            path_bin = self._path_bin_system
+            path_bin = cls._path_bin_system
         else:
-            path_bin = self._path_bin_system + str(uid)
+            path_bin = cls._path_bin_system + str(uid)
         output_dict = {}
         try:
-            if (GLib.file_get_contents(path_bin)[0]):
-                bytes1 = GLib.Bytes.new(GLib.file_get_contents(path_bin)[1])
+            contents = GLib.file_get_contents(path_bin)
+            if contents[0]:
+                bytes1 = GLib.Bytes.new(contents[1])
                 table = Gvdb.Table.new_from_bytes(bytes1, True)
 
                 name_list = Gvdb.Table.get_names(table)
@@ -436,10 +428,10 @@ class Dconf_registry():
 
 
     @classmethod
-    def add_envvar(self, evobj, policy_name, policy_guid=None):
+    def add_envvar(cls, evobj, policy_name, policy_guid=None):
         evobj.policy_name = policy_name
         evobj.policy_guid = policy_guid
-        self.environmentvariables.append(evobj)
+        cls.environmentvariables.append(evobj)
 
 
     @classmethod
@@ -840,29 +832,8 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
 
 
 def create_dconf_ini_file(filename, data, uid=None, nodomain=None):
-    '''
-    Create an ini-file based on a dictionary of dictionaries.
-    Args:
-        data (dict): The dictionary of dictionaries containing the data for the ini-file.
-        filename (str): The filename to save the ini-file.
-    Returns:
-        None
-    Raises:
-        None
-    '''
     with open(filename, 'a' if nodomain else 'w') as file:
-        for section, section_data in data.items():
-            if not section:
-                continue
-            file.write(f'[{section}]\n')
-            for key, value in section_data.items():
-                if not key:
-                    continue
-                if isinstance(value, int):
-                    file.write(f'{key} = {value}\n')
-                else:
-                    file.write(f'{key} = "{value}"\n')
-            file.write('\n')
+        write_ini_sections(file, data)
     logdata = {'path': filename}
     log('D209', logdata)
     create_dconf_file_locks(filename, data)

@@ -21,8 +21,6 @@ from ..util.logging import log
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.envvar import Envvar
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_envvar
-from pathlib import Path
-from ..util.util import get_homedir
 
 
 class envvar_applier(applier_frontend):

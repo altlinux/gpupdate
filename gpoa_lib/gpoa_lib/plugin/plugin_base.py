@@ -51,8 +51,8 @@ class FrontendPlugin(plugin):
                     ...
     """
 
-    def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None):
-        super().__init__(dict_dconf_db, username, fs_file_cache, registry_path)
+    def __init__(self, dict_dconf_db=None, username=None, fs_file_cache=None, registry_path=None):
+        super().__init__(dict_dconf_db if dict_dconf_db is not None else {}, username, fs_file_cache, registry_path)
 
     @abstractmethod
     def run(self, **kwargs):

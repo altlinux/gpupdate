@@ -3,7 +3,6 @@
 # while RPM provides generate python3(gpoa.gpt.gpt) - mismatch requires skips.
 # These cannot be reduced until gpoa/ becomes a proper Python package.
 
-%add_python3_req_skip applaer.systemd
 %add_python3_req_skip backend
 %add_python3_req_skip frontend.frontend_manager
 %add_python3_req_skip gpt.dynamic_attributes

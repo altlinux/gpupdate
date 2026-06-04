@@ -165,7 +165,7 @@ def get_plugin_message(domain, code):
     if translation:
         try:
             return translation.gettext(message_text)
-        except:
+        except Exception:
             pass
 
     return message_text

@@ -132,7 +132,7 @@ class PluginLog:
             if system_locale_dir.exists():
                 self.locale_dir = str(system_locale_dir)
                 return
-        except:
+        except Exception:
             pass
 
     def _load_translations(self):
@@ -208,7 +208,7 @@ class PluginLog:
         if data and isinstance(data, dict):
             try:
                 return translated_template.format(**data)
-            except:
+            except Exception:
                 return "{} | {}".format(translated_template, data)
         return translated_template
 

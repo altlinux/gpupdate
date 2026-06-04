@@ -42,8 +42,8 @@ class plugin(ABC):
     registry_path : str, optional
         Custom registry subkey prefix for this plugin.
     '''
-    def __init__(self, dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None):
-        self.dict_dconf_db = dict_dconf_db
+    def __init__(self, dict_dconf_db=None, username=None, fs_file_cache=None, registry_path=None):
+        self.dict_dconf_db = dict_dconf_db if dict_dconf_db is not None else {}
         self.file_cache = fs_file_cache
         self.username = username
         self._log = None
@@ -74,7 +74,7 @@ class plugin(ABC):
                 return result
             else:
                 return False
-        except:
+        except Exception:
             return False
 
     @final

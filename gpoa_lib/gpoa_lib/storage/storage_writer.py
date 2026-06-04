@@ -19,6 +19,7 @@
 import os
 
 from .dconf_registry import Dconf_registry, create_dconf_file_locks, get_keys_dconf_locks
+from ..util.ini_writer import write_ini_sections
 from ..util.logging import log
 from ..util.paths import get_dconf_db_path, get_dconf_db_file
 
@@ -64,19 +65,6 @@ class StorageWriter:
         return get_dconf_db_path(self.db_name)
 
     def write(self, data):
-        '''
-        Write a nested dict ``{section: {key: value}}`` to the database INI file.
-
-        Parameters
-        ----------
-        data : dict
-            Nested dict where outer keys are registry sections and
-            inner dicts map value names to values.
-
-        Returns
-        -------
-        None
-        '''
         ini_path = self._get_ini_path()
         ini_dir = self._get_ini_dir()
 
@@ -84,18 +72,7 @@ class StorageWriter:
 
         mode = 'a' if self._append else 'w'
         with open(ini_path, mode) as f:
-            for section, section_data in data.items():
-                if not section:
-                    continue
-                f.write(f'[{section}]\n')
-                for key, value in section_data.items():
-                    if not key:
-                        continue
-                    if isinstance(value, int):
-                        f.write(f'{key} = {value}\n')
-                    else:
-                        f.write(f'{key} = "{value}"\n')
-                f.write('\n')
+            write_ini_sections(f, data)
 
         logdata = {'path': ini_path, 'db_name': self.db_name}
         log('D209', logdata)

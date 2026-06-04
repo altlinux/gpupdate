@@ -208,7 +208,9 @@ class ApplierRunner:
             return create_result
         applier = create_result.data
         try:
-            applier.apply(force=self.force)
+            if hasattr(applier, 'force'):
+                applier.force = self.force
+            applier.apply()
             return Result.ok()
         except Exception as exc:
             logdata = {'applier_name': applier_name, 'msg': str(exc)}

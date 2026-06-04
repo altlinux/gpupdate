@@ -148,6 +148,5 @@ def install_script(storage_script_entry, script_dir, access_permissions):
         dir_path = script_dir + '/' + script_name + '.arg'
         dir_arg = Path(dir_path)
         dir_arg.mkdir(parents=True, exist_ok=True)
-        file_arg = open(dir_path + '/arg', 'w')
-        file_arg.write(storage_script_entry.args)
-        file_arg.close()
+        with open(dir_path + '/arg', 'w') as file_arg:
+            file_arg.write(storage_script_entry.args)

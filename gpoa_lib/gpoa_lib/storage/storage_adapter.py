@@ -25,16 +25,12 @@ from .dconf_registry import (
     find_preg_type,
     flatten_dictionary,
 )
+from ..util.constants import TRUE_STRINGS
 from ..util.logging import log
 from ..util.paths import get_dconf_config_path
 
 
-_TRUE_STRINGS = {
-    "True", "true", "TRUE",
-    "yes", "Yes",
-    "enabled", "enable", "Enabled", "Enable",
-    "1",
-}
+_TRUE_STRINGS = TRUE_STRINGS
 
 
 class StorageAdapter:
@@ -176,8 +172,9 @@ class StorageAdapter:
                 path_bin = dconf_dir + db_name
 
             output_dict = {}
-            if GLib.file_get_contents(path_bin)[0]:
-                bytes1 = GLib.Bytes.new(GLib.file_get_contents(path_bin)[1])
+            contents = GLib.file_get_contents(path_bin)
+            if contents[0]:
+                bytes1 = GLib.Bytes.new(contents[1])
                 table = Gvdb.Table.new_from_bytes(bytes1, True)
 
                 name_list = Gvdb.Table.get_names(table)

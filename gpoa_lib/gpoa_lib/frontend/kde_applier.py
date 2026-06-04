@@ -139,7 +139,7 @@ def get_kde_version():
                 frameworks_version = line.split(":", 1)[1].strip()
                 major_frameworks_version = int(frameworks_version.split(".")[0])
                 return major_frameworks_version
-    except:
+    except Exception:
         return None
 
 
@@ -230,7 +230,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                         env_path = dict(os.environ)
                         env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
-                    except:
+                    except Exception:
                             logdata = {'command': command}
                             log('W22', logdata)
             new_content = []
@@ -316,7 +316,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                     ]
                 try:
                     subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path)
-                except:
+                except Exception:
                         logdata = {'command': command}
                         log('E68', logdata)
                 if plasmaupdate == 1:
@@ -341,7 +341,7 @@ def get_id_desktop(path_to_wallpaper):
             file_content = file.read()
         match = re.search(pattern, file_content)
         return match.group(1) if match else None
-    except:
+    except Exception:
         return None
 
 def call_dbus_method(file_name):

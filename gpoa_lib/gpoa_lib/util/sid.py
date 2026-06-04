@@ -51,7 +51,7 @@ def wbinfo_getsid(domain, user):
         if _trust_info_callback:
             _trust_info_callback('trust', False)
         return output.split()[0].decode('utf-8')
-    except:
+    except Exception:
         log('W43')
     try:
         wbinfo_cmd[-1] = user
@@ -83,7 +83,7 @@ def get_sid(domain, username, is_machine = False):
     # domain user
     try:
         sid = wbinfo_getsid(domain, username)
-    except:
+    except Exception:
         logdata = {'sid': sid}
         log('E16', logdata)
 

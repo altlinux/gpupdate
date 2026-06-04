@@ -50,7 +50,7 @@ class systemd_applier(applier_frontend):
         for unit in self.units:
             try:
                 unit.apply()
-            except:
+            except Exception:
                 logdata = {'unit': unit.unit_name}
                 log('E45', logdata)
 
