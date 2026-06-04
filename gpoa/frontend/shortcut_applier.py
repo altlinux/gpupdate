@@ -194,7 +194,7 @@ class shortcut_applier_user(applier_frontend):
                     get_ttype(obj.get('target_type')))
                 shortcut_machine.set_usercontext(1)
                 result.append(shortcut_machine)
-        except:
+        except Exception:
             return None
         return result
 

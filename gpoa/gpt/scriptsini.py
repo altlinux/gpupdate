@@ -127,10 +127,10 @@ class Script(DynamicAttributes):
         action_upper = action.upper()
         self.action = action_upper
         self.path = os.path.join(script_dir, action_upper, script_filename.upper())
+        self.args = None
         if not os.path.isfile(self.path):
             self.number = None
-            return None
-        self.args = None
+            return
 
         if action_upper == 'LOGON':
             self.number = Script.__logon_counter

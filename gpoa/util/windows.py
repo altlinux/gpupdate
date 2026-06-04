@@ -62,12 +62,13 @@ class smbcreds (smbopts):
         self.creds.set_machine_account()
 
         self.set_dc(dc_fqdn)
+        self.is_machine = True
         self.sDomain = SiteDomainScanner(self.creds, self.lp, self.selected_dc)
         self.dc_site_servers = self.sDomain.select_site_servers()
         self.all_servers = self.sDomain.select_all_servers()
-        [self.all_servers.remove(element)
-        for element in self.dc_site_servers
-        if element in self.all_servers]
+        for element in self.dc_site_servers:
+            if element in self.all_servers:
+                self.all_servers.remove(element)
         self.pdc_emulator_server = self.sDomain.select_pdc_emulator_server()
 
     def get_dc(self):
@@ -126,7 +127,7 @@ class smbcreds (smbopts):
                 'Software/BaseALT/Policies/GPUpdate', {}).get(
                     'AllowTrustUserPolicy', False)
             allow_trust_user_policy_win =  dconf_dict_machine.get(
-                'Software\Policies\Microsoft\Windows\System', {}).get(
+                'Software\\Policies\\Microsoft\\Windows\\System', {}).get(
                     'AllowX-ForestPolicy-and-RUP', False)
             if allow_trust_user_policy or allow_trust_user_policy_win:
                 try:
@@ -380,8 +381,7 @@ class SiteDomainScanner:
 def check_scroll_enabled():
     storage = registry_factory()
     enable_scroll = '/Software/BaseALT/Policies/GPUpdate/ScrollSysvolDC'
-    if storage.get_key_value(enable_scroll):
-        data = storage.get_hklm_entry(enable_scroll).data
-        return bool(int(data))
-    else:
-        return False
+    entry = storage.get_hklm_entry(enable_scroll)
+    if entry and entry.data:
+        return bool(int(entry.data))
+    return False

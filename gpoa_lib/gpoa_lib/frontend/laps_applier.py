@@ -28,6 +28,7 @@ import subprocess
 from dateutil import tz
 import ldb
 import psutil
+from ldap.filter import escape_filter_chars
 from ..util.logging import log
 from ..util.sid import WellKnown21RID
 from ..util.util import check_local_user_exists, remove_prefix_from_keys, get_machine_name
@@ -199,7 +200,7 @@ class laps_applier(applier_frontend):
             str: Computer's distinguished name in LDAP
         """
         machine_name = self.storage.get_info('machine_name')
-        search_filter = f'(sAMAccountName={machine_name})'
+        search_filter = f'(sAMAccountName={escape_filter_chars(machine_name)})'
         results = self.samdb.search(base=self.domain_dn, expression=search_filter, attrs=['dn'])
         return results[0]['dn']
 

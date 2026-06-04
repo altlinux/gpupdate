@@ -20,6 +20,7 @@ import os
 import shutil
 import subprocess
 import re
+import tempfile
 
 # Import only what's absolutely necessary
 try:
@@ -271,7 +272,7 @@ class DMApplier(FrontendPlugin):
     def _extract_gresource(self, gresource_path):
         """Extract gresource file to temporary directory by creating XML from gresource list"""
         try:
-            temp_dir = "/tmp/gdm_theme_" + str(os.getpid())
+            temp_dir = tempfile.mkdtemp(prefix='gpoa_gdm_')
             os.makedirs(temp_dir, exist_ok=True)
 
             # Get list of resources from gresource file

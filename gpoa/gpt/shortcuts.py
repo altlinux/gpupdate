@@ -212,15 +212,13 @@ class shortcut(DynamicAttributes):
         self.type = ttype
 
     def set_usercontext(self, usercontext=False):
-        '''
-        Perform action in user context or not
-        '''
         ctx = False
 
         if usercontext in [1, '1', True]:
             ctx = True
 
         self.is_in_user_context = ctx
+        return ctx
 
     def set_expanded_path(self, path):
         self.expanded_path = path

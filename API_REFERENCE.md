@@ -14,14 +14,15 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 4. [ApplierRunner](#applierrunner)
 5. [plugin (abstract base)](#plugin)
 6. [FrontendPlugin](#frontendplugin)
-7. [plugin_manager](#plugin_manager)
-8. [Dconf_registry](#dconf_registry)
-9. [GppStateManager](#gppstatemanager)
-10. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-11. [Data Types](#data-types)
-12. [Filters (FilterChecker)](#filters)
-13. [Utility Functions](#utility-functions)
-14. [Path Functions](#path-functions)
+7. [DualContextApplier](#dualcontextapplier)
+8. [plugin_manager](#plugin_manager)
+9. [Dconf_registry](#dconf_registry)
+10. [GppStateManager](#gppstatemanager)
+11. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+12. [Data Types](#data-types)
+13. [Filters (FilterChecker)](#filters)
+14. [Utility Functions](#utility-functions)
+15. [Path Functions](#path-functions)
 
 ---
 
@@ -35,6 +36,7 @@ from gpoa_lib import (
     ApplierRunner,
     FrontendPlugin,
     applier_frontend,
+    DualContextApplier,
     Dconf_registry,
     GppStateManager,
     DynamicAttributes,
@@ -644,6 +646,46 @@ def create_machine_applier(dict_dconf_db, username, file_cache):
 
 def create_user_applier(dict_dconf_db, username, file_cache):
     return MyPlugin(dict_dconf_db, username, file_cache)
+```
+
+---
+
+## DualContextApplier
+
+`gpoa_lib.frontend.applier_frontend.DualContextApplier`
+
+Intermediate base class for appliers that need separate admin-context and
+user-context execution phases.  Inherits from `applier_frontend`.
+
+Use this when an applier runs different logic depending on whether it is
+called with root privileges (admin context) or dropped user privileges
+(user context).
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `admin_context_apply()` | Override to implement admin-privileged policy application. Default: `pass`. |
+| `user_context_apply()` | Override to implement user-context policy application. Default: `pass`. |
+| `apply()` | Calls `admin_context_apply()`. Do **not** override in subclasses. |
+
+### Usage Example
+
+```python
+from gpoa_lib import DualContextApplier
+
+class my_applier_user(DualContextApplier):
+    def __init__(self, storage, username):
+        self.storage = storage
+        self.username = username
+
+    def admin_context_apply(self):
+        # runs as root
+        pass
+
+    def user_context_apply(self):
+        # runs with user privileges
+        pass
 ```
 
 ---

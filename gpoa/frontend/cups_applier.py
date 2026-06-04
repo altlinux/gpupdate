@@ -82,6 +82,7 @@ class cups_applier(applier_frontend):
         except Exception as exc:
             logdata = {'exc': exc}
             log('W20', logdata)
+            return
         self.printers = storage_get_printers(self.storage)
 
         if self.printers:

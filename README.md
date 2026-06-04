@@ -23,7 +23,7 @@ GPOA (GPO Applier for Linux) is a comprehensive facility to fetch, reinterpret a
 
 ## Packages
 
-Starting from version 0.16.0, the project is split into two RPM packages:
+Starting from version 0.15.0, the project is split into two RPM packages:
 
 | Package | Description |
 |---------|-------------|
