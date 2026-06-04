@@ -77,13 +77,15 @@ class fs_file_cache:
         try:
             fd, tmpfile = tempfile.mkstemp('', str(destfile))
             df = os.fdopen(fd, 'wb')
-            file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
-            while True:
-                data = file_handler.read(self.__read_blocksize)
-                if not data:
-                    break
-                df.write(data)
-            df.close()
+            try:
+                file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
+                while True:
+                    data = file_handler.read(self.__read_blocksize)
+                    if not data:
+                        break
+                    df.write(data)
+            finally:
+                df.close()
             os.rename(tmpfile, destfile)
             os.chmod(destfile, 0o644)
         except Exception as exc:
