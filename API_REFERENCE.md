@@ -68,7 +68,7 @@ Result(ok, data=None, error=None)
 
 ### Class Methods
 
-#### `Result.ok(data=None)`
+#### `Result.ok_result(data=None)`
 
 Create a successful result.
 
@@ -1046,7 +1046,6 @@ environments.
 | `mk_homedir_path(username, path)` | `(str, str) -> None` | Create subdirectory in user's home. |
 | `string_to_literal_eval(string_)` | `(str) -> any` | Safely evaluate a string literal. |
 | `get_uid_by_username(username)` | `(str) -> int` | Resolve username to UID. |
-| `get_username_by_uid(uid)` | `(int) -> str` | Resolve UID to username. |
 | `runcmd(command_name)` | `(list) -> (int, str)` | Run a command, return (rc, stdout). |
 | `traverse_dir(root_dir)` | `(str) -> list[str]` | Recursively list files. |
 | `utc_to_local(utc_str)` | `(str) -> str` | Convert UTC timestamp to local time. |
@@ -1060,7 +1059,7 @@ environments.
 | Function | Returns | Description |
 |----------|---------|-------------|
 | `get_custom_policy_dir()` | `str` | `/etc/local-policy` |
-| `local_policy_path(template='default')` | `Path` | Local policy template directory. |
+| `local_policy_path(default_template_name='default')` | `Path` | Local policy template directory. |
 | `cache_dir()` | `Path` | `/var/cache/gpupdate` |
 | `file_cache_dir()` | `Path` | `/var/cache/gpupdate_file_cache` |
 | `file_cache_path_home(username)` | `str` | `~user/.cache/gpupdate` |

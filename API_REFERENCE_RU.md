@@ -14,14 +14,15 @@
 4. [ApplierRunner](#applierrunner)
 5. [plugin (абстрактный базовый класс)](#plugin)
 6. [FrontendPlugin](#frontendplugin)
-7. [plugin_manager](#plugin_manager)
-8. [Dconf_registry](#dconf_registry)
-9. [GppStateManager](#gppstatemanager)
-10. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-11. [Типы данных](#типы-данных)
-12. [Фильтры (FilterChecker)](#фильтры)
-13. [Вспомогательные функции](#вспомогательные-функции)
-14. [Функции путей](#функции-путей)
+7. [DualContextApplier](#dualcontextapplier)
+8. [plugin_manager](#plugin_manager)
+9. [Dconf_registry](#dconf_registry)
+10. [GppStateManager](#gppstatemanager)
+11. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+12. [Типы данных](#типы-данных)
+13. [Фильтры (FilterChecker)](#фильтры)
+14. [Вспомогательные функции](#вспомогательные-функции)
+15. [Функции путей](#функции-путей)
 
 ---
 
@@ -35,6 +36,7 @@ from gpoa_lib import (
     ApplierRunner,
     FrontendPlugin,
     applier_frontend,
+    DualContextApplier,
     Dconf_registry,
     GppStateManager,
     DynamicAttributes,
@@ -66,7 +68,7 @@ Result(ok, data=None, error=None)
 
 ### Методы класса
 
-#### `Result.ok(data=None)`
+#### `Result.ok_result(data=None)`
 
 Создать успешный результат.
 
@@ -650,6 +652,47 @@ def create_user_applier(dict_dconf_db, username, file_cache):
 
 ---
 
+## DualContextApplier
+
+`gpoa_lib.frontend.applier_frontend.DualContextApplier`
+
+Промежуточный базовый класс для применителей, которым требуются отдельные фазы
+выполнения в контексте администратора и пользователя.  Наследуется от
+`applier_frontend`.
+
+Используйте этот класс, когда применитель выполняет разную логику в зависимости
+от того, запущен ли он с привилегиями root (контекст администратора) или со
+сброшенными привилегиями пользователя (пользовательский контекст).
+
+### Методы
+
+| Метод | Описание |
+|-------|----------|
+| `admin_context_apply()` | Переопределить для реализации применения политик с привилегиями администратора. По умолчанию: `pass`. |
+| `user_context_apply()` | Переопределить для реализации применения политик в пользовательском контексте. По умолчанию: `pass`. |
+| `apply()` | Вызывает `admin_context_apply()`. **Не** переопределять в подклассах. |
+
+### Пример использования
+
+```python
+from gpoa_lib import DualContextApplier
+
+class my_applier_user(DualContextApplier):
+    def __init__(self, storage, username):
+        self.storage = storage
+        self.username = username
+
+    def admin_context_apply(self):
+        # выполняется от имени root
+        pass
+
+    def user_context_apply(self):
+        # выполняется с привилегиями пользователя
+        pass
+```
+
+---
+
 ## plugin_manager
 
 `gpoa_lib.plugin.plugin_manager.plugin_manager`
@@ -1007,7 +1050,6 @@ set_domain_resolver(resolver_func)
 | `mk_homedir_path(username, path)` | `(str, str) -> None` | Создать подкаталог в домашнем каталоге пользователя. |
 | `string_to_literal_eval(string_)` | `(str) -> any` | Безопасно вычислить строковый литерал. |
 | `get_uid_by_username(username)` | `(str) -> int` | Разрешить имя пользователя в UID. |
-| `get_username_by_uid(uid)` | `(int) -> str` | Разрешить UID в имя пользователя. |
 | `runcmd(command_name)` | `(list) -> (int, str)` | Выполнить команду, вернуть (код возврата, stdout). |
 | `traverse_dir(root_dir)` | `(str) -> list[str]` | Рекурсивно получить список файлов. |
 | `utc_to_local(utc_str)` | `(str) -> str` | Преобразовать метку времени UTC в локальное время. |
@@ -1021,7 +1063,7 @@ set_domain_resolver(resolver_func)
 | Функция | Возвращает | Описание |
 |---------|------------|----------|
 | `get_custom_policy_dir()` | `str` | `/etc/local-policy` |
-| `local_policy_path(template='default')` | `Path` | Каталог шаблона локальной политики. |
+| `local_policy_path(default_template_name='default')` | `Path` | Каталог шаблона локальной политики. |
 | `cache_dir()` | `Path` | `/var/cache/gpupdate` |
 | `file_cache_dir()` | `Path` | `/var/cache/gpupdate_file_cache` |
 | `file_cache_path_home(username)` | `str` | `~user/.cache/gpupdate` |

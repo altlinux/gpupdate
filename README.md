@@ -95,7 +95,7 @@ rpm -ivh ~/rpmbuild/RPMS/noarch/gpoa-lib-*.rpm
 ```
 
 ### Dependencies
-- Python 3.10+
+- Python 3.8+
 - Samba client tools
 - FreeIPA client (optional)
 - Systemd
@@ -289,9 +289,8 @@ gpupdate/
 │       ├── messages/      # Localized message definitions
 │       └── test/          # Unit tests
 │
-├── gpresult/              # Separate package (own pyproject.toml)
 ├── gpupdate.spec          # RPM spec (gpupdate + gpoa-lib subpackage)
-└── AGENTS.md              # Development guide
+└── docs/                  # Documentation
 ```
 
 ## Contributing
