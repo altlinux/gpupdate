@@ -24,12 +24,10 @@ import gettext
 import locale
 import sys
 
-_gpoa_dir = os.path.dirname(os.path.abspath(__file__))
-_gpoa_lib_dir = os.path.join(os.path.dirname(_gpoa_dir), 'gpoa_lib')
-if _gpoa_lib_dir not in sys.path:
-    sys.path.insert(0, _gpoa_lib_dir)
-if _gpoa_dir not in sys.path:
-    sys.path.insert(0, _gpoa_dir)
+_gpoa_dir = os.path.dirname(os.path.realpath(__file__))
+_gpoa_parent = os.path.dirname(_gpoa_dir)
+if _gpoa_parent not in sys.path:
+    sys.path.insert(0, _gpoa_parent)
 
 from backend import backend_factory, save_dconf, save_dconf_without_previous
 from frontend.frontend_manager import frontend_manager, determine_username
