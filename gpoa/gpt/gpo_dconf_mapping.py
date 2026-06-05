@@ -33,17 +33,17 @@ class GpoInfoDconf(DynamicAttributes):
     def _fill_attributes(self, gpo):
         try:
             self.display_name = gpo.display_name
-        except AttributeError:
+        except (AttributeError, UnicodeDecodeError):
             self.display_name = "Unknown"
         try:
             self.name = gpo.name
-        except AttributeError:
+        except (AttributeError, UnicodeDecodeError):
             self.name = "Unknown"
         try:
             self.version = gpo.version
-        except AttributeError:
+        except (AttributeError, UnicodeDecodeError):
             self.version = "Unknown"
         try:
             self.link = gpo.link
-        except AttributeError:
+        except (AttributeError, UnicodeDecodeError):
             self.link = "Unknown"
