@@ -135,7 +135,7 @@ Requires: python3-module-configobj
 Requires: python3-module-samba
 Requires: python3-module-rpm
 Requires: python3-module-jinja2
-Requires: python3-module-gobject
+Requires: python3-module-pygobject3
 Requires: python3-module-smbc >= 1.0.23-alt3
 Requires: python3-module-libcng_dpapi
 Requires: libgvdb-gir
