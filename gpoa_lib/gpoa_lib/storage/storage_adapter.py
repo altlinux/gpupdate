@@ -27,7 +27,7 @@ from .dconf_registry import (
 )
 from ..util.constants import TRUE_STRINGS
 from ..util.logging import log
-from ..util.paths import get_dconf_config_path
+
 
 
 _TRUE_STRINGS = TRUE_STRINGS
@@ -49,6 +49,15 @@ class StorageAdapter:
     * ``from_dconf_db(db_name, uid)``  -- from a dconf binary database
     * ``from_dconf_db_prefix(...)``    -- dconf + prefix filter
     * ``from_dconf_db_keys(...)``      -- dconf + specific keys
+
+    Path resolution
+    ~~~~~~~~~~~~~~~~
+    * ``from_dconf_db('policy')``             → reads ``/etc/dconf/db/policy``
+    * ``from_dconf_db('policy', uid=1000)``   → reads ``/etc/dconf/db/policy1000``
+    * ``from_dconf_db('local')``              → reads ``/etc/dconf/db/local``
+
+    The ``uid`` parameter constructs the database name as ``policy{uid}``.
+    The binary database file is read directly (not the ``.d/`` INI directory).
 
     Examples
     --------
@@ -94,7 +103,7 @@ class StorageAdapter:
         db_name : str
             Database filename under ``/etc/dconf/db/``.
         uid : int, optional
-            User UID.  When given, resolves the user-specific dconf path.
+            User UID.  When given, reads ``/etc/dconf/db/policy{uid}``.
 
         Returns
         -------
@@ -165,10 +174,10 @@ class StorageAdapter:
             gi.require_version("GLib", "2.0")
             from gi.repository import GLib, Gvdb
 
+            dconf_dir = '/etc/dconf/db/'
             if uid:
-                path_bin = get_dconf_config_path(uid)
+                path_bin = dconf_dir + 'policy' + str(uid)
             else:
-                dconf_dir = '/etc/dconf/db/'
                 path_bin = dconf_dir + db_name
 
             output_dict = {}

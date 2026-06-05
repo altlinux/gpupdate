@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
+from unittest.mock import patch, MagicMock
 
 from gpoa_lib.storage.storage_adapter import StorageAdapter
 
@@ -189,3 +190,20 @@ class StorageAdapterTestCase(unittest.TestCase):
     def test_get_dict_empty(self):
         adapter = StorageAdapter.from_dict({})
         self.assertEqual(adapter.get_dict(), {})
+
+    @patch.object(StorageAdapter, '_load_from_db', return_value={})
+    def test_from_dconf_db_no_uid_path(self, mock_load):
+        StorageAdapter.from_dconf_db('policy')
+        mock_load.assert_called_once_with('policy', None)
+
+    @patch.object(StorageAdapter, '_load_from_db', return_value={})
+    def test_from_dconf_db_with_uid_path(self, mock_load):
+        StorageAdapter.from_dconf_db('policy', uid=1000)
+        mock_load.assert_called_once_with('policy', 1000)
+
+    def test_load_from_db_uid_constructs_binary_path(self):
+        import inspect
+        source = inspect.getsource(StorageAdapter._load_from_db)
+        self.assertIn("'policy' + str(uid)", source)
+        self.assertNotIn("get_dconf_config_path", source)
+        self.assertIn("dconf_dir = '/etc/dconf/db/'", source)

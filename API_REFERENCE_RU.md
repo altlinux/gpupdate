@@ -165,11 +165,16 @@ adapter = StorageAdapter.from_dconf_db('policy', uid=1000)
 | Параметр  | Тип        | Описание |
 |-----------|------------|----------|
 | `db_name` | `str`      | Имя файла базы данных в `/etc/dconf/db/`. |
-| `uid`     | `int`      | Необязательный UID пользователя для пользовательской базы. |
+| `uid`     | `int`      | Необязательный UID пользователя. Читает `/etc/dconf/db/policy{uid}`. |
 
 **Возвращает:** `StorageAdapter`
 
 **Требует:** пакеты GObject Introspection для GVdb и GLib.
+
+**Разрешение путей:**
+- `from_dconf_db('policy')` → `/etc/dconf/db/policy`
+- `from_dconf_db('policy', uid=1000)` → `/etc/dconf/db/policy1000`
+- `from_dconf_db('local')` → `/etc/dconf/db/local`
 
 ---
 
