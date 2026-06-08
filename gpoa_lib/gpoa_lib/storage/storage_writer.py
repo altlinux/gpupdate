@@ -19,6 +19,7 @@
 import os
 
 from .dconf_registry import Dconf_registry, create_dconf_file_locks, get_keys_dconf_locks
+from ..util.gpoa_ini_parsing import GpoaConfigObj
 from ..util.ini_writer import write_ini_sections
 from ..util.logging import log
 from ..util.paths import get_dconf_db_path, get_dconf_db_file
@@ -70,9 +71,36 @@ class StorageWriter:
 
         os.makedirs(ini_dir, exist_ok=True)
 
-        mode = 'a' if self._append else 'w'
-        with open(ini_path, mode) as f:
-            write_ini_sections(f, data)
+        if self._append and os.path.exists(ini_path):
+            with open(ini_path, 'r') as f:
+                content = f.read()
+            config = GpoaConfigObj(content.split('\n'))
+        else:
+            config = GpoaConfigObj([])
+
+        for section, section_data in data.items():
+            if not section or not isinstance(section_data, dict):
+                continue
+            if section not in config:
+                config[section] = {}
+            for key, value in section_data.items():
+                if key:
+                    config[section][key] = value
+
+        with open(ini_path, 'w') as f:
+            for section, section_data in config.items():
+                if not section:
+                    continue
+                f.write(f'[{section}]\n')
+                if isinstance(section_data, dict):
+                    for key, value in section_data.items():
+                        if not key:
+                            continue
+                        if isinstance(value, int):
+                            f.write(f'{key} = {value}\n')
+                        else:
+                            f.write(f'{key} = "{value}"\n')
+                f.write('\n')
 
         logdata = {'path': ini_path, 'db_name': self.db_name}
         log('D209', logdata)
@@ -124,8 +152,6 @@ class StorageWriter:
         with open(ini_path, 'r') as f:
             content = f.read()
 
-        import re
-        from ..util.gpoa_ini_parsing import GpoaConfigObj
         config = GpoaConfigObj(content.split('\n'))
 
         for section_key in list(config.keys()):
