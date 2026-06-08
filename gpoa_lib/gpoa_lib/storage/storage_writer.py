@@ -20,7 +20,6 @@ import os
 
 from .dconf_registry import Dconf_registry, create_dconf_file_locks, get_keys_dconf_locks
 from ..util.gpoa_ini_parsing import GpoaConfigObj
-from ..util.ini_writer import write_ini_sections
 from ..util.logging import log
 from ..util.paths import get_dconf_db_path, get_dconf_db_file
 
@@ -29,6 +28,9 @@ class StorageWriter:
     '''
     Write policy data to an arbitrary dconf database.
 
+    Each ``write()`` or ``write_keys()`` call merges new data with the
+    existing INI file.  Duplicate sections are never created.
+
     Parameters
     ----------
     db_name : str
@@ -36,9 +38,6 @@ class StorageWriter:
         writes to ``/etc/dconf/db/local.d/local.ini``.
     uid : int, optional
         User UID for per-user databases (appended to db_name).
-    append : bool
-        If ``True``, append to the existing INI file instead of
-        overwriting.  Default ``False``.
 
     Examples
     --------
@@ -50,14 +49,15 @@ class StorageWriter:
         writer.write({'Software/BaseALT/Policies/Control': {'sshd-gssapi-auth': '1'}})
         writer.compile()
 
-        writer.write_keys({'Software/BaseALT/Policies/Control/sshd-gssapi-auth': '1'})
+        writer.write_keys({'Software/BaseALT/Policies/Control/sshd': '1'})
         writer.compile()
+
+        writer.clear().write({'Section': {'key': 'val'}}).compile()
     '''
 
-    def __init__(self, db_name, uid=None, append=False):
+    def __init__(self, db_name, uid=None):
         self.db_name = db_name
         self.uid = uid
-        self._append = append
 
     def _get_ini_path(self):
         return get_dconf_db_file(self.db_name)
@@ -71,7 +71,7 @@ class StorageWriter:
 
         os.makedirs(ini_dir, exist_ok=True)
 
-        if self._append and os.path.exists(ini_path):
+        if os.path.exists(ini_path):
             with open(ini_path, 'r') as f:
                 content = f.read()
             config = GpoaConfigObj(content.split('\n'))
@@ -182,6 +182,26 @@ class StorageWriter:
 
         logdata = {'path': ini_path, 'deleted': len(normalized)}
         log('D209', logdata)
+
+    def clear(self):
+        '''
+        Remove the INI file for this database.
+
+        The compiled binary database is not affected; call ``compile()``
+        after clearing to regenerate it.
+
+        Returns ``self`` for method chaining.
+
+        Example
+        -------
+        ::
+
+            writer.clear().write(data).compile()
+        '''
+        ini_path = self._get_ini_path()
+        if os.path.exists(ini_path):
+            os.remove(ini_path)
+        return self
 
     def compile(self):
         '''

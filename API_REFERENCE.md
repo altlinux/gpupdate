@@ -328,14 +328,16 @@ Write policy data to an arbitrary dconf database and compile it.
 ### Constructor
 
 ```python
-StorageWriter(db_name, uid=None, append=False)
+StorageWriter(db_name, uid=None)
 ```
 
 | Parameter | Type   | Description |
 |----------|--------|-------------|
 | `db_name` | `str`  | Database name under `/etc/dconf/db/`. For example `'local'` writes to `/etc/dconf/db/local.d/local.ini`. |
 | `uid`     | `int`  | Optional user UID for per-user databases. |
-| `append`  | `bool` | If `True`, append to existing INI instead of overwriting. Default `False`. |
+
+Each `write()` or `write_keys()` call **merges** new data with the existing INI
+file. Duplicate sections are never created. Use `clear()` to start fresh.
 
 ### Methods
 
@@ -388,6 +390,19 @@ the listed keys.
 | Parameter | Type        | Description |
 |----------|-------------|-------------|
 | `keys`   | `list[str]` | Full registry paths to remove. |
+
+---
+
+#### `clear()`
+
+Remove the INI file for this database. The compiled binary database is not
+affected; call `compile()` after clearing to regenerate it.
+
+Returns `self` for method chaining.
+
+```python
+writer.clear().write({'Section': {'key': 'val'}}).compile()
+```
 
 ---
 

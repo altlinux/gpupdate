@@ -26,8 +26,10 @@ class StorageWriterWriteTestCase(unittest.TestCase):
 
     @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
     @patch('gpoa_lib.storage.storage_writer.os.makedirs')
+    @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=False)
+    @patch('gpoa_lib.storage.storage_writer.log')
     @patch('builtins.open', new_callable=mock_open)
-    def test_write_creates_ini(self, mock_file, mock_makedirs, mock_locks):
+    def test_write_creates_ini(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
         writer = StorageWriter('testdb')
         writer.write({'Software/BaseALT/Policies/Control': {'sshd-gssapi-auth': '1'}})
         mock_makedirs.assert_called_once()
@@ -42,8 +44,8 @@ class StorageWriterWriteTestCase(unittest.TestCase):
     @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=False)
     @patch('gpoa_lib.storage.storage_writer.log')
     @patch('builtins.open', new_callable=mock_open)
-    def test_write_append_no_existing_file(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
-        writer = StorageWriter('testdb', append=True)
+    def test_write_no_existing_file(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
+        writer = StorageWriter('testdb')
         writer.write({'Section': {'key': 'val'}})
         handle = mock_file()
         written = ''.join(call.args[0] for call in handle.write.call_args_list)
@@ -52,43 +54,11 @@ class StorageWriterWriteTestCase(unittest.TestCase):
 
     @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
     @patch('gpoa_lib.storage.storage_writer.os.makedirs')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_write_overwrite_mode(self, mock_file, mock_makedirs, mock_locks):
-        writer = StorageWriter('testdb', append=False)
-        writer.write({'Section': {'key': 'val'}})
-        handle = mock_file()
-        written = ''.join(call.args[0] for call in handle.write.call_args_list)
-        self.assertIn('[Section]', written)
-        self.assertIn('key = "val"', written)
-
-    @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
-    @patch('gpoa_lib.storage.storage_writer.os.makedirs')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_write_keys_groups_flat_dict(self, mock_file, mock_makedirs, mock_locks):
-        writer = StorageWriter('testdb')
-        writer.write_keys({'Software/BaseALT/Policies/Control/sshd': '1'})
-        handle = mock_file()
-        written = ''.join(call.args[0] for call in handle.write.call_args_list)
-        self.assertIn('[Software/BaseALT/Policies/Control]', written)
-        self.assertIn('sshd', written)
-
-    @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
-    @patch('gpoa_lib.storage.storage_writer.os.makedirs')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_write_keys_backslashes(self, mock_file, mock_makedirs, mock_locks):
-        writer = StorageWriter('testdb')
-        writer.write_keys({r'SOFTWARE\BaseALT\Policies\Control\sshd': '1'})
-        handle = mock_file()
-        written = ''.join(call.args[0] for call in handle.write.call_args_list)
-        self.assertIn('[SOFTWARE/BaseALT/Policies/Control]', written)
-
-    @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
-    @patch('gpoa_lib.storage.storage_writer.os.makedirs')
     @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=True)
     @patch('gpoa_lib.storage.storage_writer.log')
     @patch('builtins.open', new_callable=mock_open, read_data='[Software/MyOrg/Policies]\nLogLevel = "debug"\n\n')
-    def test_write_append_merges_no_duplicate_sections(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
-        writer = StorageWriter('testdb', append=True)
+    def test_write_always_merges(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
+        writer = StorageWriter('testdb')
         writer.write({'Software/MyOrg/Policies': {'Extra': 'value'}})
 
         handle = mock_file()
@@ -103,14 +73,39 @@ class StorageWriterWriteTestCase(unittest.TestCase):
     @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=True)
     @patch('gpoa_lib.storage.storage_writer.log')
     @patch('builtins.open', new_callable=mock_open, read_data='[Section]\nkey = "old"\n\n')
-    def test_write_append_overwrites_existing_key(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
-        writer = StorageWriter('testdb', append=True)
+    def test_write_overwrites_existing_key(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
+        writer = StorageWriter('testdb')
         writer.write({'Section': {'key': 'new'}})
 
         handle = mock_file()
         written = ''.join(call.args[0] for call in handle.write.call_args_list)
         self.assertIn('key = "new"', written)
         self.assertNotIn('key = "old"', written)
+
+    @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
+    @patch('gpoa_lib.storage.storage_writer.os.makedirs')
+    @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=False)
+    @patch('gpoa_lib.storage.storage_writer.log')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_write_keys_groups_flat_dict(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
+        writer = StorageWriter('testdb')
+        writer.write_keys({'Software/BaseALT/Policies/Control/sshd': '1'})
+        handle = mock_file()
+        written = ''.join(call.args[0] for call in handle.write.call_args_list)
+        self.assertIn('[Software/BaseALT/Policies/Control]', written)
+        self.assertIn('sshd', written)
+
+    @patch('gpoa_lib.storage.storage_writer.create_dconf_file_locks')
+    @patch('gpoa_lib.storage.storage_writer.os.makedirs')
+    @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=False)
+    @patch('gpoa_lib.storage.storage_writer.log')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_write_keys_backslashes(self, mock_file, mock_log, mock_exists, mock_makedirs, mock_locks):
+        writer = StorageWriter('testdb')
+        writer.write_keys({r'SOFTWARE\BaseALT\Policies\Control\sshd': '1'})
+        handle = mock_file()
+        written = ''.join(call.args[0] for call in handle.write.call_args_list)
+        self.assertIn('[SOFTWARE/BaseALT/Policies/Control]', written)
 
 
 class StorageWriterDeleteTestCase(unittest.TestCase):
@@ -145,3 +140,28 @@ class StorageWriterCompileTestCase(unittest.TestCase):
         writer = StorageWriter('mydb')
         writer.compile()
         mock_dconf.dconf_update.assert_called_once_with(uid=None, db_name='mydb')
+
+
+class StorageWriterClearTestCase(unittest.TestCase):
+
+    @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=True)
+    @patch('gpoa_lib.storage.storage_writer.os.remove')
+    def test_clear_removes_ini_file(self, mock_remove, mock_exists):
+        writer = StorageWriter('testdb')
+        result = writer.clear()
+        mock_remove.assert_called_once()
+        self.assertIs(result, writer)
+
+    @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=False)
+    @patch('gpoa_lib.storage.storage_writer.os.remove')
+    def test_clear_no_file_ok(self, mock_remove, mock_exists):
+        writer = StorageWriter('testdb')
+        writer.clear()
+        mock_remove.assert_not_called()
+
+    @patch('gpoa_lib.storage.storage_writer.os.path.exists', return_value=True)
+    @patch('gpoa_lib.storage.storage_writer.os.remove')
+    def test_clear_returns_self_for_chaining(self, mock_remove, mock_exists):
+        writer = StorageWriter('testdb')
+        result = writer.clear()
+        self.assertIsInstance(result, StorageWriter)
