@@ -508,6 +508,7 @@ _WARNING_MESSAGES = {
     53: 'Unknown period value in date filter',
     54: 'Failed to get domain info for filter context',
     55: 'Failed to get group SIDs for filter',
+    56: 'dconf database not found',
 }
 
 _FATAL_MESSAGES = {

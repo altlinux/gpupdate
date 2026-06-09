@@ -339,7 +339,7 @@ class Dconf_registry():
             logdata['exc'] = exc
             logdata['path_bin'] = path_bin
             if not error_skip:
-                log('E73', logdata)
+                log('W56', logdata)
             else:
                 log('D217', logdata)
         if save_dconf_db:
