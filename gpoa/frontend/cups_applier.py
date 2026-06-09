@@ -132,6 +132,9 @@ class cups_applier_user(applier_frontend):
             for prn in self.printers:
                 connect_printer(self.cups_connection, prn)
 
+    def apply(self, **kwargs):
+        self.admin_context_apply()
+
     def admin_context_apply(self):
         '''
         Perform printer configuration assigned for user.

@@ -249,6 +249,9 @@ class shortcut_applier_user(applier_frontend):
         else:
             log('D102')
 
+    def apply(self, **kwargs):
+        self.admin_context_apply()
+
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D103')
