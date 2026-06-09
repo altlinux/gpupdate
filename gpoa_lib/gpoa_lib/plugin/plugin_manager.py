@@ -21,7 +21,6 @@ import inspect
 from pathlib import Path
 
 from ..util.logging import log
-from ..util.paths import gpupdate_plugins_path
 from ..util.util import string_to_literal_eval
 
 from .plugin import plugin
@@ -93,11 +92,7 @@ class plugin_manager:
         """Load plugins from multiple directories"""
         plugins = []
 
-        # Default plugin directories
         plugin_dirs = [
-            # Frontend plugins
-            Path(gpupdate_plugins_path()).absolute(),
-            # System-wide plugins
             Path("/usr/lib/gpoa/plugins")
         ]
 
