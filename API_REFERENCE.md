@@ -556,7 +556,7 @@ Abstract base class for all plugins (built-in and external).  Provides
 ### Constructor
 
 ```python
-plugin(dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None)
+plugin(dict_dconf_db=None, username=None, fs_file_cache=None, registry_path=None)
 ```
 
 | Parameter        | Type   | Description |
@@ -641,7 +641,7 @@ automatically.
 ### Constructor
 
 ```python
-FrontendPlugin(dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None)
+FrontendPlugin(dict_dconf_db=None, username=None, fs_file_cache=None, registry_path=None)
 ```
 
 ### Abstract Methods

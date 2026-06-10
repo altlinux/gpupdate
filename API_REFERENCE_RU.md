@@ -559,7 +559,7 @@ print(name)  # 'control'
 ### Конструктор
 
 ```python
-plugin(dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None)
+plugin(dict_dconf_db=None, username=None, fs_file_cache=None, registry_path=None)
 ```
 
 | Параметр         | Тип    | Описание |
@@ -644,7 +644,7 @@ plugin(dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None)
 ### Конструктор
 
 ```python
-FrontendPlugin(dict_dconf_db={}, username=None, fs_file_cache=None, registry_path=None)
+FrontendPlugin(dict_dconf_db=None, username=None, fs_file_cache=None, registry_path=None)
 ```
 
 ### Абстрактные методы
