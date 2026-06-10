@@ -319,32 +319,32 @@ class GpoaConfigObj(ConfigObj):
         if not value:
             return '""'
 
-        no_lists_no_quotes = not self.list_values and '\n' not in value and '#' not in value
-        need_triple = multiline and ((("'" in value) and ('"' in value)) or ('\n' in value ))
-        hash_triple_quote = multiline and not need_triple and ("'" in value) and ('"' in value) and ('#' in value)
-        check_for_single = (no_lists_no_quotes or not need_triple) and not hash_triple_quote
-
-        if check_for_single:
-            if not self.list_values:
-                # we don't quote if ``list_values=False``
-                quot = noquot
-            # for normal values either single or double quotes will do
-            elif '\n' in value:
-                # will only happen if multiline is off - e.g. '\n' in key
-                raise ConfigObjError('Value "%s" cannot be safely quoted.' % value)
-            elif self.allow_special_chars:
-                quot = noquot
-            elif ((value[0] not in wspace_plus) and
-                    (value[-1] not in wspace_plus) and
-                    (self.allow_unquoted_commas or (',' not in value))):
-                quot = noquot
-            else:
-                quot = self._get_single_quote(value)
+        if self.allow_special_chars:
+            quot = noquot
         else:
-            # if value has '\n' or "'" *and* '"', it will need triple quotes
-            quot = self._get_triple_quote(value)
+            no_lists_no_quotes = not self.list_values and '\n' not in value and '#' not in value
+            need_triple = multiline and ((("'" in value) and ('"' in value)) or ('\n' in value ))
+            hash_triple_quote = multiline and not need_triple and ("'" in value) and ('"' in value) and ('#' in value)
+            check_for_single = (no_lists_no_quotes or not need_triple) and not hash_triple_quote
 
-        if quot == noquot and '#' in value and self.list_values and not self.allow_special_chars:
+            if check_for_single:
+                if not self.list_values:
+                    quot = noquot
+                elif '\n' in value:
+                    raise ConfigObjError('Value "%s" cannot be safely quoted.' % value)
+                elif ((value[0] not in wspace_plus) and
+                        (value[-1] not in wspace_plus) and
+                        (self.allow_unquoted_commas or (',' not in value))):
+                    quot = noquot
+                else:
+                    quot = self._get_single_quote(value)
+            else:
+                quot = self._get_triple_quote(value)
+
+            if quot == noquot and ('#' in value or ';' in value) and self.list_values:
+                quot = self._get_single_quote(value)
+
+        if quot == noquot and ('#' in value or ';' in value) and self.list_values:
             quot = self._get_single_quote(value)
 
         return quot % value

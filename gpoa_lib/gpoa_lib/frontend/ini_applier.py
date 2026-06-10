@@ -38,6 +38,19 @@ def _is_special_chars_allowed(storage):
     flag = storage.get_key_value(_REGISTRY_PATH_INI_ALLOW_SPECIAL_CHARS)
     return flag and str(flag) == '1'
 
+_PREVIOUS_PREFIX = 'Previous'
+
+def _get_previous_flag(storage, registry_path):
+    previous_path = '/' + _PREVIOUS_PREFIX + '/' + registry_path.lstrip('/')
+    return storage.get_key_value(previous_path)
+
+def _formatting_flags_changed(storage, allow_unquoted, allow_special):
+    prev_unquoted = _get_previous_flag(storage, _REGISTRY_PATH_INI_ALLOW_UNQUOTED_COMMAS)
+    prev_special = _get_previous_flag(storage, _REGISTRY_PATH_INI_ALLOW_SPECIAL_CHARS)
+    prev_unquoted_val = prev_unquoted and str(prev_unquoted) == '1'
+    prev_special_val = prev_special and str(prev_special) == '1'
+    return prev_unquoted_val != allow_unquoted or prev_special_val != allow_special
+
 
 class ini_applier(applier_frontend):
     __module_name = 'InifilesApplier'
@@ -59,6 +72,7 @@ class ini_applier(applier_frontend):
         allow_empty = _is_empty_sections_allowed(self.storage)
         allow_unquoted = _is_unquoted_commas_allowed(self.storage)
         allow_special = _is_special_chars_allowed(self.storage)
+        formatting_changed = _formatting_flags_changed(self.storage, allow_unquoted, allow_special)
         for inifile in self.inifiles_info:
             if inifile.disabled:
                 continue
@@ -72,7 +86,7 @@ class ini_applier(applier_frontend):
                     log('D240', logdata)
                     continue
             try:
-                ini_file_obj = Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once)
+                ini_file_obj = Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once and not formatting_changed)
                 if apply_once and ini_file_obj and ini_file_obj.modified:
                     self.state_manager.mark_applied(ini_dict, element_type, element_obj=inifile)
             except Exception as exc:
@@ -115,6 +129,7 @@ class ini_applier_user(DualContextApplier):
         allow_empty = _is_empty_sections_allowed(self.storage)
         allow_unquoted = _is_unquoted_commas_allowed(self.storage)
         allow_special = _is_special_chars_allowed(self.storage)
+        formatting_changed = _formatting_flags_changed(self.storage, allow_unquoted, allow_special)
         for inifile in self.inifiles_info:
             if inifile.disabled:
                 continue
@@ -128,7 +143,7 @@ class ini_applier_user(DualContextApplier):
                     log('D240', logdata)
                     continue
             try:
-                ini_file_obj = Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once)
+                ini_file_obj = Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once and not formatting_changed)
                 if apply_once and ini_file_obj and ini_file_obj.modified:
                     self.state_manager.mark_applied(ini_dict, element_type, element_obj=inifile)
             except Exception as exc:

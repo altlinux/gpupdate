@@ -341,6 +341,77 @@ class FilterMacRangeTestCase(unittest.TestCase):
             self.assertFalse(FilterChecker.check_macrange(filt))
 
 
+class FilterDomainTestCase(unittest.TestCase):
+
+    def setUp(self):
+        FilterChecker._domain_cache.clear()
+
+    def test_domain_empty_name_returns_true(self):
+        filt = _FilterObj(name='', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_netbios_match(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='SMB', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_netbios_mismatch(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='OTHER', userContext='0')
+        self.assertFalse(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_fqdn_match(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='smb.basealt.ru', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_fqdn_mismatch(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='other.com', userContext='0')
+        self.assertFalse(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_case_insensitive_netbios(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='smb', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_case_insensitive_fqdn(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='SMB.BASEALT.RU', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_empty_actual_returns_false(self, mock_info):
+        mock_info.return_value = {'netbios': '', 'fqdn': ''}
+        filt = _FilterObj(name='SMB', userContext='0')
+        self.assertFalse(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_user_context(self, mock_info):
+        mock_info.return_value = {'netbios': 'SMB', 'fqdn': 'smb.basealt.ru'}
+        filt = _FilterObj(name='SMB', userContext='1')
+        self.assertTrue(FilterChecker.check_domain(filt))
+        mock_info.assert_called_with('1', None)
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_fallback_from_principal(self, mock_info):
+        mock_info.return_value = {'netbios': 'DOMAIN', 'fqdn': 'domain.alt'}
+        filt = _FilterObj(name='DOMAIN', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+    @patch.object(FilterChecker, '_get_domain_info')
+    def test_domain_fallback_fqdn_from_principal(self, mock_info):
+        mock_info.return_value = {'netbios': 'DOMAIN', 'fqdn': 'DOMAIN.ALT'}
+        filt = _FilterObj(name='domain.alt', userContext='0')
+        self.assertTrue(FilterChecker.check_domain(filt))
+
+
 class FilterHandlersRegistryTestCase(unittest.TestCase):
 
     def test_all_filter_types_registered(self):

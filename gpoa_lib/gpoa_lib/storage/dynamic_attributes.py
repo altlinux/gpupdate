@@ -29,9 +29,8 @@ class DynamicAttributes:
         if isinstance(value, Enum):
             value = str(value)
         if isinstance(value, str):
-            for q in ["'", "\""]:
-                if any(q in ch for ch in value):
-                    value = value.replace(q, "″")
+            value = value.replace("'", "′")
+            value = value.replace('"', "″")
         self.__dict__[key] = value
 
     def items(self):
@@ -53,7 +52,8 @@ class DynamicAttributes:
     def get_original_value(self, key):
         value = self.__dict__.get(key)
         if isinstance(value, str):
-            value = value.replace("″", "'")
+            value = value.replace("′", "'")
+            value = value.replace("″", '"')
         return value
 
 class RegistryKeyMetadata(DynamicAttributes):
