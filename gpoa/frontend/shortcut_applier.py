@@ -194,7 +194,8 @@ class shortcut_applier_user(applier_frontend):
                     get_ttype(obj.get('target_type')))
                 shortcut_machine.set_usercontext(1)
                 result.append(shortcut_machine)
-        except Exception:
+        except Exception as exc:
+            log('D207', {'exc': str(exc)})
             return None
         return result
 

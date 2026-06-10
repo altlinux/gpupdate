@@ -51,7 +51,6 @@ def read_groups(role_file_path):
         lines = role_file.readlines()
         for line in lines:
             linegroups = line.strip().split(' ')
-            print(linegroups)
             groups.extend(linegroups)
 
     return {*groups}
@@ -83,7 +82,6 @@ def create_role(role_name, privilege_list):
         role_name
     ]
     try:
-        print(privilege_list)
         cmd.extend(privilege_list)
         subprocess.check_call(cmd, timeout=30)
     except Exception as exc:

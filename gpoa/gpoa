@@ -152,8 +152,6 @@ class gpoa_controller:
                 except Exception as exc:
                     logdata = dict({'msg': str(exc)})
                     einfo = geterr()
-                    print(einfo)
-                    print(type(einfo))
                     log('E12', logdata)
                 if back:
                     try:
