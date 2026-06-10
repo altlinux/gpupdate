@@ -154,7 +154,6 @@ class gpoa_controller:
                     einfo = geterr()
                     print(einfo)
                     print(type(einfo))
-                    #logdata.update(einfo)
                     log('E12', logdata)
                 if back:
                     try:
@@ -184,7 +183,6 @@ class gpoa_controller:
         except Exception as exc:
             logdata = dict({'message': str(exc)})
             einfo = geterr()
-            #print(einfo)
             logdata.update(einfo)
             log('E4', logdata)
 
