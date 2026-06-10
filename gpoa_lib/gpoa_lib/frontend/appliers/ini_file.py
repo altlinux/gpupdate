@@ -80,10 +80,12 @@ class Ini_file:
 
         if self.allow_empty_sections and self._is_empty_section():
             self.config[self.key] = self.value
+            self.config.inline_comments[self.key] = ''
         else:
             if self.section not in self.config:
                 self.config[self.section] = {}
             self.config[self.section][self.key] = self.value
+            self.config[self.section].inline_comments[self.key] = ''
 
         self.config.write()
         self.modified = True
