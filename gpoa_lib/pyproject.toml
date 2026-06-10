@@ -16,6 +16,7 @@ license = {text = "GPLv3+"}
 [project.dependencies]
 jinja2 = ">=3.0"
 defusedxml = ">=0.7"
+configobj = ">=5.0"
 
 [project.optional-dependencies]
 samba = ["samba"]
