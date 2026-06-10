@@ -290,7 +290,7 @@ gpupdate/
 │       └── test/          # Unit tests
 │
 ├── gpupdate.spec          # RPM spec (gpupdate + gpoa-lib subpackage)
-└── docs/                  # Documentation
+└── API_REFERENCE.md        # API documentation (EN + RU)
 ```
 
 ## Contributing
