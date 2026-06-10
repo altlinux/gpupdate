@@ -17,6 +17,8 @@ license = {text = "GPLv3+"}
 jinja2 = ">=3.0"
 defusedxml = ">=0.7"
 configobj = ">=5.0"
+PyGObject = ">=3.0"
+dbus-python = ">=1.0"
 
 [project.optional-dependencies]
 samba = ["samba"]
