@@ -14,15 +14,16 @@
 4. [ApplierRunner](#applierrunner)
 5. [plugin (абстрактный базовый класс)](#plugin)
 6. [FrontendPlugin](#frontendplugin)
-7. [DualContextApplier](#dualcontextapplier)
-8. [plugin_manager](#plugin_manager)
-9. [Dconf_registry](#dconf_registry)
-10. [GppStateManager](#gppstatemanager)
-11. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-12. [Типы данных](#типы-данных)
-13. [Фильтры (FilterChecker)](#фильтры)
-14. [Вспомогательные функции](#вспомогательные-функции)
-15. [Функции путей](#функции-путей)
+7. [applier_frontend](#applier_frontend)
+8. [DualContextApplier](#dualcontextapplier)
+9. [plugin_manager](#plugin_manager)
+10. [Dconf_registry](#dconf_registry)
+11. [GppStateManager](#gppstatemanager)
+12. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+13. [Типы данных](#типы-данных)
+14. [Фильтры (FilterChecker)](#фильтры)
+15. [Вспомогательные функции](#вспомогательные-функции)
+16. [Функции путей](#функции-путей)
 
 ---
 
@@ -670,6 +671,40 @@ def create_machine_applier(dict_dconf_db, username, file_cache):
 def create_user_applier(dict_dconf_db, username, file_cache):
     return MyPlugin(dict_dconf_db, username, file_cache)
 ```
+
+---
+
+## applier_frontend
+
+`gpoa_lib.frontend.applier_frontend.applier_frontend`
+
+Абстрактный базовый класс для аплаеров политик.  Все аплаеры наследуют от
+этого ABC и должны реализовать :meth:`apply`.
+
+```python
+class applier_frontend(ABC):
+    def __init__(self, regobj):
+        pass
+    @abstractmethod
+    def apply(self, **kwargs):
+        raise NotImplementedError
+```
+
+| Параметр | Тип       | Описание |
+|----------|-----------|----------|
+| `regobj` | `Dconf_registry` | Объект хранилища реестра. |
+
+### Вспомогательные функции (уровень модуля)
+
+```python
+check_experimental_enabled(storage)    -> bool
+check_windows_mapping_enabled(storage) -> bool
+check_module_enabled(storage, module_name)     -> Optional[bool]
+check_enabled(storage, module_name, is_experimental) -> bool
+```
+
+Эти функции проверяют флаги реестра в `Software/BaseALT/Policies/GPUpdate`,
+чтобы определить, должен ли модуль аплаера запускаться.
 
 ---
 

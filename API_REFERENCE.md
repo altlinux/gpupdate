@@ -14,15 +14,16 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 4. [ApplierRunner](#applierrunner)
 5. [plugin (abstract base)](#plugin)
 6. [FrontendPlugin](#frontendplugin)
-7. [DualContextApplier](#dualcontextapplier)
-8. [plugin_manager](#plugin_manager)
-9. [Dconf_registry](#dconf_registry)
-10. [GppStateManager](#gppstatemanager)
-11. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-12. [Data Types](#data-types)
-13. [Filters (FilterChecker)](#filters)
-14. [Utility Functions](#utility-functions)
-15. [Path Functions](#path-functions)
+7. [applier_frontend](#applier_frontend)
+8. [DualContextApplier](#dualcontextapplier)
+9. [plugin_manager](#plugin_manager)
+10. [Dconf_registry](#dconf_registry)
+11. [GppStateManager](#gppstatemanager)
+12. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+13. [Data Types](#data-types)
+14. [Filters (FilterChecker)](#filters)
+15. [Utility Functions](#utility-functions)
+16. [Path Functions](#path-functions)
 
 ---
 
@@ -667,6 +668,40 @@ def create_machine_applier(dict_dconf_db, username, file_cache):
 def create_user_applier(dict_dconf_db, username, file_cache):
     return MyPlugin(dict_dconf_db, username, file_cache)
 ```
+
+---
+
+## applier_frontend
+
+`gpoa_lib.frontend.applier_frontend.applier_frontend`
+
+Abstract base class for policy appliers.  Every applier inherits from this
+ABC and must implement :meth:`apply`.
+
+```python
+class applier_frontend(ABC):
+    def __init__(self, regobj):
+        pass
+    @abstractmethod
+    def apply(self, **kwargs):
+        raise NotImplementedError
+```
+
+| Parameter | Type   | Description |
+|----------|--------|-------------|
+| `regobj` | `Dconf_registry` | Registry storage object. |
+
+### Helper functions (module-level)
+
+```python
+check_experimental_enabled(storage)    -> bool
+check_windows_mapping_enabled(storage) -> bool
+check_module_enabled(storage, module_name)     -> Optional[bool]
+check_enabled(storage, module_name, is_experimental) -> bool
+```
+
+These helpers check registry flags in `Software/BaseALT/Policies/GPUpdate`
+to determine whether an applier module should run.
 
 ---
 
