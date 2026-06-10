@@ -138,6 +138,7 @@ Requires: python3-module-jinja2
 Requires: python3-module-pygobject3
 Requires: python3-module-smbc >= 1.0.23-alt3
 Requires: python3-module-libcng_dpapi
+Requires: python3-module-defusedxml
 Requires: libgvdb-gir
 
 %description -n gpoa-lib
