@@ -18,7 +18,7 @@
 
 import os
 
-from .dconf_registry import Dconf_registry, create_dconf_file_locks, get_keys_dconf_locks
+from .dconf_registry import Dconf_registry, create_dconf_file_locks
 from ..util.gpoa_ini_parsing import GpoaConfigObj
 from ..util.logging import log
 from ..util.paths import get_dconf_db_path, get_dconf_db_file
