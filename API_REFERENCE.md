@@ -714,9 +714,8 @@ class my_applier_user(DualContextApplier):
 
 `gpoa_lib.plugin.plugin_manager.plugin_manager`
 
-Internal class that discovers, loads, and runs plugins from:
-- `gpoa_lib/frontend_plugins/` (built-in)
-- `/usr/lib/gpoa/plugins/` (external)
+Internal class that discovers, loads, and runs plugins from
+`/usr/lib/gpoa/plugins/` (external plugin path).
 
 ### Constructor
 
@@ -738,7 +737,7 @@ Execute all loaded plugins.  Uses `apply()` for machine context,
 
 #### `load_plugins()`
 
-Discover and instantiate plugins from both directories.
+Discover and instantiate plugins from the plugins directory.
 
 **Returns:** `list[plugin]`
 

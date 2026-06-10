@@ -718,9 +718,8 @@ class my_applier_user(DualContextApplier):
 
 `gpoa_lib.plugin.plugin_manager.plugin_manager`
 
-Внутренний класс, который обнаруживает, загружает и запускает плагины из:
-- `gpoa_lib/frontend_plugins/` (встроенные)
-- `/usr/lib/gpoa/plugins/` (внешние)
+Внутренний класс, который обнаруживает, загружает и запускает плагины из
+`/usr/lib/gpoa/plugins/` (путь внешних плагинов).
 
 ### Конструктор
 
@@ -742,7 +741,7 @@ plugin_manager(is_machine, username)
 
 #### `load_plugins()`
 
-Обнаружить и создать экземпляры плагинов из обоих каталогов.
+Обнаружить и создать экземпляры плагинов из каталога плагинов.
 
 **Возвращает:** `list[plugin]`
 
