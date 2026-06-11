@@ -28,6 +28,14 @@ from ..util.util import get_homedir, get_machine_name, get_uid_by_username, get_
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 
 
+def _is_enabled(value):
+    if isinstance(value, int):
+        return bool(value)
+    if isinstance(value, str):
+        return value.lower() in ('1', 'true', 'yes', 'enable', 'enabled')
+    return False
+
+
 def storage_get_drives(storage, username=None):
     drives = storage.get_drives(username)
     drive_list = []
@@ -185,15 +193,15 @@ class cifs_applier_user(DualContextApplier):
         if username:
             self.dict_registry_user = self.storage.get_dictionary_from_dconf_file_db(get_uid_by_username(username))
             self.home = self.__target_mountpoint_user + '/' + username
-            self.state_home_link = self.storage.check_enable_key(self.__enable_home_link)
-            self.state_home_link_disable_net = self.storage.check_enable_key(self.__name_link_prefix)
-            self.state_home_link_disable_net_user = self.storage.check_enable_key(self.__name_link_prefix_user)
+            self.state_home_link = _is_enabled(self.dict_registry_user.get(name_dir, {}).get('DriveMapsHome', 0))
+            self.state_home_link_disable_net = _is_enabled(self.dict_registry_user.get(name_dir, {}).get(self.__key_link_prefix, 0))
+            self.state_home_link_disable_net_user = _is_enabled(self.dict_registry_user.get(name_dir, {}).get(self.__key_link_prefix_user, 0))
 
-            self.state_home_link_user = self.storage.check_enable_key(self.__enable_home_link_user)
-            self.timeout = self.storage.get_entry(self.__timeout_user_key)
-            dirname = self.storage.get_entry(self.__name_dir + '/' + self.__name_value_user)
+            self.state_home_link_user = _is_enabled(self.dict_registry_user.get(name_dir, {}).get('DriveMapsHomeUser', 0))
+            self.timeout = self.dict_registry_user.get(name_dir, {}).get('TimeoutAutofsUser', 120)
+            dirname_user = self.dict_registry_user.get(name_dir, {}).get(self.__name_value_user, None)
             dirname_system_from_machine = self.dict_registry_machine.get(name_dir, dict()).get(self.__name_value, None)
-            self.__mountpoint_dirname_user = dirname.data if dirname and dirname.data else self.__mountpoint_dirname_user
+            self.__mountpoint_dirname_user = dirname_user if dirname_user else self.__mountpoint_dirname_user
             self.__mountpoint_dirname = dirname_system_from_machine if dirname_system_from_machine else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname_user
 
@@ -204,16 +212,16 @@ class cifs_applier_user(DualContextApplier):
 
         else:
             self.home = self.__target_mountpoint
-            self.timeout = self.storage.get_entry(self.__timeout_key)
-            dirname_system = self.storage.get_entry(self.__name_dir + '/' + self.__name_value)
-            self.__mountpoint_dirname = dirname_system.data if dirname_system and dirname_system.data else self.__mountpoint_dirname
+            self.timeout = self.dict_registry_machine.get(name_dir, {}).get('TimeoutAutofs', 120)
+            dirname_system = self.dict_registry_machine.get(name_dir, {}).get(self.__name_value, None)
+            self.__mountpoint_dirname = dirname_system if dirname_system else self.__mountpoint_dirname
             mntTarget = self.__mountpoint_dirname
 
         self.keys_cifs_previous_values_machine = self.dict_registry_machine.get(self.__key_cifs_previous_value,{})
         self.keys_cifs_values_machine = self.dict_registry_machine.get(name_dir,{})
         self.keys_the_preferences_previous_values = self.dict_registry_machine.get((self.__key_preferences_previous+'Machine'),{}).get('Drives', {})
         self.keys_the_preferences_values = self.dict_registry_machine.get((self.__key_preferences+'Machine'),{}).get('Drives', {})
-        self.cifsacl_disable = self.storage.get_entry(self.__cifsacl_key, preg=False)
+        self.cifsacl_disable = _is_enabled(self.dict_registry_machine.get(name_dir, {}).get('CifsaclDisable', 0))
 
         self.mntTarget = mntTarget.translate(str.maketrans({" ": r"\ "}))
         file_name = username if username else get_machine_name()
@@ -337,7 +345,7 @@ class cifs_applier_user(DualContextApplier):
             autofs_settings['home_dir'] = self.home
             autofs_settings['mntTarget'] = self.mntTarget
             autofs_settings['mount_file'] = self.user_config.resolve()
-            autofs_settings['timeout'] = self.timeout.data if self.timeout and self.timeout.data else 120
+            autofs_settings['timeout'] = self.timeout if self.timeout else 120
 
             autofs_text = self.template_auto.render(**autofs_settings)
 
