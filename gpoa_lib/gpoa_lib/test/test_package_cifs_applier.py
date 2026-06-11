@@ -140,8 +140,7 @@ class CIFSApplierInitTestCase(unittest.TestCase):
     def test_init_creates_user_applier(self, mock_log, mock_check, mock_user_applier):
         from gpoa_lib.frontend.cifs_applier import cifs_applier
         storage = MagicMock()
-        with patch.object(cifs_applier, 'clear_directory_auto_dir'):
-            applier = cifs_applier(storage)
+        applier = cifs_applier(storage)
         mock_user_applier.assert_called_once_with(storage, None)
 
     @patch('gpoa_lib.frontend.cifs_applier.cifs_applier_user')
@@ -150,8 +149,7 @@ class CIFSApplierInitTestCase(unittest.TestCase):
     def test_init_module_disabled(self, mock_log, mock_check, mock_user_applier):
         from gpoa_lib.frontend.cifs_applier import cifs_applier
         storage = MagicMock()
-        with patch.object(cifs_applier, 'clear_directory_auto_dir'):
-            applier = cifs_applier(storage)
+        applier = cifs_applier(storage)
         self.assertFalse(applier._cifs_applier__module_enabled)
 
 
@@ -163,8 +161,7 @@ class CIFSApplierApplyTestCase(unittest.TestCase):
     def test_apply_disabled(self, mock_log, mock_check, mock_user_applier):
         from gpoa_lib.frontend.cifs_applier import cifs_applier
         storage = MagicMock()
-        with patch.object(cifs_applier, 'clear_directory_auto_dir'):
-            applier = cifs_applier(storage)
+        applier = cifs_applier(storage)
         mock_cifs_user = MagicMock()
         applier.applier_cifs = mock_cifs_user
         applier.apply()
@@ -176,8 +173,7 @@ class CIFSApplierApplyTestCase(unittest.TestCase):
     def test_apply_enabled_calls_admin_context(self, mock_log, mock_check, mock_user_applier):
         from gpoa_lib.frontend.cifs_applier import cifs_applier
         storage = MagicMock()
-        with patch.object(cifs_applier, 'clear_directory_auto_dir'):
-            applier = cifs_applier(storage)
+        applier = cifs_applier(storage)
         mock_cifs_user = MagicMock()
         applier.applier_cifs = mock_cifs_user
         applier.apply()

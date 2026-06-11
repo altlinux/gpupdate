@@ -126,25 +126,12 @@ class cifs_applier(applier_frontend):
     __dir4clean = '/etc/auto.master.gpupdate.d'
 
     def __init__(self, storage):
-        self.clear_directory_auto_dir()
         self.applier_cifs = cifs_applier_user(storage, None)
         self.__module_enabled = check_enabled(
               storage
             , self.__module_name
             , self.__module_experimental
         )
-    def clear_directory_auto_dir(self):
-        path = Path(self.__dir4clean)
-        if not path.exists():
-            return
-
-        for item in path.iterdir():
-            try:
-                if item.is_file() or item.is_symlink():
-                    item.unlink()
-            except Exception as exc:
-                log('W37', {'exc': exc})
-        log('D231')
 
     def apply(self):
         if self.__module_enabled:
@@ -324,6 +311,7 @@ class cifs_applier_user(DualContextApplier):
             drive_settings['persistent'] = drv.persistent
             drive_settings['useLetter'] = drv.useLetter
             drive_settings['username'] = self.username
+            drive_settings['uid'] = get_user_info(self.username).pw_uid if self.username else None
             drive_settings['cifsacl'] = False if self.cifsacl_disable else True
 
             drive_list.append(drive_settings)
