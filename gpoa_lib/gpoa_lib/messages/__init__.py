@@ -444,6 +444,10 @@ _DEBUG_MESSAGES = {
     324: 'Failed to pop Recommended key from browser policies',
     325: 'Failed to parse JSON data in browser policy',
     326: 'Failed to extract browser policies from counts dict',
+    327: 'dconf read failed via subprocess',
+    328: 'Failed to read key from dconf binary database fallback',
+    329: 'Failed to read password last modified time from dconf binary database',
+    330: 'Failed to start D-Bus session for dconf operations',
 }
 
 _WARNING_MESSAGES = {

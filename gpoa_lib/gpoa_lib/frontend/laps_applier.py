@@ -320,18 +320,31 @@ class laps_applier(applier_frontend):
         Returns:
             int: Timestamp of last password modification or current time if not found
         """
+        key_path = self._KEY_PASSWORD_LAST_MODIFIED + self.target_user
         try:
-            key_path = self._KEY_PASSWORD_LAST_MODIFIED + self.target_user
             last_modified = subprocess.check_output(
                 ['dconf', 'read', key_path],
                 text=True,
-                timeout=10
+                timeout=10,
+                stderr=subprocess.DEVNULL
             ).strip().strip("'\"")
             return int(last_modified)
         except Exception as exc:
             logdata = {'exc': exc}
             log('W32', logdata)
-            return self.current_time_int
+
+        try:
+            from ..storage.dconf_registry import Dconf_registry
+            keys = key_path.lstrip('/').split('/')
+            reg_key = '/'.join(keys[:-1])
+            reg_val = keys[-1]
+            db = Dconf_registry._dconf_db
+            if db and reg_key in db and reg_val in db[reg_key]:
+                return int(db[reg_key][reg_val])
+        except Exception as exc:
+            log('D235', {'key_path': key_path, 'exc': exc})
+
+        return self.current_time_int
 
     def _write_dconf_pass_last_mod(self):
         """
@@ -344,7 +357,7 @@ class laps_applier(applier_frontend):
             # Write current time to dconf
             key_path = self._KEY_PASSWORD_LAST_MODIFIED + self.target_user
             last_modified = f'"{self.current_time_int}"'
-            subprocess.check_output(['dconf', 'write', key_path, last_modified], timeout=10)
+            subprocess.check_output(['dconf', 'write', key_path, last_modified], timeout=10, stderr=subprocess.DEVNULL)
             log('D222')
         except Exception as exc:
             logdata = {'exc': exc}
@@ -354,14 +367,18 @@ class laps_applier(applier_frontend):
         """Ensure a D-Bus session is available for dconf operations."""
         dbus_address = os.getenv("DBUS_SESSION_BUS_ADDRESS")
         if not dbus_address:
-            result = subprocess.run(
-                ["dbus-daemon", "--fork", "--session", "--print-address"],
-                capture_output=True,
-                text=True,
-                timeout=15
-            )
-            dbus_address = result.stdout.strip()
-            self._dbus_address = dbus_address
+            try:
+                result = subprocess.run(
+                    ["dbus-daemon", "--fork", "--session", "--print-address"],
+                    capture_output=True,
+                    text=True,
+                    timeout=15
+                )
+                dbus_address = result.stdout.strip()
+                self._dbus_address = dbus_address
+                os.environ["DBUS_SESSION_BUS_ADDRESS"] = dbus_address
+            except Exception as exc:
+                log('D236', {'exc': exc})
 
 
     def _get_changed_password_hours_ago(self):

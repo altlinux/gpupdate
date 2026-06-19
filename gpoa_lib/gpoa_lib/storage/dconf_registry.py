@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import threading
 from collections import OrderedDict
 import itertools
@@ -212,11 +213,23 @@ class Dconf_registry():
             if not error:
                 return string_to_literal_eval(string_to_literal_eval(output))
             else:
-                return None
+                logdata['error'] = error
+                log('D327', logdata)
         except Exception as exc:
             logdata['exc'] = exc
             log('E70', logdata)
-        return None
+
+        result = None
+        try:
+            keys = key.lstrip('/').split('/')
+            reg_key = '/'.join(keys[:-1])
+            reg_val = keys[-1]
+            db = Dconf_registry._dconf_db
+            if db and reg_key in db and reg_val in db[reg_key]:
+                result = db[reg_key][reg_val]
+        except Exception as exc:
+            log('D328', {'key': key, 'exc': exc})
+        return result
 
     @staticmethod
     def dconf_update(uid=None, db_name=None):
@@ -997,13 +1010,19 @@ def get_dconf_envprofile():
                     }
 
     if Dconf_registry._envprofile:
-        return dconf_envprofile.get(Dconf_registry._envprofile, dconf_envprofile['system'])
+        env = os.environ.copy()
+        env.update(dconf_envprofile.get(Dconf_registry._envprofile, dconf_envprofile['system']))
+        return env
 
     if not Dconf_registry._username:
-        return dconf_envprofile['system']
+        env = os.environ.copy()
+        env.update(dconf_envprofile['system'])
+        return env
 
     profile = '/run/dconf/user/{}'.format(get_uid_by_username(Dconf_registry._username))
-    return {'DCONF_PROFILE': profile}
+    env = os.environ.copy()
+    env['DCONF_PROFILE'] = profile
+    return env
 
 
 def convert_elements_to_list_dicts(elements):
