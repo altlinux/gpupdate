@@ -209,6 +209,8 @@ def get_policy_variants():
     return general_listing
 
 def string_to_literal_eval(string):
+    if not isinstance(string, str):
+        return string
     try:
         literaleval = ast.literal_eval(string)
     except Exception as exc:
