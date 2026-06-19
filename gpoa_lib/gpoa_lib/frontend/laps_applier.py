@@ -342,7 +342,7 @@ class laps_applier(applier_frontend):
             if db and reg_key in db and reg_val in db[reg_key]:
                 return int(db[reg_key][reg_val])
         except Exception as exc:
-            log('D235', {'key_path': key_path, 'exc': exc})
+            log('D329', {'key_path': key_path, 'exc': exc})
 
         return self.current_time_int
 
@@ -378,7 +378,7 @@ class laps_applier(applier_frontend):
                 self._dbus_address = dbus_address
                 os.environ["DBUS_SESSION_BUS_ADDRESS"] = dbus_address
             except Exception as exc:
-                log('D236', {'exc': exc})
+                log('D330', {'exc': exc})
 
 
     def _get_changed_password_hours_ago(self):
