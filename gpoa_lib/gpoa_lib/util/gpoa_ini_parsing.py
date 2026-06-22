@@ -56,6 +56,8 @@ import six
 
 class GpoaConfigObj(ConfigObj):
 
+    _SPECIAL_CHARS = frozenset('!@$%^&*()_-+={}|\\/"№:?')
+
     _sectionmarker = re.compile(r'''^
         (\s*)                     # 1: indentation
         ((?:\[\s*)+)              # 2: section marker open
@@ -340,6 +342,9 @@ class GpoaConfigObj(ConfigObj):
                     quot = self._get_single_quote(value)
             else:
                 quot = self._get_triple_quote(value)
+
+            if quot == noquot and any(c in value for c in self._SPECIAL_CHARS) and self.list_values:
+                quot = self._get_single_quote(value)
 
             if quot == noquot and ('#' in value or ';' in value) and self.list_values:
                 quot = self._get_single_quote(value)
