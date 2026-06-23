@@ -81,7 +81,7 @@
 
 
 Name: gpupdate
-Version: 0.15.0
+Version: 0.16.0
 Release: alt1
 
 Summary: GPT applier
@@ -290,6 +290,16 @@ fi
 %doc README.md PLUGIN_DEVELOPMENT_GUIDE.md PLUGIN_DEVELOPMENT_GUIDE_RU.md EXAMPLES.md
 
 %changelog
+* Tue Jun 23 2026 Valery Sinelnikov <greh@altlinux.org> 0.16.0-alt1
+- Added:
+  gpoa-lib subpackage with public API (StorageAdapter, StorageWriter, ApplierRunner)
+  Targeting filters: IP range, MAC range, RAM, disk, battery, CPU, language, file
+  FilterDomain support for both NetBIOS and FQDN domain names
+- Changed:
+  Split package into gpupdate + gpoa-lib
+  INI file handling: protect comment markers, preserve double quotes
+  Force rewrite INI values when formatting flags change
+
 * Wed Apr 15 2026 Valery Sinelnikov <greh@altlinux.org> 0.15.0-alt1
 - Added:
   GPP lifecycle management (applyOnce, removePolicy, disabled)
