@@ -134,7 +134,7 @@ def runcmd(command_name):
     Run application.
     '''
     try:
-        with subprocess.Popen(command_name, stdout=subprocess.PIPE) as proc:
+        with subprocess.Popen(command_name, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as proc:
             value = proc.stdout.read().decode('utf-8')
             proc.wait(timeout=30)
             rc = proc.returncode
