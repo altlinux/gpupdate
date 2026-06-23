@@ -124,7 +124,6 @@ gpupdate --force
 ### Plugin Management
 Plugins are automatically discovered from:
 - `/usr/lib/gpoa/plugins/` (system-wide plugins)
-- `gpoa_lib/gpoa_lib/frontend_plugins/` (built-in plugins)
 
 ## External API (gpoa-lib)
 
@@ -226,7 +225,8 @@ plugin.apply()
 ```
 
 See [EXAMPLES.md](EXAMPLES.md) for complete examples.
-See [API_REFERENCE.md](API_REFERENCE.md) for the full API reference ([Russian version](API_REFERENCE_RU.md)).
+See [API_REFERENCE.md](API_REFERENCE.md) for the full API reference.
+See [API_REFERENCE_RU.md](API_REFERENCE_RU.md) for the Russian API reference.
 
 ## Plugin Development
 
@@ -272,25 +272,46 @@ def create_machine_applier(dict_dconf_db, username=None, fs_file_cache=None, reg
 
 ```
 gpupdate/
-├── gpoa/                  # Entry points, backends, GPT processing
-│   ├── backend/           # Samba, FreeIPA, nodomain backends
-│   ├── gpt/               # GPT parsing and filter processing
-│   ├── frontend/          # Thin wrappers → gpoa_lib
-│   ├── util/              # Thin wrappers → gpoa_lib
-│   └── *.py               # Thin wrappers → gpoa_lib
+├── gpoa/                       # Entry points and thin wrappers → gpoa_lib
+│   ├── backend/                # Samba, FreeIPA, nodomain backends
+│   ├── frontend/               # Thin wrappers for appliers
+│   │   └── appliers/           # Individual applier wrappers
+│   ├── frontend_plugins/       # Built-in frontend plugins
+│   ├── gpt/                    # GPT parsing and filter processing
+│   ├── locale/                 # Russian translations
+│   ├── messages/               # Message code definitions
+│   ├── plugin/                 # Plugin manager wrapper
+│   ├── storage/                # Storage wrapper
+│   ├── templates/              # Jinja2 templates (autofs, dconf)
+│   ├── util/                   # Utility wrappers
+│   ├── gpoa                    # Main GPOA entry point
+│   ├── gpupdate                # gpupdate CLI entry point
+│   └── gpupdate-setup          # Enable/disable configuration tool
 │
 ├── gpoa_lib/
-│   └── gpoa_lib/          # Standalone library (installable as gpoa-lib RPM)
-│       ├── frontend/      # 20 policy appliers
-│       │   └── appliers/  # Individual applier implementations
-│       ├── plugin/        # Plugin framework (base, manager, logging)
-│       ├── storage/       # Dconf registry, GPP state, StorageAdapter
-│       ├── util/          # Utilities, filters, logging
-│       ├── messages/      # Localized message definitions
-│       └── test/          # Unit tests
+│   └── gpoa_lib/               # Standalone library (gpoa-lib RPM)
+│       ├── frontend/           # 20 policy appliers
+│       │   └── appliers/       # Individual applier implementations
+│       ├── frontend_plugins/   # Built-in plugin implementations
+│       ├── plugin/             # Plugin framework (base, manager, logging)
+│       ├── storage/            # Dconf registry, GPP state, StorageAdapter
+│       ├── util/               # Utilities, filters, logging, paths
+│       ├── messages/           # Localized message definitions
+│       ├── test/               # Unit tests (430+ tests)
+│       ├── __init__.py         # Public API exports
+│       ├── applier_runner.py   # ApplierRunner facade
+│       └── result.py           # Result type (ok/fail pattern)
 │
-├── gpupdate.spec          # RPM spec (gpupdate + gpoa-lib subpackage)
-└── API_REFERENCE.md        # API documentation (EN + RU)
+├── dist/                       # systemd units, polkit, PAM rules
+├── doc/                        # Man pages
+├── completions/                # Bash completion scripts
+├── tools/                      # Auxiliary scripts
+├── gpupdate.spec               # RPM spec (gpupdate + gpoa-lib subpackage)
+├── API_REFERENCE.md            # API reference (English)
+├── API_REFERENCE_RU.md         # API reference (Russian)
+├── PLUGIN_DEVELOPMENT_GUIDE.md # Plugin development guide (English)
+├── PLUGIN_DEVELOPMENT_GUIDE_RU.md # Plugin development guide (Russian)
+└── EXAMPLES.md                 # External API usage examples
 ```
 
 ## Contributing

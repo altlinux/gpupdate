@@ -103,7 +103,6 @@ from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 
 class MyPlugin(FrontendPlugin):
-    plugin_name = 'my_plugin'
 
     def __init__(self, dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
         super().__init__(dict_dconf_db, username, fs_file_cache, registry_path)
@@ -137,7 +136,6 @@ from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 
 class DualPlugin(FrontendPlugin):
-    plugin_name = 'dual_plugin'
 
     def __init__(self, dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
         super().__init__(dict_dconf_db, username, fs_file_cache, registry_path)
@@ -302,7 +300,6 @@ from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 # Define a custom plugin inline
 class HelloPlugin(FrontendPlugin):
-    plugin_name = 'hello'
 
     def __init__(self, dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
         super().__init__(dict_dconf_db, username, fs_file_cache, registry_path)
@@ -334,7 +331,6 @@ from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 
 class LocalizedPlugin(FrontendPlugin):
-    plugin_name = 'localized_plugin'
 
     def __init__(self, dict_dconf_db, username=None, fs_file_cache=None, registry_path=None):
         super().__init__(dict_dconf_db, username, fs_file_cache, registry_path)

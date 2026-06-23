@@ -14,9 +14,8 @@ Plugins allow adding support for new policy types and system settings without mo
 
 ### Plugin Manager
 
-- **`plugin_manager`** - Loads and executes plugins from directories:
+- **`plugin_manager`** - Loads and executes plugins from:
   - `/usr/lib/gpoa/plugins/` - system plugins
-  - `gpoa_lib/gpoa_lib/frontend_plugins/` - built-in plugins
 
 ## Creating a Simple Plugin
 
@@ -74,7 +73,7 @@ class ExampleApplier(FrontendPlugin):
             domain="example_applier"
         )
 
-    def run(self):
+    def run(self, **kwargs):
         """
         Main plugin execution method.
 

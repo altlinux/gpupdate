@@ -800,7 +800,7 @@ External consumers should prefer `StorageAdapter`.
 
 | Method | Description |
 |--------|-------------|
-| `get_key_value(key)` | Read a single key via `dconf read`. |
+| `get_key_value(key)` | Read a single key via `dconf read`, with fallback to `_dconf_db` binary database when D-Bus is unavailable. |
 | `get_key_values(keys)` | Read multiple keys. |
 | `get_matching_keys(path)` | Recursively list keys under a dconf path. |
 | `get_dictionary_from_dconf_file_db(uid=None, path_bin=None, save_dconf_db=False)` | Read a GVdb binary database into a dict. |
@@ -1122,7 +1122,7 @@ environments.
 | `get_dconf_config_file(uid=None)` | `str` | dconf INI file path. |
 | `get_dconf_db_path(db_name)` | `str` | Path to INI directory for an arbitrary database (`/etc/dconf/db/{db_name}.d/`). |
 | `get_dconf_db_file(db_name)` | `str` | Path to INI file for an arbitrary database (`/etc/dconf/db/{db_name}.d/{db_name}.ini`). |
-| `gpupdate_plugins_path()` | `str` | Path to bundled frontend plugins. |
+| `gpupdate_plugins_path()` | `str` | Path to bundled frontend plugins. **Note:** unused by `plugin_manager` since plugins are loaded only from `/usr/lib/gpoa/plugins/`. |
 | `get_desktop_files_directory()` | `str` | `/usr/share/applications` |
 
 ### UNCPath

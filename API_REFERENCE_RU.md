@@ -805,7 +805,7 @@ plugin_manager(is_machine, username)
 
 | Метод | Описание |
 |-------|----------|
-| `get_key_value(key)` | Прочитать один ключ через `dconf read`. |
+| `get_key_value(key)` | Прочитать один ключ через `dconf read`, с fallback на бинарную базу `_dconf_db` при отсутствии D-Bus. |
 | `get_key_values(keys)` | Прочитать несколько ключей. |
 | `get_matching_keys(path)` | Рекурсивно вывести список ключей под путём dconf. |
 | `get_dictionary_from_dconf_file_db(uid=None, path_bin=None, save_dconf_db=False)` | Прочитать бинарную базу GVdb в словарь. |
@@ -1127,7 +1127,7 @@ set_domain_resolver(resolver_func)
 | `get_dconf_config_file(uid=None)` | `str` | Путь к INI-файлу dconf. |
 | `get_dconf_db_path(db_name)` | `str` | Путь к каталогу INI для произвольной базы данных (`/etc/dconf/db/{db_name}.d/`). |
 | `get_dconf_db_file(db_name)` | `str` | Путь к INI-файлу для произвольной базы данных (`/etc/dconf/db/{db_name}.d/{db_name}.ini`). |
-| `gpupdate_plugins_path()` | `str` | Путь к встроенным плагинам. |
+| `gpupdate_plugins_path()` | `str` | Путь к встроенным плагинам. **Примечание:** не используется `plugin_manager` — плагины загружаются только из `/usr/lib/gpoa/plugins/`. |
 | `get_desktop_files_directory()` | `str` | `/usr/share/applications` |
 
 ### UNCPath
