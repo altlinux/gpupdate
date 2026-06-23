@@ -19,7 +19,6 @@
 import smbc
 import os
 import re
-from ipalib import api
 from pathlib import Path
 from ..storage.dconf_registry import Dconf_registry, extract_display_name_version
 from .util import get_uid_by_username
@@ -35,6 +34,7 @@ class ipacreds(ipaopts):
     def update_gpos(self, username):
         gpos = []
         try:
+            from ipalib import api
             if not api.isdone('bootstrap'):
                 api.bootstrap(context='cli')
             if not api.isdone('finalize'):

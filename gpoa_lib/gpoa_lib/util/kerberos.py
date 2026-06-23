@@ -22,7 +22,6 @@ import subprocess
 from .logging import log
 from .samba import smbopts
 from .util import get_machine_name
-from .ipa import ipaopts
 
 
 def machine_kinit(cache_name=None, backend_type=None):
@@ -30,6 +29,7 @@ def machine_kinit(cache_name=None, backend_type=None):
     Perform kinit with machine credentials
     '''
     if backend_type == 'freeipa':
+        from .ipa import ipaopts
         keytab_path = '/etc/samba/samba.keytab'
         opts = ipaopts()
         host = "cifs/" + opts.get_machine_name()

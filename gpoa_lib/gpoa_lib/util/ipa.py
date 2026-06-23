@@ -18,7 +18,6 @@
 
 import configparser
 import os
-from ipalib import api
 
 from .logging import log
 
@@ -52,6 +51,7 @@ class ipaopts:
         Return the FreeIPA PDC Emulator server from API.
         """
         try:
+            from ipalib import api
             result = api.Command.gpmaster_show_pdc()
             pdc_server = result['result']['pdc_emulator']
             return pdc_server
