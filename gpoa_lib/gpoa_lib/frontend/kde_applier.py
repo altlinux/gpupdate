@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import pwd
 import re
 import shutil
 import subprocess
@@ -261,7 +262,7 @@ def apply(all_kde_settings, locks_dict, username = None):
                 log('W19', logdata)
             modified_files.add(file_name)
     for file_name in modified_files:
-        call_dbus_method(file_name)
+        call_dbus_method(file_name, username)
 
 def clear_locks_settings(username, file_name, key):
     '''
@@ -328,7 +329,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
                         logdata = {'command': command, 'exc': exc}
                         log('E68', logdata)
                 if plasmaupdate == 1:
-                    call_dbus_method("wallpaper")
+                    call_dbus_method("wallpaper", username)
         else:
             logdata = {'file': path_to_wallpaper}
             log('W21', logdata)
@@ -353,27 +354,33 @@ def get_id_desktop(path_to_wallpaper):
         log('D271', {'path': path_to_wallpaper, 'exc': str(exc)})
         return None
 
-def call_dbus_method(file_name):
-    saved_dbus = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
-    os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"
+def call_dbus_method(file_name, username=None):
+    '''
+    Method to call D-Bus method based on the file name
+    '''
+    if username is None or file_name not in dbus_methods_mapping:
+        return
+    if dbus is None:
+        return
     try:
-        if file_name in dbus_methods_mapping:
-            config = dbus_methods_mapping[file_name]
-            try:
-                session_bus = dbus.SessionBus()
-                dbus_object = session_bus.get_object(config['dbus_service'], config['dbus_path'])
-                dbus_iface = dbus.Interface(dbus_object, config['dbus_interface'])
-                if 'dbus_args' in config:
-                    getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
-                else:
-                    getattr(dbus_iface, config['dbus_method'])()
-            except dbus.exceptions.DBusException as exc:
-                logdata = {'error': str(exc)}
-                log('E31', logdata)
+        uid = pwd.getpwnam(username).pw_uid
+    except KeyError:
+        return
+    bus_socket = f'/run/user/{uid}/bus'
+    if not os.path.exists(bus_socket):
+        return
+    config = dbus_methods_mapping[file_name]
+    try:
+        session_bus = dbus.bus.BusConnection(f'unix:path={bus_socket}')
+        if config['dbus_service'] not in session_bus.list_names():
+            return
+        dbus_object = session_bus.get_object(config['dbus_service'], config['dbus_path'])
+        dbus_iface = dbus.Interface(dbus_object, config['dbus_interface'])
+        if 'dbus_args' in config:
+            getattr(dbus_iface, config['dbus_method'])(*config['dbus_args'])
         else:
-            pass
-    finally:
-        if saved_dbus is not None:
-            os.environ["DBUS_SESSION_BUS_ADDRESS"] = saved_dbus
-        else:
-            os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
+            getattr(dbus_iface, config['dbus_method'])()
+    except dbus.exceptions.DBusException as exc:
+        log('W', {'message': 'KDE D-Bus reload failed',
+                  'plugin': 'KdeApplier',
+                  'data': {'file': file_name, 'error': str(exc)}})
