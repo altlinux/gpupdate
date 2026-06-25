@@ -88,8 +88,13 @@ class kde_applier_user(DualContextApplier):
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(locks_filter)
-        self.plasma_update = self.storage.get_entry(self.__plasma_update_entry)
-        self.plasma_update_flag = self.plasma_update.data if self.plasma_update is not None else 0
+        self.plasma_update = self.storage.get_entry(
+            self.__plasma_update_entry,
+            dictionary=self.storage.global_registry_dict)
+        try:
+            self.plasma_update_flag = int(self.plasma_update.data)
+        except (TypeError, ValueError, AttributeError):
+            self.plasma_update_flag = 0
         self.kde_settings = self.storage.filter_hkcu_entries(kde_filter)
         self.__module_enabled = check_enabled(
             self.storage,
