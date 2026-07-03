@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -85,7 +85,6 @@ class kde_applier_user(DualContextApplier):
         self.locks_dict = {}
         self.locks_data_dict = {}
         self.all_kde_settings = {}
-        kde_applier_user.kde_version = get_kde_version()
         kde_filter = '{}%'.format(self.__hkcu_branch)
         locks_filter = '{}%'.format(self.__hkcu_lock_branch)
         self.locks_settings = self.storage.filter_hkcu_entries(locks_filter)
@@ -117,6 +116,8 @@ class kde_applier_user(DualContextApplier):
     def user_context_apply(self):
         if self.__module_enabled:
             log('D200')
+            if kde_applier_user.kde_version is None:
+                kde_applier_user.kde_version = get_kde_version()
             create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update_flag)
             apply(self.all_kde_settings, self.locks_dict, self.username)
             return ApplierResult.applied('kde_user', [ItemStatus(key='kde_settings', action='set', result=RESULT_SUCCESS)])
@@ -145,7 +146,9 @@ def get_kde_version():
         kinfo_path = shutil.which("kinfo", path="/usr/lib/kf5/bin:/usr/bin")
         if not kinfo_path:
             raise FileNotFoundError("Unable to find kinfo")
-        output = subprocess.check_output([kinfo_path], text=True, env={'LANG':'C'}, timeout=15)
+        env = os.environ.copy()
+        env['LANG'] = 'C'
+        output = subprocess.check_output([kinfo_path], text=True, env=env, timeout=15)
         for line in output.splitlines():
             if "KDE Frameworks Version" in line:
                 frameworks_version = line.split(":", 1)[1].strip()
@@ -185,6 +188,7 @@ def apply(all_kde_settings, locks_dict, username = None):
             "kcminputrc",
             "kded_device_automounterrc",
             "kdeglobals",
+            "kscreenlockerrc",
             "ksplashrc",
             "kwinrc",
             "plasma-localerc",
