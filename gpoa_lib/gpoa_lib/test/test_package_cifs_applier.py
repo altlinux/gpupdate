@@ -107,12 +107,8 @@ class PackageApplierApplyTestCase(unittest.TestCase):
         storage.filter_hklm_entries.side_effect = [install_setting, remove_setting, sync_setting]
         applier = package_applier(storage)
         with patch('gpoa_lib.frontend.package_applier.subprocess') as mock_sp:
-            mock_proc = MagicMock()
-            mock_proc.__enter__.return_value = mock_proc
-            mock_sp.Popen.return_value = mock_proc
             applier.apply()
             mock_sp.Popen.assert_called_once()
-            mock_proc.wait.assert_called_once_with(timeout=300)
 
 
 class CIFSApplierHelperTestCase(unittest.TestCase):

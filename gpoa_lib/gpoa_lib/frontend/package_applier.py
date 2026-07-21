@@ -47,7 +47,7 @@ class package_applier(applier_frontend):
         self.install_packages_setting = self.storage.filter_hklm_entries(install_branch)
         self.remove_packages_setting = self.storage.filter_hklm_entries(remove_branch)
         self.sync_packages_setting = self.storage.filter_hklm_entries(sync_branch)
-        self.flagSync = True
+        self.flagSync = False
 
         self.__module_enabled = check_enabled(
               self.storage
@@ -67,8 +67,7 @@ class package_applier(applier_frontend):
                     log('E55', logdata)
             else:
                 try:
-                    with subprocess.Popen(self.fulcmd,close_fds=False) as proc:
-                        proc.wait(timeout=300)
+                    subprocess.Popen(self.fulcmd, close_fds=True)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E61', logdata)
@@ -133,8 +132,7 @@ class package_applier_user(DualContextApplier):
                     log('E60', logdata)
             else:
                 try:
-                    with subprocess.Popen(self.fulcmd,close_fds=False) as proc:
-                        proc.wait(timeout=300)
+                    subprocess.Popen(self.fulcmd, close_fds=True)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E62', logdata)
