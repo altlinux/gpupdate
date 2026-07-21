@@ -331,17 +331,19 @@ def cleanup_file(element: Dict, username: str = None) -> None:
     target_dir = expand_windows_var(target_dir, username)
     target_dir = target_dir.replace('\\', '/')
 
-    from_path = element.get('fromPath', '')
-    basename = os.path.basename(from_path.replace('\\', '/'))
+    target_path = Path(target_dir)
 
-    if basename:
-        target_path = Path(target_dir + '/' + basename)
-    else:
-        target_path = Path(target_dir)
+    if target_path.is_file():
+        target_path.unlink()
+        return
 
-    if target_path.exists():
-        if target_path.is_file():
-            target_path.unlink()
+    if target_path.is_dir():
+        from_path = element.get('fromPath', '')
+        basename = os.path.basename(from_path.replace('\\', '/'))
+        if basename:
+            file_path = target_path / basename
+            if file_path.is_file():
+                file_path.unlink()
 
 
 def cleanup_shortcut(element: Dict, username: str = None) -> None:
