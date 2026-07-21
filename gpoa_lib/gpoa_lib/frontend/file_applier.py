@@ -23,7 +23,7 @@ from .applier_frontend import applier_frontend, DualContextApplier, check_enable
 from .appliers.file_cp import Execution_check, Files_cp, str2bool as check_str2bool
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_file
 
-SECURE_PERMS_KEY = 'Software\\BaseALT\\Policies\\GroupPolicies\\Files\\SecurePermissionsDisabled'
+SECURE_PERMS_KEY = 'Software/BaseALT/Policies/GroupPolicies/Files/SecurePermissionsDisabled'
 
 
 def is_secure_permissions_enabled(storage):
