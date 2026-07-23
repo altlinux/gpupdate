@@ -30,8 +30,5 @@ def registry_factory(registry_name='', envprofile=None , username=None):
     if envprofile:
         Dconf_registry._envprofile = envprofile
 
-    if registry_name == 'dconf':
-        return Dconf_registry()
-    else:
-        return Dconf_registry()
+    return Dconf_registry
 
