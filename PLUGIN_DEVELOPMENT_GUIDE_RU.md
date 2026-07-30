@@ -340,6 +340,29 @@ plugin.apply()
 - Применяет пользовательские настройки
 - Использует фабричную функцию `create_user_applier()`
 
+## Возврат статуса выполнения
+
+Плагины могут опционально возвращать `ApplierResult` из `run()` для
+детального отслеживания статуса по каждому элементу:
+
+```python
+from gpoa_lib import ApplierResult, ItemStatus
+
+class MyPlugin(FrontendPlugin):
+    def run(self, **kwargs):
+        items = []
+        try:
+            # логика применения...
+            items.append(ItemStatus(key='ssh', action='set', result='success'))
+        except Exception as exc:
+            items.append(ItemStatus(key='ssh', action='set', result='failed', detail=str(exc)))
+        return ApplierResult.applied('my_plugin', items)
+```
+
+Возврат `bool` или `None` полностью поддерживается для обратной
+совместимости. `plugin_manager` собирает `ApplierResult` в
+``self.results``.
+
 ## Лучшие практики
 
 1. **Безопасность**: Всегда валидируйте входные данные

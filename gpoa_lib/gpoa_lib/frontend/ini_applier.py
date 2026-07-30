@@ -21,6 +21,7 @@ from ..util.logging import log
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.ini_file import Ini_file
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_inifile
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED, RESULT_SKIPPED
 
 _REGISTRY_PATH_INI_ALLOW_EMPTY_SECTIONS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowEmptySections'
 _REGISTRY_PATH_INI_ALLOW_UNQUOTED_COMMAS = '/Software/BaseALT/Policies/GPUpdate/IniFilesAllowUnquotedCommas'
@@ -64,6 +65,7 @@ class ini_applier(applier_frontend):
         self.state_manager = GppStateManager()
 
     def run(self):
+        items = []
         # Cleanup removed elements with removePolicy
         current_elements = [dict(ini) for ini in self.inifiles_info if not ini.disabled]
         self.state_manager.cleanup_removed('Inifiles', current_elements, cleanup_inifile)
@@ -80,28 +82,40 @@ class ini_applier(applier_frontend):
             ini_dict = dict(inifile)
             apply_once = getattr(inifile, 'apply_once', False)
             bypass_errors = getattr(inifile, 'bypass_errors', False)
+            uid = getattr(inifile, 'uid', 'unknown')
             if apply_once:
                 if self.state_manager.should_skip(ini_dict, element_type):
-                    logdata = {'uid': getattr(inifile, 'uid', 'unknown')}
+                    logdata = {'uid': uid}
                     log('D240', logdata)
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                     continue
             try:
                 ini_file_obj = Ini_file(inifile, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once and not formatting_changed)
                 if apply_once and ini_file_obj and ini_file_obj.modified:
                     self.state_manager.mark_applied(ini_dict, element_type, element_obj=inifile)
+                if ini_file_obj and ini_file_obj.modified:
+                    items.append(ItemStatus(key=uid, action='set', result=RESULT_SUCCESS))
+                else:
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
             except Exception as exc:
                 if not bypass_errors:
                     raise
-                logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
+                logdata = {'uid': uid, 'exc': str(exc)}
                 log('W47', logdata)
+                items.append(ItemStatus(key=uid, action='set', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def apply(self):
         if self.__module_enabled:
             log('I34')
             log('D171')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='ini', status=status, items=items)
         else:
             log('D172')
+            return ApplierResult.skipped('ini')
 
 
 class ini_applier_user(DualContextApplier):
@@ -121,6 +135,7 @@ class ini_applier_user(DualContextApplier):
         self.state_manager = GppStateManager(username)
 
     def run(self):
+        items = []
         # Cleanup removed elements with removePolicy
         current_elements = [dict(ini) for ini in self.inifiles_info if not ini.disabled]
         self.state_manager.cleanup_removed('Inifiles', current_elements, cleanup_inifile)
@@ -137,20 +152,28 @@ class ini_applier_user(DualContextApplier):
             ini_dict = dict(inifile)
             apply_once = getattr(inifile, 'apply_once', False)
             bypass_errors = getattr(inifile, 'bypass_errors', False)
+            uid = getattr(inifile, 'uid', 'unknown')
             if apply_once:
                 if self.state_manager.should_skip(ini_dict, element_type):
-                    logdata = {'uid': getattr(inifile, 'uid', 'unknown')}
+                    logdata = {'uid': uid}
                     log('D240', logdata)
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                     continue
             try:
                 ini_file_obj = Ini_file(inifile, self.username, allow_empty_sections=allow_empty, allow_unquoted_commas=allow_unquoted, allow_special_chars=allow_special, skip_if_matches=not apply_once and not formatting_changed)
                 if apply_once and ini_file_obj and ini_file_obj.modified:
                     self.state_manager.mark_applied(ini_dict, element_type, element_obj=inifile)
+                if ini_file_obj and ini_file_obj.modified:
+                    items.append(ItemStatus(key=uid, action='set', result=RESULT_SUCCESS))
+                else:
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
             except Exception as exc:
                 if not bypass_errors:
                     raise
-                logdata = {'uid': getattr(inifile, 'uid', 'unknown'), 'exc': str(exc)}
+                logdata = {'uid': uid, 'exc': str(exc)}
                 log('W47', logdata)
+                items.append(ItemStatus(key=uid, action='set', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def admin_context_apply(self):
         pass
@@ -158,6 +181,10 @@ class ini_applier_user(DualContextApplier):
     def user_context_apply(self):
         if self.__module_enabled:
             log('D173')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='ini_user', status=status, items=items)
         else:
             log('D174')
+            return ApplierResult.skipped('ini_user')

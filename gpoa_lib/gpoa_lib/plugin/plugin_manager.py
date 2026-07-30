@@ -22,6 +22,7 @@ from pathlib import Path
 
 from ..util.logging import log
 from ..util.util import string_to_literal_eval
+from ..applier_result import ApplierResult
 
 from .plugin import plugin
 from ..storage import registry_factory
@@ -35,6 +36,7 @@ class plugin_manager:
         self.username = username
         self.file_cache = fs_file_cache('file_cache', self.username)
         self.list_plugins = []
+        self.results = []
         self.dict_dconf_db = self.get_dict_dconf_db()
         self.filling_settings()
         self.plugins = self.load_plugins()
@@ -81,12 +83,29 @@ class plugin_manager:
                         result = plugin_obj.apply_user(self.username)
                         if result is False:
                             log('W46', {'plugin_name': plugin_obj.plugin_name, 'username': self.username})
+                        if isinstance(result, ApplierResult):
+                            self.results.append(result)
+                            log('I39', {'name': result.name, 'status': result.status,
+                                        'succeeded': result.applied_count, 'failed': result.failed_count,
+                                        'skipped': result.skipped_count})
                     else:
-                        plugin_obj.apply()
+                        result = plugin_obj.apply()
+                        if isinstance(result, ApplierResult):
+                            self.results.append(result)
+                            log('I39', {'name': result.name, 'status': result.status,
+                                        'succeeded': result.applied_count, 'failed': result.failed_count,
+                                        'skipped': result.skipped_count})
                 else:
                     log('D236', {'plugin_name': plugin_obj.plugin_name})
             else:
                 log('W44', {'plugin_name': getattr(plugin_obj, 'plugin_name', 'unknown')})
+        if self.results:
+            total = len(self.results)
+            applied = sum(1 for r in self.results if r.status == 'applied')
+            partial = sum(1 for r in self.results if r.status == 'partial')
+            failed = sum(1 for r in self.results if r.status == 'failed')
+            skipped = sum(1 for r in self.results if r.status == 'skipped')
+            log('I40', {'total': total, 'succeeded': applied, 'partial': partial, 'failed': failed, 'skipped': skipped})
 
     def load_plugins(self):
         """Load plugins from multiple directories"""

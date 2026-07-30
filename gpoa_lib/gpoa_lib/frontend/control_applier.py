@@ -20,6 +20,7 @@ from ..util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.control import control
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class control_applier(applier_frontend):
@@ -39,6 +40,7 @@ class control_applier(applier_frontend):
         )
 
     def run(self):
+        items = []
         for setting in self.control_settings:
             valuename = setting.hive_key.rpartition('/')[2]
             try:
@@ -51,6 +53,7 @@ class control_applier(applier_frontend):
                 except Exception as exc:
                     logdata = {'Exception': exc}
                     log('I3', logdata)
+                    items.append(ItemStatus(key=valuename, action='set', result=RESULT_FAILED, detail=str(exc)))
                     continue
                 self.controls.append(ctl)
                 logdata = {'control': valuename, 'with string value': setting.data}
@@ -58,18 +61,24 @@ class control_applier(applier_frontend):
             except Exception as exc:
                 logdata = {'control': valuename, 'exc': exc}
                 log('E39', logdata)
-        #for e in polfile.pol_file.entries:
-        #    print('{}:{}:{}:{}:{}'.format(e.type, e.data, e.valuename, e.keyname))
+                items.append(ItemStatus(key=valuename, action='set', result=RESULT_FAILED, detail=str(exc)))
         for cont in self.controls:
-            cont.set_control_status()
+            success = cont.set_control_status()
+            name = cont.get_control_name()
+            if success:
+                items.append(ItemStatus(key=name, action='set', result=RESULT_SUCCESS))
+            else:
+                items.append(ItemStatus(key=name, action='set', result=RESULT_FAILED))
+        return items
 
     def apply(self):
-        '''
-        Trigger control facility invocation.
-        '''
         if self.__module_enabled:
             log('I17')
             log('D67')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='control', status=status, items=items)
         else:
             log('E40')
+            return ApplierResult.skipped('control')

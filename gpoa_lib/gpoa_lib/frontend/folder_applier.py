@@ -25,6 +25,7 @@ from ..util.windows_vars import expand_windows_var
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.folder import Folder
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_folder
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED, RESULT_SKIPPED
 
 
 class folder_applier(applier_frontend):
@@ -42,11 +43,10 @@ class folder_applier(applier_frontend):
         if self.__module_enabled:
             log('I31')
             log('D107')
-            # Cleanup removed elements with removePolicy
+            items = []
             current_elements = [dict(f) for f in self.folders if not f.disabled]
             self.state_manager.cleanup_removed('Folders', current_elements, cleanup_folder)
 
-            # Apply current elements
             for directory_obj in self.folders:
                 if directory_obj.disabled:
                     continue
@@ -54,29 +54,38 @@ class folder_applier(applier_frontend):
                 obj_dict = dict(directory_obj)
                 apply_once = getattr(directory_obj, 'apply_once', False)
                 bypass_errors = getattr(directory_obj, 'bypass_errors', False)
+                uid = getattr(directory_obj, 'uid', 'unknown')
                 if apply_once:
                     if self.state_manager.should_skip(obj_dict, element_type):
-                        logdata = {'uid': getattr(directory_obj, 'uid', 'unknown')}
+                        logdata = {'uid': uid}
                         log('D240', logdata)
+                        items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                         continue
                 check = expand_windows_var(directory_obj.path).replace('\\', '/')
                 win_var = re.findall(r'%.+?%', check)
                 drive = re.findall(r'^[a-z A-Z]\:',check)
                 if drive or win_var:
                     log('D109', {"path": directory_obj.path})
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED, detail='unresolved path'))
                     continue
                 try:
                     fld = Folder(directory_obj)
                     fld.act()
                     if apply_once:
                         self.state_manager.mark_applied(obj_dict, element_type, element_obj=directory_obj)
+                    items.append(ItemStatus(key=uid, action='create', result=RESULT_SUCCESS))
                 except Exception as exc:
                     if not bypass_errors:
                         raise
-                    logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
+                    logdata = {'uid': uid, 'exc': str(exc)}
                     log('W47', logdata)
+                    items.append(ItemStatus(key=uid, action='create', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='folders', status=status, items=items)
         else:
             log('D108')
+            return ApplierResult.skipped('folders')
 
 class folder_applier_user(DualContextApplier):
     __module_name = 'FoldersApplierUser'
@@ -95,11 +104,10 @@ class folder_applier_user(DualContextApplier):
         self.state_manager = GppStateManager(username)
 
     def run(self):
-        # Cleanup removed elements with removePolicy
+        items = []
         current_elements = [dict(f) for f in self.folders if not f.disabled]
         self.state_manager.cleanup_removed('Folders', current_elements, cleanup_folder)
 
-        # Apply current elements
         for directory_obj in self.folders:
             if directory_obj.disabled:
                 continue
@@ -107,27 +115,33 @@ class folder_applier_user(DualContextApplier):
             obj_dict = dict(directory_obj)
             apply_once = getattr(directory_obj, 'apply_once', False)
             bypass_errors = getattr(directory_obj, 'bypass_errors', False)
+            uid = getattr(directory_obj, 'uid', 'unknown')
             if apply_once:
                 if self.state_manager.should_skip(obj_dict, element_type):
-                    logdata = {'uid': getattr(directory_obj, 'uid', 'unknown')}
+                    logdata = {'uid': uid}
                     log('D240', logdata)
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                     continue
             check = expand_windows_var(directory_obj.path, self.username).replace('\\', '/')
             win_var = re.findall(r'%.+?%', check)
             drive = re.findall(r'^[a-z A-Z]\:',check)
             if drive or win_var:
                 log('D110', {"path": directory_obj.path})
+                items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED, detail='unresolved path'))
                 continue
             try:
                 fld = Folder(directory_obj, self.username)
                 fld.act()
                 if apply_once:
                     self.state_manager.mark_applied(obj_dict, element_type, element_obj=directory_obj)
+                items.append(ItemStatus(key=uid, action='create', result=RESULT_SUCCESS))
             except Exception as exc:
                 if not bypass_errors:
                     raise
-                logdata = {'uid': getattr(directory_obj, 'uid', 'unknown'), 'exc': str(exc)}
+                logdata = {'uid': uid, 'exc': str(exc)}
                 log('W47', logdata)
+                items.append(ItemStatus(key=uid, action='create', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def admin_context_apply(self):
         pass
@@ -135,6 +149,10 @@ class folder_applier_user(DualContextApplier):
     def user_context_apply(self):
         if self.__module_enabled:
             log('D111')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='folders_user', status=status, items=items)
         else:
             log('D112')
+            return ApplierResult.skipped('folders_user')

@@ -26,6 +26,7 @@ from ..util.logging import log
 from ..util.util import get_homedir, get_machine_name, get_uid_by_username, get_user_info
 
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 def _is_enabled(value):
@@ -145,9 +146,18 @@ class cifs_applier(applier_frontend):
         if self.__module_enabled:
             log('I24')
             log('D179')
-            self.applier_cifs._admin_context_apply()
+            items = []
+            try:
+                self.applier_cifs._admin_context_apply()
+                items.append(ItemStatus(key='autofs', action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='autofs', action='create', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='cifs', status=status, items=items)
         else:
             log('D180')
+            return ApplierResult.skipped('cifs')
 
 class cifs_applier_user(DualContextApplier):
     __module_name = 'CIFSApplierUser'
@@ -468,7 +478,16 @@ class cifs_applier_user(DualContextApplier):
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D146')
-            self._admin_context_apply()
+            items = []
+            try:
+                self._admin_context_apply()
+                items.append(ItemStatus(key='autofs', action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='autofs', action='create', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='cifs_user', status=status, items=items)
         else:
             log('D147')
+            return ApplierResult.skipped('cifs_user')
 

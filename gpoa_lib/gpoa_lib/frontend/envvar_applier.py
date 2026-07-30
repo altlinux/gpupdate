@@ -21,6 +21,7 @@ from ..util.logging import log
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.envvar import Envvar
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_envvar
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_SKIPPED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED, RESULT_SKIPPED
 
 
 class envvar_applier(applier_frontend):
@@ -39,11 +40,10 @@ class envvar_applier(applier_frontend):
         if self.__module_enabled:
             log('I22')
             log('D134')
-            # Cleanup removed elements with removePolicy
+            items = []
             current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]
             self.state_manager.cleanup_removed('Environmentvariables', current_elements, cleanup_envvar)
 
-            # Apply current elements
             envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
             envvars_to_apply = []
             for ev in envvars_filtered:
@@ -51,10 +51,12 @@ class envvar_applier(applier_frontend):
                 ev_dict = dict(ev)
                 apply_once = getattr(ev, 'apply_once', False)
                 bypass_errors = getattr(ev, 'bypass_errors', False)
+                uid = getattr(ev, 'uid', 'unknown')
                 if apply_once:
                     if self.state_manager.should_skip(ev_dict, element_type):
-                        logdata = {'uid': getattr(ev, 'uid', 'unknown')}
+                        logdata = {'uid': uid}
                         log('D240', logdata)
+                        items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                         continue
                 envvars_to_apply.append((ev, ev_dict, apply_once, bypass_errors))
             if envvars_to_apply:
@@ -62,18 +64,27 @@ class envvar_applier(applier_frontend):
                 try:
                     envvar.act()
                     for ev, ev_dict, apply_once, _ in envvars_to_apply:
+                        uid = getattr(ev, 'uid', 'unknown')
                         if apply_once:
                             ev_type = get_element_type_name(ev)
                             self.state_manager.mark_applied(ev_dict, ev_type, element_obj=ev)
+                        items.append(ItemStatus(key=uid, action='set', result=RESULT_SUCCESS))
                 except Exception as exc:
                     bypass_found = any(bypass for _, _, _, bypass in envvars_to_apply)
                     if bypass_found:
                         logdata = {'exc': str(exc)}
                         log('W47', logdata)
+                        for ev, _, _, _ in envvars_to_apply:
+                            uid = getattr(ev, 'uid', 'unknown')
+                            items.append(ItemStatus(key=uid, action='set', result=RESULT_FAILED, detail=str(exc)))
                     else:
                         raise
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='envvar', status=status, items=items)
         else:
             log('D135')
+            return ApplierResult.skipped('envvar')
 
 class envvar_applier_user(DualContextApplier):
     __module_name = 'EnvvarsApplierUser'
@@ -91,11 +102,10 @@ class envvar_applier_user(DualContextApplier):
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D136')
-            # Cleanup removed elements with removePolicy
+            items = []
             current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]
             self.state_manager.cleanup_removed('Environmentvariables', current_elements, cleanup_envvar)
 
-            # Apply current elements
             envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
             envvars_to_apply = []
             for ev in envvars_filtered:
@@ -103,10 +113,12 @@ class envvar_applier_user(DualContextApplier):
                 ev_dict = dict(ev)
                 apply_once = getattr(ev, 'apply_once', False)
                 bypass_errors = getattr(ev, 'bypass_errors', False)
+                uid = getattr(ev, 'uid', 'unknown')
                 if apply_once:
                     if self.state_manager.should_skip(ev_dict, element_type):
-                        logdata = {'uid': getattr(ev, 'uid', 'unknown')}
+                        logdata = {'uid': uid}
                         log('D240', logdata)
+                        items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                         continue
                 envvars_to_apply.append((ev, ev_dict, apply_once, bypass_errors))
             if envvars_to_apply:
@@ -114,18 +126,27 @@ class envvar_applier_user(DualContextApplier):
                 try:
                     envvar.act()
                     for ev, ev_dict, apply_once, _ in envvars_to_apply:
+                        uid = getattr(ev, 'uid', 'unknown')
                         if apply_once:
                             ev_type = get_element_type_name(ev)
                             self.state_manager.mark_applied(ev_dict, ev_type, element_obj=ev)
+                        items.append(ItemStatus(key=uid, action='set', result=RESULT_SUCCESS))
                 except Exception as exc:
                     bypass_found = any(bypass for _, _, _, bypass in envvars_to_apply)
                     if bypass_found:
                         logdata = {'exc': str(exc)}
                         log('W47', logdata)
+                        for ev, _, _, _ in envvars_to_apply:
+                            uid = getattr(ev, 'uid', 'unknown')
+                            items.append(ItemStatus(key=uid, action='set', result=RESULT_FAILED, detail=str(exc)))
                     else:
                         raise
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='envvar_user', status=status, items=items)
         else:
             log('D137')
+            return ApplierResult.skipped('envvar_user')
 
     def user_context_apply(self):
         pass

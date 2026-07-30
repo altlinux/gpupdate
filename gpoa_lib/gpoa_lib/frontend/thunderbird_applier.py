@@ -21,6 +21,7 @@ from ..util.logging import log
 from ..util.util import is_machine_name
 
 from .applier_frontend import applier_frontend, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 from .firefox_applier import create_dict
 
 
@@ -63,6 +64,15 @@ class thunderbird_applier(applier_frontend):
         if self.__module_enabled:
             log('I27')
             log('D213')
-            self.machine_apply()
+            items = []
+            try:
+                self.machine_apply()
+                items.append(ItemStatus(key='policies.json', action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='policies.json', action='create', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='thunderbird', status=status, items=items)
         else:
             log('D214')
+            return ApplierResult.skipped('thunderbird')

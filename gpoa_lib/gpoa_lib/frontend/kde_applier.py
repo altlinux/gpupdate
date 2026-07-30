@@ -31,6 +31,7 @@ from ..util.logging import log
 from ..util.util import get_homedir
 
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
 
 
 class kde_applier(applier_frontend):
@@ -62,8 +63,10 @@ class kde_applier(applier_frontend):
             log('D198')
             create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict)
             apply(self.all_kde_settings, self.locks_dict)
+            return ApplierResult.applied('kde', [ItemStatus(key='kde_settings', action='set', result=RESULT_SUCCESS)])
         else:
             log('D199')
+            return ApplierResult.skipped('kde')
 
 class kde_applier_user(DualContextApplier):
     __module_name = 'KdeApplierUser'
@@ -106,15 +109,14 @@ class kde_applier_user(DualContextApplier):
             logdata = {'exc': exc}
 
     def user_context_apply(self):
-        '''
-        Change settings applied in user context
-        '''
         if self.__module_enabled:
             log('D200')
             create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update_flag)
             apply(self.all_kde_settings, self.locks_dict, self.username)
+            return ApplierResult.applied('kde_user', [ItemStatus(key='kde_settings', action='set', result=RESULT_SUCCESS)])
         else:
             log('D201')
+            return ApplierResult.skipped('kde_user')
 
 dbus_methods_mapping = {
     'kscreenlockerrc': {

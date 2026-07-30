@@ -27,6 +27,7 @@ from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled
 from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_shortcut
+from gpoa_lib.applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
 
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
@@ -161,8 +162,10 @@ class shortcut_applier(applier_frontend):
         if self.__module_enabled:
             log('D98')
             self.run()
+            return ApplierResult.applied('shortcuts', [ItemStatus(key='shortcuts', action='create', result=RESULT_SUCCESS)])
         else:
             log('D99')
+            return ApplierResult.skipped('shortcuts')
 
 class shortcut_applier_user(applier_frontend):
     __module_name = 'ShortcutsApplierUser'
@@ -247,15 +250,19 @@ class shortcut_applier_user(applier_frontend):
         if self.__module_enabled:
             log('D101')
             self.run(True)
+            return ApplierResult.applied('shortcuts_user', [ItemStatus(key='shortcuts', action='create', result=RESULT_SUCCESS)])
         else:
             log('D102')
+            return ApplierResult.skipped('shortcuts_user')
 
     def apply(self, **kwargs):
-        self.admin_context_apply()
+        return self.admin_context_apply()
 
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D103')
             self.run(False)
+            return ApplierResult.applied('shortcuts_user', [ItemStatus(key='shortcuts', action='create', result=RESULT_SUCCESS)])
         else:
             log('D104')
+            return ApplierResult.skipped('shortcuts_user')

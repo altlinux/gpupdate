@@ -32,6 +32,7 @@ from ..util.util import check_local_user_exists, remove_prefix_from_keys, get_ma
 from ..util.windows_vars import get_kerberos_domain_info
 
 from .applier_frontend import applier_frontend, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, STATUS_SKIPPED, RESULT_SUCCESS, RESULT_SKIPPED
 
 _DATEUTIL_AVAILABLE = False
 try:
@@ -722,7 +723,7 @@ class laps_applier(applier_frontend):
 
         if not update_needed:
             log('D229')
-            return False
+            return None
 
         # Generate new password
         password = self._generate_password()
@@ -751,6 +752,7 @@ class laps_applier(applier_frontend):
         # Perform post-action if configured
         if perform_post_action:
             self._perform_post_action()
+        return True
 
     def apply(self):
         """
@@ -759,9 +761,17 @@ class laps_applier(applier_frontend):
         if self.__module_enabled:
             log('I36')
             log('D218')
-            self.update_laps_password()
+            result = self.update_laps_password()
+            key = self.target_user
+            if result is True:
+                return ApplierResult.applied('laps', [ItemStatus(key=key, action='set', result=RESULT_SUCCESS)])
+            elif result is None:
+                return ApplierResult.skipped('laps', 'no update needed')
+            else:
+                return ApplierResult(name='laps', status=STATUS_SKIPPED, items=[ItemStatus(key=key, action='skip', result=RESULT_SKIPPED)])
         else:
             log('D219')
+            return ApplierResult.skipped('laps')
 
     def _parse_login_time_from_last_line(self, line: str) -> datetime:
         match_login_dt = re.search(

@@ -23,6 +23,7 @@ from ..util.logging import log
 from ..util.util import is_machine_name, string_to_literal_eval
 
 from .applier_frontend import applier_frontend, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class yandex_browser_applier(applier_frontend):
@@ -80,16 +81,23 @@ class yandex_browser_applier(applier_frontend):
 
 
     def apply(self):
-        '''
-        All actual job done here.
-        '''
         if self.__module_enabled:
             log('I28')
             log('D183')
-            self.create_dict(self.yandex_keys)
-            self.machine_apply()
+            items = []
+            try:
+                self.create_dict(self.yandex_keys)
+                self.machine_apply()
+                items.append(ItemStatus(key='managed/policies.json', action='create', result=RESULT_SUCCESS))
+                items.append(ItemStatus(key='recommended/policies.json', action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='policies.json', action='create', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='yandex_browser', status=status, items=items)
         else:
             log('D184')
+            return ApplierResult.skipped('yandex_browser')
 
     def get_valuename_typeint(self):
         '''

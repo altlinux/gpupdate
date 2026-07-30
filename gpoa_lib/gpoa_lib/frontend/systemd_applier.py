@@ -20,6 +20,7 @@ from ..util.logging import log
 
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.systemd import systemd_unit
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_SKIPPED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class systemd_applier(applier_frontend):
@@ -39,6 +40,7 @@ class systemd_applier(applier_frontend):
         )
 
     def run(self):
+        items = []
         for setting in self.systemd_unit_settings:
             try:
                 self.units.append(systemd_unit(setting.valuename, int(setting.data)))
@@ -47,23 +49,28 @@ class systemd_applier(applier_frontend):
             except Exception as exc:
                 logdata = {'unit': format(setting.valuename), 'exc': exc}
                 log('I5', logdata)
+                items.append(ItemStatus(key=setting.valuename, action='set', result=RESULT_FAILED, detail=str(exc)))
         for unit in self.units:
             try:
                 unit.apply()
+                items.append(ItemStatus(key=unit.unit_name, action='set', result=RESULT_SUCCESS))
             except Exception as exc:
                 logdata = {'unit': unit.unit_name, 'exc': exc}
                 log('E45', logdata)
+                items.append(ItemStatus(key=unit.unit_name, action='set', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def apply(self):
-        '''
-        Trigger control facility invocation.
-        '''
         if self.__module_enabled:
             log('I19')
             log('D78')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='systemd', status=status, items=items)
         else:
             log('D79')
+            return ApplierResult.skipped('systemd')
 
 class systemd_applier_user(DualContextApplier):
     __module_name = 'SystemdApplierUser'

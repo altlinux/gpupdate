@@ -251,7 +251,6 @@ class Dconf_registry():
             else:
                 logdata['output'] = output
                 log('I16', logdata)
-                log('D206', logdata)
         except Exception as exc:
             logdata['exc'] = exc
             log('E72', logdata)

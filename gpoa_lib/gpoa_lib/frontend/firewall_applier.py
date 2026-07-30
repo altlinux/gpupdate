@@ -24,6 +24,7 @@ from ..util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.firewall_rule import FirewallRule
+from ..applier_result import ApplierResult, ItemStatus, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class firewall_applier(applier_frontend):
@@ -53,17 +54,27 @@ class firewall_applier(applier_frontend):
     def apply(self):
         if not os.path.exists(self.__firewall_reset_cmd_path):
             log('D120', {'not_found_cmd': self.__firewall_reset_cmd_path})
-            return
+            return ApplierResult.skipped('firewall', 'reset command not found')
         if self.__module_enabled:
             log('I29')
             log('D117')
-            if '1' == self.firewall_enabled:
-                log('D118')
-                self.run()
-            else:
-                log('D119')
-                with subprocess.Popen(self.__firewall_reset_cmd) as proc:
-                    proc.wait(timeout=30)
+            items = []
+            try:
+                if '1' == self.firewall_enabled:
+                    log('D118')
+                    self.run()
+                    items.append(ItemStatus(key='rules', action='set', result=RESULT_SUCCESS))
+                else:
+                    log('D119')
+                    with subprocess.Popen(self.__firewall_reset_cmd) as proc:
+                        proc.wait(timeout=30)
+                    items.append(ItemStatus(key='reset', action='set', result=RESULT_SUCCESS))
+                failed = sum(1 for i in items if i.result == RESULT_FAILED)
+                status = STATUS_PARTIAL if failed else STATUS_APPLIED
+                return ApplierResult(name='firewall', status=status, items=items)
+            except Exception as exc:
+                return ApplierResult.failed('firewall', str(exc))
         else:
             log('D120')
+            return ApplierResult.skipped('firewall')
 

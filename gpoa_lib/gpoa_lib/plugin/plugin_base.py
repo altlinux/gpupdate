@@ -56,9 +56,12 @@ class FrontendPlugin(plugin):
 
     @abstractmethod
     def run(self, **kwargs):
-        """
-        Abstract method that must be implemented by concrete plugins.
-        This method should contain the main plugin execution logic.
+        """Main plugin execution logic.
+
+        Returns:
+            ApplierResult, bool, or None: optionally return an
+            ApplierResult for per-item status reporting. Returning
+            bool or None is supported for backward compatibility.
         """
         pass
 

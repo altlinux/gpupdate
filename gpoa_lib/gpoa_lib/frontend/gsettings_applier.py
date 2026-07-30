@@ -35,6 +35,7 @@ from .applier_frontend import (
     check_windows_mapping_enabled,
 )
 from .appliers.gsettings import system_gsettings, user_gsettings
+from ..applier_result import ApplierResult, ItemStatus, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 def uri_fetch(schema, path, value, cache):
@@ -141,9 +142,18 @@ class gsettings_applier(applier_frontend):
         if self.__module_enabled:
             log('I20')
             log('D80')
-            self.run()
+            items = []
+            try:
+                self.run()
+                items.append(ItemStatus(key='schemas', action='set', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='schemas', action='set', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='gsettings', status=status, items=items)
         else:
             log('D81')
+            return ApplierResult.skipped('gsettings')
 
 class GSettingsMapping:
     def __init__(self, hive_key, gsettings_schema, gsettings_key):
@@ -268,9 +278,18 @@ class gsettings_applier_user(DualContextApplier):
         if self.__module_enabled:
             log('I21')
             log('D87')
-            self.run()
+            items = []
+            try:
+                self.run()
+                items.append(ItemStatus(key='schemas', action='set', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='schemas', action='set', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='gsettings_user', status=status, items=items)
         else:
             log('D88')
+            return ApplierResult.skipped('gsettings_user')
 
     def admin_context_apply(self):
         # Cache files on remote locations

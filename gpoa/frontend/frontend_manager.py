@@ -26,6 +26,8 @@ from util.users import (
     username_match_uid,
 )
 
+from gpoa_lib.applier_result import ApplierResult
+
 from .chromium_applier import chromium_applier
 from .cifs_applier import cifs_applier, cifs_applier_user
 from .control_applier import control_applier
@@ -77,7 +79,16 @@ def apply_user_context(user_appliers):
         log('D55', {'name': applier_name})
 
         try:
-            applier_object.user_context_apply()
+            result = applier_object.user_context_apply()
+            if isinstance(result, ApplierResult):
+                logdata = {
+                    'name': result.name,
+                    'status': result.status,
+                    'succeeded': result.applied_count,
+                    'failed': result.failed_count,
+                    'skipped': result.skipped_count,
+                }
+                log('I37', logdata)
         except Exception as exc:
             logdata = {'applier': applier_name, 'exception': str(exc)}
             log('E20', logdata)
@@ -94,6 +105,7 @@ class frontend_manager:
         self.is_machine = is_machine
         self.process_uname = get_process_user()
         self.file_cache = fs_file_cache('file_cache', self.username)
+        self.results = []
 
         self.machine_appliers = dict()
         self.user_appliers = dict()
@@ -150,6 +162,27 @@ class frontend_manager:
         self.user_appliers['kde'] = kde_applier_user(self.storage, self.username, self.file_cache)
         self.user_appliers['package'] = package_applier_user(self.storage, self.username)
 
+    def _collect_result(self, name, apply_result):
+        if isinstance(apply_result, ApplierResult):
+            self.results.append(apply_result)
+            logdata = {
+                'name': apply_result.name,
+                'status': apply_result.status,
+                'succeeded': apply_result.applied_count,
+                'failed': apply_result.failed_count,
+                'skipped': apply_result.skipped_count,
+            }
+            log('I37', logdata)
+
+    def _log_summary(self):
+        total = len(self.results)
+        applied = sum(1 for r in self.results if r.status == 'applied')
+        partial = sum(1 for r in self.results if r.status == 'partial')
+        failed = sum(1 for r in self.results if r.status == 'failed')
+        skipped = sum(1 for r in self.results if r.status == 'skipped')
+        logdata = {'total': total, 'succeeded': applied, 'partial': partial, 'failed': failed, 'skipped': skipped}
+        log('I38', logdata)
+
     def machine_apply(self):
         '''
         Run global appliers with administrator privileges.
@@ -162,10 +195,12 @@ class frontend_manager:
 
         for applier_name, applier_object in self.machine_appliers.items():
             try:
-                applier_object.apply()
+                result = applier_object.apply()
+                self._collect_result(applier_name, result)
             except Exception as exc:
                 logdata = {'applier_name': applier_name, 'msg': str(exc)}
                 log('E24', logdata)
+        self._log_summary()
 
     def user_apply(self):
         '''
@@ -174,7 +209,8 @@ class frontend_manager:
         if is_root():
             for applier_name, applier_object in self.user_appliers.items():
                 try:
-                    applier_object.admin_context_apply()
+                    result = applier_object.admin_context_apply()
+                    self._collect_result(applier_name, result)
                 except Exception as exc:
                     logdata = {'applier': applier_name, 'exception': str(exc)}
                     log('E19', logdata)
@@ -187,10 +223,12 @@ class frontend_manager:
         else:
             for applier_name, applier_object in self.user_appliers.items():
                 try:
-                    applier_object.user_context_apply()
+                    result = applier_object.user_context_apply()
+                    self._collect_result(applier_name, result)
                 except Exception as exc:
                     logdata = {'applier_name': applier_name, 'message': str(exc)}
                     log('E11', logdata)
+        self._log_summary()
 
     def apply_parameters(self):
         '''

@@ -469,3 +469,48 @@ plugin = UdevApplier(
 )
 plugin.apply()
 ```
+
+## Status Reporting
+
+### Read status from ApplierRunner.run()
+
+```python
+from gpoa_lib import ApplierRunner, ApplierResult
+
+runner = ApplierRunner(data={
+    'Software/BaseALT/Policies/Control': {'sshd-gssapi-auth': '1'},
+})
+result = runner.run('control')
+if result and isinstance(result.data, ApplierResult):
+    status = result.data
+    print(f'{status.name}: {status.status}')
+    print(f'  applied: {status.applied_count}')
+    print(f'  failed:  {status.failed_count}')
+    print(f'  skipped: {status.skipped_count}')
+    for item in status.items:
+        print(f'  [{item.result}] {item.key}: {item.action} — {item.detail}')
+elif result:
+    print('Applier ran (no status)')
+else:
+    print('Error:', result.error)
+```
+
+### Collect status from plugin_manager
+
+```python
+from gpoa_lib.plugin.plugin_manager import plugin_manager
+
+pm = plugin_manager(is_machine=True, username=None)
+pm.run()
+for result in pm.results:
+    print(f'{result.name}: {result.status} ({result.applied_count} applied)')
+```
+
+### Serialize status to dict
+
+```python
+result = runner.run('control')
+if result and result.data:
+    import json
+    print(json.dumps(result.data.to_dict(), indent=2))
+```

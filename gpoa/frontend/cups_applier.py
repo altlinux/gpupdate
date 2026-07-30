@@ -24,6 +24,7 @@ from util.logging import log
 from util.rpm import is_rpm_installed
 
 from .applier_frontend import applier_frontend, check_enabled
+from gpoa_lib.applier_result import ApplierResult
 
 
 def storage_get_printers(storage, username=None):
@@ -90,14 +91,13 @@ class cups_applier(applier_frontend):
                 connect_printer(self.cups_connection, prn)
 
     def apply(self):
-        '''
-        Perform configuration of printer which is assigned to computer.
-        '''
         if self.__module_enabled:
             log('D113')
             self.run()
+            return ApplierResult.not_implemented('cups')
         else:
             log('D114')
+            return ApplierResult.skipped('cups')
 
 class cups_applier_user(applier_frontend):
     __module_name = 'CUPSApplierUser'
@@ -133,15 +133,14 @@ class cups_applier_user(applier_frontend):
                 connect_printer(self.cups_connection, prn)
 
     def apply(self, **kwargs):
-        self.admin_context_apply()
+        return self.admin_context_apply()
 
     def admin_context_apply(self):
-        '''
-        Perform printer configuration assigned for user.
-        '''
         if self.__module_enabled:
             log('D115')
             self.run()
+            return ApplierResult.not_implemented('cups_user')
         else:
             log('D116')
+            return ApplierResult.skipped('cups_user')
 

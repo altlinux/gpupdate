@@ -78,12 +78,18 @@ class applier_frontend(ABC):
 
     @abstractmethod
     def apply(self, **kwargs):
+        '''Apply policies for this module.
+
+        Returns:
+            ApplierResult or None: optionally return an ApplierResult
+            with per-item status information for reporting.
+        '''
         raise NotImplementedError
 
 
 class DualContextApplier(applier_frontend):
     def apply(self, **kwargs):
-        self.admin_context_apply()
+        return self.admin_context_apply()
 
     def admin_context_apply(self):
         pass

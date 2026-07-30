@@ -211,12 +211,12 @@ def get_policy_variants():
 def string_to_literal_eval(string):
     if not isinstance(string, str):
         return string
+    if not string:
+        return string
     try:
-        literaleval = ast.literal_eval(string)
-    except Exception as exc:
-        log('D316', {'string': string, 'exc': str(exc)})
-        literaleval = string
-    return literaleval
+        return ast.literal_eval(string)
+    except Exception:
+        return string
 
 def try_dict_to_literal_eval(string):
     try:

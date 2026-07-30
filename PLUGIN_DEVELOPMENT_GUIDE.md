@@ -340,6 +340,29 @@ Message codes:
 - Applies user-specific settings
 - Uses factory function `create_user_applier()`
 
+## Returning Execution Status
+
+Plugins can optionally return an `ApplierResult` from `run()` for per-item
+status tracking:
+
+```python
+from gpoa_lib import ApplierResult, ItemStatus
+
+class MyPlugin(FrontendPlugin):
+    def run(self, **kwargs):
+        items = []
+        try:
+            # apply logic...
+            items.append(ItemStatus(key='ssh', action='set', result='success'))
+        except Exception as exc:
+            items.append(ItemStatus(key='ssh', action='set', result='failed', detail=str(exc)))
+        return ApplierResult.applied('my_plugin', items)
+```
+
+Returning `bool` or `None` is still fully supported for backward
+compatibility. The `plugin_manager` collects `ApplierResult` objects in
+``self.results``.
+
 ## Best Practices
 
 1. **Security**: Always validate input data

@@ -41,7 +41,8 @@ The `gpoa/` directory contains thin wrappers that re-export from `gpoa_lib/` for
 - **Plugin System**: Extensible architecture for custom policy types
 - **Targeting Filters**: 15 filter types (computer, domain, user, group, date, time, CPU, battery, disk, RAM, language, file, environment variable, IP range, MAC range)
 - **Privilege Separation**: Secure execution with proper privilege contexts
-- **External API**: `StorageAdapter`, `StorageWriter`, `ApplierRunner`, and `Result` for using gpoa-lib as a standalone library
+- **External API**: `StorageAdapter`, `StorageWriter`, `ApplierRunner`, `Result`, and `ApplierResult` for using gpoa-lib as a standalone library
+- **Execution Status**: Per-item success/failure/skip tracking across all appliers
 
 ### Supported Policy Areas
 - **System Configuration**: Control facilities, systemd units, environment variables, NTP, firewall

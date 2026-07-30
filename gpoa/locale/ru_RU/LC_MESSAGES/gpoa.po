@@ -1122,9 +1122,6 @@ msgstr "Не удалось инициализировать объект пер
 msgid "Failed to format plugin log message"
 msgstr "Не удалось форматировать сообщение журнала плагина"
 
-msgid "Failed to parse string as literal"
-msgstr "Не удалось разобрать строку как литерал"
-
 msgid "Failed to check local user existence"
 msgstr "Не удалось проверить существование локального пользователя"
 
@@ -1316,6 +1313,27 @@ msgid "dconf database not found"
 msgstr "База данных dconf не найдена"
 
 # Warning_end
+
+# Info_status
+msgid "Applier finished"
+msgstr "Работа применителя завершена"
+
+msgid "Policy application summary"
+msgstr "Сводка применения политик"
+
+msgid "Plugin finished"
+msgstr "Работа плагина завершена"
+
+msgid "Plugin application summary"
+msgstr "Сводка применения плагинов"
+
+# Warning_status
+msgid "Applier completed with errors"
+msgstr "Применитель завершён с ошибками"
+
+# Error_status
+msgid "Applier failed"
+msgstr "Сбой применителя"
 
 # Fatal
 msgid "Unable to refresh GPO list"

@@ -22,6 +22,7 @@ from ..util.logging import log
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.file_cp import Execution_check, Files_cp, str2bool as check_str2bool
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_file
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED, RESULT_SKIPPED
 
 SECURE_PERMS_KEY = 'Software/BaseALT/Policies/GroupPolicies/Files/SecurePermissionsDisabled'
 
@@ -50,11 +51,10 @@ class file_applier(applier_frontend):
         self.secure_permissions = is_secure_permissions_enabled(self.storage)
 
     def run(self):
-        # Cleanup removed elements with removePolicy
+        items = []
         current_elements = [dict(f) for f in self.files if not f.disabled]
         self.state_manager.cleanup_removed('Files', current_elements, cleanup_file)
 
-        # Apply current elements
         for file in self.files:
             if file.disabled:
                 continue
@@ -62,28 +62,37 @@ class file_applier(applier_frontend):
             file_dict = dict(file)
             apply_once = getattr(file, 'apply_once', False)
             bypass_errors = getattr(file, 'bypass_errors', False)
+            uid = getattr(file, 'uid', 'unknown')
             if apply_once:
                 if self.state_manager.should_skip(file_dict, element_type):
-                    logdata = {'uid': getattr(file, 'uid', 'unknown')}
+                    logdata = {'uid': uid}
                     log('D240', logdata)
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                     continue
             try:
                 Files_cp(file, self.file_cache, self.exe_check, secure_permissions=self.secure_permissions)
                 if apply_once:
                     self.state_manager.mark_applied(file_dict, element_type, element_obj=file)
+                items.append(ItemStatus(key=uid, action='copy', result=RESULT_SUCCESS))
             except Exception as exc:
                 if not bypass_errors:
                     raise
-                logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
+                logdata = {'uid': uid, 'exc': str(exc)}
                 log('W47', logdata)
+                items.append(ItemStatus(key=uid, action='copy', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def apply(self):
         if self.__module_enabled:
             log('I32')
             log('D167')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='files', status=status, items=items)
         else:
             log('D168')
+            return ApplierResult.skipped('files')
 
 class file_applier_user(DualContextApplier):
     __module_name = 'FilesApplierUser'
@@ -105,11 +114,10 @@ class file_applier_user(DualContextApplier):
         self.secure_permissions = is_secure_permissions_enabled(self.storage)
 
     def run(self):
-        # Cleanup removed elements with removePolicy
+        items = []
         current_elements = [dict(f) for f in self.files if not f.disabled]
         self.state_manager.cleanup_removed('Files', current_elements, cleanup_file)
 
-        # Apply current elements
         for file in self.files:
             if file.disabled:
                 continue
@@ -117,27 +125,36 @@ class file_applier_user(DualContextApplier):
             file_dict = dict(file)
             apply_once = getattr(file, 'apply_once', False)
             bypass_errors = getattr(file, 'bypass_errors', False)
+            uid = getattr(file, 'uid', 'unknown')
             if apply_once:
                 if self.state_manager.should_skip(file_dict, element_type):
-                    logdata = {'uid': getattr(file, 'uid', 'unknown')}
+                    logdata = {'uid': uid}
                     log('D240', logdata)
+                    items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
                     continue
             try:
                 Files_cp(file, self.file_cache, self.exe_check, self.username, secure_permissions=self.secure_permissions)
                 if apply_once:
                     self.state_manager.mark_applied(file_dict, element_type, element_obj=file)
+                items.append(ItemStatus(key=uid, action='copy', result=RESULT_SUCCESS))
             except Exception as exc:
                 if not bypass_errors:
                     raise
-                logdata = {'uid': getattr(file, 'uid', 'unknown'), 'exc': str(exc)}
+                logdata = {'uid': uid, 'exc': str(exc)}
                 log('W47', logdata)
+                items.append(ItemStatus(key=uid, action='copy', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D169')
-            self.run()
+            items = self.run()
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='files_user', status=status, items=items)
         else:
             log('D170')
+            return ApplierResult.skipped('files_user')
 
     def user_context_apply(self):
         pass

@@ -9,21 +9,22 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 ## Table of Contents
 
 1. [Result](#result)
-2. [StorageAdapter](#storageadapter)
-3. [StorageWriter](#storagewriter)
-4. [ApplierRunner](#applierrunner)
-5. [plugin (abstract base)](#plugin)
-6. [FrontendPlugin](#frontendplugin)
-7. [applier_frontend](#applier_frontend)
-8. [DualContextApplier](#dualcontextapplier)
-9. [plugin_manager](#plugin_manager)
-10. [Dconf_registry](#dconf_registry)
-11. [GppStateManager](#gppstatemanager)
-12. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-13. [Data Types](#data-types)
-14. [Filters (FilterChecker)](#filters)
-15. [Utility Functions](#utility-functions)
-16. [Path Functions](#path-functions)
+2. [ApplierResult / ItemStatus](#applierresult--itemstatus)
+3. [StorageAdapter](#storageadapter)
+4. [StorageWriter](#storagewriter)
+5. [ApplierRunner](#applierrunner)
+6. [plugin (abstract base)](#plugin)
+7. [FrontendPlugin](#frontendplugin)
+8. [applier_frontend](#applier_frontend)
+9. [DualContextApplier](#dualcontextapplier)
+10. [plugin_manager](#plugin_manager)
+11. [Dconf_registry](#dconf_registry)
+12. [GppStateManager](#gppstatemanager)
+13. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+14. [Data Types](#data-types)
+15. [Filters (FilterChecker)](#filters)
+16. [Utility Functions](#utility-functions)
+17. [Path Functions](#path-functions)
 
 ---
 
@@ -32,6 +33,8 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 ```python
 from gpoa_lib import (
     Result,
+    ApplierResult,
+    ItemStatus,
     StorageAdapter,
     StorageWriter,
     ApplierRunner,
@@ -101,6 +104,83 @@ if result:
     print('Applied:', result.data)
 else:
     print('Error:', result.error)
+```
+
+---
+
+## ApplierResult / ItemStatus
+
+`gpoa_lib.applier_result.ApplierResult`
+
+Execution status returned by appliers and plugins when they finish.
+Provides per-item success/failure/skip tracking and overall status.
+
+### ApplierResult
+
+| Attribute | Type   | Description |
+|-----------|--------|-------------|
+| `name` | `str` | Applier or plugin name (e.g. `'control'`, `'cifs'`). |
+| `status` | `str` | Overall status: `'applied'`, `'partial'`, `'failed'`, `'skipped'`, `'not_implemented'`. |
+| `items` | `list[ItemStatus]` | Per-item details. |
+| `error` | `str`  | Error description when status is `'failed'`. |
+| `metadata` | `dict` | Arbitrary extra data. |
+
+**Properties:**
+
+| Property | Returns | Description |
+|-----------|---------|-------------|
+| `applied_count` | `int` | Number of successfully applied items. |
+| `failed_count` | `int` | Number of failed items. |
+| `skipped_count` | `int` | Number of skipped items. |
+
+**Factory Methods:**
+
+| Method | Description |
+|--------|-------------|
+| `ApplierResult.applied(name, items)` | Create a success result. |
+| `ApplierResult.skipped(name, reason)` | Create a disabled/empty result. |
+| `ApplierResult.failed(name, error)` | Create a failure result. |
+| `ApplierResult.not_implemented(name)` | Stub for unsupported appliers. |
+
+**Serialization:**
+
+```python
+result.to_dict()
+# Returns: {
+#     'name': 'control',
+#     'status': 'applied',
+#     'error': None,
+#     'applied_count': 8,
+#     'failed_count': 0,
+#     'skipped_count': 2,
+#     'items': [{'key': '...', 'action': 'set', 'result': 'success', 'detail': ''}, ...],
+#     'metadata': {},
+# }
+```
+
+### ItemStatus
+
+| Attribute | Type   | Description |
+|-----------|--------|-------------|
+| `key` | `str`  | Item identifier (registry path, file path, unit name). |
+| `action` | `str`  | What was done: `'set'`, `'create'`, `'delete'`, `'skip'`, `'copy'`. |
+| `result` | `str`  | Outcome: `'success'`, `'failed'`, `'skipped'`. |
+| `detail` | `str`  | Additional info (exit code, error msg). |
+
+### Usage
+
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(data=my_dict)
+result = runner.run('control')
+if result and result.data:
+    status = result.data  # ApplierResult
+    print(f'{status.name}: {status.status}')
+    print(f'  applied: {status.applied_count}')
+    for item in status.items:
+        if item.result == 'failed':
+            print(f'  FAIL: {item.key} — {item.detail}')
 ```
 
 ---
@@ -460,14 +540,19 @@ if result:
 
 #### `run(applier_name, prefix=None, keys=None)`
 
-Create an applier and call its `apply()` method.  Exceptions are caught and
-returned as a failed `Result`.
+Create an applier and call its `apply()` method.  When the applier returns an
+`ApplierResult`, it is available as ``result.data``.  When the applier returns
+`None` (backward compatibility), ``result.data`` is `None`.  Exceptions are
+caught and returned as a failed `Result`.
 
 ```python
 runner = ApplierRunner(data=my_dict)
 result = runner.run('control')
 if not result:
     print('Error:', result.error)
+elif result.data:
+    status = result.data  # ApplierResult
+    print(f'{status.name}: {status.status}, applied={status.applied_count}')
 
 runner.run('gsettings', prefix='Software/MyOrg')
 ```
@@ -595,7 +680,9 @@ Get a dict from the registry for the given prefix.
 
 #### `run(**kwargs)` *(abstract)*
 
-The main plugin logic.  **Must** be overridden by subclasses.
+The main plugin logic.  **Must** be overridden by subclasses.  May return
+`ApplierResult` for per-item status tracking, or `bool`/`None` for backward
+compatibility.
 
 #### `_init_plugin_log(message_dict=None, locale_dir=None, domain=None)`
 
@@ -684,6 +771,7 @@ class applier_frontend(ABC):
         pass
     @abstractmethod
     def apply(self, **kwargs):
+        '''Apply policies. Optionally return ApplierResult for status reporting.'''
         raise NotImplementedError
 ```
 
@@ -768,7 +856,8 @@ plugin_manager(is_machine, username)
 #### `run()`
 
 Execute all loaded plugins.  Uses `apply()` for machine context,
-`apply_user()` for user context.
+`apply_user()` for user context.  Results are collected in
+``self.results`` as a ``list[ApplierResult]``.
 
 #### `load_plugins()`
 

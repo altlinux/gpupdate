@@ -9,21 +9,22 @@
 ## Содержание
 
 1. [Result](#result)
-2. [StorageAdapter](#storageadapter)
-3. [StorageWriter](#storagewriter)
-4. [ApplierRunner](#applierrunner)
-5. [plugin (абстрактный базовый класс)](#plugin)
-6. [FrontendPlugin](#frontendplugin)
-7. [applier_frontend](#applier_frontend)
-8. [DualContextApplier](#dualcontextapplier)
-9. [plugin_manager](#plugin_manager)
-10. [Dconf_registry](#dconf_registry)
-11. [GppStateManager](#gppstatemanager)
-12. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
-13. [Типы данных](#типы-данных)
-14. [Фильтры (FilterChecker)](#фильтры)
-15. [Вспомогательные функции](#вспомогательные-функции)
-16. [Функции путей](#функции-путей)
+2. [ApplierResult / ItemStatus](#applierresult--itemstatus)
+3. [StorageAdapter](#storageadapter)
+4. [StorageWriter](#storagewriter)
+5. [ApplierRunner](#applierrunner)
+6. [plugin (абстрактный базовый класс)](#plugin)
+7. [FrontendPlugin](#frontendplugin)
+8. [applier_frontend](#applier_frontend)
+9. [DualContextApplier](#dualcontextapplier)
+10. [plugin_manager](#plugin_manager)
+11. [Dconf_registry](#dconf_registry)
+12. [GppStateManager](#gppstatemanager)
+13. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
+14. [Типы данных](#типы-данных)
+15. [Фильтры (FilterChecker)](#фильтры)
+16. [Вспомогательные функции](#вспомогательные-функции)
+17. [Функции путей](#функции-путей)
 
 ---
 
@@ -32,6 +33,8 @@
 ```python
 from gpoa_lib import (
     Result,
+    ApplierResult,
+    ItemStatus,
     StorageAdapter,
     StorageWriter,
     ApplierRunner,
@@ -101,6 +104,67 @@ if result:
     print('Применено:', result.data)
 else:
     print('Ошибка:', result.error)
+```
+
+---
+
+## ApplierResult / ItemStatus
+
+`gpoa_lib.applier_result.ApplierResult`
+
+Статус выполнения, возвращаемый applier'ами и плагинами. Содержит информацию
+об успешности, ошибках и пропущенных элементах.
+
+### ApplierResult
+
+| Атрибут | Тип   | Описание |
+|---------|--------|----------|
+| `name` | `str` | Имя applier/плагина (`'control'`, `'cifs'`, ...). |
+| `status` | `str` | Общий статус: `'applied'`, `'partial'`, `'failed'`, `'skipped'`, `'not_implemented'`. |
+| `items` | `list[ItemStatus]` | Детали по каждому элементу. |
+| `error` | `str` | Текст ошибки при `status='failed'`. |
+| `metadata` | `dict` | Дополнительные данные. |
+
+**Свойства:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| `applied_count` | `int` | Кол-во успешно применённых элементов. |
+| `failed_count` | `int` | Кол-во проваленных. |
+| `skipped_count` | `int` | Кол-во пропущенных. |
+
+**Фабричные методы:**
+
+| Метод | Описание |
+|--------|----------|
+| `ApplierResult.applied(name, items)` | Успешный результат. |
+| `ApplierResult.skipped(name, reason)` | Модуль выключен или пуст. |
+| `ApplierResult.failed(name, error)` | Критическая ошибка. |
+| `ApplierResult.not_implemented(name)` | Заглушка (applier не отслеживает статус). |
+
+### ItemStatus
+
+| Атрибут | Тип   | Описание |
+|---------|--------|----------|
+| `key` | `str` | Идентификатор элемента (registry path, file path, unit name). |
+| `action` | `str` | Действие: `'set'`, `'create'`, `'delete'`, `'skip'`, `'copy'`. |
+| `result` | `str` | Результат: `'success'`, `'failed'`, `'skipped'`. |
+| `detail` | `str` | Доп. информация (exit code, текст ошибки). |
+
+### Использование
+
+```python
+from gpoa_lib import ApplierRunner
+
+runner = ApplierRunner(data=my_dict)
+result = runner.run('control')
+if result and result.data:
+    status = result.data  # ApplierResult
+    print(f'{status.name}: {status.status}')
+    print(f'  применено: {status.applied_count}')
+    for item in status.items:
+        if item.result == 'failed':
+            print(f'  ОШИБКА: {item.key} — {item.detail}')
 ```
 
 ---

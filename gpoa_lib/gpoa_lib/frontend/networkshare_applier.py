@@ -20,6 +20,7 @@ from ..util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.netshare import Networkshare
+from ..applier_result import ApplierResult
 
 
 class networkshare_applier(applier_frontend):
@@ -46,8 +47,10 @@ class networkshare_applier(applier_frontend):
             log('I35')
             log('D187')
             self.run()
+            return ApplierResult.not_implemented('networkshare')
         else:
             log('D181')
+            return ApplierResult.skipped('networkshare')
     def admin_context_apply(self):
         pass
 
@@ -55,5 +58,7 @@ class networkshare_applier(applier_frontend):
         if self.__module_enabled_user:
             log('D188')
             self.run()
+            return ApplierResult.not_implemented('networkshare_user')
         else:
             log('D189')
+            return ApplierResult.skipped('networkshare_user')

@@ -24,6 +24,7 @@ from ..util.logging import log
 
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from .appliers.folder import remove_dir_tree
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class scripts_applier(applier_frontend):
@@ -72,9 +73,18 @@ class scripts_applier(applier_frontend):
         if self.__module_enabled:
             log('I33')
             log('D156')
-            self.run()
+            items = []
+            try:
+                self.run()
+                items.append(ItemStatus(key='scripts', action='copy', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='scripts', action='copy', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='scripts', status=status, items=items)
         else:
             log('D157')
+            return ApplierResult.skipped('scripts')
 
 class scripts_applier_user(DualContextApplier):
     __module_name = 'ScriptsApplierUser'
@@ -126,9 +136,18 @@ class scripts_applier_user(DualContextApplier):
         self.cleaning_cache()
         if self.__module_enabled:
             log('D158')
-            self.run()
+            items = []
+            try:
+                self.run()
+                items.append(ItemStatus(key='scripts', action='copy', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='scripts', action='copy', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='scripts_user', status=status, items=items)
         else:
             log('D159')
+            return ApplierResult.skipped('scripts_user')
 
 def install_script(storage_script_entry, script_dir, access_permissions):
     '''

@@ -57,6 +57,10 @@ _INFO_MESSAGES = {
     34: 'Running INI applier for machine',
     35: 'Running NetworkShare applier for machine',
     36: 'Running LAPS applier for machine',
+    37: 'Applier finished',
+    38: 'Policy application summary',
+    39: 'Plugin finished',
+    40: 'Plugin application summary',
 }
 
 _ERROR_MESSAGES = {
@@ -140,6 +144,7 @@ _ERROR_MESSAGES = {
     79: 'Unable to initialize Freeipa backend',
     80: 'FreeIPA API error',
     81: 'Error setting trust attribute for shortcut',
+    82: 'Applier failed',
 }
 
 _DEBUG_MESSAGES = {
@@ -433,7 +438,7 @@ _DEBUG_MESSAGES = {
     313: 'Failed to initialize plugin translation object',
     314: 'Failed to format plugin log message',
     315: 'Failed to get local groups for username',
-    316: 'Failed to parse string as literal',
+
     317: 'Failed to check local user existence',
     318: 'Failed to run external command',
     319: 'Failed to get group SIDs for SID',
@@ -513,6 +518,7 @@ _WARNING_MESSAGES = {
     54: 'Failed to get domain info for filter context',
     55: 'Failed to get group SIDs for filter',
     56: 'dconf database not found',
+    57: 'Applier completed with errors',
 }
 
 _FATAL_MESSAGES = {

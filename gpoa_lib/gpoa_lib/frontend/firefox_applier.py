@@ -32,6 +32,7 @@ from ..util.logging import log
 from ..util.util import is_machine_name, try_dict_to_literal_eval
 
 from .applier_frontend import applier_frontend, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class firefox_applier(applier_frontend):
@@ -74,9 +75,18 @@ class firefox_applier(applier_frontend):
         if self.__module_enabled:
             log('I25')
             log('D93')
-            self.machine_apply()
+            items = []
+            try:
+                self.machine_apply()
+                items.append(ItemStatus(key='policies.json', action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='policies.json', action='create', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='firefox', status=status, items=items)
         else:
             log('D94')
+            return ApplierResult.skipped('firefox')
 
 def key_dict_is_digit(dictionary:dict) -> bool:
     '''

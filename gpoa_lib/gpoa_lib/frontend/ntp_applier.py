@@ -24,6 +24,7 @@ import subprocess
 from ..util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class NTPServerType(Enum):
@@ -143,7 +144,16 @@ class ntp_applier(applier_frontend):
         if self.__module_enabled:
             log('I30')
             log('D121')
-            self.run()
+            items = []
+            try:
+                self.run()
+                items.append(ItemStatus(key='chrony', action='set', result=RESULT_SUCCESS))
+            except Exception as exc:
+                items.append(ItemStatus(key='chrony', action='set', result=RESULT_FAILED, detail=str(exc)))
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='ntp', status=status, items=items)
         else:
             log('D133')
+            return ApplierResult.skipped('ntp')
 

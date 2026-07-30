@@ -48,6 +48,8 @@ ApplierRunner
     High-level facade for creating and running appliers.
 Result
     Type-safe return wrapper for operations.
+ApplierResult, ItemStatus
+    Execution status returned by appliers and plugins.
 FrontendPlugin
     Base class for external plugins.
 applier_frontend
@@ -66,6 +68,7 @@ from gpoa_lib.storage.gpp_state import GppStateManager
 from gpoa_lib.storage.storage_adapter import StorageAdapter
 from gpoa_lib.storage.storage_writer import StorageWriter
 from gpoa_lib.result import Result
+from gpoa_lib.applier_result import ApplierResult, ItemStatus
 from gpoa_lib.frontend.applier_frontend import applier_frontend, DualContextApplier
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
 from gpoa_lib.applier_runner import ApplierRunner

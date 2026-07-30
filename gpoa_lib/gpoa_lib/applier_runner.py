@@ -19,6 +19,7 @@
 from .storage.storage_adapter import StorageAdapter
 from .storage.fs_file_cache import fs_file_cache
 from .result import Result
+from .applier_result import ApplierResult
 from .util.logging import log
 
 
@@ -202,7 +203,11 @@ class ApplierRunner:
         return Result.ok_result(applier)
 
     def run(self, applier_name, prefix=None, keys=None):
-        '''Create and run an applier. Returns Result.'''
+        '''Create and run an applier. Returns Result.
+
+        When the applier returns an ApplierResult, it is available as
+        ``result.data``. Otherwise ``result.data`` is ``None``.
+        '''
         create_result = self.create(applier_name, prefix, keys)
         if not create_result:
             return create_result
@@ -210,7 +215,17 @@ class ApplierRunner:
         try:
             if hasattr(applier, 'force'):
                 applier.force = self.force
-            applier.apply()
+            apply_result = applier.apply()
+            if isinstance(apply_result, ApplierResult):
+                logdata = {
+                    'name': apply_result.name,
+                    'status': apply_result.status,
+                    'succeeded': apply_result.applied_count,
+                    'failed': apply_result.failed_count,
+                    'skipped': apply_result.skipped_count,
+                }
+                log('I37', logdata)
+                return Result(ok=True, data=apply_result)
             return Result.ok_result()
         except Exception as exc:
             logdata = {'applier_name': applier_name, 'msg': str(exc)}

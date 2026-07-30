@@ -22,6 +22,7 @@ import subprocess
 from ..util.logging import log
 
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
+from ..applier_result import ApplierResult
 
 
 class package_applier(applier_frontend):
@@ -77,8 +78,10 @@ class package_applier(applier_frontend):
             log('I23')
             log('D138')
             self.run()
+            return ApplierResult.not_implemented('package')
         else:
             log('D139')
+            return ApplierResult.skipped('package')
 
 
 class package_applier_user(DualContextApplier):
@@ -138,13 +141,11 @@ class package_applier_user(DualContextApplier):
                     log('E62', logdata)
 
     def admin_context_apply(self):
-        '''
-        Install software assigned to specified username regardless
-        which computer he uses to log into system.
-        '''
         if self.__module_enabled:
             log('D140')
             self.run()
+            return ApplierResult.not_implemented('package_user')
         else:
             log('D141')
+            return ApplierResult.skipped('package_user')
 

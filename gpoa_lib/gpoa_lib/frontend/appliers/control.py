@@ -101,14 +101,14 @@ class control:
                 logdata['control'] = self.control_name
                 logdata['impossible values'] = self.control_value
                 log('E42', logdata)
-                return
+                return False
         elif type(self.control_value) == str:
             if self.control_value not in self.possible_values:
                 logdata = {}
                 logdata['control'] = self.control_name
                 logdata['impossible values'] = self.control_value
                 log('E59', logdata)
-                return
+                return False
             status = self.control_value
         logdata = {}
         logdata['control'] = self.control_name
@@ -119,9 +119,11 @@ class control:
             popen_call = ['/usr/sbin/control', self.control_name, status]
             with subprocess.Popen(popen_call, stdout=subprocess.PIPE) as proc:
                 proc.wait(timeout=30)
+            return proc.returncode == 0
         except Exception as exc:
             logdata = {}
             logdata['control'] = self.control_name
             logdata['status'] = status
             logdata['exc'] = exc
             log('E43', logdata)
+            return False
