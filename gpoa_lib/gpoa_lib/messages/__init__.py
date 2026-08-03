@@ -519,6 +519,8 @@ _WARNING_MESSAGES = {
     55: 'Failed to get group SIDs for filter',
     56: 'dconf database not found',
     57: 'Applier completed with errors',
+    58: 'Skipped invalid dconf section',
+    59: 'Skipped invalid dconf key',
 }
 
 _FATAL_MESSAGES = {

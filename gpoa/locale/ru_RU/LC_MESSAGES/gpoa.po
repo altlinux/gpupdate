@@ -1331,6 +1331,13 @@ msgstr "Сводка применения плагинов"
 msgid "Applier completed with errors"
 msgstr "Применитель завершён с ошибками"
 
+# Warning_dconf_validate
+msgid "Skipped invalid dconf section"
+msgstr "Пропущена невалидная секция dconf"
+
+msgid "Skipped invalid dconf key"
+msgstr "Пропущен невалидный ключ dconf"
+
 # Error_status
 msgid "Applier failed"
 msgstr "Сбой применителя"
