@@ -32,6 +32,9 @@ DCONF_DB_DIR_SUFFIX = '.d/'
 INI_EXTENSION = '.ini'
 POL_EXTENSION = '.pol'
 
+_DCONF_NUMERIC_SEGMENT_PREFIX = 'gpupdate-numseg-'
+_DCONF_ESCAPED_SEGMENT_PREFIX = 'gpupdate-escseg-'
+
 from .dynamic_attributes import RegistryKeyMetadata
 from ..util.constants import TRUE_STRINGS
 from ..util.ini_writer import write_ini_sections
@@ -312,7 +315,9 @@ class Dconf_registry():
             dconf_dict = cls.get_key_values(cls.get_matching_keys(startswith))
             for key, value in dconf_dict.items():
                 keys_tmp = key.split('/')
-                update_dict(output_dict.setdefault('/'.join(keys_tmp[:-1])[1:], {}), {keys_tmp[-1]: str(value)})
+                section = decode_dconf_path('/'.join(keys_tmp[:-1])[1:])
+                keyname = decode_dconf_segment(keys_tmp[-1])
+                update_dict(output_dict.setdefault(section, {}), {keyname: str(value)})
 
         log('D207', {'keys': len(output_dict)})
         return output_dict
@@ -341,12 +346,14 @@ class Dconf_registry():
                     if value is None:
                         continue
                     list_path = name.split('/')
+                    section = decode_dconf_path('/'.join(list_path[1:-1]))
+                    keyname = decode_dconf_segment(list_path[-1])
                     if value.is_of_type(GLib.VariantType('s')):
-                        part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
-                        part[list_path[-1]] = value.get_string()
+                        part = output_dict.setdefault(section, {})
+                        part[keyname] = value.get_string()
                     elif value.is_of_type(GLib.VariantType('i')):
-                        part = output_dict.setdefault('/'.join(list_path[1:-1]), {})
-                        part[list_path[-1]] = value.get_int32()
+                        part = output_dict.setdefault(section, {})
+                        part[keyname] = value.get_int32()
         except Exception as exc:
             logdata['exc'] = exc
             logdata['path_bin'] = path_bin
@@ -932,9 +939,9 @@ def create_dconf_file_locks(filename_ini, data):
     with open(file_lock, 'w') as file:
         # Iterate over all lock keys obtained from the data
         for key_lock in get_keys_dconf_locks(data):
-            # Remove the "lock/" prefix from the key and split into parts
-            key = key_lock.split('/')[1:]
-            # Write the cleaned key to the lock file
+            key = encode_dconf_path(key_lock)
+            if key and key[0] != '/':
+                key = '/' + key
             file.write(f'{key}\n')
 
 def get_keys_dconf_locks(data):
@@ -984,6 +991,45 @@ def convert_string_dconf(input_string):
             output_string = input_string.replace(value, key)
 
     return output_string
+
+
+def encode_dconf_segment(segment):
+    if not segment:
+        return segment
+
+    if segment.startswith(_DCONF_NUMERIC_SEGMENT_PREFIX) or segment.startswith(_DCONF_ESCAPED_SEGMENT_PREFIX):
+        return f'{_DCONF_ESCAPED_SEGMENT_PREFIX}{segment}'
+
+    if segment[0].isdigit():
+        return f'{_DCONF_NUMERIC_SEGMENT_PREFIX}{segment}'
+
+    return segment
+
+
+def decode_dconf_segment(segment):
+    if not segment:
+        return segment
+
+    if segment.startswith(_DCONF_ESCAPED_SEGMENT_PREFIX):
+        decoded = segment[len(_DCONF_ESCAPED_SEGMENT_PREFIX):]
+        if decoded.startswith(_DCONF_NUMERIC_SEGMENT_PREFIX) or decoded.startswith(_DCONF_ESCAPED_SEGMENT_PREFIX):
+            return decoded
+
+    if segment.startswith(_DCONF_NUMERIC_SEGMENT_PREFIX):
+        decoded = segment[len(_DCONF_NUMERIC_SEGMENT_PREFIX):]
+        if decoded and decoded[0].isdigit():
+            return decoded
+
+    return segment
+
+
+def encode_dconf_path(path):
+    return '/'.join(encode_dconf_segment(part) if part else part for part in path.split('/'))
+
+
+def decode_dconf_path(path):
+    return '/'.join(decode_dconf_segment(part) if part else part for part in path.split('/'))
+
 
 def remove_empty_values(input_list):
     return list(filter(None, input_list))

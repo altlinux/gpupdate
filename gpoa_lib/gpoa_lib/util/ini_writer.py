@@ -20,24 +20,19 @@
 def write_ini_sections(file_obj, data):
     '''
     Write a nested dict as dconf INI sections to a file object.
-
-    Parameters
-    ----------
-    file_obj : file
-        Open file handle to write to.
-    data : dict
-        Nested dict ``{section: {key: value}}``.
     '''
+    from ..storage.dconf_registry import encode_dconf_path, encode_dconf_segment
     for section, section_data in data.items():
         if not section:
             continue
-        file_obj.write(f'[{section}]\n')
+        file_obj.write(f'[{encode_dconf_path(section)}]\n')
         if isinstance(section_data, dict):
             for key, value in section_data.items():
                 if not key:
                     continue
+                encoded_key = encode_dconf_segment(key)
                 if isinstance(value, int):
-                    file_obj.write(f'{key} = {value}\n')
+                    file_obj.write(f'{encoded_key} = {value}\n')
                 else:
-                    file_obj.write(f'{key} = "{value}"\n')
+                    file_obj.write(f'{encoded_key} = "{value}"\n')
         file_obj.write('\n')
