@@ -53,7 +53,7 @@ class plugin(ABC):
     @final
     def apply(self, **kwargs):
         """Apply the plugin with current privileges"""
-        self.run(**kwargs)
+        return self.run(**kwargs)
 
     @final
     def apply_user(self, username, **kwargs):
