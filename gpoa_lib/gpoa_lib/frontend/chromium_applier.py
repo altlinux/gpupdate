@@ -23,7 +23,7 @@ from ..util.logging import log
 from ..util.util import is_machine_name, string_to_literal_eval
 
 from .applier_frontend import applier_frontend, check_enabled
-from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class chromium_applier(applier_frontend):

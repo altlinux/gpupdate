@@ -35,7 +35,7 @@ from .applier_frontend import (
     check_windows_mapping_enabled,
 )
 from .appliers.gsettings import system_gsettings, user_gsettings
-from ..applier_result import ApplierResult, ItemStatus, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 def uri_fetch(schema, path, value, cache):
