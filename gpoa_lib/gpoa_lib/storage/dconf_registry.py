@@ -841,7 +841,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
         # Skip this entry if the valuename starts with '**del'
         if i.valuename.lower().startswith('**del'):
             continue
-        valuename = convert_string_dconf(i.valuename)
+        valuename = i.valuename
         data = check_data(i.data, i.type)
         if i.valuename != i.data and i.valuename:
             key_registry_source = f"{source_pre}/{i.keyname}".replace('\\', '/')
@@ -985,10 +985,10 @@ def convert_string_dconf(input_string):
     }
     output_string = input_string
     for key, value in macros.items():
-        if key in input_string:
-            output_string = input_string.replace(key, value)
-        elif value in input_string:
-            output_string = input_string.replace(value, key)
+        if key in output_string:
+            output_string = output_string.replace(key, value)
+        elif value in output_string:
+            output_string = output_string.replace(value, key)
 
     return output_string
 

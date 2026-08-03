@@ -24,7 +24,7 @@ from ..util.logging import log
 
 from .applier_frontend import applier_frontend, check_enabled
 from .appliers.firewall_rule import FirewallRule
-from ..applier_result import ApplierResult, ItemStatus, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
+from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
 class firewall_applier(applier_frontend):
