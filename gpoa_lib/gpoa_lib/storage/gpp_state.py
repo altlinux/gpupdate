@@ -367,7 +367,13 @@ def cleanup_folder(element: Dict, username: str = None) -> None:
     path = Path(path.replace('\\', '/'))
 
     if path.exists() and path.is_dir():
-        shutil.rmtree(path, ignore_errors=True)
+        delete_files = element.get('delete_files', False)
+        delete_sub_folders = element.get('delete_sub_folders', False)
+        delete_folder = element.get('delete_folder', False)
+        if not any([delete_files, delete_sub_folders, delete_folder]):
+            delete_folder = True
+        from ..frontend.appliers.folder import remove_dir_tree
+        remove_dir_tree(path, delete_files, delete_folder, delete_sub_folders)
 
 
 def cleanup_envvar(element: Dict, username: str = None) -> None:
