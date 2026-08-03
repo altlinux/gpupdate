@@ -839,7 +839,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
         if i.valuename != i.data and i.valuename:
             key_registry_source = f"{source_pre}/{i.keyname}".replace('\\', '/')
             key_registry = f"{i.keyname}".replace('\\', '/')
-            key_valuename = valuename.replace('\\', '/')
+            key_valuename = convert_string_dconf(valuename.replace('\\', '/'))
             if i.keyname.replace('\\', '/') in dd:
                 # If the key exists in dd, update its value with the new key-value pair
                 dd[i.keyname.replace('\\', '/')].update({key_valuename:data})
