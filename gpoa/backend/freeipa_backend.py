@@ -113,9 +113,8 @@ class freeipa_backend(applier_backend):
     def _get_gpts(self, username):
         gpts = []
         gpos, server = self.ipacreds.update_gpos(username)
-        if not gpos:
-            return gpts
-        if not server:
+        if not gpos or not server:
+            gpts.append(get_local_gpt())
             return gpts
 
         cached_gpos = []
