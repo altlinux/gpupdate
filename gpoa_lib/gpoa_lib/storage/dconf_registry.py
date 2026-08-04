@@ -183,7 +183,7 @@ class Dconf_registry():
                 log('D204', logdata)
                 output, error = process.communicate(timeout=10)
             if not output and not error:
-                return
+                return []
             if not error:
                 keys = output.strip().split('\n')
                 for key in keys:
@@ -194,12 +194,12 @@ class Dconf_registry():
         except Exception as exc:
             logdata['exc'] = exc
             log('E69', logdata)
-            return None
+            return []
 
     @staticmethod
     def get_key_values(keys):
         key_values = {}
-        for key in keys:
+        for key in (keys or []):
             key_values[key] = Dconf_registry.get_key_value(key)
         return key_values
 
