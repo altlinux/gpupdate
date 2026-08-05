@@ -16,9 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import filecmp
 import os
 import pwd
+import shutil
 import subprocess
+import tempfile
 
 try:
     from gi.repository import Gio
@@ -96,21 +99,13 @@ class gsettings_applier(applier_frontend):
         return uri_fetch(schema, path, value, self.file_cache)
 
     def run(self):
-        # Compatility cleanup of old settings
         if os.path.exists(self.override_old_file):
             os.remove(self.override_old_file)
 
-        # Cleanup settings from previous run
-        if os.path.exists(self.override_file):
-            log('D82')
-            os.remove(self.override_file)
-
-        # Get all configured gsettings locks
         for lock in self.gsettings_locks:
             valuename = lock.hive_key.rpartition('/')[2]
             self.locks[valuename] = int(lock.data)
 
-        # Calculate all configured gsettings
         for setting in self.gsettings_keys:
             helper = None
             valuename = setting.hive_key.rpartition('/')[2]
@@ -126,16 +121,28 @@ class gsettings_applier(applier_frontend):
                 data = [setting.data]
             self.gsettings.append(schema, path, data, lock, helper)
 
-        # Create GSettings policy with highest available priority
+        fd, tmp_path = tempfile.mkstemp()
+        os.close(fd)
+
+        orig_path = self.gsettings.override_file_path
+        self.gsettings.override_file_path = tmp_path
         self.gsettings.apply()
 
-        # Recompile GSettings schemas with overrides
+        if os.path.exists(orig_path) and filecmp.cmp(tmp_path, orig_path, shallow=False):
+            os.remove(tmp_path)
+            return
+
+        shutil.copy2(tmp_path, orig_path)
+        os.remove(tmp_path)
+
         try:
-            proc = subprocess.run(args=['/usr/bin/glib-compile-schemas', self.__global_schema], capture_output=True, check=True, timeout=60)
-        except Exception as exc:
+            subprocess.run(
+                ['/usr/bin/glib-compile-schemas', self.__global_schema],
+                capture_output=True, check=True, timeout=60,
+            )
+        except Exception:
             log('E48')
 
-        # Update desktop configuration system backend
         Dconf_registry.dconf_update()
 
     def apply(self):

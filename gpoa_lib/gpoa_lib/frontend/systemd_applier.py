@@ -19,7 +19,7 @@
 from ..util.logging import log
 
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
-from .appliers.systemd import systemd_unit
+from .appliers.systemd import systemd_unit, systemd_manager
 from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_SKIPPED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
 
 
@@ -32,7 +32,6 @@ class systemd_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
         self.systemd_unit_settings = self.storage.filter_hklm_entries(self.__registry_branch)
-        self.units = []
         self.__module_enabled = check_enabled(
               self.storage
             , self.__module_name
@@ -41,23 +40,35 @@ class systemd_applier(applier_frontend):
 
     def run(self):
         items = []
+        manager = systemd_manager()
         for setting in self.systemd_unit_settings:
+            unit_name = setting.valuename
             try:
-                self.units.append(systemd_unit(setting.valuename, int(setting.data)))
-                logdata = {'unit': format(setting.valuename)}
+                desired_state = int(setting.data)
+            except (ValueError, TypeError):
+                logdata = {'unit': format(unit_name), 'exc': 'invalid state value'}
+                log('I5', logdata)
+                items.append(ItemStatus(key=unit_name, action='set', result=RESULT_FAILED, detail='invalid state value'))
+                continue
+
+            try:
+                unit = systemd_unit(unit_name, desired_state, manager=manager)
+                logdata = {'unit': format(unit_name)}
                 log('I4', logdata)
             except Exception as exc:
-                logdata = {'unit': format(setting.valuename), 'exc': exc}
+                logdata = {'unit': format(unit_name), 'exc': exc}
                 log('I5', logdata)
-                items.append(ItemStatus(key=setting.valuename, action='set', result=RESULT_FAILED, detail=str(exc)))
-        for unit in self.units:
+                items.append(ItemStatus(key=unit_name, action='set', result=RESULT_FAILED, detail=str(exc)))
+                continue
+
             try:
                 unit.apply()
-                items.append(ItemStatus(key=unit.unit_name, action='set', result=RESULT_SUCCESS))
+                items.append(ItemStatus(key=unit_name, action='set', result=RESULT_SUCCESS))
             except Exception as exc:
-                logdata = {'unit': unit.unit_name, 'exc': exc}
+                logdata = {'unit': unit_name, 'exc': exc}
                 log('E45', logdata)
-                items.append(ItemStatus(key=unit.unit_name, action='set', result=RESULT_FAILED, detail=str(exc)))
+                items.append(ItemStatus(key=unit_name, action='set', result=RESULT_FAILED, detail=str(exc)))
+        manager.reload()
         return items
 
     def apply(self):
