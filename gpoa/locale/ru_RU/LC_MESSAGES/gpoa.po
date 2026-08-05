@@ -1152,6 +1152,15 @@ msgstr "Не удалось разобрать данные JSON в полити
 msgid "Failed to extract browser policies from counts dict"
 msgstr "Не удалось извлечь политики браузера из словаря счётчиков"
 
+msgid "Start forked user context process"
+msgstr "Запуск дочернего процесса пользовательского контекста"
+
+msgid "Forked user context process completed"
+msgstr "Дочерний процесс пользовательского контекста завершён"
+
+msgid "Plugins execution timing"
+msgstr "Время выполнения плагинов"
+
 # Debug_end
 
 # Warning
@@ -1326,6 +1335,15 @@ msgstr "Работа плагина завершена"
 
 msgid "Plugin application summary"
 msgstr "Сводка применения плагинов"
+
+msgid "Per-applier timing summary"
+msgstr "Поапплаерная сводка времени выполнения"
+
+msgid "Phase timing breakdown"
+msgstr "Разбивка времени по фазам"
+
+msgid "Total GPOA run time"
+msgstr "Общее время работы GPOA"
 
 # Warning_status
 msgid "Applier completed with errors"

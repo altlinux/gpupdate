@@ -27,6 +27,7 @@ from util.users import (
 )
 
 from gpoa_lib.applier_result import ApplierResult
+from gpoa_lib.util.timing import TimedExecution
 
 from .chromium_applier import chromium_applier
 from .cifs_applier import cifs_applier, cifs_applier_user
@@ -79,14 +80,17 @@ def apply_user_context(user_appliers):
         log('D55', {'name': applier_name})
 
         try:
-            result = applier_object.user_context_apply()
+            with TimedExecution(applier_name) as t:
+                result = applier_object.user_context_apply()
             if isinstance(result, ApplierResult):
+                result.metadata['elapsed'] = t.elapsed
                 logdata = {
                     'name': result.name,
                     'status': result.status,
                     'succeeded': result.applied_count,
                     'failed': result.failed_count,
                     'skipped': result.skipped_count,
+                    'elapsed': round(t.elapsed, 3),
                 }
                 log('I37', logdata)
         except Exception as exc:
@@ -162,7 +166,7 @@ class frontend_manager:
         self.user_appliers['kde'] = kde_applier_user(self.storage, self.username, self.file_cache)
         self.user_appliers['package'] = package_applier_user(self.storage, self.username)
 
-    def _collect_result(self, name, apply_result):
+    def _collect_result(self, name, apply_result, elapsed=None):
         if isinstance(apply_result, ApplierResult):
             self.results.append(apply_result)
             logdata = {
@@ -172,6 +176,8 @@ class frontend_manager:
                 'failed': apply_result.failed_count,
                 'skipped': apply_result.skipped_count,
             }
+            if elapsed is not None:
+                logdata['elapsed'] = round(elapsed, 3)
             log('I37', logdata)
 
     def _log_summary(self):
@@ -182,6 +188,16 @@ class frontend_manager:
         skipped = sum(1 for r in self.results if r.status == 'skipped')
         logdata = {'total': total, 'succeeded': applied, 'partial': partial, 'failed': failed, 'skipped': skipped}
         log('I38', logdata)
+
+        timings = {r.name: r.metadata.get('elapsed', 0) for r in self.results if r.metadata.get('elapsed')}
+        if timings:
+            total_elapsed = sum(timings.values())
+            sorted_timings = sorted(timings.items(), key=lambda x: x[1], reverse=True)
+            timing_logdata = {
+                'total': round(total_elapsed, 3),
+                'per_applier': ', '.join(f'{n}:{t:.3f}s' for n, t in sorted_timings),
+            }
+            log('I41', timing_logdata)
 
     def machine_apply(self):
         '''
@@ -195,8 +211,11 @@ class frontend_manager:
 
         for applier_name, applier_object in self.machine_appliers.items():
             try:
-                result = applier_object.apply()
-                self._collect_result(applier_name, result)
+                with TimedExecution(applier_name) as t:
+                    result = applier_object.apply()
+                if isinstance(result, ApplierResult):
+                    result.metadata['elapsed'] = t.elapsed
+                self._collect_result(applier_name, result, elapsed=t.elapsed)
             except Exception as exc:
                 logdata = {'applier_name': applier_name, 'msg': str(exc)}
                 log('E24', logdata)
@@ -209,22 +228,31 @@ class frontend_manager:
         if is_root():
             for applier_name, applier_object in self.user_appliers.items():
                 try:
-                    result = applier_object.admin_context_apply()
-                    self._collect_result(applier_name, result)
+                    with TimedExecution(applier_name) as t:
+                        result = applier_object.admin_context_apply()
+                    if isinstance(result, ApplierResult):
+                        result.metadata['elapsed'] = t.elapsed
+                    self._collect_result(applier_name, result, elapsed=t.elapsed)
                 except Exception as exc:
                     logdata = {'applier': applier_name, 'exception': str(exc)}
                     log('E19', logdata)
 
             try:
-                with_privileges(self.username, lambda: apply_user_context(self.user_appliers))
+                log('D331', {'username': self.username})
+                with TimedExecution('fork_user_context') as ft:
+                    with_privileges(self.username, lambda: apply_user_context(self.user_appliers))
+                log('D332', {'username': self.username, 'elapsed': round(ft.elapsed, 3)})
             except Exception as exc:
                 logdata = {'username': self.username, 'exception': str(exc)}
                 log('E30', logdata)
         else:
             for applier_name, applier_object in self.user_appliers.items():
                 try:
-                    result = applier_object.user_context_apply()
-                    self._collect_result(applier_name, result)
+                    with TimedExecution(applier_name) as t:
+                        result = applier_object.user_context_apply()
+                    if isinstance(result, ApplierResult):
+                        result.metadata['elapsed'] = t.elapsed
+                    self._collect_result(applier_name, result, elapsed=t.elapsed)
                 except Exception as exc:
                     logdata = {'applier_name': applier_name, 'message': str(exc)}
                     log('E11', logdata)

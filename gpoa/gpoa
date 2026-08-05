@@ -32,6 +32,7 @@ if _gpoa_parent not in sys.path:
 from backend import backend_factory, save_dconf, save_dconf_without_previous
 from frontend.frontend_manager import frontend_manager, determine_username
 from gpoa.plugin import plugin_manager
+from gpoa_lib.util.timing import TimedExecution
 from messages import message_with_code
 from storage import Dconf_registry
 
@@ -133,7 +134,9 @@ class gpoa_controller:
             print('samba')
             return
         Dconf_registry._force = self.__args.force
-        self.start_backend()
+        with TimedExecution('gpoa_total') as tt:
+            self.start_backend()
+        log('I43', {'elapsed': round(tt.elapsed, 3)})
 
     def start_backend(self):
         '''
@@ -155,10 +158,25 @@ class gpoa_controller:
                     log('E12', logdata)
                 if back:
                     try:
-                        back.retrieve_and_store()
-                        save_dconf(self.username, self.is_machine, nodomain)
-                        self.start_frontend()
-                        save_dconf_without_previous(self.username, self.is_machine, nodomain)
+                        phase_timings = {}
+
+                        with TimedExecution('retrieve_and_store') as t:
+                            back.retrieve_and_store()
+                        phase_timings['retrieve_and_store'] = round(t.elapsed, 3)
+
+                        with TimedExecution('save_dconf') as t:
+                            save_dconf(self.username, self.is_machine, nodomain)
+                        phase_timings['save_dconf'] = round(t.elapsed, 3)
+
+                        with TimedExecution('frontend') as t:
+                            self.start_frontend()
+                        phase_timings['frontend'] = round(t.elapsed, 3)
+
+                        with TimedExecution('save_dconf_without_previous') as t:
+                            save_dconf_without_previous(self.username, self.is_machine, nodomain)
+                        phase_timings['save_dconf_without_previous'] = round(t.elapsed, 3)
+
+                        log('I42', phase_timings)
                     except Exception as exc:
                         logdata = dict({'message': str(exc)})
                         # In case we're handling "E3" - it means that
@@ -169,7 +187,9 @@ class gpoa_controller:
                         einfo = geterr()
                         logdata.update(einfo)
                         log('E3', logdata)
-                    self.start_plugins(self.is_machine, self.username)
+                    with TimedExecution('plugins') as t:
+                        self.start_plugins(self.is_machine, self.username)
+                    log('D333', {'elapsed': round(t.elapsed, 3)})
 
     def start_frontend(self):
         '''

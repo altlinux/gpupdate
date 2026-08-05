@@ -61,6 +61,9 @@ _INFO_MESSAGES = {
     38: 'Policy application summary',
     39: 'Plugin finished',
     40: 'Plugin application summary',
+    41: 'Per-applier timing summary',
+    42: 'Phase timing breakdown',
+    43: 'Total GPOA run time',
 }
 
 _ERROR_MESSAGES = {
@@ -453,6 +456,9 @@ _DEBUG_MESSAGES = {
     328: 'Failed to read key from dconf binary database fallback',
     329: 'Failed to read password last modified time from dconf binary database',
     330: 'Failed to start D-Bus session for dconf operations',
+    331: 'Start forked user context process',
+    332: 'Forked user context process completed',
+    333: 'Plugins execution timing',
 }
 
 _WARNING_MESSAGES = {
