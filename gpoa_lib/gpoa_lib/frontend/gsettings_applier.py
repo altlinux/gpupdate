@@ -98,6 +98,16 @@ class gsettings_applier(applier_frontend):
     def uri_fetch_helper(self, schema, path, value):
         return uri_fetch(schema, path, value, self.file_cache)
 
+    def _needs_recompile(self, override_path):
+        if not os.path.exists(override_path):
+            return False
+        compiled = os.path.join(self.__global_schema, 'gschemas.compiled')
+        if not os.path.exists(compiled):
+            return True
+        if os.path.getmtime(compiled) < os.path.getmtime(override_path):
+            return True
+        return False
+
     def run(self):
         if os.path.exists(self.override_old_file):
             os.remove(self.override_old_file)
@@ -128,7 +138,7 @@ class gsettings_applier(applier_frontend):
         self.gsettings.override_file_path = tmp_path
         self.gsettings.apply()
 
-        if os.path.exists(orig_path) and filecmp.cmp(tmp_path, orig_path, shallow=False):
+        if os.path.exists(orig_path) and filecmp.cmp(tmp_path, orig_path, shallow=False) and not self._needs_recompile(orig_path):
             os.remove(tmp_path)
             return
 
