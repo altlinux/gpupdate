@@ -99,6 +99,7 @@ class laps_applier(applier_frontend):
     # LDAP attributes
     _ATTR_ENCRYPTED_PASSWORD = 'msLAPS-EncryptedPassword'
     _ATTR_PASSWORD_EXPIRATION_TIME = 'msLAPS-PasswordExpirationTime'
+    _ATTR_ENCRYPTED_PASSWORD_HISTORY = 'msLAPS-EncryptedPasswordHistory'
 
     # dconf key for password modification time
     _KEY_PASSWORD_LAST_MODIFIED = '/Software/BaseALT/Policies/Laps/PasswordLastModified/'
@@ -451,7 +452,7 @@ class laps_applier(applier_frontend):
         Returns:
             str: JSON formatted password information
         """
-        return json.dumps({"n": self.target_user, "t": self.expiration_date_int, "p": password})
+        return json.dumps({"n": self.target_user, "t": format(self.current_time_int, 'x'), "p": password})
 
     def _create_password_blob(self, password):
         """
@@ -596,25 +597,37 @@ class laps_applier(applier_frontend):
         """
         logdata = {'computer_dn': self.computer_dn}
         try:
-            # Create LDAP modification message
             mod_msg = ldb.Message()
             mod_msg.dn = self.computer_dn
 
-            # Update password blob
+            try:
+                current_password_result = self.samdb.search(
+                    base=self.computer_dn,
+                    scope=ldb.SCOPE_BASE,
+                    attrs=[self._ATTR_ENCRYPTED_PASSWORD]
+                )
+                current_password = current_password_result[0].get(self._ATTR_ENCRYPTED_PASSWORD, [])
+                if current_password:
+                    mod_msg[self._ATTR_ENCRYPTED_PASSWORD_HISTORY] = ldb.MessageElement(
+                        current_password,
+                        ldb.FLAG_MOD_ADD,
+                        self._ATTR_ENCRYPTED_PASSWORD_HISTORY
+                    )
+            except Exception:
+                pass
+
             mod_msg[self._ATTR_ENCRYPTED_PASSWORD] = ldb.MessageElement(
                 encrypted_blob,
                 ldb.FLAG_MOD_REPLACE,
                 self._ATTR_ENCRYPTED_PASSWORD
             )
 
-            # Update expiration time
             mod_msg[self._ATTR_PASSWORD_EXPIRATION_TIME] = ldb.MessageElement(
                 str(self.expiration_date_int),
                 ldb.FLAG_MOD_REPLACE,
                 self._ATTR_PASSWORD_EXPIRATION_TIME
             )
 
-            # Perform the LDAP modification
             self.samdb.modify(mod_msg)
             log('D226', logdata)
             return True
