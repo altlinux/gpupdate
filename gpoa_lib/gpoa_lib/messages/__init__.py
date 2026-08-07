@@ -61,8 +61,8 @@ _INFO_MESSAGES = {
     38: 'Policy application summary',
     39: 'Plugin finished',
     40: 'Plugin application summary',
-    41: 'Per-applier timing summary',
-    42: 'Phase timing breakdown',
+    41: 'Applier timing summary',
+    42: 'Per-phase timing',
     43: 'Total GPOA run time',
 }
 

@@ -1336,11 +1336,11 @@ msgstr "Работа плагина завершена"
 msgid "Plugin application summary"
 msgstr "Сводка применения плагинов"
 
-msgid "Per-applier timing summary"
-msgstr "Поапплаерная сводка времени выполнения"
+msgid "Applier timing summary"
+msgstr "Сводка времени по применителям"
 
-msgid "Phase timing breakdown"
-msgstr "Разбивка времени по фазам"
+msgid "Per-phase timing"
+msgstr "Время выполнения по фазам"
 
 msgid "Total GPOA run time"
 msgstr "Общее время работы GPOA"
