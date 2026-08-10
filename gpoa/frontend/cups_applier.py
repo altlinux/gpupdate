@@ -1,7 +1,7 @@
 #
 # GPOA - GPO Applier for Linux
 #
-# Copyright (C) 2019-2025 BaseALT Ltd.
+# Copyright (C) 2019-2026 BaseALT Ltd.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,49 +16,61 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-
 import cups
-from gpt.printers import json2printer
 from util.logging import log
 from util.rpm import is_rpm_installed
 
 from .applier_frontend import applier_frontend, check_enabled
-from gpoa_lib.applier_result import ApplierResult
+from gpoa_lib.applier_result import (
+    ApplierResult, ItemStatus,
+    STATUS_APPLIED, STATUS_PARTIAL, STATUS_SKIPPED,
+    RESULT_SUCCESS, RESULT_FAILED, RESULT_SKIPPED,
+)
 
 
 def storage_get_printers(storage, username=None):
     '''
     Query printers configuration from storage
     '''
-    printer_objs = storage.get_printers(username)
-    printers = []
+    return storage.get_printers(username)
 
-    for prnj in printer_objs:
-        printers.append(prnj)
+def _build_printer_uri(prn):
+    '''
+    Build CUPS device URI based on printer type.
 
-    return printers
+    SharedPrinter → smb://server/printer
+    PortPrinter   → socket://ip-address
+    LocalPrinter  → ipp://path
+    '''
+    if prn.printer_type == 'SharedPrinter':
+        path = (prn.path or '').replace('\\', '/')
+        return 'smb:' + path
+    elif prn.printer_type == 'PortPrinter':
+        return 'socket://' + (prn.ip_address or '')
+    else:
+        path = (prn.path or '').replace('\\', '/')
+        return 'ipp:' + path
+
+def _get_printer_name(prn):
+    '''
+    Extract CUPS queue name from printer object.
+    '''
+    name = prn.localname or prn.name or ''
+    if ' ' in (prn.path or ''):
+        name = prn.path.partition(' ')[2]
+    return name.replace('(', '').replace(')', '')
 
 def connect_printer(connection, prn):
     '''
-    Dump printer cinfiguration to disk as CUPS config
+    Add printer to CUPS via IPP.
     '''
-    # PPD file location
-    printer_driver = 'generic'
-    pjson = json.loads(prn.printer)
-    printer_parts = pjson['printer']['path'].partition(' ')
-    # Printer queue name in CUPS
-    printer_name = printer_parts[2].replace('(', '').replace(')', '')
-    # Printer description in CUPS
-    printer_info = printer_name
-    printer_uri = printer_parts[0].replace('\\', '/')
-    printer_uri = 'smb:' + printer_uri
+    printer_name = _get_printer_name(prn)
+    printer_uri = _build_printer_uri(prn)
 
     connection.addPrinter(
           name=printer_name
-        , info=printer_info
+        , info=printer_name
         , device=printer_uri
-        #filename=printer_driver
     )
 
 class cups_applier(applier_frontend):
@@ -75,26 +87,41 @@ class cups_applier(applier_frontend):
         )
 
     def run(self):
+        items = []
         if not is_rpm_installed('cups'):
             log('W9')
-            return
+            return items
         try:
             self.cups_connection = cups.Connection()
         except Exception as exc:
             logdata = {'exc': exc}
             log('W20', logdata)
-            return
+            return items
         self.printers = storage_get_printers(self.storage)
 
-        if self.printers:
-            for prn in self.printers:
+        for prn in self.printers:
+            printer_name = _get_printer_name(prn)
+            if prn.disabled:
+                items.append(ItemStatus(key=printer_name, action='skip', result=RESULT_SKIPPED))
+                continue
+            try:
                 connect_printer(self.cups_connection, prn)
+                items.append(ItemStatus(key=printer_name, action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                logdata = {'printer': printer_name, 'exc': exc}
+                log('W20', logdata)
+                items.append(ItemStatus(key=printer_name, action='create', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def apply(self):
         if self.__module_enabled:
             log('D113')
-            self.run()
-            return ApplierResult.not_implemented('cups')
+            items = self.run()
+            if not items:
+                return ApplierResult.skipped('cups')
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='cups', status=status, items=items)
         else:
             log('D114')
             return ApplierResult.skipped('cups')
@@ -114,23 +141,34 @@ class cups_applier_user(applier_frontend):
         )
 
     def user_context_apply(self):
-        '''
-        Printer configuration is the system configuration so there is
-        no point in implementing this function.
-        '''
         pass
 
     def run(self):
+        items = []
         if not is_rpm_installed('cups'):
             log('W9')
-            return
-
-        self.cups_connection = cups.Connection()
+            return items
+        try:
+            self.cups_connection = cups.Connection()
+        except Exception as exc:
+            logdata = {'exc': exc}
+            log('W20', logdata)
+            return items
         self.printers = storage_get_printers(self.storage, self.username)
 
-        if self.printers:
-            for prn in self.printers:
+        for prn in self.printers:
+            printer_name = _get_printer_name(prn)
+            if prn.disabled:
+                items.append(ItemStatus(key=printer_name, action='skip', result=RESULT_SKIPPED))
+                continue
+            try:
                 connect_printer(self.cups_connection, prn)
+                items.append(ItemStatus(key=printer_name, action='create', result=RESULT_SUCCESS))
+            except Exception as exc:
+                logdata = {'printer': printer_name, 'exc': exc}
+                log('W20', logdata)
+                items.append(ItemStatus(key=printer_name, action='create', result=RESULT_FAILED, detail=str(exc)))
+        return items
 
     def apply(self, **kwargs):
         return self.admin_context_apply()
@@ -138,9 +176,12 @@ class cups_applier_user(applier_frontend):
     def admin_context_apply(self):
         if self.__module_enabled:
             log('D115')
-            self.run()
-            return ApplierResult.not_implemented('cups_user')
+            items = self.run()
+            if not items:
+                return ApplierResult.skipped('cups_user')
+            failed = sum(1 for i in items if i.result == RESULT_FAILED)
+            status = STATUS_PARTIAL if failed else STATUS_APPLIED
+            return ApplierResult(name='cups_user', status=status, items=items)
         else:
             log('D116')
             return ApplierResult.skipped('cups_user')
-
