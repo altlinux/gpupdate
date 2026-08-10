@@ -20,7 +20,7 @@ import cups
 from util.logging import log
 from util.rpm import is_rpm_installed
 
-from .applier_frontend import applier_frontend, check_enabled
+from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from gpoa_lib.applier_result import (
     ApplierResult, ItemStatus,
     STATUS_APPLIED, STATUS_PARTIAL, STATUS_SKIPPED,
@@ -126,7 +126,7 @@ class cups_applier(applier_frontend):
             log('D114')
             return ApplierResult.skipped('cups')
 
-class cups_applier_user(applier_frontend):
+class cups_applier_user(DualContextApplier):
     __module_name = 'CUPSApplierUser'
     __module_experimental = False
     __module_enabled = True

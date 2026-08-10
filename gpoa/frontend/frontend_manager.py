@@ -32,7 +32,7 @@ from gpoa_lib.util.timing import TimedExecution
 from .chromium_applier import chromium_applier
 from .cifs_applier import cifs_applier, cifs_applier_user
 from .control_applier import control_applier
-from .cups_applier import cups_applier
+from .cups_applier import cups_applier, cups_applier_user
 from .envvar_applier import envvar_applier, envvar_applier_user
 from .file_applier import file_applier, file_applier_user
 from .firefox_applier import firefox_applier
@@ -165,6 +165,7 @@ class frontend_manager:
         self.user_appliers['ini'] = ini_applier_user(self.storage, self.username)
         self.user_appliers['kde'] = kde_applier_user(self.storage, self.username, self.file_cache)
         self.user_appliers['package'] = package_applier_user(self.storage, self.username)
+        self.user_appliers['cups'] = cups_applier_user(self.storage, self.username)
 
     def _collect_result(self, name, apply_result, elapsed=None):
         if isinstance(apply_result, ApplierResult):
