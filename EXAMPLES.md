@@ -514,3 +514,19 @@ if result and result.data:
     import json
     print(json.dumps(result.data.to_dict(), indent=2))
 ```
+
+## Timing Execution
+
+Measure how long an applier or any block of code takes:
+
+```python
+from gpoa_lib import ApplierRunner
+from gpoa_lib.util.timing import TimedExecution
+
+runner = ApplierRunner(data=my_dict)
+
+with TimedExecution('control') as t:
+    result = runner.run('control')
+
+print(f'{t.name}: {t.elapsed:.3f}s')
+```

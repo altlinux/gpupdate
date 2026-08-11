@@ -23,8 +23,9 @@ development instructions see `PLUGIN_DEVELOPMENT_GUIDE.md`.
 13. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
 14. [Data Types](#data-types)
 15. [Filters (FilterChecker)](#filters)
-16. [Utility Functions](#utility-functions)
-17. [Path Functions](#path-functions)
+16. [TimedExecution](#timedexecution)
+17. [Utility Functions](#utility-functions)
+18. [Path Functions](#path-functions)
 
 ---
 
@@ -1172,6 +1173,27 @@ set_domain_resolver(resolver_func)
 
 Override the domain resolution function.  Useful in tests or non-standard
 environments.
+
+---
+
+## TimedExecution
+
+`gpoa_lib.util.timing.TimedExecution`
+
+Context manager for measuring elapsed time using `time.monotonic()`.
+
+| Attribute | Type   | Description |
+|-----------|--------|-------------|
+| `name`    | `str`  | Label for the timed block. |
+| `elapsed` | `float` | Seconds elapsed (available after the block exits). |
+
+```python
+from gpoa_lib.util.timing import TimedExecution
+
+with TimedExecution('my_operation') as t:
+    do_work()
+print(f'{t.name}: {t.elapsed:.3f}s')
+```
 
 ---
 

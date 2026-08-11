@@ -23,8 +23,9 @@
 13. [DynamicAttributes / RegistryKeyMetadata](#dynamicattributes--registrykeymetadata)
 14. [Типы данных](#типы-данных)
 15. [Фильтры (FilterChecker)](#фильтры)
-16. [Вспомогательные функции](#вспомогательные-функции)
-17. [Функции путей](#функции-путей)
+16. [TimedExecution](#timedexecution)
+17. [Вспомогательные функции](#вспомогательные-функции)
+18. [Функции путей](#функции-путей)
 
 ---
 
@@ -1152,6 +1153,27 @@ set_domain_resolver(resolver_func)
 
 Переопределить функцию разрешения домена.  Полезно в тестах или нестандартных
 окружениях.
+
+---
+
+## TimedExecution
+
+`gpoa_lib.util.timing.TimedExecution`
+
+Context manager для измерения времени выполнения через `time.monotonic()`.
+
+| Атрибут  | Тип     | Описание |
+|----------|---------|----------|
+| `name`   | `str`   | Метка для блока измерения. |
+| `elapsed`| `float` | Прошедшее время в секундах (доступно после выхода из блока). |
+
+```python
+from gpoa_lib.util.timing import TimedExecution
+
+with TimedExecution('my_operation') as t:
+    do_work()
+print(f'{t.name}: {t.elapsed:.3f}s')
+```
 
 ---
 
