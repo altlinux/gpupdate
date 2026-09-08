@@ -1161,6 +1161,9 @@ msgstr "Дочерний процесс пользовательского ко�
 msgid "Plugins execution timing"
 msgstr "Время выполнения плагинов"
 
+msgid "Failed to read machine policy database for polkit conflict resolution"
+msgstr "Не удалось прочитать базу машинных политик для разрешения конфликтов polkit"
+
 # Debug_end
 
 # Warning

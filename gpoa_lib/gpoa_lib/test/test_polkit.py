@@ -19,6 +19,7 @@
 import os
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
+from types import SimpleNamespace
 
 from gpoa_lib.frontend.appliers.polkit import polkit
 
@@ -87,3 +88,116 @@ class PolkitErrorTestCase(unittest.TestCase):
         p.generate()
 
         mock_env.get_template.assert_called_once()
+
+
+def _entry(valuename, data):
+    return SimpleNamespace(valuename=valuename, data=data)
+
+
+def _make_storage(polkit_entries, deny_all=None):
+    storage = MagicMock()
+    polkit_result = MagicMock()
+    polkit_result.__iter__ = lambda s: iter(polkit_entries)
+    storage.filter_hkcu_entries.return_value = polkit_result
+    storage.filter_hklm_entries.return_value = polkit_result
+    deny_result = MagicMock()
+    deny_result.first.return_value = deny_all
+    storage.filter_hkcu_entries.side_effect = (
+        lambda flt: polkit_result
+        if 'Polkit' in flt else deny_result)
+    storage.get_key_value.return_value = None
+    return storage
+
+
+class PolkitMachineDedupTestCase(unittest.TestCase):
+
+    def _applier(self, entries):
+        from gpoa_lib.frontend.polkit_applier import polkit_applier
+        storage = _make_storage(entries)
+        storage.filter_hklm_entries.side_effect = None
+        polkit_res = MagicMock()
+        polkit_res.__iter__ = lambda s: iter(entries)
+        locks_res = MagicMock()
+        locks_res.__iter__ = lambda s: iter([])
+        storage.filter_hklm_entries.return_value = polkit_res
+        storage.filter_hklm_entries.side_effect = (
+            lambda flt: locks_res if 'Locks' in flt else polkit_res)
+        return polkit_applier(storage)
+
+    def test_conflicting_verdicts_deduplicated(self):
+        entries = [
+            _entry('org.test.action', 'Yes'),
+            _entry('org.test.action', 'No'),
+        ]
+        appl = self._applier(entries)
+        vars_map = appl.policies[1].args
+        self.assertIn('org.test.action', vars_map['No'])
+        self.assertNotIn('org.test.action', vars_map['Yes'])
+
+    def test_last_merged_verdict_wins(self):
+        entries = [
+            _entry('org.test.action', 'No'),
+            _entry('org.test.action', 'Yes'),
+        ]
+        appl = self._applier(entries)
+        vars_map = appl.policies[1].args
+        self.assertIn('org.test.action', vars_map['Yes'])
+        self.assertNotIn('org.test.action', vars_map['No'])
+
+    def test_unknown_verdict_skipped(self):
+        entries = [
+            _entry('org.test.action', 'Bogus'),
+        ]
+        appl = self._applier(entries)
+        vars_map = appl.policies[1].args
+        for verdict_list in vars_map.values():
+            self.assertNotIn('org.test.action', verdict_list)
+
+
+class PolkitUserMachinePrecedenceTestCase(unittest.TestCase):
+
+    def _applier(self, entries, machine_dict, deny_all=None):
+        from gpoa_lib.frontend.polkit_applier import polkit_applier_user
+        from gpoa_lib.storage.dconf_registry import Dconf_registry
+        storage = _make_storage(entries, deny_all=deny_all)
+        with patch.object(Dconf_registry, 'get_dictionary_from_dconf_file_db',
+                          return_value=machine_dict):
+            return polkit_applier_user(storage, 'testuser')
+
+    def test_machine_defined_action_excluded(self):
+        entries = [
+            _entry('org.test.machine-action', 'Yes'),
+            _entry('org.test.user-action', 'No'),
+        ]
+        machine_dict = {
+            'Software/BaseALT/Policies/Polkit': {
+                'org.test.machine-action': 'No',
+            }
+        }
+        appl = self._applier(entries, machine_dict)
+        vars_map = appl.policies[1].args
+        self.assertNotIn('org.test.machine-action', vars_map['Yes'])
+        self.assertIn('org.test.user-action', vars_map['No'])
+
+    def test_all_actions_machine_defined_yields_empty_file(self):
+        entries = [
+            _entry('org.test.machine-action', 'Yes'),
+        ]
+        machine_dict = {
+            'Software/BaseALT/Policies/Polkit': {
+                'org.test.machine-action': 'No',
+            }
+        }
+        appl = self._applier(entries, machine_dict)
+        self.assertTrue(appl.policies[1]._is_empty())
+
+    def test_machine_deny_all_suppresses_user_deny_all(self):
+        entries = []
+        machine_dict = {
+            'Software/Policies/Microsoft/Windows/RemovableStorageDevices': {
+                'Deny_All': '1',
+            }
+        }
+        deny_all = _entry('Deny_All', '1')
+        appl = self._applier(entries, machine_dict, deny_all=deny_all)
+        self.assertEqual(appl.policies[0].args['Deny_All'], 0)

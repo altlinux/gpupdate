@@ -459,6 +459,7 @@ _DEBUG_MESSAGES = {
     331: 'Start forked user context process',
     332: 'Forked user context process completed',
     333: 'Plugins execution timing',
+    334: 'Failed to read machine policy database for polkit conflict resolution',
 }
 
 _WARNING_MESSAGES = {

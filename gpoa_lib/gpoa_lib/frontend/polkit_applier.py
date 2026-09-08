@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ..util.logging import log
+from ..storage.dconf_registry import Dconf_registry
 
 from .applier_frontend import (
     applier_frontend,
@@ -62,6 +63,13 @@ class polkit_applier(applier_frontend):
             if bool(int(lock.data)):
                 locks.append(lock.valuename)
 
+        # Deduplicate conflicting verdicts for the same action:
+        # storage merge order reflects GPO precedence, the entry
+        # merged last wins and becomes the only verdict rendered.
+        action_verdicts = {}
+        for it_data in self.polkit_keys:
+            action_verdicts[it_data.valuename] = it_data.data
+
         dict_lists_rules = {'No': [[], []],
                             'Yes': [[], []],
                             'Auth_self' : [[], []],
@@ -69,12 +77,14 @@ class polkit_applier(applier_frontend):
                             'Auth_self_keep': [[], []],
                             'Auth_admin_keep': [[], []]}
 
-        check_and_add_to_list = (lambda it, act: dict_lists_rules[act][0].append(it.valuename)
-                                if it.valuename not in locks
-                                else dict_lists_rules[act][1].append(it.valuename))
-
-        for it_data in self.polkit_keys:
-            check_and_add_to_list(it_data, it_data.data)
+        for action in sorted(action_verdicts):
+            verdict = action_verdicts[action]
+            if verdict not in dict_lists_rules:
+                continue
+            if action in locks:
+                dict_lists_rules[verdict][1].append(action)
+            else:
+                dict_lists_rules[verdict][0].append(action)
 
         for key, item in dict_lists_rules.items():
             self.__polkit_map[self.__registry_branch][1][key] = item[0]
@@ -134,11 +144,24 @@ class polkit_applier_user(DualContextApplier):
             deny_all_win = storage.filter_hkcu_entries(self.__deny_all_win).first()
         polkit_filter = '{}%'.format(self.__registry_branch)
         self.polkit_keys = self.storage.filter_hkcu_entries(polkit_filter)
+        # Machine policy takes precedence: actions already defined by
+        # machine-scoped policy must not be overridden per user, so
+        # they are excluded from the user-scoped rules file.
+        machine_polkit_actions = self._get_machine_polkit_actions()
         # Deny_All hook: initialize defaults
         template_file = self.__polkit_map[self.__deny_all_win][0]
         template_vars = self.__polkit_map[self.__deny_all_win][1]
         template_file_all = self.__polkit_map[self.__registry_branch][0]
         template_vars_all = self.__polkit_map[self.__registry_branch][1]
+
+        # Deduplicate conflicting verdicts for the same action: the
+        # entry merged last wins (GPO precedence), only that verdict
+        # is rendered. Actions defined by machine policy are skipped.
+        action_verdicts = {}
+        for it_data in self.polkit_keys:
+            if it_data.valuename in machine_polkit_actions:
+                continue
+            action_verdicts[it_data.valuename] = it_data.data
 
         dict_lists_rules = {'No': [],
                             'Yes': [],
@@ -147,15 +170,17 @@ class polkit_applier_user(DualContextApplier):
                             'Auth_self_keep': [],
                             'Auth_admin_keep': []}
 
-        for it_data in self.polkit_keys:
-            dict_lists_rules[it_data.data].append(it_data.valuename)
+        for action in sorted(action_verdicts):
+            verdict = action_verdicts[action]
+            if verdict in dict_lists_rules:
+                dict_lists_rules[verdict].append(action)
 
         self.__polkit_map[self.__registry_branch][1]['User'] = self.username
 
         for key, item in dict_lists_rules.items():
             self.__polkit_map[self.__registry_branch][1][key] = item
 
-        if deny_all_win:
+        if deny_all_win and not self._machine_defines_deny_all():
             logdata = {}
             logdata['user'] = self.username
             logdata['Deny_All_win'] = deny_all_win.data
@@ -172,6 +197,40 @@ class polkit_applier_user(DualContextApplier):
             , self.__module_name
             , self.__module_experimental
         )
+
+    def _get_machine_polkit_actions(self):
+        '''
+        Read actions defined by machine-scoped polkit policy from the
+        machine dconf database. Returns an empty set when the machine
+        database is unavailable.
+        '''
+        actions = set()
+        try:
+            machine_dict = Dconf_registry.get_dictionary_from_dconf_file_db()
+            entries = Dconf_registry.filter_entries(
+                self.__registry_branch.replace('\\', '/') + '/', machine_dict)
+            for key in entries:
+                parts = [p for p in key.split('/') if p]
+                if parts:
+                    actions.add(parts[-1])
+        except Exception as exc:
+            logdata = {'exc': str(exc)}
+            log('D334', logdata)
+        return actions
+
+    def _machine_defines_deny_all(self):
+        '''
+        Check whether machine-scoped policy defines the Deny_All flag.
+        '''
+        try:
+            machine_dict = Dconf_registry.get_dictionary_from_dconf_file_db()
+            entries = Dconf_registry.filter_entries(
+                self.__deny_all_win.replace('\\', '/') + '/', machine_dict)
+            return bool(entries)
+        except Exception as exc:
+            logdata = {'exc': str(exc)}
+            log('D334', logdata)
+            return False
 
     def user_context_apply(self):
         pass
