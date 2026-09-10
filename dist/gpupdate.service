@@ -1,6 +1,7 @@
 [Unit]
 Description=Group policy update for machine
-After=syslog.target network-online.target sssd.service
+After=syslog.target network-online.target sssd.service oddjobd.service
+Wants=oddjobd.service
 Before=systemd-logind.service
 
 [Service]
