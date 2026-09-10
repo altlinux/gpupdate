@@ -17,6 +17,20 @@ GPOA (GPO Applier for Linux) поддерживает систему плаги�
 - **`plugin_manager`** - Загружает и выполняет плагины из:
   - `/usr/lib/gpoa/plugins/` - системные плагины
 
+### Соглашение об именовании
+
+Для имени RPM-пакета и репозитория используйте формат
+`gpoa-plugin-<name>`. Основной файл Python называйте `<name>_applier.py`.
+Для составных имен используйте дефисы в имени пакета и символы подчеркивания
+в имени файла Python:
+
+```
+RPM-пакет/репозиторий: gpoa-plugin-device-control
+Основной файл Python:  device_control_applier.py
+```
+
+Например, пакет `gpoa-plugin-udev` устанавливает файл `udev_applier.py`.
+
 ## Создание простого плагина
 
 ### Пример: Базовый плагин с логированием
@@ -189,21 +203,35 @@ GPOA поддерживает автоматическую локализаци�
 
 ### Структура файлов переводов
 
+Для плагина, установленного вручную, каталог переводов размещается рядом с
+файлом плагина:
+
 ```
 /usr/lib/gpoa/plugins/
-├── my_plugin/
-│   ├── my_plugin.py
-│   ├── locale/
-│   │   ├── ru/
-│   │   │   └── LC_MESSAGES/
-│   │   │       ├── my_plugin.mo
-│   │   │       └── my_plugin.po
-│   │   └── en/
-│   │       └── LC_MESSAGES/
-│   │           ├── my_plugin.mo
-│   │           └── my_plugin.po
-│   └── README.md
+├── my_plugin_applier.py
+└── locale/
+    ├── ru/
+    │   └── LC_MESSAGES/
+    │       └── my_plugin.mo
+    └── en/
+        └── LC_MESSAGES/
+            └── my_plugin.mo
 ```
+
+Менеджер плагинов обнаруживает только файлы Python непосредственно в
+`/usr/lib/gpoa/plugins/`; плагины во вложенных каталогах не обнаруживаются.
+
+RPM-пакет должен устанавливать переводы в стандартный системный каталог
+gettext:
+
+```
+/usr/share/locale/
+├── ru/LC_MESSAGES/my_plugin.mo
+└── en/LC_MESSAGES/my_plugin.mo
+```
+
+Имя файла `.mo` должно совпадать с доменом перевода. Исходные файлы `.po`
+устанавливать не требуется.
 
 ### Настройка переводов в плагине
 
@@ -240,7 +268,7 @@ self.log("I1")  # Будет показано на языке системы
 1. **Извлечение строк для перевода**:
 ```bash
 # Извлечь строки из кода плагина
-xgettext -d my_plugin -o my_plugin.po my_plugin.py
+xgettext -d my_plugin -o my_plugin.po my_plugin_applier.py
 ```
 
 2. **Создание файла перевода**:
@@ -258,9 +286,13 @@ msgstr "Конфигурация успешно применена"
 # Скомпилировать .po в .mo
 msgfmt my_plugin.po -o my_plugin.mo
 
-# Разместить в правильной директории
+# Для RPM-пакета установить скомпилированный каталог в системную директорию
 mkdir -p /usr/share/locale/ru/LC_MESSAGES/
-cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
+cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/my_plugin.mo
+
+# Для плагина, установленного вручную, также поддерживается локальная директория
+mkdir -p /usr/lib/gpoa/plugins/locale/ru/LC_MESSAGES/
+cp my_plugin.mo /usr/lib/gpoa/plugins/locale/ru/LC_MESSAGES/my_plugin.mo
 ```
 
 ### Лучшие практики для переводов
@@ -275,16 +307,14 @@ cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
 
 ```
 /usr/lib/gpoa/plugins/
-└── my_plugin.py           # Основной код плагина
-    locale/
+├── my_plugin_applier.py   # Основной код плагина
+└── locale/
     ├── ru/
     │   └── LC_MESSAGES/
-    │       ├── my_plugin.mo
-    │       └── my_plugin.po
+    │       └── my_plugin.mo
     └── en/
         └── LC_MESSAGES/
-            ├── my_plugin.mo
-            └── my_plugin.po
+            └── my_plugin.mo
 ```
 
 ## API плагинов
@@ -304,7 +334,7 @@ cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
 
 ```python
 from gpoa_lib import StorageAdapter
-from my_plugin import MyPlugin
+from my_plugin_applier import MyPlugin
 
 storage = StorageAdapter.from_dict({'Custom/Path': {'key': 'value'}})
 plugin = MyPlugin(storage.get_dict(), registry_path='Custom/Path')

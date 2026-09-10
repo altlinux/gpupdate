@@ -17,6 +17,19 @@ Plugins allow adding support for new policy types and system settings without mo
 - **`plugin_manager`** - Loads and executes plugins from:
   - `/usr/lib/gpoa/plugins/` - system plugins
 
+### Naming Convention
+
+Use the `gpoa-plugin-<name>` format for the RPM package and repository name.
+Name the main Python file `<name>_applier.py`. For names containing multiple
+words, use hyphens in the package name and underscores in the Python file name:
+
+```
+RPM package/repository: gpoa-plugin-device-control
+Main Python file:       device_control_applier.py
+```
+
+For example, the `gpoa-plugin-udev` package installs `udev_applier.py`.
+
 ## Creating a Simple Plugin
 
 ### Example: Basic Plugin with Logging
@@ -189,21 +202,35 @@ GPOA supports automatic localization of plugin messages. The system uses standar
 
 ### Translation File Structure
 
+For a manually installed plugin, place the translation directory next to the
+plugin file:
+
 ```
 /usr/lib/gpoa/plugins/
-├── my_plugin/
-│   ├── my_plugin.py
-│   ├── locale/
-│   │   ├── ru/
-│   │   │   └── LC_MESSAGES/
-│   │   │       ├── my_plugin.mo
-│   │   │       └── my_plugin.po
-│   │   └── en/
-│   │       └── LC_MESSAGES/
-│   │           ├── my_plugin.mo
-│   │           └── my_plugin.po
-│   └── README.md
+├── my_plugin_applier.py
+└── locale/
+    ├── ru/
+    │   └── LC_MESSAGES/
+    │       └── my_plugin.mo
+    └── en/
+        └── LC_MESSAGES/
+            └── my_plugin.mo
 ```
+
+The plugin manager discovers only Python files directly under
+`/usr/lib/gpoa/plugins/`; it does not discover plugins in nested directories.
+
+An RPM package should install translations in the standard system gettext
+directory instead:
+
+```
+/usr/share/locale/
+├── ru/LC_MESSAGES/my_plugin.mo
+└── en/LC_MESSAGES/my_plugin.mo
+```
+
+The `.mo` file name must match the translation domain. Source `.po` files do
+not need to be installed.
 
 ### Setting Up Translations in Plugin
 
@@ -240,7 +267,7 @@ self.log("I1")  # Will be displayed in system language
 1. **Extract strings for translation**:
 ```bash
 # Extract strings from plugin code
-xgettext -d my_plugin -o my_plugin.po my_plugin.py
+xgettext -d my_plugin -o my_plugin.po my_plugin_applier.py
 ```
 
 2. **Create translation file**:
@@ -258,9 +285,13 @@ msgstr ""
 # Compile .po to .mo
 msgfmt my_plugin.po -o my_plugin.mo
 
-# Place in correct directory
+# For an RPM package, install the compiled catalog in the system locale directory
 mkdir -p /usr/share/locale/ru/LC_MESSAGES/
-cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
+cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/my_plugin.mo
+
+# For a manually installed plugin, the plugin-local directory is also supported
+mkdir -p /usr/lib/gpoa/plugins/locale/ru/LC_MESSAGES/
+cp my_plugin.mo /usr/lib/gpoa/plugins/locale/ru/LC_MESSAGES/my_plugin.mo
 ```
 
 ### Best Practices for Translations
@@ -275,16 +306,14 @@ cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/
 
 ```
 /usr/lib/gpoa/plugins/
-└── my_plugin.py           # Main plugin code
-    locale/
+├── my_plugin_applier.py   # Main plugin code
+└── locale/
     ├── ru/
     │   └── LC_MESSAGES/
-    │       ├── my_plugin.mo
-    │       └── my_plugin.po
+    │       └── my_plugin.mo
     └── en/
         └── LC_MESSAGES/
-            ├── my_plugin.mo
-            └── my_plugin.po
+            └── my_plugin.mo
 ```
 
 ## Plugin API
@@ -304,7 +333,7 @@ using the plugin directly (not through `plugin_manager`):
 
 ```python
 from gpoa_lib import StorageAdapter
-from my_plugin import MyPlugin
+from my_plugin_applier import MyPlugin
 
 storage = StorageAdapter.from_dict({'Custom/Path': {'key': 'value'}})
 plugin = MyPlugin(storage.get_dict(), registry_path='Custom/Path')

@@ -96,7 +96,7 @@ print(ApplierRunner.list_appliers())
 
 ### Minimal plugin (machine-only)
 
-Create a file `/usr/lib/gpoa/plugins/my_plugin.py`:
+Create a file `/usr/lib/gpoa/plugins/my_plugin_applier.py`:
 
 ```python
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
@@ -174,7 +174,7 @@ pm = plugin_manager(is_machine=False, username='someuser')
 pm.run()
 
 # Get a specific loaded plugin by name
-plugin = pm.get_plugin('my_plugin')
+plugin = pm.get_plugin('MyPlugin')
 if plugin:
 plugin.apply()
 ```
@@ -322,7 +322,7 @@ plugin.apply()
 
 ### Plugin with locale/translations
 
-Create a file `/usr/lib/gpoa/plugins/localized_plugin.py` and a
+Create a file `/usr/lib/gpoa/plugins/localized_applier.py` and a
 `locale/` directory next to it with standard gettext layout
 (`ru/LC_MESSAGES/localized_plugin.po` / `.mo`):
 
