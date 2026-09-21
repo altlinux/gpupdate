@@ -1,0 +1,28 @@
+#!/bin/sh
+
+. /etc/control.d/functions
+
+CONFIG=/etc/pam.d/system-policy-gpupdate
+
+new_subst disabled \
+        '^[[:space:]]*session[[:space:]]+\[[[:space:]]*success=1[[:space:]]+default=ignore[[:space:]]*\][[:space:]]+pam_succeed_if\.so[[:space:]]+service[[:space:]]+in[[:space:]]+systemd-user:sshd[[:space:]]+quiet[[:space:]]*$' \
+        's,\(pam_succeed_if\.so[[:space:]]\+service[[:space:]]\+\)\(=[[:space:]]\+systemd-user\|in[[:space:]]\+systemd-user:sshd\)\([[:space:]]\+quiet[[:space:]]*$\),\1in systemd-user:sshd\3,'
+new_subst enabled \
+        '^[[:space:]]*session[[:space:]]+\[[[:space:]]*success=1[[:space:]]+default=ignore[[:space:]]*\][[:space:]]+pam_succeed_if\.so[[:space:]]+service[[:space:]]+=[[:space:]]+systemd-user[[:space:]]+quiet[[:space:]]*$' \
+        's,\(pam_succeed_if\.so[[:space:]]\+service[[:space:]]\+\)\(=[[:space:]]\+systemd-user\|in[[:space:]]\+systemd-user:sshd\)\([[:space:]]\+quiet[[:space:]]*$\),\1= systemd-user\3,'
+
+new_help disabled 'Disable group policy applying for SSH logins'
+new_help enabled 'Enable group policy applying for SSH logins'
+
+new_summary 'Group policy applying for SSH logins'
+
+case "$*" in
+disabled|enabled)
+        if [ "$(control_subst_status "$CONFIG")" = unknown ]; then
+                echo_error "Unsupported configuration in $CONFIG"
+                exit 1
+        fi
+        ;;
+esac
+
+control_subst "$CONFIG" "$*"

@@ -222,7 +222,8 @@ install -Dm0644 completions/gpupdate-setup %buildroot/%_datadir/bash-completion/
 
 for i in gpupdate-localusers \
     gpupdate-group-users \
-    gpupdate-system-uids
+    gpupdate-system-uids \
+    gpupdate-ssh
 do
     install -pD -m755 "dist/$i" \
         "%buildroot%_sysconfdir/control.d/facilities/$i"

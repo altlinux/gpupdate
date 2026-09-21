@@ -92,3 +92,24 @@ class ControlSetStatusTestCase(unittest.TestCase):
         c.set_control_status()
         last_call_args = mock_popen_cls.call_args_list[-1][0][0]
         self.assertEqual(last_call_args, ['/usr/sbin/control', 'testctrl', 'deny'])
+
+    @patch('gpoa_lib.frontend.appliers.control.subprocess.Popen')
+    def test_gpupdate_ssh_numeric_values(self, mock_popen_cls):
+        mock_popen_cls.return_value = _mock_popen(b'disabled enabled\n')
+
+        disabled = control('gpupdate-ssh', 0)
+        disabled.set_control_status()
+        disabled_call = mock_popen_cls.call_args_list[-1][0][0]
+
+        enabled = control('gpupdate-ssh', 1)
+        enabled.set_control_status()
+        enabled_call = mock_popen_cls.call_args_list[-1][0][0]
+
+        self.assertEqual(
+            disabled_call,
+            ['/usr/sbin/control', 'gpupdate-ssh', 'disabled'],
+        )
+        self.assertEqual(
+            enabled_call,
+            ['/usr/sbin/control', 'gpupdate-ssh', 'enabled'],
+        )

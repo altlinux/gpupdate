@@ -122,6 +122,23 @@ sudo gpoa username
 gpupdate --force
 ```
 
+### SSH Login Policy Updates
+
+User policy updates during SSH login are enabled by default. Administrators can
+skip the synchronous PAM update for SSH sessions without affecting graphical or
+console logins:
+
+```bash
+control gpupdate-ssh disabled
+```
+
+The setting can be managed by machine policy through
+`HKLM\Software\BaseALT\Policies\Control`, using the value name
+`gpupdate-ssh`. Values `0`/`disabled` disable SSH updates and `1`/`enabled`
+enable them. If the value is not configured, gpupdate leaves the local control
+state unchanged. Previously applied policy and the policy environment remain
+available in SSH sessions.
+
 ### Plugin Management
 Plugins are automatically discovered from:
 - `/usr/lib/gpoa/plugins/` (system-wide plugins)
