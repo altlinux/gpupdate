@@ -322,9 +322,13 @@ plugin.apply()
 
 ### Plugin with locale/translations
 
-Create a file `/usr/lib/gpoa/plugins/localized_applier.py` and a
-`locale/` directory next to it with standard gettext layout
-(`ru/LC_MESSAGES/localized_plugin.po` / `.mo`):
+For a manually installed plugin, create
+`/usr/lib/gpoa/plugins/localized_applier.py` and the shared
+`/usr/lib/gpoa/plugins/locale/` directory with the standard gettext layout
+(`ru/LC_MESSAGES/localized_plugin.po` / `.mo`). For an RPM package, install
+the same catalog under `/usr/share/locale/` instead. Do not use a nested path
+such as `/usr/lib/gpoa/plugins/localized_plugin/locale/`, because nested plugin
+directories are not scanned.
 
 ```python
 from gpoa_lib.plugin.plugin_base import FrontendPlugin

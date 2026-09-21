@@ -202,8 +202,11 @@ GPOA supports automatic localization of plugin messages. The system uses standar
 
 ### Translation File Structure
 
-For a manually installed plugin, place the translation directory next to the
-plugin file:
+Choose one of the following installation layouts. They are alternatives; a
+plugin does not need both catalogs.
+
+For a manually installed plugin, place the shared translation directory next
+to the plugin file:
 
 ```
 /usr/lib/gpoa/plugins/
@@ -219,8 +222,11 @@ plugin file:
 
 The plugin manager discovers only Python files directly under
 `/usr/lib/gpoa/plugins/`; it does not discover plugins in nested directories.
+Therefore, do not use `/usr/lib/gpoa/plugins/my_plugin/locale/` or place the
+Python plugin in `/usr/lib/gpoa/plugins/my_plugin/`.
 
-An RPM package should install translations in the standard system gettext
+An RPM package should install the plugin directly in
+`/usr/lib/gpoa/plugins/` and its translations in the standard system gettext
 directory instead:
 
 ```
@@ -285,11 +291,11 @@ msgstr ""
 # Compile .po to .mo
 msgfmt my_plugin.po -o my_plugin.mo
 
-# For an RPM package, install the compiled catalog in the system locale directory
+# Choose this layout for an RPM package:
 mkdir -p /usr/share/locale/ru/LC_MESSAGES/
 cp my_plugin.mo /usr/share/locale/ru/LC_MESSAGES/my_plugin.mo
 
-# For a manually installed plugin, the plugin-local directory is also supported
+# Or choose this layout for a manually installed plugin:
 mkdir -p /usr/lib/gpoa/plugins/locale/ru/LC_MESSAGES/
 cp my_plugin.mo /usr/lib/gpoa/plugins/locale/ru/LC_MESSAGES/my_plugin.mo
 ```
