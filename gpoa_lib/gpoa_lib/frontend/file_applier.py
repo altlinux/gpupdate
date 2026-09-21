@@ -23,6 +23,7 @@ from .applier_frontend import applier_frontend, DualContextApplier, check_enable
 from .appliers.file_cp import Execution_check, Files_cp, str2bool as check_str2bool
 from ..storage.gpp_state import GppStateManager, get_element_type_name, cleanup_file
 from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED, RESULT_SKIPPED
+from ..util.util import homedir_exists
 
 SECURE_PERMS_KEY = 'Software/BaseALT/Policies/GroupPolicies/Files/SecurePermissionsDisabled'
 
@@ -147,6 +148,12 @@ class file_applier_user(DualContextApplier):
 
     def admin_context_apply(self):
         if self.__module_enabled:
+            if not homedir_exists(self.username):
+                log('W7', {'username': self.username})
+                return ApplierResult.skipped(
+                    'files_user',
+                    'User home directory does not exist; file policy deferred',
+                )
             log('D169')
             items = self.run()
             failed = sum(1 for i in items if i.result == RESULT_FAILED)
