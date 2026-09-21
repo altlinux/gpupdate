@@ -187,6 +187,8 @@ ln -s %python3_sitelibdir/gpoa/gpupdate \
 
 ln -s %python3_sitelibdir/gpoa/gpupdate-setup \
     %buildroot%_sbindir/gpupdate-setup
+ln -s %python3_sitelibdir/gpoa/gpupdate-machine-run \
+    %buildroot%_sbindir/gpupdate-machine-run
 
 mkdir -p \
     %buildroot%_prefix/libexec/%name
@@ -247,12 +249,14 @@ fi
 
 %files
 %_sbindir/gpoa
+%_sbindir/gpupdate-machine-run
 %_sbindir/gpupdate-setup
 %_bindir/gpupdate
 %_prefix/libexec/%name/scripts_runner
 %_prefix/libexec/%name/pkcon_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpoa
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate
+%attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate-machine-run
 %attr(755,root,root) %python3_sitelibdir/gpoa/gpupdate-setup
 %attr(755,root,root) %python3_sitelibdir/gpoa/scripts_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/pkcon_runner
@@ -786,4 +790,3 @@ fi
 
 * Thu Nov 14 2019 Igor Chudov <nir@altlinux.org> 0.0.1-alt1
 - Initial release
-
