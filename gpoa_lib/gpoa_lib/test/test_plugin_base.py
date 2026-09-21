@@ -16,9 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import unittest
 from unittest.mock import MagicMock, patch
 
+from gpoa_lib.applier_result import ApplierResult, ItemStatus
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
 
 
@@ -29,6 +31,15 @@ class ConcretePlugin(FrontendPlugin):
     def run(self, **kwargs):
         self.run_called = True
         self.run_kwargs = kwargs
+
+
+class ResultPlugin(FrontendPlugin):
+
+    def run(self, **kwargs):
+        return ApplierResult.applied(
+            'result_plugin',
+            [ItemStatus('key', 'set', 'success', 'done')],
+        )
 
 
 class FrontendPluginAbstractTestCase(unittest.TestCase):
@@ -91,6 +102,19 @@ class FrontendPluginApplyTestCase(unittest.TestCase):
         p = ConcretePlugin()
         p.apply(foo='bar')
         self.assertEqual(p.run_kwargs, {'foo': 'bar'})
+
+    @patch('gpoa_lib.util.system.with_privileges')
+    def test_apply_user_preserves_applier_result(self, with_privileges):
+        with_privileges.side_effect = lambda _username, func: json.loads(
+            json.dumps(func()),
+        )
+
+        result = ResultPlugin().apply_user('testuser')
+
+        self.assertIsInstance(result, ApplierResult)
+        self.assertEqual(result.name, 'result_plugin')
+        self.assertEqual(result.status, 'applied')
+        self.assertEqual(result.items[0].detail, 'done')
 
 
 class FrontendPluginRegistryTestCase(unittest.TestCase):

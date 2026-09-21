@@ -22,6 +22,25 @@ from ..util.util import string_to_literal_eval
 from ..util.logging import log
 from .plugin_log import PluginLog
 from ..storage.dconf_registry import Dconf_registry
+from ..applier_result import ApplierResult, ItemStatus
+
+
+def _serialize_result(result):
+    if isinstance(result, ApplierResult):
+        return result.to_dict(), 'ApplierResult'
+    return result, None
+
+
+def _deserialize_result(result, result_type):
+    if result_type != 'ApplierResult':
+        return result
+    return ApplierResult(
+        name=result['name'],
+        status=result['status'],
+        error=result.get('error'),
+        metadata=result.get('metadata', {}),
+        items=[ItemStatus(**item) for item in result.get('items', [])],
+    )
 
 class plugin(ABC):
     '''
@@ -58,12 +77,17 @@ class plugin(ABC):
     @final
     def apply_user(self, username, **kwargs):
         """Apply the plugin with user privileges"""
-        from .util.system import with_privileges
+        from ..util.system import with_privileges
 
         def run_with_user():
             try:
                 result = self.run(**kwargs)
-                return {"success": True, "result": result}
+                result, result_type = _serialize_result(result)
+                return {
+                    "success": True,
+                    "result": result,
+                    "result_type": result_type,
+                }
             except Exception as exc:
                 log('W46', {'plugin': self.plugin_name, 'username': username, 'exc': str(exc)})
                 return {"success": False, "error": str(exc)}
@@ -72,7 +96,10 @@ class plugin(ABC):
             execution_result = with_privileges(username, run_with_user)
             if execution_result and execution_result.get("success"):
                 result = execution_result.get("result", True)
-                return result
+                return _deserialize_result(
+                    result,
+                    execution_result.get("result_type"),
+                )
             else:
                 log('W46', {'plugin': self.plugin_name, 'username': username,
                             'error': execution_result.get('error', 'unknown') if execution_result else 'empty result'})
