@@ -174,6 +174,7 @@ class chromium_applier(applier_frontend):
                             'AutomatedPasswordChangeSettings',
                             'PrintPostScriptMode',
                             'PrintRasterizationMode',
+                            'ChromeFrameRendererSettings',
                             'DefaultFileHandlingGuardSetting',
                             'DefaultKeygenSetting',
                             'DefaultPluginsSetting',
