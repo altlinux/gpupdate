@@ -96,6 +96,8 @@ def apply_user_context(user_appliers):
         except Exception as exc:
             logdata = {'applier': applier_name, 'exception': str(exc)}
             log('E20', logdata)
+    return [marker for applier in user_appliers.values()
+            for marker in getattr(getattr(applier, 'state_manager', None), 'applied_markers', [])]
 
 class frontend_manager:
     '''
@@ -241,7 +243,9 @@ class frontend_manager:
             try:
                 log('D331', {'username': self.username})
                 with TimedExecution('fork_user_context') as ft:
-                    with_privileges(self.username, lambda: apply_user_context(self.user_appliers))
+                    markers = with_privileges(self.username, lambda: apply_user_context(self.user_appliers))
+                from gpoa_lib.storage.gpp_state import merge_applied_markers
+                merge_applied_markers(markers)
                 log('D332', {'username': self.username, 'elapsed': round(ft.elapsed, 3)})
             except Exception as exc:
                 logdata = {'username': self.username, 'exception': str(exc)}
@@ -267,4 +271,3 @@ class frontend_manager:
             self.machine_apply()
         else:
             self.user_apply()
-

@@ -225,6 +225,7 @@ class GppStateManager:
 
         self._previous_elements: Dict[str, List[Dict]] = {}
         self._removed_elements: Dict[str, List[Dict]] = {}
+        self.applied_markers = []
 
     def get_previous(self, element_type: str) -> List[Dict]:
         '''
@@ -268,6 +269,8 @@ class GppStateManager:
         skipped = is_element_applied(element, element_type, self.username)
         if skipped and element_obj is not None:
             element_obj.applied = element['applied']
+        if skipped:
+            self._record_marker(element, element_type)
         return skipped
 
     def mark_applied(self, element: Dict, element_type: str, element_obj=None) -> None:
@@ -279,6 +282,14 @@ class GppStateManager:
         :param element_obj: Original element object to set applied attribute on
         '''
         mark_element_applied(element, element_type, self.username, element_obj=element_obj)
+        if element.get('applied'):
+            self._record_marker(element, element_type)
+
+    def _record_marker(self, element, element_type):
+        self.applied_markers.append({
+            'type': element_type, 'uid': element.get('uid'),
+            'policy_guid': element.get('policy_guid'), 'applied': element['applied'],
+        })
 
     def cleanup_removed(self, element_type: str, current: List[Dict],
                         handler) -> None:
@@ -316,6 +327,25 @@ ELEMENT_TYPE_MAP = {
     'printer': 'Printers',
     'service': 'Services',
 }
+
+
+def merge_applied_markers(markers):
+    """Merge only successful stamps into current parent-owned preferences."""
+    attributes = {'Files': 'files', 'Folders': 'folders', 'Inifiles': 'inifiles',
+                  'Shortcuts': 'shortcuts', 'Environmentvariables': 'environmentvariables'}
+    if not isinstance(markers, list):
+        return
+    for marker in markers:
+        if not isinstance(marker, dict) or not marker.get('uid') or not isinstance(marker.get('applied'), str):
+            continue
+        attribute = attributes.get(marker.get('type'))
+        if attribute is None:
+            continue
+        for obj in getattr(Dconf_registry, attribute):
+            if (getattr(obj, 'uid', None) == marker['uid']
+                    and getattr(obj, 'policy_guid', None) == marker.get('policy_guid')
+                    and getattr(obj, 'apply_once', False)):
+                obj.applied = marker['applied']
 
 
 def get_element_type_name(element) -> str:

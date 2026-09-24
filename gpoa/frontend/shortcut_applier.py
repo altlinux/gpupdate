@@ -226,6 +226,8 @@ class shortcut_applier_user(applier_frontend):
                         log('D240', logdata)
                         continue
                 try:
+                    if bool(in_usercontext) != bool(sc.is_usercontext()):
+                        continue
                     if in_usercontext and sc.is_usercontext():
                         apply_shortcut(sc, self.username)
                     if not in_usercontext and not sc.is_usercontext():
