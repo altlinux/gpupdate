@@ -225,7 +225,10 @@ class Files_cp:
             try:
                 self.copy_target_file(targetFile, fromFile)
                 if self.username:
-                    shutil.chown(self.targetPath, self.username)
+                    # A user preference may legitimately target a system directory.
+                    # Only home descendants are transferred by chown_home_path.
+                    if not self.targetPath.is_dir():
+                        shutil.chown(self.targetPath, self.username)
                     group_name = grp.getgrgid(self.pw.pw_gid).gr_name
                     chown_home_path(targetFile, username=self.username, group=group_name)
                 self.set_mod_file(targetFile, fromFile)
