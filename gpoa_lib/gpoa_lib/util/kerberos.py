@@ -23,6 +23,22 @@ from .logging import log
 from .samba import smbopts
 from .util import get_machine_name
 
+_owned_caches = set()
+
+
+def forget_machine_cache(cache_name):
+    _owned_caches.discard((os.getpid(), cache_name))
+
+
+def destroy_owned_machine_caches():
+    """Clean up only caches explicitly acquired by this process."""
+    for pid, cache_name in tuple(_owned_caches):
+        if pid == os.getpid():
+            try:
+                machine_kdestroy(cache_name)
+            except Exception as exc:
+                log('E14', {'krb-exc': exc})
+
 
 def machine_kinit(cache_name=None, backend_type=None):
     '''
@@ -44,6 +60,7 @@ def machine_kinit(cache_name=None, backend_type=None):
         kinit_cmd = ['kinit', '-k', with_realm]
 
     if cache_name:
+        _owned_caches.add((os.getpid(), cache_name))
         os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_name)
         kinit_cmd.extend(['-c', cache_name])
 
@@ -80,6 +97,8 @@ def machine_kdestroy(cache_name=None):
         path = os.environ['KRB5CCNAME'][5:]
         if os.path.exists(path):
             os.unlink(path)
+    if cache_name:
+        forget_machine_cache(cache_name)
 
 
 def check_krb_ticket():

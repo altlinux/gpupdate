@@ -21,7 +21,7 @@ import os
 import signal
 
 from .arguments import ExitCodeUpdater
-from .kerberos import machine_kdestroy
+from .kerberos import destroy_owned_machine_caches
 
 
 def signal_handler(sig_number, frame):
@@ -29,8 +29,7 @@ def signal_handler(sig_number, frame):
     # Ignore extra signals
     signal.signal(sig_number, signal.SIG_IGN)
 
-    # Kerberos cache cleanup on interrupt
-    machine_kdestroy()
-
-    os._exit(ExitCodeUpdater.EXIT_SIGINT)
-
+    try:
+        destroy_owned_machine_caches()
+    finally:
+        os._exit(ExitCodeUpdater.EXIT_SIGINT)

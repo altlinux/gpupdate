@@ -73,7 +73,7 @@ class samba_backend(applier_backend):
 
     def __del__(self):
         if self.__kinit_successful:
-            machine_kdestroy()
+            machine_kdestroy(self.cache_path)
 
     def get_policy_mode(self):
         '''

@@ -61,7 +61,7 @@ class freeipa_backend(applier_backend):
 
     def __del__(self):
         if self.__kinit_successful:
-            machine_kdestroy()
+            machine_kdestroy(self.cache_path)
 
     def retrieve_and_store(self):
         '''
@@ -242,5 +242,4 @@ class freeipa_backend(applier_backend):
         except Exception as e:
             logdata = {'exception': str(e), 'remote_folder_path': remote_smb_path}
             log('W31', logdata)
-
 

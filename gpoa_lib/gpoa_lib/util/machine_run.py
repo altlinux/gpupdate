@@ -17,10 +17,11 @@ import sys
 import tempfile
 
 from .config import GPConfig
-from .kerberos import machine_kinit
+from .kerberos import machine_kinit, forget_machine_cache
 
 
 def _destroy_cache(cache_path):
+    forget_machine_cache(cache_path)
     try:
         subprocess.run(
             ['kdestroy', '-c', cache_path],
