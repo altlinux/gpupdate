@@ -21,6 +21,9 @@
 import os
 import sys
 import argparse
+import pwd
+import re
+import subprocess
 
 _gpoa_dir = os.path.dirname(os.path.abspath(__file__))
 _gpoa_lib_dir = os.path.join(os.path.dirname(_gpoa_dir), 'gpoa_lib')
@@ -184,6 +187,40 @@ def rollback_on_error(command_name):
         return False
     return True
 
+def stop_policy_timers():
+    """Stop future triggers without stopping policy or script services."""
+    errors = []
+    if runcmd(['/bin/systemctl', 'stop', 'gpupdate.timer'])[0]:
+        errors.append('Cannot stop gpupdate.timer')
+    code, output = runcmd(['/bin/systemctl', 'list-units', '--no-legend',
+                          '--plain', '--state=running', 'user@*.service'])
+    if code:
+        errors.append('Cannot enumerate running user managers')
+        return errors
+    for line in output.splitlines():
+        match = re.match(r'user@(\d+)\.service\s', line.strip())
+        if not match:
+            continue
+        uid = int(match.group(1))
+        runtime = '/run/user/{}'.format(uid)
+        try:
+            user = pwd.getpwuid(uid)
+            # Connect only to the existing manager; never create a PAM session.
+            if not os.path.exists(runtime + '/bus'):
+                raise RuntimeError('User bus is unavailable')
+            result = subprocess.run(
+                ['/bin/systemctl', '--user', 'stop', 'gpupdate-user.timer'],
+                user=uid, group=user.pw_gid, extra_groups=[], timeout=30,
+                env={'HOME': user.pw_dir, 'USER': user.pw_name,
+                     'LOGNAME': user.pw_name, 'PATH': '/usr/bin:/bin',
+                     'XDG_RUNTIME_DIR': runtime,
+                     'DBUS_SESSION_BUS_ADDRESS': 'unix:path=' + runtime + '/bus'},
+                capture_output=True, text=True, check=True)
+        except Exception as exc:
+            errors.append('Cannot stop timer for UID {}: {}'.format(uid, exc))
+    return errors
+
+
 def disable_gp():
     '''
     Consistently disable group policy services
@@ -199,6 +236,7 @@ def disable_gp():
     cmd_disable_gpupdate_scripts_user_service = ['/bin/systemctl', '--global', 'disable', 'gpupdate-scripts-run-user.service']
 
     config = GPConfig()
+    timer_errors = stop_policy_timers()
 
     auth_result = 'local'
     try:
@@ -218,6 +256,8 @@ def disable_gp():
     runcmd(cmd_disable_gpupdate_scripts_user_service)
     config.set_local_policy_template()
     config.set_backend()
+    if timer_errors:
+        raise RuntimeError('; '.join(timer_errors))
 
 def enable_gp(policy_name, backend_type, bootstrap=True):
     '''
