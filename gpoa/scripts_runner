@@ -30,6 +30,7 @@ class Scripts_runner:
     in the desired sequence and launches them
     '''
     def __init__(self, work_mode = None,  user_name = None, action = None):
+        self.failed = 0
         self.dir_scripts_machine = '/var/cache/gpupdate_scripts_cache/machine/'
         self.dir_scripts_users = '/var/cache/gpupdate_scripts_cache/users/'
         self.user_name = user_name
@@ -41,16 +42,19 @@ class Scripts_runner:
             stack_dir = self.user_runner_fill()
         else:
             print('Invalid arguments entered')
+            self.failed += 1
             return
         if action:
             self.action = action.upper()
         else:
             print('Action needed')
+            self.failed += 1
             return
 
         self.find_action(stack_dir)
         for it_cmd in self.list_with_all_commands:
             print(self.run_cmd_subprocess(it_cmd))
+        print('Scripts completed: {} failed'.format(self.failed))
 
     def user_runner_fill(self):
         return self.get_stack_dir(self.dir_scripts_users + self.user_name)
@@ -67,6 +71,7 @@ class Scripts_runner:
             return stack_dir
         except Exception as exc:
             print(exc)
+            self.failed += 1
             return None
 
     def find_action(self, stack_dir):
@@ -106,10 +111,14 @@ class Scripts_runner:
 
     def run_cmd_subprocess(self, cmd):
         try:
-            subprocess.run(cmd)
+            result = subprocess.run(cmd)
+            if result.returncode:
+                self.failed += 1
+                return 'Script failed (status {}): {}'.format(result.returncode, cmd)
             return 'Script run: {}'.format(cmd)
         except Exception as exc:
-            return exc
+            self.failed += 1
+            return 'Script failed: {}: {}'.format(cmd, exc)
 
 def find_process_by_name_and_script(name, script_path):
 
@@ -140,17 +149,25 @@ def wait_for_process(name, script_path, check_interval=1):
         print(f"Process {name} with PID {process.pid} is no longer accessible.")
         return
 
-if __name__ == '__main__':
+def main(argv=None):
     parser = argparse.ArgumentParser(description='Scripts runner')
     parser.add_argument('--mode', type = str, help = 'MACHINE or USER', nargs = '?', default = None)
     parser.add_argument('--user', type = str, help = 'User name ', nargs = '?', default = None)
     parser.add_argument('--action', type = str, help = 'MACHINE : [STARTUP or SHUTDOWN], USER : [LOGON or LOGOFF]', nargs = '?', default = None)
+    parser.add_argument('--fail-on-error', action='store_true',
+                        help='Return a nonzero status if any script fails')
 
     process_name = "python3"
     script_path = "/usr/sbin/gpoa"
     wait_for_process(process_name, script_path)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     try:
-        Scripts_runner(args.mode, args.user, args.action)
+        runner = Scripts_runner(args.mode, args.user, args.action)
+        return int(args.fail_on_error and bool(runner.failed))
     except Exception as exc:
         print(exc)
+        return int(args.fail_on_error)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

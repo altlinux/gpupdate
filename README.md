@@ -355,3 +355,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Script execution results
+
+`scripts_runner` reports each failed script and continues running subsequent
+scripts. Use `--fail-on-error` to return exit status 1 if any script or runner
+operation fails. Without this option the historical exit behaviour is retained.
+The shipped systemd units retain that default: their successful oneshot startup
+is needed for the matching shutdown/logoff `ExecStop` action to run.
