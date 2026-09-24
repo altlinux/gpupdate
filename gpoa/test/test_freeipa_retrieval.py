@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import Mock, patch
+from types import SimpleNamespace
 from backend.freeipa_backend import freeipa_backend
 
 
@@ -28,3 +29,20 @@ class FreeIPARetrievalTests(unittest.TestCase):
         obj.ipacreds.update_gpos.return_value = ([], 'ipa.example')
         with patch('backend.freeipa_backend.get_local_gpt', return_value='local'):
             self.assertEqual(obj._get_gpts('host'), ['local'])
+
+    def test_mixed_cache_states_preserve_chain_order(self):
+        for cached in ((), ('A',), ('B',), ('A', 'B')):
+            obj = self.make_backend()
+            chain = [SimpleNamespace(name=n, display_name=n, file_sys_path='/' + n if n in cached else '\\\\dc\\' + n) for n in ('A', 'B')]
+            obj.ipacreds.update_gpos.return_value = (chain, 'ipa.example')
+            def download(gpos, server):
+                for policy in gpos:
+                    policy.file_sys_path = '/' + policy.name
+            obj._download_gpos = download
+            with patch('backend.freeipa_backend.os.path.exists', return_value=True), \
+                    patch('backend.freeipa_backend.GpoInfoDconf'), \
+                    patch('backend.freeipa_backend.get_local_gpt', return_value='local'), \
+                    patch('backend.freeipa_backend.gpt', side_effect=lambda path, *a: Mock(path=path)):
+                result = obj._get_gpts('host')
+                self.assertEqual([p.path for p in result[:-1]], ['/A', '/B'])
+                self.assertEqual(result[-1], 'local')

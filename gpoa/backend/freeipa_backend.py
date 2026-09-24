@@ -152,8 +152,8 @@ class freeipa_backend(applier_backend):
         else:
             log('D211', {})
 
-        all_gpos = cached_gpos + download_gpos
-        for gpo in all_gpos:
+        # Cache state must not affect chain precedence.
+        for gpo in gpos:
             gpt_abspath = gpo.file_sys_path
             if not os.path.exists(gpt_abspath):
                 logdata = {'path': gpt_abspath, 'gpo_name': gpo.display_name}
