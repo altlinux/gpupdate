@@ -41,6 +41,20 @@ class CachedPolicyTests(unittest.TestCase):
         self.assertEqual(Dconf_registry.files[0].applied, 'stamp')
         self.assertEqual(Dconf_registry.global_registry_dict[prefix], Dconf_registry.global_registry_dict['Previous/' + prefix])
 
+    def test_cached_filters_remain_evaluable_and_serializable(self):
+        from gpt.filter import Filter
+        from gpoa_lib.storage.dconf_registry import _evaluate_filters
+        prefix = 'Software/BaseALT/Policies/Preferences/user'
+        filters = [dict(Filter('FilterComputer', name='host', negate=False))]
+        data = {prefix: {'Files': str([{'uid': 'f', 'filters': filters}])}}
+        with patch.object(Dconf_registry, 'get_dictionary_from_dconf_file_db', return_value=data):
+            load_cached_policy('user', 1234, False)
+        restored = Dconf_registry.files[0]
+        self.assertEqual(filters, dict(restored)['filters'])
+        with patch('gpoa_lib.storage.dconf_registry.FilterChecker._get_handlers',
+                   return_value={'FilterComputer': lambda item, user: item.name == 'host'}):
+            self.assertTrue(_evaluate_filters(restored.filters, 'user'))
+
     def test_cached_controller_does_not_construct_backend_or_save(self):
         loader = importlib.machinery.SourceFileLoader('cached_controller_test', str(Path(__file__).parents[1] / 'gpoa'))
         spec = importlib.util.spec_from_loader(loader.name, loader)

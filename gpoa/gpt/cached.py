@@ -1,7 +1,6 @@
 """Restore typed preferences from the last accepted, local policy database."""
 from ast import literal_eval
 from copy import deepcopy
-from types import SimpleNamespace
 
 from storage.dconf_registry import Dconf_registry
 from util.logging import log
@@ -15,6 +14,19 @@ from .scriptsini import Script
 from .networkshares import networkshare
 from .services import service
 from .shortcuts import shortcut, get_ttype
+from .filter import Filter
+
+
+def _restore_filters(entries):
+    filters = []
+    for entry in entries:
+        if not isinstance(entry, dict) or len(entry) != 1:
+            raise ValueError('Invalid cached preference filter')
+        name, attributes = next(iter(entry.items()))
+        if not isinstance(attributes, dict):
+            raise ValueError('Invalid cached filter attributes')
+        filters.append(Filter(filter_type=name, **attributes))
+    return filters
 
 
 def load_cached_policy(username, uid, is_machine):
@@ -44,7 +56,7 @@ def load_cached_policy(username, uid, is_machine):
             obj.__dict__.update({k: deepcopy(v) for k, v in values.items()
                                  if not k.startswith('_') and not callable(getattr(cls, k, None))})
             if hasattr(obj, 'filters'):
-                obj.filters = [SimpleNamespace(**f) for f in obj.filters]
+                obj.filters = _restore_filters(obj.filters)
             if cls is shortcut:
                 obj.type = get_ttype(obj.type)
                 obj.expanded_path = obj.desktop_file_template = None
