@@ -14,6 +14,21 @@ from gpoa_lib.util import machine_run as gpupdate_machine_run
 
 
 class MachineRunTestCase(unittest.TestCase):
+    def test_cancellation_during_acquisition_does_not_launch_command(self):
+        def acquire(*args, cancelled):
+            signal.getsignal(signal.SIGTERM)(signal.SIGTERM, None)
+            self.assertTrue(cancelled())
+            raise InterruptedError()
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(gpupdate_machine_run, 'machine_kinit', side_effect=acquire), \
+                patch.object(gpupdate_machine_run, '_destroy_cache') as destroy, \
+                patch.object(gpupdate_machine_run.subprocess, 'Popen') as popen:
+            original = os.environ.get('KRB5CCNAME')
+            self.assertEqual(gpupdate_machine_run.run(['command'], 'samba', directory), 143)
+            self.assertEqual(os.environ.get('KRB5CCNAME'), original)
+            popen.assert_not_called()
+            destroy.assert_called_once()
+
     def test_command_arguments(self):
         args = gpupdate_machine_run._parse_arguments(
             ['--', 'smbclient', '-k', '//server/share'],

@@ -18,6 +18,7 @@
 
 import os
 import subprocess
+import time
 
 from .logging import log
 from .samba import smbopts
@@ -40,7 +41,30 @@ def destroy_owned_machine_caches():
                 log('E14', {'krb-exc': exc})
 
 
-def machine_kinit(cache_name=None, backend_type=None):
+def _wait_process(proc, timeout, cancelled=None):
+    deadline = time.monotonic() + timeout
+    try:
+        while True:
+            if cancelled and cancelled():
+                raise InterruptedError('Kerberos operation cancelled')
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(proc.args, timeout)
+            try:
+                return proc.wait(timeout=min(remaining, 0.2) if cancelled else timeout)
+            except subprocess.TimeoutExpired:
+                if not cancelled:
+                    raise
+    except BaseException:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        proc.wait()
+        raise
+
+
+def machine_kinit(cache_name=None, backend_type=None, cancelled=None):
     '''
     Perform kinit with machine credentials
     '''
@@ -65,7 +89,7 @@ def machine_kinit(cache_name=None, backend_type=None):
         kinit_cmd.extend(['-c', cache_name])
 
     with subprocess.Popen(kinit_cmd) as proc:
-        proc.wait(timeout=15)
+        _wait_process(proc, 15, cancelled)
 
     result = False
 
@@ -73,6 +97,8 @@ def machine_kinit(cache_name=None, backend_type=None):
         result = True
 
     if result:
+        if cancelled and cancelled():
+            raise InterruptedError('Kerberos operation cancelled')
         result = check_krb_ticket()
 
     return result
@@ -89,7 +115,7 @@ def machine_kdestroy(cache_name=None):
 
     if cache_name or 'KRB5CCNAME' in os.environ:
         with subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL) as proc:
-            proc.wait(timeout=10)
+            _wait_process(proc, 10)
 
     if cache_name and os.path.exists(cache_name):
         os.unlink(cache_name)

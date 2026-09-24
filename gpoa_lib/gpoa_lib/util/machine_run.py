@@ -78,10 +78,16 @@ def run(command, backend, config_dir='/run'):
 
     try:
         os.environ['KRB5CCNAME'] = 'FILE:{}'.format(cache_path)
-        if not machine_kinit(cache_path, backend):
-            raise RuntimeError('unable to obtain machine Kerberos credentials')
+        try:
+            acquired = machine_kinit(cache_path, backend, cancelled=lambda: interrupted is not None)
+        except InterruptedError:
+            if interrupted is None:
+                raise
+            return 128 + interrupted
         if interrupted is not None:
             return 128 + interrupted
+        if not acquired:
+            raise RuntimeError('unable to obtain machine Kerberos credentials')
 
         child_env = os.environ.copy()
         child_env['KRB5CCNAME'] = 'FILE:{}'.format(cache_path)
