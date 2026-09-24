@@ -89,7 +89,7 @@ class dbus_runner:
                         's',
                         [self.username],
                         timeout=self._synchronous_timeout)
-                    print_dbus_result(result)
+                    return print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
                     logdata = {'username': self.username}
                     log('E23', logdata)
@@ -103,7 +103,7 @@ class dbus_runner:
                         None,
                         [],
                         timeout=self._synchronous_timeout)
-                    print_dbus_result(result)
+                    return print_dbus_result(result)
                 except dbus.exceptions.DBusException as exc:
                     logdata = {'error': str(exc)}
                     log('E21', logdata)
@@ -121,7 +121,7 @@ class dbus_runner:
                     # There is no official documentation for it.
                     [],
                     timeout=self._synchronous_timeout)
-                print_dbus_result(result)
+                return print_dbus_result(result)
             except dbus.exceptions.DBusException as exc:
                 logdata = {'error': str(exc)}
                 log('E22', logdata)
@@ -192,13 +192,16 @@ def print_dbus_result(result):
     '''
     Print lines returned by oddjobd (called via D-Bus) to stdout.
     '''
-    exitcode = result[0]
+    if not isinstance(result, (tuple, list)) or not result:
+        raise ValueError('Invalid oddjob reply')
+    exitcode = int(result[0])
     message = result[1:]
     logdata = {'retcode': exitcode}
     log('D12', logdata)
 
     for line in message:
         if line: print(str(line))
+    return exitcode
 
 
 class dbus_session:

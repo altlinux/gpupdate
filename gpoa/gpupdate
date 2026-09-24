@@ -70,7 +70,7 @@ class file_runner:
         if self._user:
             gpoa_cmd += [self._user]
 
-        subprocess.check_output(gpoa_cmd)
+        return subprocess.run(gpoa_cmd, check=False).returncode
 
 def parse_cli_arguments():
     '''
@@ -173,6 +173,27 @@ def try_directly(username, target, loglevel):
 
     return None
 
+def run_appliers(gpo_appliers):
+    """Run every requested target, returning the first failure category."""
+    status = int(ExitCodeUpdater.EXIT_SUCCESS)
+    for runner, no_reply, failed, log_code in zip(
+            gpo_appliers,
+            (ExitCodeUpdater.FAIL_GPUPDATE_COMPUTER_NOREPLY,
+             ExitCodeUpdater.FAIL_GPUPDATE_USER_NOREPLY),
+            (ExitCodeUpdater.FAIL_GPUPDATE_COMPUTER,
+             ExitCodeUpdater.FAIL_GPUPDATE_USER), ('E5', 'E6')):
+        if runner is None:
+            continue
+        try:
+            result = runner.run()
+            if result not in (None, 0):
+                status = status or int(failed)
+        except Exception as exc:
+            log(log_code, {'error': str(exc)})
+            status = status or int(no_reply)
+    return status
+
+
 def main():
     args = parse_cli_arguments()
 
@@ -188,21 +209,7 @@ def main():
     gpo_appliers = runner_factory(args, process_target(args.target))
 
     if gpo_appliers:
-        if gpo_appliers[0]:
-            try:
-                gpo_appliers[0].run()
-            except Exception as exc:
-                logdata = {'error': str(exc)}
-                log('E5')
-                return int(ExitCodeUpdater.FAIL_GPUPDATE_COMPUTER_NOREPLY)
-
-        if gpo_appliers[1]:
-            try:
-                gpo_appliers[1].run()
-            except Exception as exc:
-                logdata = {'error': str(exc)}
-                log('E6', logdata)
-                return int(ExitCodeUpdater.FAIL_GPUPDATE_USER_NOREPLY)
+        return run_appliers(gpo_appliers)
     else:
         log('E2')
         return int(ExitCodeUpdater.FAIL_NO_RUNNER)
@@ -212,4 +219,3 @@ def main():
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     sys.exit(int(main()))
-

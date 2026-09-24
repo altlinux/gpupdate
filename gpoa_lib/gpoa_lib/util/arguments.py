@@ -81,6 +81,8 @@ class ExitCodeUpdater(IntEnum):
     FAIL_NO_RUNNER = 1
     FAIL_GPUPDATE_COMPUTER_NOREPLY = 2
     FAIL_GPUPDATE_USER_NOREPLY = 3
+    FAIL_GPUPDATE_COMPUTER = 4
+    FAIL_GPUPDATE_USER = 5
     EXIT_SIGINT = 130
 
 class FileAction(Enum):
