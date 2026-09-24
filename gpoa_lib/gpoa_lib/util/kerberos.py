@@ -117,8 +117,9 @@ def machine_kdestroy(cache_name=None):
         with subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL) as proc:
             _wait_process(proc, 10)
 
-    if cache_name and os.path.exists(cache_name):
-        os.unlink(cache_name)
+    if cache_name:
+        if os.path.exists(cache_name):
+            os.unlink(cache_name)
     elif 'KRB5CCNAME' in os.environ:
         path = os.environ['KRB5CCNAME'][5:]
         if os.path.exists(path):

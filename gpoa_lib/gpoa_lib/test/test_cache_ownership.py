@@ -24,3 +24,12 @@ class CacheOwnershipTests(unittest.TestCase):
                 patch.object(kerberos, 'machine_kdestroy') as destroy:
             kerberos.destroy_owned_machine_caches()
         destroy.assert_called_once_with('/owned/cache')
+
+    def test_missing_owned_cache_never_falls_back_to_caller_cache(self):
+        with patch.dict('os.environ', {'KRB5CCNAME': 'FILE:/caller-cache'}), \
+                patch.object(kerberos.subprocess, 'Popen'), \
+                patch.object(kerberos, '_wait_process'), \
+                patch.object(kerberos.os.path, 'exists', side_effect=lambda path: path == '/caller-cache'), \
+                patch.object(kerberos.os, 'unlink') as unlink:
+            kerberos.machine_kdestroy('/already-destroyed-owned-cache')
+            unlink.assert_not_called()
