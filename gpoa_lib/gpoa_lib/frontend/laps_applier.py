@@ -25,6 +25,8 @@ import secrets
 import string
 import struct
 import subprocess
+import hashlib
+from pathlib import Path
 
 from ..util.logging import log
 from ..util.sid import WellKnown21RID
@@ -32,7 +34,7 @@ from ..util.util import check_local_user_exists, remove_prefix_from_keys, get_ma
 from ..util.windows_vars import get_kerberos_domain_info
 
 from .applier_frontend import applier_frontend, check_enabled
-from ..applier_result import ApplierResult, ItemStatus, STATUS_SKIPPED, RESULT_SUCCESS, RESULT_SKIPPED
+from ..applier_result import ApplierResult, ItemStatus, STATUS_SKIPPED, STATUS_FAILED, RESULT_SUCCESS, RESULT_SKIPPED, RESULT_FAILED
 
 _DATEUTIL_AVAILABLE = False
 try:
@@ -569,12 +571,9 @@ class laps_applier(applier_frontend):
         logdata = {'target_user': self.target_user}
         try:
             # Use chpasswd to change the password
-            with subprocess.Popen(
-                ["chpasswd"],
-                stdin=subprocess.PIPE,
-                text=True
-            ) as process:
-                process.communicate(f"{self.target_user}:{new_password}", timeout=15)
+            subprocess.run(
+                ['chpasswd'], input=f'{self.target_user}:{new_password}',
+                text=True, capture_output=True, timeout=15, check=True)
 
             # Record the time of change
             self._write_dconf_pass_last_mod()
@@ -643,6 +642,9 @@ class laps_applier(applier_frontend):
         Returns:
             tuple: (bool: update needed, bool: perform post-action)
         """
+        # A previous LDAP-first rotation may not have reached the local account.
+        if self._pending_rotation_path().exists():
+            return True, False
         # Check if password has expired
         if not self._is_password_expired():
             # Password not expired, check if post-login action needed
@@ -747,6 +749,19 @@ class laps_applier(applier_frontend):
             log('E78')
             return False
 
+        # Persist intent before changing AD. This contains no password and keeps
+        # failures retryable even when LDAP now advertises a future expiration.
+        pending = self._pending_rotation_path()
+        try:
+            pending.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            with pending.open('a') as marker:
+                os.fchmod(marker.fileno(), 0o600)
+                marker.flush()
+                os.fsync(marker.fileno())
+        except OSError as exc:
+            log('W27', {'exc': exc})
+            return False
+
         # Update password in LDAP
         ldap_success = self._update_ldap_password(encrypted_blob)
 
@@ -760,12 +775,18 @@ class laps_applier(applier_frontend):
             log('E76')
             return False
 
+        pending.unlink()
+
         log('D230')
 
         # Perform post-action if configured
         if perform_post_action:
             self._perform_post_action()
         return True
+
+    def _pending_rotation_path(self):
+        identity = hashlib.sha256(self.target_user.encode('utf-8')).hexdigest()
+        return Path('/var/cache/gpupdate/laps') / (identity + '.pending')
 
     def apply(self):
         """
@@ -781,7 +802,7 @@ class laps_applier(applier_frontend):
             elif result is None:
                 return ApplierResult.skipped('laps', 'no update needed')
             else:
-                return ApplierResult(name='laps', status=STATUS_SKIPPED, items=[ItemStatus(key=key, action='skip', result=RESULT_SKIPPED)])
+                return ApplierResult(name='laps', status=STATUS_FAILED, items=[ItemStatus(key=key, action='set', result=RESULT_FAILED)])
         else:
             log('D219')
             return ApplierResult.skipped('laps')
