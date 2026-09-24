@@ -60,7 +60,8 @@ class firewall_applier(applier_frontend):
             log('D117')
             items = []
             try:
-                if '1' == self.firewall_enabled:
+                value = getattr(self.firewall_enabled, 'data', self.firewall_enabled)
+                if '1' == str(value):
                     log('D118')
                     self.run()
                     items.append(ItemStatus(key='rules', action='set', result=RESULT_SUCCESS))
@@ -77,4 +78,3 @@ class firewall_applier(applier_frontend):
         else:
             log('D120')
             return ApplierResult.skipped('firewall')
-

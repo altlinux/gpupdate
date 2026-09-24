@@ -69,6 +69,22 @@ class FirewallApplierInitTestCase(unittest.TestCase):
 
 class FirewallApplierApplyTestCase(unittest.TestCase):
 
+    def test_registry_entry_flags(self):
+        from types import SimpleNamespace
+        from gpoa_lib.frontend.firewall_applier import firewall_applier
+        for value in (1, '1', 0, '0', None, 'invalid'):
+            with self.subTest(value=value), \
+                    patch('gpoa_lib.frontend.firewall_applier.check_enabled', return_value=True), \
+                    patch('gpoa_lib.frontend.firewall_applier.os.path.exists', return_value=True), \
+                    patch('gpoa_lib.frontend.firewall_applier.subprocess.Popen') as process:
+                storage = MagicMock()
+                storage.get_hklm_entry.return_value = SimpleNamespace(data=value) if value is not None else None
+                applier = firewall_applier(storage)
+                with patch.object(applier, 'run') as rules:
+                    applier.apply()
+                self.assertEqual(value in (1, '1'), rules.called)
+                self.assertEqual(value not in (1, '1'), process.called)
+
     @patch('gpoa_lib.frontend.firewall_applier.check_enabled', return_value=True)
     @patch('gpoa_lib.frontend.firewall_applier.log')
     def _make_applier(self, storage, enabled, mock_log, mock_check):
