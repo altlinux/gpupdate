@@ -25,7 +25,7 @@ from storage.dconf_registry import (
 from util.config import GPConfig
 from util.logging import log
 from util.paths import get_dconf_config_file
-from util.util import get_uid_by_username, touch_file
+from util.util import get_policy_uid, touch_file
 from util.windows import smbcreds
 
 from .nodomain_backend import nodomain_backend
@@ -38,6 +38,7 @@ def backend_factory(dc, username, is_machine, no_domain = False):
     write permissions in order to prevent users from modifying
     policies enforced by domain administrators.
     '''
+    get_policy_uid(username, is_machine)
     back = None
     config = GPConfig()
 
@@ -85,11 +86,8 @@ def backend_factory(dc, username, is_machine, no_domain = False):
 
     return back
 
-def save_dconf(username, is_machine, nodomain=None):
-    if is_machine:
-        uid = None
-    else:
-        uid = get_uid_by_username(username) if not is_machine else None
+def save_dconf(username, is_machine, nodomain=None, uid=None):
+    uid = _save_uid(username, is_machine, uid)
     target_file = get_dconf_config_file(uid)
     touch_file(target_file)
     Dconf_registry.apply_template(uid)
@@ -98,13 +96,20 @@ def save_dconf(username, is_machine, nodomain=None):
     create_dconf_ini_file(target_file, Dconf_registry.global_registry_dict, uid, nodomain)
 
 
-def save_dconf_without_previous(username, is_machine, nodomain=None):
-    if is_machine:
-        uid = None
-    else:
-        uid = get_uid_by_username(username) if not is_machine else None
+def save_dconf_without_previous(username, is_machine, nodomain=None, uid=None):
+    uid = _save_uid(username, is_machine, uid)
     target_file = get_dconf_config_file(uid)
     touch_file(target_file)
     Dconf_registry.apply_template(uid)
     add_preferences_to_global_registry_dict(username, is_machine)
     create_dconf_ini_file(target_file, Dconf_registry.global_registry_dict, uid, nodomain)
+
+
+def _save_uid(username, is_machine, uid):
+    if is_machine:
+        return None
+    if uid is None:
+        uid = get_policy_uid(username)
+    if not isinstance(uid, int) or isinstance(uid, bool) or uid <= 0:
+        raise ValueError('Invalid UID for user policy')
+    return uid

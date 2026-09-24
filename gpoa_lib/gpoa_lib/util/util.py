@@ -241,6 +241,16 @@ def get_uid_by_username(username):
     except KeyError:
         return None
 
+
+def get_policy_uid(username, is_machine=False):
+    """Resolve a user target without falling back to the machine database."""
+    if is_machine:
+        return None
+    uid = get_uid_by_username(username)
+    if uid is None or uid <= 0:
+        raise ValueError('User policy requires a resolvable non-root account: {}'.format(username))
+    return uid
+
 def add_prefix_to_keys(dictionary: dict, prefix: str='Previous/') -> dict:
     """
     Adds a prefix to each key in the dictionary.

@@ -36,7 +36,7 @@ from gpoa_lib.util.timing import TimedExecution
 from messages import message_with_code
 from storage import Dconf_registry
 
-from util.util import get_machine_name
+from util.util import get_machine_name, get_policy_uid
 from util.sid import set_trust_info_callback
 
 from util.users import (
@@ -143,6 +143,7 @@ class gpoa_controller:
         Function to start update of settings storage
         '''
         dc = self.__args.dc
+        self.policy_uid = get_policy_uid(self.username, self.is_machine)
         nodomain = False
         if self.__args.nodomain:
             nodomain = True
@@ -165,7 +166,7 @@ class gpoa_controller:
                         phase_timings['retrieve_and_store'] = round(t.elapsed, 3)
 
                         with TimedExecution('save_dconf') as t:
-                            save_dconf(self.username, self.is_machine, nodomain)
+                            save_dconf(self.username, self.is_machine, nodomain, uid=self.policy_uid)
                         phase_timings['save_dconf'] = round(t.elapsed, 3)
 
                         with TimedExecution('frontend') as t:
@@ -173,7 +174,7 @@ class gpoa_controller:
                         phase_timings['frontend'] = round(t.elapsed, 3)
 
                         with TimedExecution('save_dconf_without_previous') as t:
-                            save_dconf_without_previous(self.username, self.is_machine, nodomain)
+                            save_dconf_without_previous(self.username, self.is_machine, nodomain, uid=self.policy_uid)
                         phase_timings['save_dconf_without_previous'] = round(t.elapsed, 3)
 
                         log('I42', phase_timings)
@@ -222,4 +223,3 @@ if __name__ == "__main__":
     default_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal_handler)
     main()
-
