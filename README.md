@@ -336,6 +336,40 @@ gpupdate/
 └── EXAMPLES.md                 # External API usage examples
 ```
 
+## Operational behaviour
+
+`gpupdate` reports failed oddjob executions with a nonzero exit status. Requested
+machine and user updates are still attempted independently. Existing transport
+failure codes are retained; execution failures use code 4 (computer) or 5 (user).
+
+`gpoa --noupdate` applies the selected target's cached policy without contacting
+the backend or saving a refreshed database. An unprivileged invocation applies
+only its own user-context settings. Existing apply-once markers are honoured;
+new markers are not persisted by this read-only-storage mode. Shortcut caches
+created before user-context metadata was recorded require a normal refresh.
+
+FreeIPA downloads are validated in separate immutable snapshot directories.
+A failed retrieval leaves the last accepted policy in place. Old snapshots are
+retained; this release does not automatically garbage-collect them. Legacy cache
+metadata without a source identity is refreshed rather than matched by display
+name.
+
+`gpupdate-setup update` preserves configured policy sources unless explicitly
+overridden. `disable` stops periodic timers, including those in existing user
+managers, and reports managers it could not contact. It does not terminate an
+update already running or stop the script services.
+
+### Script execution results
+
+`scripts_runner` reports each failed script and continues running subsequent
+scripts. Use `--fail-on-error` to return exit status 1 if any script or runner
+operation fails. Without this option the historical exit behaviour is retained.
+The shipped systemd units retain that default: their successful oneshot startup
+is needed for the matching shutdown/logoff `ExecStop` action to run.
+
+See [production regression checks](doc/production-regression-checks.md) for the
+integration scenarios to verify before deployment.
+
 ## Contributing
 
 The main communication channel for GPOA is [Samba@ALT Linux mailing lists](https://lists.altlinux.org/mailman/listinfo/samba). The mailing list is in Russian but you may also send e-mail in English or German.
@@ -359,10 +393,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# Script execution results
-
-`scripts_runner` reports each failed script and continues running subsequent
-scripts. Use `--fail-on-error` to return exit status 1 if any script or runner
-operation fails. Without this option the historical exit behaviour is retained.
-The shipped systemd units retain that default: their successful oneshot startup
-is needed for the matching shutdown/logoff `ExecStop` action to run.
