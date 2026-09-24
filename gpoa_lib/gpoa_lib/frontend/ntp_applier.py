@@ -120,21 +120,21 @@ class ntp_applier(applier_frontend):
             else:
                 log('D126')
                 if ntp_server_enabled:
-                    if '1' == ntp_server_enabled.data and server_address:
+                    if '1' == str(ntp_server_enabled.data) and server_address:
                         log('D127')
                         self._start_chrony_client(server_address)
                         self._chrony_as_server()
-                    elif '0' == ntp_server_enabled.data:
+                    elif '0' == str(ntp_server_enabled.data):
                         log('D128')
                         self._chrony_as_client()
                     else:
                         log('D129')
 
                 elif ntp_client_enabled:
-                    if '1' == ntp_client_enabled.data:
+                    if '1' == str(ntp_client_enabled.data):
                         log('D130')
                         self._start_chrony_client()
-                    elif '0' == ntp_client_enabled.data:
+                    elif '0' == str(ntp_client_enabled.data):
                         log('D131')
                         self._stop_chrony_client()
                     else:
@@ -156,4 +156,3 @@ class ntp_applier(applier_frontend):
         else:
             log('D133')
             return ApplierResult.skipped('ntp')
-

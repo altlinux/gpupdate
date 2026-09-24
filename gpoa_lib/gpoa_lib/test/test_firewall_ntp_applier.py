@@ -192,6 +192,29 @@ class NTPApplierInitTestCase(unittest.TestCase):
 
 class NTPApplierApplyTestCase(unittest.TestCase):
 
+    def test_native_flags_match_legacy_strings(self):
+        from types import SimpleNamespace
+        from gpoa_lib.frontend.ntp_applier import ntp_applier
+        for server in (False, True):
+            for value in (1, '1', 0, '0', None, 'invalid'):
+                with self.subTest(server=server, value=value), \
+                        patch('gpoa_lib.frontend.ntp_applier.check_enabled', return_value=True):
+                    storage = MagicMock()
+                    applier = ntp_applier(storage)
+                    flag = SimpleNamespace(data=value) if value is not None else None
+                    storage.get_hklm_entry.side_effect = [
+                        SimpleNamespace(data='NTP'), SimpleNamespace(data='server'),
+                        flag if server else None, None if server else flag]
+                    with patch.object(applier, '_start_chrony_client') as start, \
+                            patch.object(applier, '_stop_chrony_client') as stop, \
+                            patch.object(applier, '_chrony_as_client') as client, \
+                            patch.object(applier, '_chrony_as_server') as serve:
+                        applier.run()
+                    self.assertEqual(value in (1, '1'), start.called)
+                    self.assertEqual(server and value in (1, '1'), serve.called)
+                    self.assertEqual(server and value in (0, '0'), client.called)
+                    self.assertEqual(not server and value in (0, '0'), stop.called)
+
     @patch('gpoa_lib.frontend.ntp_applier.check_enabled', return_value=False)
     @patch('gpoa_lib.frontend.ntp_applier.log')
     def test_apply_disabled(self, mock_log, mock_check):
