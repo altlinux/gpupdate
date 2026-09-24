@@ -18,6 +18,8 @@
 
 
 from pathlib import Path
+import os
+import stat
 
 
 from ...util.arguments import (
@@ -28,20 +30,54 @@ from ...util.windows_vars import expand_windows_var
 from ...util.util import get_homedir
 
 def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_folders=False):
-    content = []
-    for entry in path.iterdir():
-        content.append(entry)
-        if entry.is_file() and delete_files:
-            entry.unlink()
-            content.remove(entry)
-        if entry.is_dir() and delete_sub_folders:
-            content.remove(entry)
-            content.extend(remove_dir_tree(entry, delete_files, delete_folder, delete_sub_folders))
+    path = Path(os.path.abspath(path))
+    if path == Path('/'):
+        raise ValueError('Refusing to remove the filesystem root')
+    parent = os.open('/', os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        for component in path.parent.parts[1:]:
+            child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                            dir_fd=parent)
+            os.close(parent)
+            parent = child
+        return _remove_at(parent, path.name, path, delete_files,
+                          delete_folder, delete_sub_folders, top=True)
+    finally:
+        os.close(parent)
 
-    if delete_folder and not content:
-        path.rmdir()
 
-    return content
+def _remove_at(parent, name, path, files, folder, subfolders, top=False):
+    info = os.stat(name, dir_fd=parent, follow_symlinks=False)
+    if not stat.S_ISDIR(info.st_mode):
+        if (folder if top else files):
+            os.unlink(name, dir_fd=parent)
+            return []
+        return [path]
+    fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
+    try:
+        if not os.path.samestat(info, os.fstat(fd)):
+            raise OSError('Directory changed during deletion')
+        remaining = []
+        for entry in os.listdir(fd):
+            entry_info = os.stat(entry, dir_fd=fd, follow_symlinks=False)
+            if stat.S_ISDIR(entry_info.st_mode):
+                if subfolders:
+                    remaining.extend(_remove_at(fd, entry, path / entry,
+                                                files, folder, subfolders))
+                else:
+                    remaining.append(path / entry)
+            elif files:
+                os.unlink(entry, dir_fd=fd)
+            else:
+                remaining.append(path / entry)
+        if folder and not remaining:
+            if not os.path.samestat(os.fstat(fd), os.stat(name, dir_fd=parent, follow_symlinks=False)):
+                raise OSError('Directory changed during deletion')
+            os.rmdir(name, dir_fd=parent)
+            return []
+        return remaining or [path]
+    finally:
+        os.close(fd)
 
 def str2bool(boolstr):
     if isinstance(boolstr, bool):
@@ -97,4 +133,3 @@ class Folder:
         if self.action == FileAction.REPLACE:
             self._delete_action()
             self._create_action()
-
