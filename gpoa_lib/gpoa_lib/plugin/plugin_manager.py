@@ -71,34 +71,17 @@ class plugin_manager:
     def run(self):
         """Run the plugins with appropriate privileges"""
         for plugin_obj in self.plugins:
-            if self.is_valid_api_object(plugin_obj):
-                # Set execution context for plugins that support it
-                if hasattr(plugin_obj, 'set_context'):
-                    plugin_obj.set_context(self.is_machine, self.username)
-                if self.check_enabled_plugin(plugin_obj.plugin_name):
-                    log('D4', {'plugin_name': plugin_obj.plugin_name})
-
-                    # Use apply_user for user context, apply for machine context
-                    if not self.is_machine and self.username:
-                        result = plugin_obj.apply_user(self.username)
-                        if result is False:
-                            log('W46', {'plugin_name': plugin_obj.plugin_name, 'username': self.username})
-                        if isinstance(result, ApplierResult):
-                            self.results.append(result)
-                            log('I39', {'name': result.name, 'status': result.status,
-                                        'succeeded': result.applied_count, 'failed': result.failed_count,
-                                        'skipped': result.skipped_count})
-                    else:
-                        result = plugin_obj.apply()
-                        if isinstance(result, ApplierResult):
-                            self.results.append(result)
-                            log('I39', {'name': result.name, 'status': result.status,
-                                        'succeeded': result.applied_count, 'failed': result.failed_count,
-                                        'skipped': result.skipped_count})
-                else:
-                    log('D236', {'plugin_name': plugin_obj.plugin_name})
-            else:
-                log('W44', {'plugin_name': getattr(plugin_obj, 'plugin_name', 'unknown')})
+            try:
+                result = self._run_plugin(plugin_obj)
+            except Exception as exc:
+                name = getattr(plugin_obj, 'plugin_name', type(plugin_obj).__name__)
+                result = ApplierResult.failed(name, str(exc))
+                log('W46', {'plugin_name': name, 'username': self.username, 'error': str(exc)})
+            if isinstance(result, ApplierResult):
+                self.results.append(result)
+                log('I39', {'name': result.name, 'status': result.status,
+                            'succeeded': result.applied_count, 'failed': result.failed_count,
+                            'skipped': result.skipped_count})
         if self.results:
             total = len(self.results)
             applied = sum(1 for r in self.results if r.status == 'applied')
@@ -106,6 +89,24 @@ class plugin_manager:
             failed = sum(1 for r in self.results if r.status == 'failed')
             skipped = sum(1 for r in self.results if r.status == 'skipped')
             log('I40', {'total': total, 'succeeded': applied, 'partial': partial, 'failed': failed, 'skipped': skipped})
+
+    def _run_plugin(self, plugin_obj):
+        if not self.is_valid_api_object(plugin_obj):
+            log('W44', {'plugin_name': getattr(plugin_obj, 'plugin_name', 'unknown')})
+            return None
+        if hasattr(plugin_obj, 'set_context'):
+            plugin_obj.set_context(self.is_machine, self.username)
+        if not self.check_enabled_plugin(plugin_obj.plugin_name):
+            log('D236', {'plugin_name': plugin_obj.plugin_name})
+            return None
+        log('D4', {'plugin_name': plugin_obj.plugin_name})
+        if not self.is_machine and self.username:
+            result = plugin_obj.apply_user(self.username)
+            if result is False:
+                log('W46', {'plugin_name': plugin_obj.plugin_name, 'username': self.username})
+                return ApplierResult.failed(plugin_obj.plugin_name, 'User plugin execution failed')
+            return result
+        return plugin_obj.apply()
 
     def load_plugins(self):
         """Load plugins from multiple directories"""
