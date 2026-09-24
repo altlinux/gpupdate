@@ -53,7 +53,7 @@ class envvar_applier(applier_frontend):
                 bypass_errors = getattr(ev, 'bypass_errors', False)
                 uid = getattr(ev, 'uid', 'unknown')
                 if apply_once:
-                    if self.state_manager.should_skip(ev_dict, element_type):
+                    if self.state_manager.should_skip(ev_dict, element_type, ev):
                         logdata = {'uid': uid}
                         log('D240', logdata)
                         items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
@@ -115,7 +115,7 @@ class envvar_applier_user(DualContextApplier):
                 bypass_errors = getattr(ev, 'bypass_errors', False)
                 uid = getattr(ev, 'uid', 'unknown')
                 if apply_once:
-                    if self.state_manager.should_skip(ev_dict, element_type):
+                    if self.state_manager.should_skip(ev_dict, element_type, ev):
                         logdata = {'uid': uid}
                         log('D240', logdata)
                         items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))

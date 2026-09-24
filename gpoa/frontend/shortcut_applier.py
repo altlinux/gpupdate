@@ -136,7 +136,7 @@ class shortcut_applier(applier_frontend):
                 apply_once = getattr(sc, 'apply_once', False)
                 bypass_errors = getattr(sc, 'bypass_errors', False)
                 if apply_once:
-                    if self.state_manager.should_skip(sc_dict, element_type):
+                    if self.state_manager.should_skip(sc_dict, element_type, sc):
                         logdata = {'uid': getattr(sc, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue
@@ -221,7 +221,7 @@ class shortcut_applier_user(applier_frontend):
                 apply_once = getattr(sc, 'apply_once', False)
                 bypass_errors = getattr(sc, 'bypass_errors', False)
                 if apply_once:
-                    if self.state_manager.should_skip(sc_dict, element_type):
+                    if self.state_manager.should_skip(sc_dict, element_type, sc):
                         logdata = {'uid': getattr(sc, 'uid', 'unknown')}
                         log('D240', logdata)
                         continue

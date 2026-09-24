@@ -65,7 +65,7 @@ class file_applier(applier_frontend):
             bypass_errors = getattr(file, 'bypass_errors', False)
             uid = getattr(file, 'uid', 'unknown')
             if apply_once:
-                if self.state_manager.should_skip(file_dict, element_type):
+                if self.state_manager.should_skip(file_dict, element_type, file):
                     logdata = {'uid': uid}
                     log('D240', logdata)
                     items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
@@ -128,7 +128,7 @@ class file_applier_user(DualContextApplier):
             bypass_errors = getattr(file, 'bypass_errors', False)
             uid = getattr(file, 'uid', 'unknown')
             if apply_once:
-                if self.state_manager.should_skip(file_dict, element_type):
+                if self.state_manager.should_skip(file_dict, element_type, file):
                     logdata = {'uid': uid}
                     log('D240', logdata)
                     items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))

@@ -157,6 +157,7 @@ def is_element_applied(element: Dict, element_type: str, username: str = None) -
             logdata = {'uid': elem_uid, 'applied': applied}
             log('D252', logdata)
             if applied:
+                element['applied'] = applied
                 return True
 
     return False
@@ -256,7 +257,7 @@ class GppStateManager:
         self._removed_elements[element_type] = removed
         return removed
 
-    def should_skip(self, element: Dict, element_type: str) -> bool:
+    def should_skip(self, element: Dict, element_type: str, element_obj=None) -> bool:
         '''
         Check if element should be skipped (applyOnce already applied).
 
@@ -264,7 +265,10 @@ class GppStateManager:
         :param element_type: Type of element
         :return: True if should skip application
         '''
-        return is_element_applied(element, element_type, self.username)
+        skipped = is_element_applied(element, element_type, self.username)
+        if skipped and element_obj is not None:
+            element_obj.applied = element['applied']
+        return skipped
 
     def mark_applied(self, element: Dict, element_type: str, element_obj=None) -> None:
         '''
