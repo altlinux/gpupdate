@@ -48,7 +48,7 @@ class fs_file_cache:
         self.samba_context = smbc.Context(use_kerberos=1)
                 #, debug=10)
 
-    def store(self, uri, destfile = None):
+    def store(self, uri, destfile = None, *, checked=False):
         try:
             uri_path = UNCPath(uri)
             if not destfile:
@@ -60,6 +60,8 @@ class fs_file_cache:
             else:
                 destdir = destfile.parent
         except NotUNCPathError:
+            if checked:
+                raise
             return None
 
         except Exception as exc:
@@ -75,8 +77,10 @@ class fs_file_cache:
                 uri_path.get_domain(),
                 uri_path.get_path()))
 
+        tmpfile = None
+        file_handler = None
         try:
-            fd, tmpfile = tempfile.mkstemp('', str(destfile))
+            fd, tmpfile = tempfile.mkstemp(prefix='.' + destfile.name, dir=destdir)
             df = os.fdopen(fd, 'wb')
             try:
                 file_handler = self.samba_context.open(str(uri_path), os.O_RDONLY)
@@ -87,18 +91,24 @@ class fs_file_cache:
                     df.write(data)
             finally:
                 try:
-                    file_handler.close()
+                    if file_handler is not None:
+                        file_handler.close()
                 except Exception as exc:
                     log('D321', {'exc': str(exc)})
                 df.close()
             os.rename(tmpfile, destfile)
             os.chmod(destfile, 0o644)
+            return destfile if checked else None
         except Exception as exc:
             logdata = {'exception': str(exc)}
             log('W25', logdata)
-            tmppath = Path(tmpfile)
-            if tmppath.exists():
-                tmppath.unlink()
+            if tmpfile is not None:
+                try:
+                    Path(tmpfile).unlink(missing_ok=True)
+                except OSError as cleanup_error:
+                    log('D321', {'exc': str(cleanup_error)})
+            if checked:
+                raise
 
     def get(self, uri):
         destfile = uri
@@ -121,7 +131,7 @@ class fs_file_cache:
         else:
             return None
 
-    def get_ls_smbdir(self, uri):
+    def get_ls_smbdir(self, uri, *, checked=False):
         type_file_smb = 8
         try:
             uri_path = UNCPath(uri)
@@ -134,6 +144,8 @@ class fs_file_cache:
             ls = [obj.name for obj in ls_obj if obj.smbc_type == type_file_smb]
             return ls
         except Exception as exc:
+            if checked:
+                raise
             if Path(uri).exists():
                 return None
             logdata = {'exception': str(exc)}
