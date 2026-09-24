@@ -131,9 +131,22 @@ def with_privileges(username, func):
 
         return _read_child_result(pid, rfd)
 
-    # --- Child process ---
-    os.close(rfd)
+    # Never unwind a forked worker into the parent's caller or finalizers.
+    exitcode = 1
+    try:
+        os.close(rfd)
+        exitcode = _run_privileged_child(
+            username, user_uid, user_gid, user_groups, user_home, func, wfd)
+    except BaseException as exc:
+        log('E33', {'msg': str(exc)})
+    finally:
+        try:
+            os.close(wfd)
+        finally:
+            os._exit(exitcode)
 
+
+def _run_privileged_child(username, user_uid, user_gid, user_groups, user_home, func, wfd):
     result = None
     exitcode = 0
     dbus_pid = -1
@@ -173,18 +186,21 @@ def with_privileges(username, func):
         log('D56', {'dbus_pid': dbus_pid, 'dconf_pid': dconf_pid})
 
         # Cleanup processes
-        if dbus_pid > 0:
-            os.kill(dbus_pid, signal.SIGHUP)
-        if dconf_pid > 0:
-            os.kill(dconf_pid, signal.SIGTERM)
-        if dbus_pid > 0:
-            os.kill(dbus_pid, signal.SIGTERM)
+        for pid, signum in ((dbus_pid, signal.SIGHUP),
+                            (dconf_pid, signal.SIGTERM), (dbus_pid, signal.SIGTERM)):
+            if pid > 0:
+                try:
+                    os.kill(pid, signum)
+                except ProcessLookupError:
+                    pass
+                except OSError as exc:
+                    log('D307', {'exc': str(exc)})
+                    exitcode = 1
 
     # Serialize result to JSON and send to parent
     try:
         _write_child_result(wfd, result)
     except Exception as exc:
         log('D308', {'exc': str(exc)})
-    os.close(wfd)
-
-    sys.exit(exitcode)
+        exitcode = 1
+    return exitcode

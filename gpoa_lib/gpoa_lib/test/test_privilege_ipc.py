@@ -8,6 +8,46 @@ from gpoa_lib.util.system import _write_child_result
 
 
 class PrivilegeIPCTests(unittest.TestCase):
+    def test_worker_cleanup_and_failures_never_resume_parent_code(self):
+        code = '''
+import os
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+from gpoa_lib.util import system
+origin = os.getpid()
+proc = MagicMock()
+proc.__enter__.return_value.stdout = [b'DBUS_SESSION_BUS_PID=12345\\n']
+user = SimpleNamespace(pw_uid=1000, pw_gid=1000, pw_dir='/tmp')
+with patch.object(system.os, 'getuid', return_value=0), \\
+     patch.object(system, 'get_user_info', return_value=user), \\
+     patch.object(system.os, 'getgrouplist', return_value=[1000]), \\
+     patch.object(system, 'set_privileges'), \\
+     patch.object(system.subprocess, 'Popen', return_value=proc), \\
+     patch.object(system.os, 'kill', side_effect=ProcessLookupError), \\
+     patch.object(system, 'dbus_session', side_effect=RuntimeError):
+    assert system.with_privileges('alice', lambda: {'ok': True}) == {'ok': True}
+    for failure in (RuntimeError('callback failed'), SystemExit(0)):
+        def callback():
+            raise failure
+        try:
+            system.with_privileges('alice', callback)
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError('failed worker was reported successful')
+    try:
+        system.with_privileges('alice', lambda: object())
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError('unserializable result reported successful')
+assert os.getpid() == origin
+print('parent completed')
+'''
+        result = subprocess.run([sys.executable, '-B', '-c', code], text=True,
+                                capture_output=True, check=True, timeout=15)
+        self.assertEqual(result.stdout.strip(), 'parent completed')
+
     def test_large_result_round_trip_without_deadlock(self):
         code = '''
 import os
