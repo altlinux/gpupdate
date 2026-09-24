@@ -6,9 +6,21 @@ from unittest.mock import Mock, patch
 
 from gpoa_lib.util.safe_file import open_regular_file
 from gpoa_lib.frontend.envvar_applier import envvar_applier_user
+from gpoa_lib.frontend.appliers.envvar import Envvar
 
 
 class SafeEnvironmentTest(unittest.TestCase):
+    def test_regeneration_retains_only_requested_once_values(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / '.gpupdate_environment'
+            target.write_text('ONCE DEFAULT="original value"\nREPEATED DEFAULT="old"\n')
+            with patch('gpoa_lib.frontend.appliers.envvar.get_homedir', return_value=tmp):
+                for _ in range(3):
+                    Envvar.clear_envvar_file('alice', keep_names={'ONCE'})
+                    self.assertEqual(target.read_text(), 'ONCE DEFAULT="original value"\n')
+                Envvar.clear_envvar_file('alice')
+                self.assertEqual(target.read_text(), '')
+
     def test_link_targets_are_not_modified(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / 'target'

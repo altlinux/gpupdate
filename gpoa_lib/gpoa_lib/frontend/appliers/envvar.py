@@ -41,15 +41,22 @@ class Envvar:
             self.envvar_file_path = get_homedir(self.username) + Envvar.__envvar_file_path_user
 
     @staticmethod
-    def clear_envvar_file(username = False):
+    def clear_envvar_file(username=False, keep_names=()):
         if username:
             file_path = get_homedir(username) + Envvar.__envvar_file_path_user
         else:
             file_path = Envvar.__envvar_file_path
 
         try:
+            retained = []
+            if keep_names:
+                try:
+                    with open_regular_file(file_path, 'r') as file:
+                        retained = [line for line in file if line.split() and line.split()[0] in keep_names]
+                except FileNotFoundError:
+                    pass
             with open_regular_file(file_path, 'w') as file:
-                file.write('')
+                file.writelines(retained)
             log('D215', {'path':file_path})
         except Exception as exc:
             log('D216', {'path': file_path, 'exc': exc})

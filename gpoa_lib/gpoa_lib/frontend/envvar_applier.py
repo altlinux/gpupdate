@@ -37,7 +37,6 @@ class envvar_applier(applier_frontend):
 
     def apply(self):
         if self.__module_enabled:
-            Envvar.clear_envvar_file()
             log('I22')
             log('D134')
             items = []
@@ -46,6 +45,7 @@ class envvar_applier(applier_frontend):
 
             envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
             envvars_to_apply = []
+            keep_names = set()
             for ev in envvars_filtered:
                 element_type = get_element_type_name(ev)
                 ev_dict = dict(ev)
@@ -57,8 +57,11 @@ class envvar_applier(applier_frontend):
                         logdata = {'uid': uid}
                         log('D240', logdata)
                         items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
+                        previous = self.state_manager.get_previous(element_type)
+                        keep_names.update(old.get('name') for old in previous if old.get('uid') == uid)
                         continue
                 envvars_to_apply.append((ev, ev_dict, apply_once, bypass_errors))
+            Envvar.clear_envvar_file(keep_names=keep_names)
             if envvars_to_apply:
                 envvar = Envvar([ev for ev, _, _, _ in envvars_to_apply], 'root')
                 try:
@@ -100,7 +103,6 @@ class envvar_applier_user(DualContextApplier):
 
     def admin_context_apply(self):
         if self.__module_enabled:
-            Envvar.clear_envvar_file(self.username)
             log('D136')
             items = []
             current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]
@@ -108,6 +110,7 @@ class envvar_applier_user(DualContextApplier):
 
             envvars_filtered = [ev for ev in self.envvars if not ev.disabled]
             envvars_to_apply = []
+            keep_names = set()
             for ev in envvars_filtered:
                 element_type = get_element_type_name(ev)
                 ev_dict = dict(ev)
@@ -119,8 +122,11 @@ class envvar_applier_user(DualContextApplier):
                         logdata = {'uid': uid}
                         log('D240', logdata)
                         items.append(ItemStatus(key=uid, action='skip', result=RESULT_SKIPPED))
+                        previous = self.state_manager.get_previous(element_type)
+                        keep_names.update(old.get('name') for old in previous if old.get('uid') == uid)
                         continue
                 envvars_to_apply.append((ev, ev_dict, apply_once, bypass_errors))
+            Envvar.clear_envvar_file(self.username, keep_names=keep_names)
             if envvars_to_apply:
                 envvar = Envvar([ev for ev, _, _, _ in envvars_to_apply], self.username)
                 try:
