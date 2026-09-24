@@ -74,6 +74,7 @@ class system_gsettings:
 
     def apply(self):
         config = configparser.ConfigParser()
+        self.locks = []
 
         for gsetting in self.gsettings:
             logdata = {}
@@ -91,14 +92,16 @@ class system_gsettings:
         os.makedirs(self.__path_local_dir, mode=0o755, exist_ok=True)
         os.makedirs(os.path.dirname(self.__path_locks), mode=0o755, exist_ok=True)
         os.makedirs(os.path.dirname(self.__path_profile), mode=0o755, exist_ok=True)
+        lock_data = ''.join(lock + '\n' for lock in self.locks)
         try:
-            os.remove(self.__path_locks)
-        except OSError as error:
-            log('D292', {'exc': str(error)})
-
-        with open(self.__path_locks,'w') as file_locks:
-            for lock in self.locks:
-                file_locks.write(lock +'\n')
+            with open(self.__path_locks) as file_locks:
+                previous = file_locks.read()
+        except FileNotFoundError:
+            previous = None
+        self.locks_changed = previous != lock_data
+        if self.locks_changed:
+            with open(self.__path_locks, 'w') as file_locks:
+                file_locks.write(lock_data)
 
         with open(self.__path_profile ,'w') as profile:
             profile.write(self.__profile_data)

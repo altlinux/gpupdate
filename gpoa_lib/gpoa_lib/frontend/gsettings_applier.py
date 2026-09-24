@@ -136,10 +136,18 @@ class gsettings_applier(applier_frontend):
 
         orig_path = self.gsettings.override_file_path
         self.gsettings.override_file_path = tmp_path
-        self.gsettings.apply()
+        try:
+            self.gsettings.apply()
+        except BaseException:
+            os.remove(tmp_path)
+            raise
+        finally:
+            self.gsettings.override_file_path = orig_path
 
         if os.path.exists(orig_path) and filecmp.cmp(tmp_path, orig_path, shallow=False) and not self._needs_recompile(orig_path):
             os.remove(tmp_path)
+            if self.gsettings.locks_changed:
+                Dconf_registry.dconf_update()
             return
 
         shutil.copy2(tmp_path, orig_path)
@@ -320,5 +328,4 @@ class gsettings_applier_user(DualContextApplier):
         except Exception as exc:
             logdata = {'exception': str(exc)}
             log('E50', logdata)
-
 
