@@ -127,10 +127,8 @@ class samba_backend(applier_backend):
                     log('E26', logdata)
 
         # Load user GPT values in case user's name specified
-        # This is a buggy implementation and should be tested more
         else:
             user_gpts = []
-            user_path_gpts = set()
             try:
                 user_gpts = self._get_gpts(self.username)
             except Exception as exc:
@@ -143,25 +141,11 @@ class samba_backend(applier_backend):
             logdata = {'mode': upm2str(policy_mode)}
             log('D152', logdata)
 
-            if policy_mode < 2:
-                for gptobj in user_gpts:
-                    try:
-                        gptobj.merge_user()
-                        user_path_gpts.add(gptobj.path)
-                    except Exception as exc:
-                        logdata = {}
-                        logdata['msg'] = str(exc)
-                        log('E27', logdata)
-            filtered_machine_gpts = [gpt for gpt in machine_gpts
-                                    if gpt.path not in user_path_gpts]
-            if policy_mode > 0:
-                for gptobj in filtered_machine_gpts:
-                    try:
-                        gptobj.merge_user()
-                    except Exception as exc:
-                        logdata = {}
-                        logdata['msg'] = str(exc)
-                        log('E63', logdata)
+            for gptobj in effective_user_gpts(user_gpts, machine_gpts, policy_mode):
+                try:
+                    gptobj.merge_user()
+                except Exception as exc:
+                    log('E27', {'msg': str(exc)})
 
     def _check_sysvol_present(self, gpo):
         '''
@@ -215,6 +199,18 @@ class samba_backend(applier_backend):
                     gpts.append(get_local_gpt())
 
         return gpts
+
+def effective_user_gpts(user_gpts, machine_gpts, mode):
+    chain = (list(user_gpts) if mode < 2 else []) + (list(machine_gpts) if mode > 0 else [])
+    # Keep the later occurrence, not the earlier one. Registry precedence is
+    # unchanged from processing both, without running identical GPP items twice.
+    seen, result = set(), []
+    for policy in reversed(chain):
+        if policy.path not in seen:
+            result.append(policy)
+            seen.add(policy.path)
+    return list(reversed(result))
+
 
 def upm2str(upm_num):
     '''
