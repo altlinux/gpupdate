@@ -118,7 +118,7 @@ def parse_arguments():
         default=None,
         help='Name of local policy to enable')
     parser_update.add_argument('--backend',
-        default='samba',
+        default=None,
         type=str,
         choices=['local', 'samba', 'freeipa'],
         help='Backend (source of settings) name')
@@ -249,8 +249,12 @@ def enable_gp(policy_name, backend_type, bootstrap=True):
             target_policy_name = policy_name
     print (target_policy_name)
 
-    config.set_local_policy_template(target_policy_name)
-    config.set_backend(backend_type)
+    if bootstrap or policy_name is not None:
+        config.set_local_policy_template(target_policy_name)
+    if backend_type is not None:
+        config.set_backend(backend_type)
+    else:
+        backend_type = config.get_backend()
 
     # Enable oddjobd_gpupdate in PAM config
     if not rollback_on_error(cmd_set_gpupdate_policy):
@@ -415,4 +419,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
