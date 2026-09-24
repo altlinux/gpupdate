@@ -817,6 +817,8 @@ def add_to_dict(string, username, gpo_info):
     dictionary['name'] = name
     dictionary['version'] = str(version)
     dictionary['correct_path'] = string
+    if gpo_info and getattr(gpo_info, 'cache_source', None):
+        dictionary['cache_source'] = gpo_info.cache_source
 
 def get_mod_previous_value(key_source, key_valuename):
     previous_sourc = try_dict_to_literal_eval(Dconf_registry._dconf_db
