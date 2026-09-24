@@ -37,6 +37,7 @@ from ..util.logging import log
 from ..util.util import get_homedir
 from ..util.windows_vars import expand_windows_var
 from ..util.gpoa_ini_parsing import GpoaConfigObj
+from ..util.safe_file import open_regular_file
 
 
 # Actions that should be skipped during cleanup
@@ -396,12 +397,12 @@ def cleanup_envvar(element: Dict, username: str = None) -> None:
                 continue
 
             lines = []
-            with open(env_file, 'r') as f:
+            with open_regular_file(env_file, 'r') as f:
                 for line in f:
                     if not line.strip().startswith(f'{name}='):
                         lines.append(line)
 
-            with open(env_file, 'w') as f:
+            with open_regular_file(env_file, 'w') as f:
                 f.writelines(lines)
     else:
         env_file = Path('/etc/environment')
@@ -410,12 +411,12 @@ def cleanup_envvar(element: Dict, username: str = None) -> None:
             return
 
         lines = []
-        with open(env_file, 'r') as f:
+        with open_regular_file(env_file, 'r') as f:
             for line in f:
                 if not line.strip().startswith(f'{name}='):
                     lines.append(line)
 
-        with open(env_file, 'w') as f:
+        with open_regular_file(env_file, 'w') as f:
             f.writelines(lines)
 
 

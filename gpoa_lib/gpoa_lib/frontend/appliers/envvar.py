@@ -26,6 +26,7 @@ from ...util.arguments import (
 from ...util.windows_vars import expand_windows_var
 from ...util.util import get_homedir
 from ...util.logging import log
+from ...util.safe_file import open_regular_file
 
 class Envvar:
     __envvar_file_path = '/etc/gpupdate/environment'
@@ -47,16 +48,15 @@ class Envvar:
             file_path = Envvar.__envvar_file_path
 
         try:
-            with open(file_path, 'w') as file:
+            with open_regular_file(file_path, 'w') as file:
                 file.write('')
             log('D215', {'path':file_path})
         except Exception as exc:
             log('D216', {'path': file_path, 'exc': exc})
+            raise
 
     def _open_envvar_file(self):
-        if not isfile(self.envvar_file_path):
-            Path(self.envvar_file_path).touch()
-        return open(self.envvar_file_path, 'r+')
+        return open_regular_file(self.envvar_file_path)
 
     def _create_action(self, create_dict, envvar_file):
         lines_old = envvar_file.readlines()
@@ -83,7 +83,7 @@ class Envvar:
 
     def act(self):
         if isfile(self.envvar_file_path):
-            with open(self.envvar_file_path, 'r') as f:
+            with open_regular_file(self.envvar_file_path, 'r') as f:
                 lines = f.readlines()
         else:
             lines = []
@@ -122,5 +122,5 @@ class Envvar:
                     pass
 
         if file_changed:
-            with open(self.envvar_file_path, 'w') as f:
+            with open_regular_file(self.envvar_file_path, 'w') as f:
                 f.writelines(lines)

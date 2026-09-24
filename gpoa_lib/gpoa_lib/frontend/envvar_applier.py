@@ -32,12 +32,12 @@ class envvar_applier(applier_frontend):
     def __init__(self, storage):
         self.storage = storage
         self.envvars = self.storage.get_envvars()
-        Envvar.clear_envvar_file()
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager()
 
     def apply(self):
         if self.__module_enabled:
+            Envvar.clear_envvar_file()
             log('I22')
             log('D134')
             items = []
@@ -95,12 +95,12 @@ class envvar_applier_user(DualContextApplier):
         self.storage = storage
         self.username = username
         self.envvars = self.storage.get_envvars(self.username)
-        Envvar.clear_envvar_file(username)
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager(username)
 
     def admin_context_apply(self):
         if self.__module_enabled:
+            Envvar.clear_envvar_file(self.username)
             log('D136')
             items = []
             current_elements = [dict(ev) for ev in self.envvars if not ev.disabled]
