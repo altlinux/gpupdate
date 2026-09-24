@@ -62,6 +62,32 @@ def set_privileges(username, uid, gid, groups, home):
     log('D37', logdata)
 
 
+def _read_child_result(pid, rfd):
+    chunks = []
+    try:
+        while True:
+            chunk = os.read(rfd, 65536)
+            if not chunk:
+                break
+            chunks.append(chunk)
+    finally:
+        os.close(rfd)
+        _, status = os.waitpid(pid, 0)
+    if not os.WIFEXITED(status) or os.WEXITSTATUS(status) != 0:
+        raise RuntimeError('Error in forked process ({})'.format(status))
+    data = b''.join(chunks)
+    return json.loads(data.decode('utf-8')) if data else None
+
+
+def _write_child_result(wfd, result):
+    data = memoryview(json.dumps(result).encode('utf-8'))
+    while data:
+        written = os.write(wfd, data)
+        if not written:
+            raise OSError('Unable to write child result')
+        data = data[written:]
+
+
 def with_privileges(username, func):
     '''
     Run supplied function with privileges for specified username and return JSON result of func().
@@ -92,27 +118,18 @@ def with_privileges(username, func):
     # Create a pipe for inter-process communication
     rfd, wfd = os.pipe()
 
-    pid = os.fork()
+    try:
+        pid = os.fork()
+    except BaseException:
+        os.close(rfd)
+        os.close(wfd)
+        raise
     if pid > 0:
         # --- Parent process ---
         os.close(wfd)
         log('D54', {'pid': pid})
 
-        # Wait for child process
-        waitpid, status = os.waitpid(pid, 0)
-        code = os.WEXITSTATUS(status)
-        if code != 0:
-            raise Exception('Error in forked process ({})'.format(status))
-
-        # Read data from pipe
-        data = os.read(rfd, 10_000_000)
-        os.close(rfd)
-
-        if not data:
-            return None
-
-        # Deserialize JSON
-        return json.loads(data.decode("utf-8"))
+        return _read_child_result(pid, rfd)
 
     # --- Child process ---
     os.close(rfd)
@@ -165,7 +182,7 @@ def with_privileges(username, func):
 
     # Serialize result to JSON and send to parent
     try:
-        os.write(wfd, json.dumps(result).encode("utf-8"))
+        _write_child_result(wfd, result)
     except Exception as exc:
         log('D308', {'exc': str(exc)})
     os.close(wfd)
