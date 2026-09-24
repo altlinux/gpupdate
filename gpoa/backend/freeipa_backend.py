@@ -19,10 +19,12 @@
 import os
 import smbc
 import re
+import tempfile
+import shutil
 
 from .applier_backend import applier_backend
 from pathlib import Path
-from gpt.gpt import gpt, get_local_gpt
+from gpt.gpt import gpt, get_local_gpt, get_preftype, get_parser
 from gpt.gpo_dconf_mapping import GpoInfoDconf
 from storage import registry_factory
 from storage.dconf_registry import Dconf_registry, extract_display_name_version
@@ -92,10 +94,11 @@ class freeipa_backend(applier_backend):
 
             for i, gptobj in enumerate(machine_gpts):
                 try:
-                    gptobj.merge_machine()
+                    gptobj.merge_machine(strict=True)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E26', logdata)
+                    raise
         else:
             user_gpts = []
             try:
@@ -107,10 +110,11 @@ class freeipa_backend(applier_backend):
                 raise
             for i, gptobj in enumerate(user_gpts):
                 try:
-                    gptobj.merge_user()
+                    gptobj.merge_user(strict=True)
                 except Exception as exc:
                     logdata = {'msg': str(exc)}
                     log('E27', logdata)
+                    raise
 
     def _get_gpts(self, username):
         gpts = []
@@ -201,13 +205,20 @@ class freeipa_backend(applier_backend):
 
         for gpo in gpos:
             if not gpo.file_sys_path:
-                continue
+                raise ValueError('Policy source is missing')
             smb_remote_path = None
+            snapshot = None
             try:
                 smb_remote_path = self._convert_to_smb_path(gpo.file_sys_path, server)
-                local_gpo_path = os.path.join(gpo_cache_dir, gpo.name)
-
+                if not gpo.name or Path(gpo.name).name != gpo.name or gpo.name in ('.', '..'):
+                    raise ValueError('Invalid policy identifier')
+                # Immutable snapshots let concurrent readers finish using the old
+                # path. Only the completed path is published in policy metadata.
+                snapshot = tempfile.mkdtemp(prefix='.snapshot-', dir=gpo_cache_dir)
+                os.chmod(snapshot, 0o755)
+                local_gpo_path = os.path.join(snapshot, gpo.name)
                 self._download_gpo_directory(smb_remote_path, local_gpo_path)
+                self._validate_snapshot(local_gpo_path)
                 gpo.file_sys_path = local_gpo_path
 
             except Exception as e:
@@ -217,6 +228,18 @@ class freeipa_backend(applier_backend):
                     'smb_path': smb_remote_path,
                 }
                 log('E38', logdata)
+                if snapshot:
+                    shutil.rmtree(snapshot)
+                raise
+
+    @staticmethod
+    def _validate_snapshot(path):
+        for entry in Path(path).rglob('*'):
+            if entry.is_file():
+                pref_type = get_preftype(entry)
+                if pref_type is not None:
+                    # Parsing must complete before the new version is accepted.
+                    get_parser(pref_type)(str(entry))
 
     def _convert_to_smb_path(self, windows_path, server):
         match = re.search(r'\\\\[^\\]+\\(.+)', windows_path)
@@ -230,10 +253,18 @@ class freeipa_backend(applier_backend):
     def _download_gpo_directory(self, remote_smb_path, local_path):
         os.makedirs(local_path, exist_ok=True)
         try:
-            entries = self.file_cache.samba_context.opendir(remote_smb_path).getdents()
+            directory = self.file_cache.samba_context.opendir(remote_smb_path)
+            try:
+                entries = directory.getdents()
+            finally:
+                # smbc.Dir closes its native handle on destruction, not via close().
+                # Release it before descending into the next directory.
+                del directory
             for entry in entries:
                 if entry.name in [".", ".."]:
                     continue
+                if '/' in entry.name or '\\' in entry.name:
+                    raise ValueError('Invalid directory entry')
                 remote_entry_path = f"{remote_smb_path}/{entry.name}"
                 local_entry_path = os.path.join(local_path, entry.name)
                 if entry.smbc_type == smbc.DIR:
@@ -241,10 +272,14 @@ class freeipa_backend(applier_backend):
                 elif entry.smbc_type == smbc.FILE:
                     try:
                         os.makedirs(os.path.dirname(local_entry_path), exist_ok=True)
-                        self.file_cache.store(remote_entry_path, Path(local_entry_path))
+                        self.file_cache.store(remote_entry_path, Path(local_entry_path), checked=True)
                     except Exception as e:
                         logdata = {'exception': str(e), 'file': entry.name}
                         log('W30', logdata)
+                        raise
+                else:
+                    raise ValueError('Unsupported policy file type: {}'.format(entry.name))
         except Exception as e:
             logdata = {'exception': str(e), 'remote_folder_path': remote_smb_path}
             log('W31', logdata)
+            raise

@@ -168,7 +168,7 @@ class gpt:
         '''
         self.name = name
 
-    def merge_machine(self):
+    def merge_machine(self, strict=False):
         '''
         Merge machine settings to storage.
         '''
@@ -193,8 +193,10 @@ class gpt:
             logdata['gpt'] = self.name
             logdata['msg'] = str(exc)
             log('E28', logdata)
+            if strict:
+                raise
 
-    def merge_user(self):
+    def merge_user(self, strict=False):
         '''
         Merge user settings to storage.
         '''
@@ -222,6 +224,8 @@ class gpt:
             logdata['gpt'] = self.name
             logdata['msg'] = str(exc)
             log('E29', logdata)
+            if strict:
+                raise
 
 def find_dir(search_path, name):
     '''
