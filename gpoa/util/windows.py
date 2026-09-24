@@ -40,7 +40,7 @@ except ImportError:
 from samba.net import Net
 from samba.netcmd.common import netcmd_get_domain_infos_via_cldap
 from samba.samdb import SamDB
-from storage.dconf_registry import Dconf_registry, extract_display_name_version
+from storage.dconf_registry import Dconf_registry, extract_display_name_version, gpo_cache_key
 from util.system import with_privileges
 
 from storage import registry_factory
@@ -192,11 +192,11 @@ class smbcreds (smbopts):
         dict_gpo_name_version = extract_display_name_version(dconf_dict, username)
         for gpo in gpos:
             # These setters are taken from libgpo/pygpo.c
-            cached_info = dict_gpo_name_version.get(gpo.display_name, {})
+            cached_info = dict_gpo_name_version.get(gpo_cache_key(gpo.name), {})
 
             # Check if GPO version matches and cached path exists
             if cached_info.get('version') == str(getattr(gpo, 'version', None)):
-                if Path(cached_info.get('correct_path', '')).exists():
+                if cached_info.get('correct_path') and Path(cached_info['correct_path']).is_dir():
                     gpo.file_sys_path = ''
                     logdata = {
                         'gpo_name': gpo.display_name,

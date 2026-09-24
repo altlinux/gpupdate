@@ -28,7 +28,7 @@ except ImportError:
 from gpt.gpo_dconf_mapping import GpoInfoDconf
 from gpt.gpt import get_local_gpt, gpt
 from storage import registry_factory
-from storage.dconf_registry import Dconf_registry
+from storage.dconf_registry import Dconf_registry, gpo_cache_key
 from util.kerberos import machine_kdestroy, machine_kinit
 from util.logging import log
 from util.sid import get_sid
@@ -171,8 +171,8 @@ class samba_backend(applier_backend):
         if not gpo.file_sys_path:
             # GPO named "Local Policy" has no entry by its nature so
             # no reason to print warning.
-            if gpo.display_name in self.storage._dict_gpo_name_version_cache.keys():
-                cached_info = self.storage._dict_gpo_name_version_cache.get(gpo.display_name, {})
+            if gpo_cache_key(gpo.name) in self.storage._dict_gpo_name_version_cache:
+                cached_info = self.storage._dict_gpo_name_version_cache.get(gpo_cache_key(gpo.name), {})
                 cached_path = cached_info.get('correct_path')
                 if cached_path and Path(cached_path).exists():
                     gpo.file_sys_path = cached_path

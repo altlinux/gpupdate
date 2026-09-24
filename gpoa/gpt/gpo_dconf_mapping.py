@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .dynamic_attributes import DynamicAttributes
+from storage.dconf_registry import Dconf_registry
 
 
 class GpoInfoDconf(DynamicAttributes):
@@ -28,6 +29,7 @@ class GpoInfoDconf(DynamicAttributes):
         self.name = None
         self.version = None
         self.link = None
+        self.cache_source = Dconf_registry.get_info('domain')
         self._fill_attributes(gpo)
 
     def _fill_attributes(self, gpo):

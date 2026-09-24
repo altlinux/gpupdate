@@ -1123,7 +1123,20 @@ def add_preferences_to_global_registry_dict(username, is_machine):
 
     update_dict(Dconf_registry.global_registry_dict, preferences_global_dict)
 
+def gpo_cache_key(name, source=None):
+    """Use stable, source-scoped identity; unknown legacy entries miss safely."""
+    import uuid
+    try:
+        identifier = str(uuid.UUID(str(name).strip('{}')))
+    except (ValueError, TypeError, AttributeError):
+        return None
+    source = source if source is not None else Dconf_registry.get_info('domain')
+    return (str(source).casefold(), identifier) if source else None
+
+
 def extract_display_name_version(data, username):
+    # Keep the public helper name for compatibility with external callers.
+    Dconf_registry._dict_gpo_name_version_cache = {}
     policy_force = data.get('Software/BaseALT/Policies/GPUpdate', {}).get('Force', False)
     if Dconf_registry._force or policy_force:
         logdata = {'username': username}
@@ -1136,7 +1149,13 @@ def extract_display_name_version(data, username):
             if key.startswith(Dconf_registry._GpoPriority+'/'):
                 tmp[key] = data[key]
         for value in tmp.values():
-            if isinstance(value, dict) and value.get('version', 'None')!='None' and value.get('display_name'):
-                result[value['display_name']] = {'version': value['version'], 'correct_path': value['correct_path']}
+            if isinstance(value, dict) and value.get('version', 'None') != 'None':
+                identity = gpo_cache_key(value.get('name'), value.get('cache_source', ''))
+                if identity:
+                    candidate = {'version': str(value['version']), 'correct_path': value.get('correct_path')}
+                    if identity in result and result[identity] != candidate:
+                        result[identity] = {}  # Conflicting metadata must not select either snapshot.
+                    elif identity not in result:
+                        result[identity] = candidate
     Dconf_registry._dict_gpo_name_version_cache = result
     return result

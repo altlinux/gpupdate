@@ -20,7 +20,7 @@ import smbc
 import os
 import re
 from pathlib import Path
-from ..storage.dconf_registry import Dconf_registry, extract_display_name_version
+from ..storage.dconf_registry import Dconf_registry, extract_display_name_version, gpo_cache_key
 from .util import get_uid_by_username
 from .ipa import ipaopts
 from .logging import log
@@ -72,10 +72,10 @@ class ipacreds(ipaopts):
                             self.name = guid_match.group(0) if guid_match else f"policy_{id(self)}"
 
                     gpo = SimpleGPO(policy)
-                    if (gpo.display_name in dict_gpo_name_version.keys() and
-                        dict_gpo_name_version.get(gpo.display_name, {}).get('version') == str(gpo.version)):
+                    cached = dict_gpo_name_version.get(gpo_cache_key(gpo.name), {})
+                    if cached.get('version') == str(gpo.version):
 
-                        cached_path = dict_gpo_name_version.get(gpo.display_name, {}).get('correct_path')
+                        cached_path = cached.get('correct_path')
                         if cached_path and Path(cached_path).exists():
                             gpo.file_sys_path = cached_path
                             ldata = {'gpo_name': gpo.display_name, 'gpo_uuid': gpo.name, 'file_sys_path_cache': True}
