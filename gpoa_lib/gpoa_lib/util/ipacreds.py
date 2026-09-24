@@ -48,6 +48,8 @@ class ipacreds(ipaopts):
                 else:
                     result = api.Command.chain_resolve_for_user(username)
                 policies_list = result["result"]
+                if not isinstance(policies_list, list) or not server:
+                    raise ValueError('Invalid FreeIPA policy chain response')
                 try:
                     if is_machine:
                         dconf_dict = Dconf_registry.get_dictionary_from_dconf_file_db(save_dconf_db=True)
@@ -90,6 +92,7 @@ class ipacreds(ipaopts):
         except Exception as exc:
             logdata = {'exc': str(exc)}
             log('E80', logdata)
+            raise
         return gpos, server
 
     def get_domain(self):

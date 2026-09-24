@@ -88,6 +88,7 @@ class freeipa_backend(applier_backend):
             except Exception as exc:
                 logdata = {'msg': str(exc)}
                 log('E17', logdata)
+                raise
 
             for i, gptobj in enumerate(machine_gpts):
                 try:
@@ -103,6 +104,7 @@ class freeipa_backend(applier_backend):
             except Exception as exc:
                 logdata = {'msg': str(exc)}
                 log('E17', logdata)
+                raise
             for i, gptobj in enumerate(user_gpts):
                 try:
                     gptobj.merge_user()
@@ -113,7 +115,9 @@ class freeipa_backend(applier_backend):
     def _get_gpts(self, username):
         gpts = []
         gpos, server = self.ipacreds.update_gpos(username)
-        if not gpos or not server:
+        if not server:
+            raise ValueError('FreeIPA policy server is unavailable')
+        if not gpos:
             gpts.append(get_local_gpt())
             return gpts
 
@@ -134,6 +138,7 @@ class freeipa_backend(applier_backend):
                 else:
                     logdata = {'gpo_name': gpo.display_name}
                     log('W4', logdata)
+                    raise ValueError('Policy has no usable source: {}'.format(gpo.display_name))
 
         if download_gpos:
             try:
@@ -143,6 +148,7 @@ class freeipa_backend(applier_backend):
             except Exception as e:
                 logdata = {'msg': str(e), 'count': len(download_gpos)}
                 log('E35', logdata)
+                raise
         else:
             log('D211', {})
 
@@ -152,7 +158,7 @@ class freeipa_backend(applier_backend):
             if not os.path.exists(gpt_abspath):
                 logdata = {'path': gpt_abspath, 'gpo_name': gpo.display_name}
                 log('W12', logdata)
-                continue
+                raise FileNotFoundError(gpt_abspath)
 
             if self._is_machine_username:
                 obj = gpt(gpt_abspath, None, GpoInfoDconf(gpo))
@@ -242,4 +248,3 @@ class freeipa_backend(applier_backend):
         except Exception as e:
             logdata = {'exception': str(e), 'remote_folder_path': remote_smb_path}
             log('W31', logdata)
-
