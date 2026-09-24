@@ -12,6 +12,22 @@ def preference(source, target, action='C'):
 
 
 class FileFailuresTest(unittest.TestCase):
+    def test_replace_keeps_old_file_until_acquisition_succeeds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / 'target'
+            target.write_text('old')
+            source = Path(tmp) / 'source'
+            check = Mock()
+            check.get_list_markers.return_value = []
+            with self.assertRaises(FileNotFoundError):
+                Files_cp(preference(source, target, 'R'), Mock(), check)
+            self.assertEqual(target.read_text(), 'old')
+            self.assertEqual(list(Path(tmp).iterdir()), [target])
+            source.write_text('new')
+            Files_cp(preference(source, target, 'R'), Mock(), check)
+            self.assertEqual(target.read_text(), 'new')
+            self.assertEqual(target.stat().st_mode & 0o777, 0o644)
+
     def test_missing_source_is_reported(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / 'target'

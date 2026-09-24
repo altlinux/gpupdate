@@ -39,6 +39,8 @@ from ...util.preference_paths import hidden_target
 import fnmatch
 import pwd
 import grp
+import os
+import tempfile
 
 class Files_cp:
     def __init__(self, file_obj, file_cache, exe_check, username=None, secure_permissions=True):
@@ -250,8 +252,24 @@ class Files_cp:
         if self.action == FileAction.DELETE:
             self._delete_action()
         if self.action == FileAction.REPLACE:
-            self._delete_action()
-            self._create_action()
+            self._replace_action()
+
+    def _replace_action(self):
+        # Each wildcard member is published independently, after acquisition.
+        for source in self.fromPathFiles:
+            target = self.get_target_file(self.targetPath, source)
+            fd, name = tempfile.mkstemp(prefix='.gpupdate-', dir=target.parent)
+            os.close(fd)
+            staged = Path(name)
+            try:
+                self.copy_target_file(staged, source)
+                os.replace(staged, target)
+                if self.username:
+                    group = grp.getgrgid(self.pw.pw_gid).gr_name
+                    chown_home_path(target, self.username, group)
+                self.set_mod_file(target, source)
+            finally:
+                staged.unlink(missing_ok=True)
 
     def is_pattern(self, name):
         if name.find('*') != -1 or name.find('?') != -1:
