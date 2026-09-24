@@ -147,6 +147,10 @@ Plugins are automatically discovered from:
 
 `gpoa-lib` provides a public API for applying policies without the full gpupdate stack.
 
+The `gpoa-lib` RPM also owns the shared applier templates installed under
+`/usr/share/gpupdate/templates`. Full-stack installations use the matching
+`gpupdate` and `gpoa-lib` versions; template paths are unchanged on upgrade.
+
 ### ApplierRunner
 
 High-level facade for running policy appliers:

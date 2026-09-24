@@ -262,7 +262,6 @@ fi
 %attr(755,root,root) %python3_sitelibdir/gpoa/scripts_runner
 %attr(755,root,root) %python3_sitelibdir/gpoa/pkcon_runner
 %python3_sitelibdir/gpoa
-%_datadir/%name
 %_unitdir/%name.service
 %_unitdir/%name-scripts-run.service
 %_unitdir/%name.timer
@@ -290,6 +289,7 @@ fi
 
 %files -n gpoa-lib
 %python3_sitelibdir/gpoa_lib
+%_datadir/%name
 %exclude %python3_sitelibdir/gpoa_lib/test
 %doc API_REFERENCE.md API_REFERENCE_RU.md
 %doc README.md PLUGIN_DEVELOPMENT_GUIDE.md PLUGIN_DEVELOPMENT_GUIDE_RU.md EXAMPLES.md
