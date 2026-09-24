@@ -48,7 +48,7 @@ class Files_cp:
         targetPath = expand_windows_var(file_obj.targetPath, username).replace('\\', '/')
         self.targetPath = check_target_path(targetPath, username)
         if not self.targetPath:
-            return
+            raise ValueError('File preference has no target path')
         self.fromPath = (expand_windows_var(file_obj.fromPath, username).replace('\\', '/')
                         if file_obj.fromPath else None)
         self.isTargetPathDirectory = False
@@ -65,6 +65,8 @@ class Files_cp:
             if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
                 self.isTargetPathDirectory = True
             self.get_list_files()
+        if self.action != FileAction.DELETE and not self.fromPathFiles:
+            raise FileNotFoundError('No source files found for {}'.format(self.fromPath))
         self.act()
 
     def get_target_file(self, targetPath:Path, fromFile:str) -> Path:
@@ -89,23 +91,24 @@ class Files_cp:
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
             log('D163', logdata)
+            raise
 
         return None
 
     def copy_target_file(self, targetFile:Path, fromFile:str):
         try:
             uri_path = UNCPath(fromFile)
-            self.file_cache.store(fromFile, targetFile)
+            self.file_cache.store(fromFile, targetFile, checked=True)
         except NotUNCPathError as exc:
             fromFilePath = Path(fromFile)
-            if fromFilePath.exists():
-                targetFile.write_bytes(fromFilePath.read_bytes())
+            targetFile.write_bytes(fromFilePath.read_bytes())
         except Exception as exc:
             logdata = {}
             logdata['targetFile'] = targetFile
             logdata['fromFile'] = fromFile
             logdata['exc'] = exc
             log('W15', logdata)
+            raise
 
     def set_exe_file(self, targetFile, fromFile):
         if self.executable:
@@ -193,6 +196,7 @@ class Files_cp:
                 logdata['targetPath'] = self.targetPath
                 logdata['targetFile'] = targetFile
                 log('D164', logdata)
+                raise
 
     def _delete_action(self):
         list_target = [self.targetPath.name]
@@ -212,6 +216,7 @@ class Files_cp:
                 logdata['targetPath'] = self.targetPath
                 logdata['targetFile'] = targetFile
                 log('D165', logdata)
+                raise
 
     def _update_action(self):
         logdata = {}
@@ -223,7 +228,7 @@ class Files_cp:
                     # A user preference may legitimately target a system directory.
                     # Only home descendants are transferred by chown_home_path.
                     if not self.targetPath.is_dir():
-                        shutil.chown(self.targetPath, self.username)
+                        shutil.chown(targetFile, self.username)
                     group_name = grp.getgrgid(self.pw.pw_gid).gr_name
                     chown_home_path(targetFile, username=self.username, group=group_name)
                 self.set_mod_file(targetFile, fromFile)
@@ -235,6 +240,7 @@ class Files_cp:
                 logdata['targetPath'] = self.targetPath
                 logdata['targetFile'] = targetFile
                 log('D166', logdata)
+                raise
 
     def act(self):
         if self.action == FileAction.CREATE:
@@ -264,7 +270,7 @@ class Files_cp:
 
             try:
                 uri_path = UNCPath(fromPathDir)
-                ls_files = self.file_cache.get_ls_smbdir(fromPathDir)
+                ls_files = self.file_cache.get_ls_smbdir(fromPathDir, checked=True)
                 if ls_files:
                     filtered_ls_files = fnmatch.filter(ls_files, fromFilePath.name)
                     if filtered_ls_files:
@@ -280,10 +286,12 @@ class Files_cp:
                     logdata['fromPath'] = self.fromPath
                     logdata['exc'] = exc
                     log('W3316', logdata)
+                    raise
             except Exception as exc:
                 logdata['fromPath'] = self.fromPath
                 logdata['exc'] = exc
                 log('W3317', logdata)
+                raise
 
 def check_target_path(path_to_check, username = None):
     '''
