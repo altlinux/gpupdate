@@ -165,6 +165,7 @@ class gpoa_controller:
                     logdata = dict({'msg': str(exc)})
                     einfo = geterr()
                     log('E12', logdata)
+                    raise
                 if back:
                     try:
                         phase_timings = {}
@@ -196,6 +197,7 @@ class gpoa_controller:
                         einfo = geterr()
                         logdata.update(einfo)
                         log('E3', logdata)
+                        raise
                     with TimedExecution('plugins') as t:
                         self.start_plugins(self.is_machine, self.username)
                     log('D333', {'elapsed': round(t.elapsed, 3)})

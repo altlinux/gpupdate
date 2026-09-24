@@ -10,6 +10,25 @@ from gpt.files import fileentry
 
 
 class CachedPolicyTests(unittest.TestCase):
+    def test_failed_retrieval_never_applies_partial_policy(self):
+        loader = importlib.machinery.SourceFileLoader('failed_controller_test', str(Path(__file__).parents[1] / 'gpoa'))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        module = importlib.util.module_from_spec(spec)
+        loader.exec_module(module)
+        controller = module.gpoa_controller.__new__(module.gpoa_controller)
+        controller.username, controller.is_machine, controller.noupdate = 'host', True, False
+        controller._gpoa_controller__args = SimpleNamespace(dc=None, nodomain=False)
+        controller.start_frontend, controller.start_plugins = Mock(), Mock()
+        backend = Mock()
+        backend.retrieve_and_store.side_effect = OSError('offline')
+        with patch.object(module, 'get_policy_uid', return_value=None), patch.object(module, 'is_root', return_value=True), \
+                patch.object(module, 'backend_factory', return_value=backend), patch.object(module, 'save_dconf') as save:
+            with self.assertRaises(OSError):
+                controller.start_backend()
+            save.assert_not_called()
+            controller.start_frontend.assert_not_called()
+            controller.start_plugins.assert_not_called()
+
     def tearDown(self):
         Dconf_registry.reset()
 
