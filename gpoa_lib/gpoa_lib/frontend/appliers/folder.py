@@ -28,6 +28,7 @@ from ...util.arguments import (
 )
 from ...util.windows_vars import expand_windows_var
 from ...util.util import get_homedir
+from ...util.preference_paths import folder_target, hidden_target
 
 def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_folders=False):
     path = Path(os.path.abspath(path))
@@ -91,12 +92,7 @@ def str2bool(boolstr):
 
 class Folder:
     def __init__(self, folder_object, username=None):
-        folder_path = expand_windows_var(folder_object.path, username).replace('\\', '/').replace('//', '/')
-        if username:
-            folder_path = folder_path.replace(get_homedir(username), '')
-            self.folder_path = Path(get_homedir(username)).joinpath(folder_path if folder_path [0] != '/' else folder_path [1:])
-        else:
-            self.folder_path = Path(folder_path)
+        self.folder_path = folder_target(folder_object.path, username)
         self.action = action_letter2enum(folder_object.action)
         self.delete_files = str2bool(folder_object.delete_files)
         self.delete_folder = str2bool(folder_object.delete_folder)
@@ -119,11 +115,7 @@ class Folder:
 
 
     def act(self):
-        if self.hidden_folder == True and str(self.folder_path.name)[0] != '.':
-            path_components = [*self.folder_path.parts]
-            path_components[-1] = '.' + path_components[-1]
-            new_folder_path = Path(*path_components)
-            self.folder_path = new_folder_path
+        self.folder_path = hidden_target(self.folder_path, self.hidden_folder, keep_dot=True)
         if self.action == FileAction.CREATE:
             self._create_action()
         if self.action == FileAction.UPDATE:

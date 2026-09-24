@@ -38,6 +38,7 @@ from ..util.util import get_homedir
 from ..util.windows_vars import expand_windows_var
 from ..util.gpoa_ini_parsing import GpoaConfigObj
 from ..util.safe_file import open_regular_file
+from ..util.preference_paths import folder_target, hidden_target
 
 
 # Actions that should be skipped during cleanup
@@ -334,17 +335,22 @@ def cleanup_file(element: Dict, username: str = None) -> None:
 
     target_path = Path(target_dir)
 
-    if target_path.is_file():
-        target_path.unlink()
-        return
-
-    if target_path.is_dir():
-        from_path = element.get('fromPath', '')
-        basename = os.path.basename(from_path.replace('\\', '/'))
-        if basename:
-            file_path = target_path / basename
-            if file_path.is_file():
+    from ..frontend.appliers.folder import str2bool
+    import fnmatch
+    source = element.get('fromPath', '').replace('\\', '/')
+    basename = os.path.basename(source)
+    is_directory = target_dir.endswith('/') or any(c in basename for c in '*?') or target_path.is_dir()
+    if is_directory:
+        if not basename or not target_path.is_dir():
+            return
+        pattern = hidden_target(Path(basename), str2bool(element.get('hidden'))).name
+        for file_path in target_path.iterdir():
+            if fnmatch.fnmatch(file_path.name, pattern) and (file_path.is_file() or file_path.is_symlink()):
                 file_path.unlink()
+    else:
+        target_path = hidden_target(target_path, str2bool(element.get('hidden')))
+        if target_path.is_file() or target_path.is_symlink():
+            target_path.unlink()
 
 
 def cleanup_shortcut(element: Dict, username: str = None) -> None:
@@ -364,13 +370,13 @@ def cleanup_folder(element: Dict, username: str = None) -> None:
     if not path:
         return
 
-    path = expand_windows_var(path, username)
-    path = Path(path.replace('\\', '/'))
+    from ..frontend.appliers.folder import str2bool
+    path = folder_target(path, username, str2bool(element.get('hidden_folder')))
 
     if path.exists() and path.is_dir():
-        delete_files = element.get('delete_files', False)
-        delete_sub_folders = element.get('delete_sub_folders', False)
-        delete_folder = element.get('delete_folder', False)
+        delete_files = str2bool(element.get('delete_files', False))
+        delete_sub_folders = str2bool(element.get('delete_sub_folders', False))
+        delete_folder = str2bool(element.get('delete_folder', False))
         if not any([delete_files, delete_sub_folders, delete_folder]):
             delete_folder = True
         from ..frontend.appliers.folder import remove_dir_tree

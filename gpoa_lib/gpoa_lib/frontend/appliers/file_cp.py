@@ -35,6 +35,7 @@ from ...util.windows_vars import expand_windows_var
 from ...util.util import get_homedir, get_user_info
 from ...util.exceptions import NotUNCPathError
 from ...util.paths import UNCPath
+from ...util.preference_paths import hidden_target
 import fnmatch
 import pwd
 import grp
@@ -78,16 +79,10 @@ class Files_cp:
                     self._set_secure_dir_mode(targetPath.parent)
                     targetPath = targetPath.parent
                     fromFileName = self.targetPath.name
-                if self.hidden:
-                    return targetPath.joinpath('.' + fromFileName)
-                else:
-                    return targetPath.joinpath(fromFileName)
+                return hidden_target(targetPath / fromFileName, self.hidden)
 
             else:
-                if not self.hidden:
-                    return targetPath
-                else:
-                    return targetPath.parent.joinpath('.' + targetPath.name)
+                return hidden_target(targetPath, self.hidden)
         except Exception as exc:
             logdata = {}
             logdata['targetPath'] = targetPath
