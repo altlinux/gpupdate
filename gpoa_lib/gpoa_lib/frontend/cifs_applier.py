@@ -245,16 +245,8 @@ class cifs_applier_user(DualContextApplier):
 
         self.user_config = self.auto_master_d / conf_file
         self.user_config_hide = self.auto_master_d / conf_hide_file
-        if os.path.exists(self.user_config.resolve()):
-            self.user_config.unlink()
-        if os.path.exists(self.user_config_hide.resolve()):
-            self.user_config_hide.unlink()
         self.user_autofs = self.auto_master_d / autofs_file
         self.user_autofs_hide = self.auto_master_d / autofs_hide_file
-        if os.path.exists(self.user_autofs.resolve()):
-            self.user_autofs.unlink()
-        if os.path.exists(self.user_autofs_hide.resolve()):
-            self.user_autofs_hide.unlink()
         self.user_creds = self.auto_master_d / cred_file
 
 
@@ -341,16 +333,6 @@ class cifs_applier_user(DualContextApplier):
 
             mount_text_hide = self.template_mountpoints_hide.render(**mount_settings)
 
-            with open(self.user_config.resolve(), 'w') as f:
-                f.truncate()
-                f.write(mount_text)
-                f.flush()
-
-            with open(self.user_config_hide.resolve(), 'w') as f:
-                f.truncate()
-                f.write(mount_text_hide)
-                f.flush()
-
             autofs_settings = {}
             autofs_settings['home_dir'] = self.home
             autofs_settings['mntTarget'] = self.mntTarget
@@ -359,17 +341,13 @@ class cifs_applier_user(DualContextApplier):
 
             autofs_text = self.template_auto.render(**autofs_settings)
 
-            with open(self.user_autofs.resolve(), 'w') as f:
-                f.truncate()
-                f.write(autofs_text)
-                f.flush()
-
             autofs_settings['mount_file'] = self.user_config_hide.resolve()
-            autofs_text = self.template_auto_hide.render(**autofs_settings)
-            with open(self.user_autofs_hide.resolve(), 'w') as f:
-                f.truncate()
-                f.write(autofs_text)
-                f.flush()
+            autofs_text_hide = self.template_auto_hide.render(**autofs_settings)
+            self._publish_maps({self.user_config: mount_text, self.user_config_hide: mount_text_hide,
+                                self.user_autofs: autofs_text, self.user_autofs_hide: autofs_text_hide})
+        else:
+            for path in (self.user_config, self.user_config_hide, self.user_autofs, self.user_autofs_hide):
+                path.unlink(missing_ok=True)
 
         if self.is_changed_keys() or (self.drives and not self.is_mount_point_dirname()):
             self.restart_autofs()
@@ -382,6 +360,24 @@ class cifs_applier_user(DualContextApplier):
             subprocess.check_call(['/bin/systemctl', 'restart', 'autofs'], timeout=30)
         except Exception as exc:
             log('E74', {'exc': exc})
+
+    def _publish_maps(self, contents):
+        import tempfile
+        staged = []
+        try:
+            for path, text in contents.items():
+                fd, name = tempfile.mkstemp(prefix='.gpupdate-', dir=path.parent)
+                staged.append((Path(name), path))
+                with os.fdopen(fd, 'w') as stream:
+                    os.fchmod(stream.fileno(), 0o644)
+                    stream.write(text)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            for temporary, path in staged:
+                os.replace(temporary, path)
+        finally:
+            for temporary, _ in staged:
+                temporary.unlink(missing_ok=True)
 
 
     def unlink_symlink(self, symlink:Path, previous=None):
@@ -490,4 +486,3 @@ class cifs_applier_user(DualContextApplier):
         else:
             log('D147')
             return ApplierResult.skipped('cifs_user')
-
