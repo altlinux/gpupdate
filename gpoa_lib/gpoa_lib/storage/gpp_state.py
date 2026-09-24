@@ -267,9 +267,9 @@ class GppStateManager:
         :return: True if should skip application
         '''
         skipped = is_element_applied(element, element_type, self.username)
-        if skipped and element_obj is not None:
+        if skipped and element.get('applied') and element_obj is not None:
             element_obj.applied = element['applied']
-        if skipped:
+        if skipped and element.get('applied'):
             self._record_marker(element, element_type)
         return skipped
 

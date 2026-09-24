@@ -147,6 +147,7 @@ class GppStateManagerTestCase(unittest.TestCase):
         sm._previous_elements = {}
         element = {'uid': 'test-1'}
         self.assertTrue(sm.should_skip(element, 'Files'))
+        self.assertEqual([], sm.applied_markers)
 
     @patch('gpoa_lib.storage.gpp_state.get_current_gpo_guids')
     def test_cleanup_removed_calls_handler(self, mock_gpos):
