@@ -324,7 +324,7 @@ class Dconf_registry():
 
 
     @classmethod
-    def get_dictionary_from_dconf_file_db(cls, uid=None, path_bin=None, save_dconf_db=False):
+    def get_dictionary_from_dconf_file_db(cls, uid=None, path_bin=None, save_dconf_db=False, strict=False):
         logdata = {}
         error_skip = None
         if path_bin:
@@ -357,6 +357,8 @@ class Dconf_registry():
         except Exception as exc:
             logdata['exc'] = exc
             logdata['path_bin'] = path_bin
+            if strict:
+                raise
             if not error_skip:
                 log('W56', logdata)
             else:

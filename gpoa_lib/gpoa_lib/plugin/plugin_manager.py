@@ -18,6 +18,7 @@
 
 import importlib.util
 import inspect
+import os
 from pathlib import Path
 
 from ..util.logging import log
@@ -101,7 +102,10 @@ class plugin_manager:
             return None
         log('D4', {'plugin_name': plugin_obj.plugin_name})
         if not self.is_machine and self.username:
-            result = plugin_obj.apply_user(self.username)
+            if os.getuid() != 0 and get_uid_by_username(self.username) == os.getuid():
+                result = plugin_obj.apply()
+            else:
+                result = plugin_obj.apply_user(self.username)
             if result is False:
                 log('W46', {'plugin_name': plugin_obj.plugin_name, 'username': self.username})
                 return ApplierResult.failed(plugin_obj.plugin_name, 'User plugin execution failed')

@@ -144,6 +144,14 @@ class gpoa_controller:
         '''
         dc = self.__args.dc
         self.policy_uid = get_policy_uid(self.username, self.is_machine)
+        if self.noupdate:
+            if not is_root() and (self.is_machine or self.policy_uid != os.getuid()):
+                raise PermissionError('Cached policy target does not match current user')
+            from gpt.cached import load_cached_policy
+            load_cached_policy(self.username, self.policy_uid, self.is_machine)
+            self.start_frontend()
+            self.start_plugins(self.is_machine, self.username)
+            return
         nodomain = False
         if self.__args.nodomain:
             nodomain = True
