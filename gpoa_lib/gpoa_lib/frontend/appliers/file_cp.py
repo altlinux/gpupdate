@@ -275,7 +275,9 @@ class Files_cp:
                 try:
                     exact_path = Path(fromPathDir)
                     if exact_path.is_dir():
-                        self.fromPathFiles = [str(fromFile) for fromFile in exact_path.iterdir() if fromFile.is_file()]
+                        self.fromPathFiles = [str(fromFile) for fromFile in exact_path.iterdir()
+                                              if fromFile.is_file()
+                                              and fnmatch.fnmatch(fromFile.name, fromFilePath.name)]
                 except Exception as exc:
                     logdata['fromPath'] = self.fromPath
                     logdata['exc'] = exc
