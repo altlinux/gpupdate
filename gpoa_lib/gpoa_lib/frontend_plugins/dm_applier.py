@@ -18,9 +18,6 @@
 
 import os
 import shutil
-import subprocess
-import re
-import tempfile
 from pathlib import Path
 
 # Import only what's absolutely necessary
@@ -37,6 +34,7 @@ except ImportError:
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
 from ..util.logging import log
 from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
+from .gdm_resource import apply_background, restore_background
 
 
 class DMApplier(FrontendPlugin):
@@ -195,55 +193,22 @@ class DMApplier(FrontendPlugin):
 
     def generate_gdm(self, path):
         """Generate GDM configuration by modifying gnome-shell-theme.gresource"""
-        # Check if we need to restore from backup
         if self.backup:
             return self._restore_gdm_backup()
-
         if not self.dm_config["Greeter.Background"]:
-            return None
-
+            return False
         background_path = self.dm_config["Greeter.Background"]
-
         try:
-            # Find gnome-shell-theme.gresource
             gresource_path = self._find_gnome_shell_gresource()
             if not gresource_path:
                 self.log("E25", {"path": "gnome-shell-theme.gresource"})
-                return self._generate_gdm_fallback(path, background_path)
-
-            # Create backup if it doesn't exist
-            backup_path = gresource_path + '.backup'
-            if not os.path.exists(backup_path):
-                shutil.copy2(gresource_path, backup_path)
-                self.log("D34", {"action": "backup_created", "backup": backup_path})
-
-            # Extract gresource to temporary directory
-            temp_dir = self._extract_gresource(gresource_path)
-            if not temp_dir:
-                return self._generate_gdm_fallback(path, background_path)
-
-            # Modify background in theme files
-            modified = self._modify_gdm_background(temp_dir, background_path)
-            if not modified:
-                shutil.rmtree(temp_dir)
-                return self._generate_gdm_fallback(path, background_path)
-
-            # Recompile gresource
-            success = self._recompile_gresource(temp_dir, gresource_path)
-
-            # Clean up temporary directory
-            shutil.rmtree(temp_dir)
-
-            if success:
-                self.log("I6", {"path": gresource_path, "background": background_path})
-                return True
-            else:
-                self.log("E28", {"path": gresource_path})
-                return self._generate_gdm_fallback(path, background_path)
-
+                return False
+            apply_background(gresource_path, background_path)
+            self.log("I6", {"path": gresource_path, "background": background_path})
+            return True
         except Exception as exc:
             self.log("E21", {"path": "gnome-shell-theme.gresource", "error": str(exc), "dm": "gdm"})
-            return self._generate_gdm_fallback(path, background_path)
+            return False
 
     def _find_gnome_shell_gresource(self):
         """Find gnome-shell-theme.gresource file"""
@@ -262,206 +227,15 @@ class DMApplier(FrontendPlugin):
     def _restore_gdm_backup(self):
         """Restore GDM gresource from backup if available"""
         try:
-            # Find gnome-shell-theme.gresource
             gresource_path = self._find_gnome_shell_gresource()
             if not gresource_path:
                 self.log("E25", {"path": "gnome-shell-theme.gresource"})
-                return None
-
-            backup_path = gresource_path + '.backup'
-            if not os.path.exists(backup_path):
-                self.log("W12", {"backup": backup_path})
-                return None
-
-            # Restore from backup
-            shutil.copy2(backup_path, gresource_path)
+                return False
+            restore_background(gresource_path)
             self.log("I7", {"path": gresource_path})
             return True
-
         except Exception as exc:
             self.log("E29", {"path": "gnome-shell-theme.gresource", "error": str(exc)})
-            return None
-
-    def _extract_gresource(self, gresource_path):
-        """Extract gresource file to temporary directory by creating XML from gresource list"""
-        try:
-            temp_dir = tempfile.mkdtemp(prefix='gpoa_gdm_')
-            os.makedirs(temp_dir, exist_ok=True)
-
-            # Get list of resources from gresource file
-            cmd_list = ["gresource", "list", gresource_path]
-            result_list = subprocess.run(cmd_list, capture_output=True, text=True, timeout=30)
-
-            if result_list.returncode != 0:
-                self.log("E26", {"path": gresource_path, "error": result_list.stderr})
-                shutil.rmtree(temp_dir)
-                return None
-
-            resource_paths = result_list.stdout.strip().split('\n')
-            if not resource_paths or not resource_paths[0]:
-                self.log("E26", {"path": gresource_path, "error": "No resources found in gresource file"})
-                shutil.rmtree(temp_dir)
-                return None
-
-            # Extract prefix from resource paths (remove filename from first path)
-            first_resource = resource_paths[0]
-            prefix = os.path.dirname(first_resource)
-
-            # Create temporary XML file using proper XML generation
-            import xml.etree.ElementTree as ET
-
-            # Create root element
-            gresources = ET.Element('gresources')
-            gresource = ET.SubElement(gresources, 'gresource', prefix=prefix)
-
-            for resource_path in resource_paths:
-                # Extract filename from resource path
-                filename = os.path.basename(resource_path)
-                ET.SubElement(gresource, 'file').text = filename
-
-                # Extract the resource to temporary directory
-                cmd_extract = ["gresource", "extract", gresource_path, resource_path]
-                result_extract = subprocess.run(cmd_extract, capture_output=True, text=True, timeout=30)
-
-                if result_extract.returncode == 0:
-                    # Write extracted content to file
-                    output_path = os.path.join(temp_dir, filename)
-                    with open(output_path, 'w') as f:
-                        f.write(result_extract.stdout)
-                else:
-                    self.log("E26", {"path": gresource_path, "error": f"Failed to extract {resource_path}: {result_extract.stderr}"})
-
-            # Write XML file with proper formatting
-            xml_file = os.path.join(temp_dir, "gnome-shell-theme.gresource.xml")
-            tree = ET.ElementTree(gresources)
-            tree.write(xml_file, encoding='utf-8', xml_declaration=True)
-
-            return temp_dir
-
-        except Exception as exc:
-            self.log("E26", {"path": gresource_path, "error": str(exc)})
-            return None
-
-
-
-    def _modify_gdm_background(self, temp_dir, background_path):
-        """Modify background in GDM theme files - specifically target gnome-shell-dark.css and gnome-shell-light.css"""
-        try:
-            # Target specific CSS files that contain GDM background definitions
-            target_css_files = ["gnome-shell-dark.css", "gnome-shell-light.css"]
-
-            modified = False
-            for css_filename in target_css_files:
-                css_file = os.path.join(temp_dir, css_filename)
-                if not os.path.exists(css_file):
-                    self.log("D35", {"file": css_filename, "action": "file_not_found"})
-                    continue
-
-                with open(css_file, 'r') as f:
-                    content = f.read()
-
-                # Look for background-related CSS rules in #lockDialogGroup
-                patterns = [
-                    # Handle #lockDialogGroup background with file://// (4 slashes)
-                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:////[^)]+\)',
-                    # Handle #lockDialogGroup background with file:/// (3 slashes)
-                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(file:///[^)]+\)',
-                    # Handle #lockDialogGroup background with resource:///
-                    r'(#lockDialogGroup\s*{[^}]*background:\s*[^;]*)url\(resource:///[^)]+\)',
-                    # Handle #lockDialogGroup background-image with file:////
-                    r'(#lockDialogGroup\s*{[^}]*background-image:\s*[^;]*)url\(file:////[^)]+\)',
-                    # Handle #lockDialogGroup background-image with file:///
-                    r'(#lockDialogGroup\s*{[^}]*background-image:\s*[^;]*)url\(file:///[^)]+\)',
-                    # Handle #lockDialogGroup background-image with resource:///
-                    r'(#lockDialogGroup\s*{[^}]*background-image:\s*[^;]*)url\(resource:///[^)]+\)'
-                ]
-
-                for pattern in patterns:
-                    # Use lambda function to handle optional groups gracefully
-                    def replace_url(match):
-                        groups = match.groups()
-                        return f'{groups[0]}url(file:///{background_path})'
-
-                    new_content = re.sub(pattern, replace_url, content)
-                    if new_content != content:
-                        with open(css_file, 'w') as f:
-                            f.write(new_content)
-                        modified = True
-                        self.log("D33", {"file": css_filename, "background": background_path})
-                        break
-
-                if not modified:
-                    # Log what we found in the file for debugging
-                    if "#lockDialogGroup" in content:
-                        self.log("D36", {
-                            "file": css_filename,
-                            "lockDialogGroup_found": True,
-                            "background_patterns": len(re.findall(r'background.*url', content)),
-                            "background_image_patterns": len(re.findall(r'background-image.*url', content))
-                        })
-                        # Try to add background if #lockDialogGroup exists but has no background
-                        modified = self._add_gdm_background(css_file, content, background_path)
-                    else:
-                        self.log("D36", {"file": css_filename, "lockDialogGroup_found": False})
-
-            return modified
-
-        except Exception as exc:
-            self.log("E27", {"path": temp_dir, "error": str(exc)})
-            return False
-
-    def _add_gdm_background(self, css_file, content, background_path):
-        """Add background to #lockDialogGroup if it doesn't exist"""
-        try:
-            # Pattern to find #lockDialogGroup block
-            pattern = r'(#lockDialogGroup\s*\{[^}]*)(\})'
-
-            def add_background(match):
-                opening = match.group(1)
-                closing = match.group(2)
-                # Add background property before closing brace
-                return f'{opening}\n  background: url(file:///{background_path});{closing}'
-
-            new_content = re.sub(pattern, add_background, content)
-
-            if new_content != content:
-                with open(css_file, 'w') as f:
-                    f.write(new_content)
-                self.log("D37", {"file": os.path.basename(css_file), "action": "background_added", "background": background_path})
-                return True
-
-            return False
-
-        except Exception as exc:
-            self.log("E30", {"file": css_file, "error": str(exc)})
-            return False
-
-    def _recompile_gresource(self, temp_dir, gresource_path):
-        """Recompile gresource from modified files using temporary XML"""
-        try:
-            # Use the temporary XML file created during extraction
-            xml_file = os.path.join(temp_dir, "gnome-shell-theme.gresource.xml")
-            if not os.path.exists(xml_file):
-                self.log("E28", {"path": gresource_path, "error": "Temporary XML file not found"})
-                return False
-
-            # Recompile gresource - run from temp directory where files are located
-            original_cwd = os.getcwd()
-            try:
-                os.chdir(temp_dir)
-                cmd = ["glib-compile-resources", "--target", gresource_path, "gnome-shell-theme.gresource.xml"]
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-
-                if result.returncode == 0:
-                    return True
-                else:
-                    self.log("E28", {"path": gresource_path, "error": result.stderr})
-                    return False
-            finally:
-                os.chdir(original_cwd)
-
-        except Exception as exc:
-            self.log("E28", {"path": gresource_path, "error": str(exc)})
             return False
 
     def _generate_gdm_fallback(self, path, background_path):

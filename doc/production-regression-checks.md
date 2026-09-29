@@ -113,4 +113,28 @@ exercise distribution services, credentials and package transactions.
   and Yandex. Include JSON objects with true, false, null, nested arrays, escaped
   backslashes and Unicode. Verify the resulting policy in the browser, not only
   the JSON file. Existing registry-subkey lists, boolean DWORDs and integer
-  exceptions must retain their types.
+   exceptions must retain their types.
+
+## Packaged display-manager plugin
+
+- With no external plugins directory, enable `GPUpdate/Plugins` and configure
+  `DisplayManager/Greeter.Background`. The packaged `DMApplier` must be discovered
+  once in machine context. Verify the existing `PluginsList` allowlist, disabled
+  plugins, and precedence of an installed external replacement. Discovery alone
+  must not download the background or modify display-manager files.
+- Test a readable absolute local background and a UNC source. An unavailable
+  source must fail without replacing the working theme or using a stale cached
+  download. An unconfigured background must be skipped.
+- First test GDM generation on a copy of the installed resource. Compare the full
+  resource entry list, nested aliases and binary contents. Check light, dark and
+  supported high-contrast CSS independently; file URLs must encode spaces and
+  special characters correctly. Confirm resource ownership and mode survive.
+- Repeat application and verify that the first `.backup` remains unchanged.
+  Inject compilation and publication failures, then exercise `backup` restoration.
+  Unsupported themes and invalid backups must report failure rather than claim
+  success through an ineffective GDM configuration key.
+- The updater does not restart GDM or terminate graphical sessions. Schedule a
+  separate login-screen test after package installation to verify the visible
+  background and access to the image by the greeter. Keep a console recovery
+  session available for that deployment test. Check LightDM and SDDM separately
+  where deployed; a successful resource-copy test only validates the GDM path.
