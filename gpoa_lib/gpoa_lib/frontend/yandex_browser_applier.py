@@ -20,7 +20,8 @@ import json
 import os
 
 from ..util.logging import log
-from ..util.util import is_machine_name, string_to_literal_eval
+from ..util.util import is_machine_name
+from ..util.browser_policy import browser_policy_values, is_json_object
 
 from .applier_frontend import applier_frontend, check_enabled
 from ..applier_result import ApplierResult, ItemStatus, STATUS_APPLIED, STATUS_PARTIAL, RESULT_SUCCESS, RESULT_FAILED
@@ -61,21 +62,16 @@ class yandex_browser_applier(applier_frontend):
             log('D324', {'exc': str(exc)})
             recommended__json = {}
 
-        #Replacing all nested dictionaries with a list
-        dict_item_to_list = (
-            lambda target_dict :
-                {key:[*val.values()] if type(val) == dict else string_to_literal_eval(val) for key,val in target_dict.items()}
-            )
         os.makedirs(self.__managed_policies_path, exist_ok=True)
         with open(destfile, 'w') as f:
-            json.dump(dict_item_to_list(self.policies_json), f)
+            json.dump(browser_policy_values(self.policies_json), f)
             logdata = {'destfile': destfile}
             log('D185', logdata)
 
         destfilerec = os.path.join(self.__recommended_policies_path, 'policies.json')
         os.makedirs(self.__recommended_policies_path, exist_ok=True)
         with open(destfilerec, 'w') as f:
-            json.dump(dict_item_to_list(recommended__json), f)
+            json.dump(browser_policy_values(recommended__json), f)
             logdata = {'destfilerec': destfilerec}
             log('D185', logdata)
 
@@ -183,7 +179,9 @@ class yandex_browser_applier(applier_frontend):
                     else:
                         branch[parts[-1]] = self.get_boolean(it_data.data)
                 else:
-                    if it_data.data[0] == '[' and it_data.data[-1] == ']':
+                    if is_json_object(it_data.data):
+                        branch[parts[-1]] = it_data.data
+                    elif it_data.data[0] == '[' and it_data.data[-1] == ']':
                         try:
                             branch[parts[-1]] = json.loads(str(it_data.data))
                         except Exception as exc:
