@@ -34,6 +34,8 @@ from ..util.util import get_homedir
 from .applier_frontend import applier_frontend, DualContextApplier, check_enabled
 from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
 
+KDE_TOOL_PATH = '/usr/lib/kf5/bin:/usr/lib/kf6/bin:/usr/bin'
+
 
 class kde_applier(applier_frontend):
     __module_name = 'KdeApplier'
@@ -116,10 +118,17 @@ class kde_applier_user(DualContextApplier):
     def user_context_apply(self):
         if self.__module_enabled:
             log('D200')
+            if not self.kde_settings:
+                return ApplierResult.applied('kde_user')
             if kde_applier_user.kde_version is None:
                 kde_applier_user.kde_version = get_kde_version()
-            create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update_flag)
-            apply(self.all_kde_settings, self.locks_dict, self.username)
+            if kde_applier_user.kde_version is None:
+                return ApplierResult.failed('kde_user', 'Unable to determine KDE configuration tool version')
+            try:
+                create_dict(self.kde_settings, self.all_kde_settings, self.locks_settings, self.locks_dict, self.file_cache, self.username, self.plasma_update_flag)
+                apply(self.all_kde_settings, self.locks_dict, self.username)
+            except Exception as exc:
+                return ApplierResult.failed('kde_user', str(exc))
             return ApplierResult.applied('kde_user', [ItemStatus(key='kde_settings', action='set', result=RESULT_SUCCESS)])
         else:
             log('D201')
@@ -143,20 +152,30 @@ dbus_methods_mapping = {
 
 def get_kde_version():
     try:
-        kinfo_path = shutil.which("kinfo", path="/usr/lib/kf5/bin:/usr/bin")
+        kinfo_path = shutil.which('kinfo', path=KDE_TOOL_PATH)
         if not kinfo_path:
             raise FileNotFoundError("Unable to find kinfo")
         env = os.environ.copy()
         env['LANG'] = 'C'
+        env['LC_ALL'] = 'C'
+        # kinfo uses Qt even for text output. Do not require a display at login.
+        env['QT_QPA_PLATFORM'] = 'offscreen'
         output = subprocess.check_output([kinfo_path], text=True, env=env, timeout=15)
         for line in output.splitlines():
             if "KDE Frameworks Version" in line:
                 frameworks_version = line.split(":", 1)[1].strip()
                 major_frameworks_version = int(frameworks_version.split(".")[0])
-                return major_frameworks_version
+                if major_frameworks_version in (5, 6) and shutil.which(
+                        f'kwriteconfig{major_frameworks_version}', path=KDE_TOOL_PATH):
+                    return major_frameworks_version
     except Exception as exc:
-        log('D270', {'exc': str(exc)})
-        return None
+        log('D', {'message': 'KDE version probe failed', 'plugin': 'KdeApplier',
+                  'data': {'exc': str(exc)}})
+    # Minimal installations may lack kinfo or the offscreen Qt plugin. Only
+    # select an installed writer when there is no ambiguity between KDE 5/6.
+    versions = [version for version in (5, 6)
+                if shutil.which(f'kwriteconfig{version}', path=KDE_TOOL_PATH)]
+    return versions[0] if len(versions) == 1 else None
 
 
 def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file_cache = None, username = None, plasmaupdate = False):
@@ -181,6 +200,7 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
 def apply(all_kde_settings, locks_dict, username = None):
     logdata = {}
     modified_files = set()
+    errors = []
     if username is None:
         system_path_settings = '/etc/xdg/'
         system_files = [
@@ -214,8 +234,11 @@ def apply(all_kde_settings, locks_dict, username = None):
                     file.write('\n')
             modified_files.add(file_name)
     else:
+        if kde_applier_user.kde_version not in (5, 6):
+            raise RuntimeError('Unable to determine KDE configuration tool version')
         for file_name, sections in all_kde_settings.items():
             path = f'{get_homedir(username)}/.config/{file_name}'
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
             if not os.path.exists(path):
                 Path(path).touch()
             else:
@@ -245,11 +268,12 @@ def apply(all_kde_settings, locks_dict, username = None):
                     try:
                         clear_locks_settings(username, file_name, key)
                         env_path = dict(os.environ)
-                        env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
+                        env_path['PATH'] = KDE_TOOL_PATH
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env_path, timeout=15)
                     except Exception as exc:
                             logdata = {'command': command, 'exc': exc}
                             log('W22', logdata)
+                            errors.append(f'{file_name}/{section}/{key}: {exc}')
             new_content = []
             file_path = f'{get_homedir(username)}/.config/{file_name}'
             try:
@@ -264,9 +288,12 @@ def apply(all_kde_settings, locks_dict, username = None):
             except Exception as exc:
                 logdata['exc'] = exc
                 log('W19', logdata)
+                errors.append(f'{file_name}: {exc}')
             modified_files.add(file_name)
     for file_name in modified_files:
         call_dbus_method(file_name, username)
+    if errors:
+        raise RuntimeError('; '.join(errors))
 
 def clear_locks_settings(username, file_name, key):
     '''
@@ -311,7 +338,7 @@ def apply_for_wallpaper(data, file_cache, username, plasmaupdate):
         env_path["XDG_DATA_DIRS"] = "/usr/share/kf5:"
         env_path["DISPLAY"] = ":0"
         env_path["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
-        env_path["PATH"] = "/usr/lib/kf5/bin:/usr/bin"
+        env_path['PATH'] = KDE_TOOL_PATH
         env_path["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{os.getuid()}/bus"
         if not flag:
             if os.path.isfile(path_to_wallpaper):
