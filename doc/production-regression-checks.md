@@ -87,3 +87,30 @@ exercise distribution services, credentials and package transactions.
   and NTP appliers. Keep their enablement defaults unchanged.
 - Apply lock-only GSettings changes through the standalone API and check actual
   writability after each transition. Repeat through the normal controller.
+
+## Desktop and browser follow-up checks
+
+- For #60718, apply user KDE settings before the graphical session is ready and
+  from the periodic user service on KDE 5 and 6. Verify the configured values in
+  `~/.config/kwinrc`. Version detection must not require DISPLAY, alter the parent
+  environment, or report successful application when the writer fails. Test
+  missing `kinfo` with one available writer and an ambiguous dual-writer install.
+- For #56019, create, update and replace a user desktop shortcut on GNOME and
+  XFCE 4.20, including first login with a new home. Check executable permissions,
+  `metadata::trusted` and `metadata::xfce-exe-checksum` in the user's GVFS store,
+  and launch the shortcut from the desktop. XFCE's checksum must match the final
+  file contents. A Create operation that leaves an existing modified shortcut
+  untouched must not mark that file trusted. Missing metadata support must not
+  prevent the shortcut from being written; inspect the diagnostic in that case.
+- For #60563, enable machine-shortcut merging into user policy. Verify Icon,
+  Comment, URL versus application type, targeting filters, disabled state and
+  apply-once behaviour. Do not copy the machine's application stamp to the user.
+- For #47135, configure an absolute local script path containing mixed case and
+  spaces. Check its cached contents, mode and arguments, then its execution at
+  the existing startup/shutdown or logon/logoff event. Test relative GPT scripts
+  alongside it. Policy application itself must not execute the script.
+- For #46281, check managed and recommended ExtensionSettings in both Chromium
+  and Yandex. Include JSON objects with true, false, null, nested arrays, escaped
+  backslashes and Unicode. Verify the resulting policy in the browser, not only
+  the JSON file. Existing registry-subkey lists, boolean DWORDs and integer
+  exceptions must retain their types.
