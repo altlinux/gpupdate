@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import re
 import tempfile
+from pathlib import Path
 
 # Import only what's absolutely necessary
 try:
@@ -35,6 +36,7 @@ except ImportError:
 
 from gpoa_lib.plugin.plugin_base import FrontendPlugin
 from ..util.logging import log
+from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
 
 
 class DMApplier(FrontendPlugin):
@@ -103,16 +105,9 @@ class DMApplier(FrontendPlugin):
         # DMConfigGenerator configuration - only background settings
         background_path = self.config.get("Greeter.Background", None)
         self.backup = background_path == 'backup'
-        if background_path and not self.backup:
-            normalized_path = background_path.replace('\\', '/')
-            fs_file_cache.store(normalized_path)
-            self.dm_config = {
-                "Greeter.Background": fs_file_cache.get(normalized_path)
-            }
-        else:
-            self.dm_config = {
-                "Greeter.Background": ''
-            }
+        self.background_source = background_path
+        self.file_cache = fs_file_cache
+        self.dm_config = {"Greeter.Background": ''}
 
         self.log("I1")  # Display Manager Applier initialized
 
@@ -131,6 +126,24 @@ class DMApplier(FrontendPlugin):
         except Exception as exc:
             self.log("E20", {"path": path, "error": str(exc)})
             return None
+
+    def _prepare_background(self):
+        """Resolve the source only when an enabled plugin is actually applied."""
+        source = self.background_source
+        if not isinstance(source, str) or not source.strip():
+            raise ValueError('Invalid display manager background path')
+        normalized = source.replace('\\', '/')
+        if normalized.startswith('//'):
+            if self.file_cache is None:
+                raise ValueError('No file cache available for the background')
+            self.file_cache.store(normalized, checked=True)
+            normalized = self.file_cache.get(normalized)
+        if not normalized or not os.path.isabs(normalized) or not Path(normalized).is_file():
+            raise ValueError('Background is not an existing absolute file: {}'.format(normalized))
+        # Check readability before touching any display-manager configuration.
+        with open(normalized, 'rb') as background:
+            background.read(1)
+        self.dm_config['Greeter.Background'] = normalized
 
     def _clean_empty_values(self, section):
         """
@@ -452,35 +465,18 @@ class DMApplier(FrontendPlugin):
             return False
 
     def _generate_gdm_fallback(self, path, background_path):
-        """Generate fallback GDM configuration file when gresource modification fails"""
-        try:
-            conf = self._prepare_conf(path)
-            if conf is None:
-                return None
-
-            # Set background in daemon section
-            daemon = conf.setdefault("daemon", {})
-            daemon["Background"] = background_path
-
-            # Clean up empty values
-            self._clean_empty_values(daemon)
-
-            conf.write()
-            self.log("I8", {"path": path, "background": background_path, "method": "fallback"})
-            return conf
-
-        except Exception as exc:
-            self.log("E21", {"path": path, "error": str(exc), "dm": "gdm"})
-            return None
+        # GDM does not implement a [daemon] Background setting. Do not create
+        # an ineffective configuration or report a resource failure as success.
+        return False
 
     def generate_sddm(self, path):
         conf = self._prepare_conf(path)
         if conf is None:
             return None
 
+        theme = conf.setdefault("Theme", {})
         # Set values only if they have meaningful content
         if self.dm_config["Greeter.Background"]:
-            theme = conf.setdefault("Theme", {})
             theme["Background"] = self.dm_config["Greeter.Background"]
 
         # Clean up empty values from all sections
@@ -492,9 +488,8 @@ class DMApplier(FrontendPlugin):
     def write_config(self, dm_name, directory):
         if self.backup and dm_name!='gdm':
             self.log("W13", {"dm": dm_name})
-            return
+            return False
 
-        os.makedirs(directory, exist_ok=True)
         filename = os.path.join(directory, "50-custom.conf")
         gen = {
             "lightdm": self.generate_lightdm,
@@ -503,15 +498,18 @@ class DMApplier(FrontendPlugin):
         }.get(dm_name)
         if not gen:
             raise ValueError("Unknown DM: {}".format(dm_name))
+        if dm_name != 'gdm':
+            os.makedirs(directory, exist_ok=True)
 
         result = gen(filename)
+        if result is None or result is False:
+            return False
 
         # For LightDM, always generate greeter configuration if needed
         if dm_name == "lightdm":
-            self._generate_lightdm_greeter_config()
+            return self._generate_lightdm_greeter_config()
 
-        # Return True if configuration was created or if we have background settings
-        return result is not None or self.dm_config["Greeter.Background"]
+        return True
 
     def _detect_lightdm_greeter(self):
         """Detect which LightDM greeter is being used"""
@@ -560,7 +558,7 @@ class DMApplier(FrontendPlugin):
 
         # Only generate if we have background settings
         if not self.dm_config["Greeter.Background"]:
-            return
+            return False
 
         greeter_name = self._detect_lightdm_greeter()
 
@@ -590,9 +588,11 @@ class DMApplier(FrontendPlugin):
         config_info = greeter_configs.get(greeter_name)
         if not config_info:
             self.log("E22", {"greeter": greeter_name})  # Unknown greeter type
-            return
+            return False
 
         conf = self._prepare_conf(config_info["config_path"])
+        if conf is None:
+            return False
 
         # Get or create the greeter section
         greeter_section = conf.setdefault(config_info["section"], {})
@@ -608,8 +608,10 @@ class DMApplier(FrontendPlugin):
         try:
             conf.write()
             self.log("I5", {"path": config_info["config_path"], "greeter": greeter_name})
+            return True
         except Exception as exc:
             self.log("E21", {"path": config_info["config_path"], "error": str(exc)})
+            return False
 
     def detect_dm(self):
         """Detect available and active display managers with fallback methods"""
@@ -740,10 +742,9 @@ class DMApplier(FrontendPlugin):
 
         try:
             # Validate configuration before proceeding
-            if not self._validate_configuration():
+            if not self.background_source:
                 self.log("W11")
-                if not self.backup:
-                    return False
+                return ApplierResult.skipped(self.plugin_name, 'No background policy configured')
 
             # Detect available and active display managers
             dm_info = self.detect_dm()
@@ -751,36 +752,37 @@ class DMApplier(FrontendPlugin):
 
             if not dm_info["available"]:
                 self.log("W10")
-                return False
+                return ApplierResult.failed(self.plugin_name, 'No display managers detected')
 
             # Use active DM or first available
             target_dm = dm_info["active"] or (dm_info["available"][0] if dm_info["available"] else None)
 
             if not target_dm:
                 self.log("W10")
-                return False
+                return ApplierResult.failed(self.plugin_name, 'No target display manager')
 
             # Determine config directory based on DM
             config_dir = self._get_config_directory(target_dm)
             if not config_dir:
                 self.log("E22", {"dm": target_dm})
-                return False
+                return ApplierResult.failed(self.plugin_name, 'Unknown display manager configuration directory')
 
+            if not self.backup:
+                self._prepare_background()
             # Generate configuration
             result = self.write_config(target_dm, config_dir)
 
             if result:
                 self.log("I4", {"dm": target_dm, "config_dir": config_dir})
-                return True
-            elif self.backup:
-                return False
+                return ApplierResult.applied(self.plugin_name, [ItemStatus(
+                    key=target_dm, action='restore' if self.backup else 'set', result=RESULT_SUCCESS)])
             else:
                 self.log("E23", {"dm": target_dm, "config_dir": config_dir})
-                return False
+                return ApplierResult.failed(self.plugin_name, 'Display manager configuration failed')
 
         except Exception as exc:
             self.log("E24", {"error": str(exc)})
-            return False
+            return ApplierResult.failed(self.plugin_name, str(exc))
 
     def _validate_configuration(self):
         """Validate DM configuration before applying"""
