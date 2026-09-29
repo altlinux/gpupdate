@@ -29,7 +29,7 @@ from util.util import utc_to_local
 from xdg.DesktopEntry import DesktopEntry
 
 from .dynamic_attributes import DynamicAttributes
-from .filter import parse_filters
+from .filter import Filter, parse_filters
 
 
 class TargetType(Enum):
@@ -157,6 +157,31 @@ class shortcut(DynamicAttributes):
 
     def items(self):
         return ((k, v) for k, v in super().items() if k not in self._ignore_fields)
+
+    @classmethod
+    def from_machine_dict(cls, values):
+        '''Restore a machine preference for application in the user's context.'''
+        sc = cls('', '', '', name='')
+        # These values have already been normalized when the XML was read.
+        # Do not transform destination paths again or copy machine apply stamps.
+        fields = ('dest', 'path', 'arguments', 'name', 'action', 'changed',
+                  'icon', 'comment', 'disabled', 'uid', 'guid', 'clsid',
+                  'remove_policy', 'bypass_errors', 'apply_once',
+                  'policy_name', 'policy_guid')
+        for key in fields:
+            if key in values:
+                setattr(sc, key, values[key])
+        sc.set_type(get_ttype(values.get('type', values.get('target_type'))))
+        sc.filters = []
+        for entry in values.get('filters', []):
+            if not isinstance(entry, dict) or len(entry) != 1:
+                raise ValueError('Invalid machine shortcut filter')
+            name, attributes = next(iter(entry.items()))
+            if not isinstance(attributes, dict):
+                raise ValueError('Invalid machine shortcut filter attributes')
+            sc.filters.append(Filter(filter_type=name, **attributes))
+        sc.set_usercontext(1)
+        return sc
 
     def __iter__(self):
         return iter(self.items())
@@ -297,7 +322,7 @@ class shortcut(DynamicAttributes):
         '''
         sc = Path(dest)
         if sc.exists() and create_only:
-            return
+            return False
 
         if sc.exists() and read_firstly:
             self.desktop(dest).write(dest)
@@ -305,6 +330,7 @@ class shortcut(DynamicAttributes):
             self.desktop().write(dest)
 
         sc.chmod(sc.stat().st_mode | stat.S_IEXEC)
+        return True
 
     def _remove_desktop(self, dest):
         '''
@@ -319,11 +345,12 @@ class shortcut(DynamicAttributes):
         Apply .desktop file by action.
         '''
         if self.action == 'U':
-            self._write_desktop(dest, read_firstly=True)
+            return self._write_desktop(dest, read_firstly=True)
         elif self.action == 'D':
             self._remove_desktop(dest)
         elif self.action == 'R':
             self._remove_desktop(dest)
-            self._write_desktop(dest)
+            return self._write_desktop(dest)
         elif self.action == 'C':
-            self._write_desktop(dest, create_only=True)
+            return self._write_desktop(dest, create_only=True)
+        return False

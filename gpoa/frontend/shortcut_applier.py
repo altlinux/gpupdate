@@ -18,16 +18,19 @@
 
 import subprocess
 import shutil
+import hashlib
+import os
 
-from gpt.shortcuts import get_ttype, shortcut
+from gpt.shortcuts import shortcut
 from util.logging import log
-from util.util import get_homedir, homedir_exists, string_to_literal_eval
+from util.util import get_homedir, get_user_info, homedir_exists, string_to_literal_eval
 from util.windows_vars import expand_windows_var
 from pathlib import Path
 
 from .applier_frontend import applier_frontend, check_enabled
 from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_shortcut
 from gpoa_lib.applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
+from gpoa_lib.storage.dconf_registry import _filter_objects
 
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
@@ -86,23 +89,37 @@ def apply_shortcut(shortcut, username=None, state_manager=None):
     logdata = {'file': dest_abspath}
     logdata['with_action'] = shortcut.action
     log('D106', logdata)
-    shortcut.apply_desktop(dest_abspath)
+    written = shortcut.apply_desktop(dest_abspath)
+    if written:
+        mark_shortcut_trusted(dest_abspath, username)
 
+
+def mark_shortcut_trusted(dest, username):
+    '''Set desktop-specific trust metadata only for a file we just wrote.'''
     try:
-        if getattr(shortcut, 'action', None) in ('C', 'U', 'R'):
-            if Path(dest_abspath).exists() and shutil.which('gio'):
-                user_home = get_homedir(username) if username else None
-                if username and user_home and dest_abspath.startswith(user_home.rstrip('/') + '/'):
-                    command = ['gio', 'set', dest_abspath, 'metadata::trusted', 'true']
-                    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
-                    gio_out = (result.stderr or result.stdout or '').strip()
-                    logdata = {'command': command, 'gio_out': gio_out}
-                    if result.returncode != 0:
-                        log('D238', logdata)
-                    else:
-                        log('D239', logdata)
-    except Exception as e:
-        log('E81', logdata)
+        if not username or get_user_info(username).pw_uid != os.geteuid():
+            return
+        path = Path(dest)
+        home = Path(get_homedir(username)).resolve()
+        if path.is_symlink() or not path.is_file() or home not in path.resolve().parents:
+            return
+        gio = shutil.which('gio')
+        if not gio:
+            return
+        checksum = hashlib.sha256(path.read_bytes()).hexdigest()
+        # GNOME uses a trust flag; XFCE verifies a checksum of the final content.
+        for attribute, value in (('metadata::trusted', 'true'),
+                                 ('metadata::xfce-exe-checksum', checksum)):
+            command = [gio, 'set', '-t', 'string', str(path), attribute, value]
+            try:
+                result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        text=True, check=False, timeout=15)
+                logdata = {'command': command, 'gio_out': (result.stderr or result.stdout or '').strip()}
+                log('D238' if result.returncode else 'D239', logdata)
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                log('D238', {'command': command, 'gio_out': str(exc)})
+    except Exception as exc:
+        log('E81', {'file': dest, 'exc': str(exc)})
 
 
 class shortcut_applier(applier_frontend):
@@ -188,19 +205,11 @@ class shortcut_applier_user(applier_frontend):
                 self.__DCONF_REGISTRY_PATH_PREFERENCES_MACHINE, dict()).get('Shortcuts')
             shortcut_objs =  string_to_literal_eval(machine_shortcuts)
             for obj in shortcut_objs:
-                shortcut_machine =shortcut(
-                    obj.get('dest'),
-                    obj.get('path'),
-                    obj.get('arguments'),
-                    obj.get('name'),
-                    obj.get('action'),
-                    get_ttype(obj.get('target_type')))
-                shortcut_machine.set_usercontext(1)
-                result.append(shortcut_machine)
+                result.append(shortcut.from_machine_dict(obj))
         except Exception as exc:
             log('D207', {'exc': str(exc)})
             return None
-        return result
+        return _filter_objects(result, self.username)
 
     def check_enabled_shortcuts_merge(self):
         return self.storage.get_key_value(self.__REGISTRY_PATH_SHORTCATSMERGE)
