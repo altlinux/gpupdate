@@ -124,6 +124,19 @@ class plugin_manager:
             if plugin_dir.exists() and plugin_dir.is_dir():
                 plugins.extend(self._load_plugins_from_directory(plugin_dir))
 
+        # External replacements take precedence over the packaged implementation.
+        # Import by package name: built-in plugins use relative imports.
+        if (self.is_machine and 'dm_applier' not in self.list_plugins
+                and not any(getattr(obj, 'plugin_name', None) == 'DMApplier'
+                            for obj in plugins)):
+            try:
+                module = importlib.import_module('gpoa_lib.frontend_plugins.dm_applier')
+                plugin_obj = self._instantiate_plugin(module, 'dm_applier', Path(module.__file__))
+                if plugin_obj is not None:
+                    plugins.append(plugin_obj)
+            except Exception as exc:
+                log('W45', {'plugin_file': 'dm_applier', 'error': str(exc)})
+
         return plugins
 
     def _load_plugins_from_directory(self, directory):
@@ -155,6 +168,9 @@ class plugin_manager:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
+        return self._instantiate_plugin(module, module_name, file_path)
+
+    def _instantiate_plugin(self, module, module_name, file_path):
         # Find factory functions based on context
         factory_funcs = []
         target_factory_names = []
@@ -174,6 +190,8 @@ class plugin_manager:
             return None
 
         plugin_instance = factory_funcs[0](self.dict_dconf_db, self.username, self.file_cache)
+        if plugin_instance is None:
+            return None
 
         # Save the list of names to prevent repetition (only after successful load)
         self.list_plugins.append(module_name)
