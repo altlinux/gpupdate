@@ -126,11 +126,16 @@ class Script(DynamicAttributes):
     def __init__(self, action, script_dir, script_filename):
         action_upper = action.upper()
         self.action = action_upper
-        safe_filename = os.path.basename(script_filename)
-        self.path = os.path.join(script_dir, action_upper, safe_filename.upper())
+        if os.path.isabs(script_filename) and not script_filename.startswith('//'):
+            # An explicit POSIX path refers to a script installed on the client.
+            # Relative GPT scripts retain the existing normalized cache lookup.
+            self.path = script_filename
+        else:
+            safe_filename = os.path.basename(script_filename)
+            self.path = os.path.join(script_dir, action_upper, safe_filename.upper())
         self.args = None
+        self.number = None
         if not os.path.isfile(self.path):
-            self.number = None
             return
 
         if action_upper == 'LOGON':
@@ -148,4 +153,3 @@ class Script(DynamicAttributes):
 
     def set_args(self, args):
         self.args = args
-
