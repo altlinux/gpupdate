@@ -18,6 +18,9 @@
 
 import os
 import shutil
+import shlex
+import stat
+import tempfile
 from pathlib import Path
 
 # Import only what's absolutely necessary
@@ -37,6 +40,30 @@ from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
 from .gdm_resource import apply_background, restore_background
 
 
+if GpoaConfigObj is not None:
+    class _LightDMConfig(GpoaConfigObj):
+        """GLib/KConfig INI values are not ConfigObj lists or quoted strings."""
+
+        def _handle_value(self, value):
+            # Also repair quoting written by earlier DMApplier versions.
+            value = value.strip()
+            return self._unquote(value) if value else '', ''
+
+        def _quote(self, value, multiline=True):
+            if not isinstance(value, str) or any(c in value for c in '\r\n\x00'):
+                raise ValueError('Invalid LightDM INI value')
+            return value
+
+
+    class _LightDMReadConfig(_LightDMConfig):
+        """Read the active native INI literally, without repairing its meaning."""
+
+        def _unquote(self, value):
+            # LightDM does not treat ["Seat:*"] as [Seat:*], or strip quotes
+            # around a greeter-session value. Repair belongs to the write path.
+            return value
+
+
 class DMApplier(FrontendPlugin):
     """
     Display Manager Applier - handles loading of display manager policy keys
@@ -47,6 +74,23 @@ class DMApplier(FrontendPlugin):
 
     __registry_path = 'Software/BaseALT/Policies/DisplayManager'
     domain = 'dm_applier'
+    LIGHTDM_CONFIG_DIRS = (
+        '/usr/share/lightdm/lightdm.conf.d',
+        '/usr/local/share/lightdm/lightdm.conf.d',
+        '/etc/xdg/lightdm/lightdm.conf.d',
+        '/etc/lightdm/lightdm.conf.d',
+    )
+    LIGHTDM_CONFIG_FILE = '/etc/lightdm/lightdm.conf'
+    LIGHTDM_GREETER_DIRS = (
+        '/usr/local/share/lightdm/greeters', '/usr/share/lightdm/greeters',
+        '/usr/local/share/xgreeters', '/usr/share/xgreeters',
+    )
+    LIGHTDM_GREETER_CONFIGS = {
+        'lightdm-gtk-greeter': ('/etc/lightdm/lightdm-gtk-greeter.conf', 'greeter', 'background'),
+        'slick-greeter': ('/etc/lightdm/slick-greeter.conf', 'Greeter', 'background'),
+        'lightdm-kde-greeter': ('/etc/lightdm/lightdm-kde-greeter.conf', 'lightdm_theme_userbar', 'Background'),
+        'lightdm-kde-greeter-x11': ('/etc/lightdm/lightdm-kde-greeter.conf', 'lightdm_theme_userbar', 'Background'),
+    }
 
     def __init__(self, dict_dconf_db, username=None, fs_file_cache=None):
         super().__init__(dict_dconf_db, username, fs_file_cache)
@@ -114,16 +158,42 @@ class DMApplier(FrontendPlugin):
         """Return plugin prefix for translation lookup."""
         return "dm_applier"
 
-    def _prepare_conf(self, path):
+    def _prepare_conf(self, path, lightdm=False):
         """
         Load existing file or create new, preserving all comments and structure.
         """
         try:
-            conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
+            if lightdm:
+                conf = _LightDMConfig(path, encoding='utf-8', create_empty=True,
+                                      list_values=False, interpolation=False)
+            else:
+                conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
             return conf
         except Exception as exc:
             self.log("E20", {"path": path, "error": str(exc)})
             return None
+
+    def _write_lightdm_conf(self, conf):
+        """Publish a complete INI without truncating the previous working file."""
+        path = os.path.realpath(conf.filename)
+        previous = os.stat(path) if os.path.exists(path) else None
+        if previous is not None and not stat.S_ISREG(previous.st_mode):
+            raise ValueError('LightDM configuration is not a regular file')
+        fd, temporary = tempfile.mkstemp(prefix='.gpupdate-', dir=os.path.dirname(path))
+        try:
+            with os.fdopen(fd, 'wb') as output:
+                conf.write(output)
+                if previous is not None:
+                    os.fchown(output.fileno(), previous.st_uid, previous.st_gid)
+                os.fchmod(output.fileno(), stat.S_IMODE(previous.st_mode) if previous else 0o644)
+                output.flush()
+                os.fsync(output.fileno())
+            if previous is not None:
+                shutil.copystat(path, temporary)
+            os.replace(temporary, path)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
 
     def _prepare_background(self):
         """Resolve the source only when an enabled plugin is actually applied."""
@@ -168,7 +238,7 @@ class DMApplier(FrontendPlugin):
             self.log("E20", {"path": path})  # Configuration file path is invalid or inaccessible
             return None
 
-        conf = self._prepare_conf(path)
+        conf = self._prepare_conf(path, lightdm=True)
         if conf is None:
             return None
         section = conf.setdefault("Seat:*", {})
@@ -177,13 +247,11 @@ class DMApplier(FrontendPlugin):
         if self.dm_config["Greeter.Background"]:
             section["greeter-background"] = self.dm_config["Greeter.Background"]
 
-        # Remove any existing empty values that might have been set previously
-        self._clean_empty_values(section)
-
         # Comments example:
-        conf.initial_comment = ["# LightDM custom config"]
+        if not conf.initial_comment:
+            conf.initial_comment = ["# LightDM custom config"]
         try:
-            conf.write()
+            self._write_lightdm_conf(conf)
             self.log("I2", {"path": path, "dm": "lightdm"})
             return conf
         except Exception as exc:
@@ -264,6 +332,13 @@ class DMApplier(FrontendPlugin):
             self.log("W13", {"dm": dm_name})
             return False
 
+        greeter_name = None
+        if dm_name == 'lightdm':
+            greeter_name = self._detect_lightdm_greeter()
+            if greeter_name not in self.LIGHTDM_GREETER_CONFIGS:
+                self.log('E22', {'greeter': greeter_name})
+                return False
+
         filename = os.path.join(directory, "50-custom.conf")
         gen = {
             "lightdm": self.generate_lightdm,
@@ -281,110 +356,107 @@ class DMApplier(FrontendPlugin):
 
         # For LightDM, always generate greeter configuration if needed
         if dm_name == "lightdm":
-            return self._generate_lightdm_greeter_config()
+            return self._generate_lightdm_greeter_config(greeter_name)
 
         return True
 
     def _detect_lightdm_greeter(self):
-        """Detect which LightDM greeter is being used"""
+        """Read the configured main session in LightDM's configuration order."""
+        paths = []
+        for directory in self.LIGHTDM_CONFIG_DIRS:
+            if os.path.isdir(directory):
+                paths.extend(os.path.join(directory, name) for name in sorted(os.listdir(directory))
+                             if name.endswith('.conf'))
+        paths.append(self.LIGHTDM_CONFIG_FILE)
+        conf = self._read_lightdm_conf()
+        for path in paths:
+            if os.path.exists(path):
+                conf.merge(self._read_lightdm_conf(path))
+        # Only the exact key applies: greeter-session-fallback is a different
+        # session and must not override the primary (possibly Wayland) greeter.
+        session = 'lightdm-default-greeter'
+        for section in ('SeatDefaults', 'Seat:*'):
+            if 'greeter-session' in conf.get(section, {}):
+                session = conf[section]['greeter-session'].strip()
+        overrides = {conf[section]['greeter-session'].strip()
+                     for section in conf.sections
+                     if section.startswith('Seat:') and section != 'Seat:*'
+                     and 'greeter-session' in conf[section]}
+        if overrides and overrides != {session}:
+            # A shared greeter configuration cannot represent conflicting
+            # per-seat themes. Do not guess a seat or modify the wrong greeter.
+            self.log('E22', {'greeter': session, 'seat_overrides': sorted(overrides)})
+            return None
+        greeter = self._resolve_lightdm_session(session)
+        self.log('D30', {'greeter': greeter, 'session': session, 'source': 'lightdm configuration'})
+        return greeter
 
-        # Check main lightdm.conf
-        lightdm_conf_path = "/etc/lightdm/lightdm.conf"
-        if os.path.exists(lightdm_conf_path):
-            with open(lightdm_conf_path, 'r') as f:
-                for line in f:
-                    if line.strip().startswith("greeter-session") and not line.strip().startswith('#'):
-                        greeter = line.split('=')[1].strip()
-                        self.log("D30", {"greeter": greeter, "source": "lightdm.conf"})  # Greeter detection details
-                        return greeter
+    @staticmethod
+    def _read_lightdm_conf(path=None):
+        conf = _LightDMReadConfig(path, encoding='utf-8', list_values=False,
+                                  interpolation=False, file_error=True,
+                                  allow_duplicate_sections=True, allow_duplicate_keys=True)
+        if conf.scalars or any(conf[section].sections for section in conf.sections):
+            raise ValueError('LightDM INI must contain flat sections')
+        return conf
 
-        # Check lightdm.conf.d directory
-        lightdm_conf_d = "/etc/lightdm/lightdm.conf.d"
-        if os.path.exists(lightdm_conf_d):
-            for file in sorted(os.listdir(lightdm_conf_d)):
-                if file.endswith('.conf'):
-                    file_path = os.path.join(lightdm_conf_d, file)
-                    with open(file_path, 'r') as f:
-                        for line in f:
-                            if line.strip().startswith("greeter-session") and not line.strip().startswith('#'):
-                                greeter = line.split('=')[1].strip()
-                                self.log("D30", {"greeter": greeter, "source": file})  # Greeter detection details
-                                return greeter
+    def _resolve_lightdm_session(self, session):
+        if not session or os.path.basename(session) != session:
+            return None
+        if session in self.LIGHTDM_GREETER_CONFIGS:
+            return session
+        for directory in self.LIGHTDM_GREETER_DIRS:
+            desktop = os.path.join(directory, session + '.desktop')
+            if not os.path.isfile(desktop):
+                continue
+            # Alternatives often point to a Wayland desktop whose Exec is a
+            # compositor wrapper. Identify that desktop, never execute Exec.
+            name = Path(os.path.realpath(desktop)).stem
+            if name in self.LIGHTDM_GREETER_CONFIGS:
+                return name
+            entry = self._read_lightdm_conf(desktop)
+            if 'Exec' in entry.get('Desktop Entry', {}):
+                command = shlex.split(entry['Desktop Entry']['Exec'])
+                if command and os.path.basename(command[0]) in self.LIGHTDM_GREETER_CONFIGS:
+                    return os.path.basename(command[0])
+            return session
+        # Unknown/missing sessions are unsupported; no silent GTK fallback.
+        return session
 
-        # Check default greeter
-        default_greeter_path = "/usr/share/xgreeters/lightdm-default-greeter.desktop"
-        if os.path.exists(default_greeter_path):
-            with open(default_greeter_path, 'r') as f:
-                for line in f:
-                    if line.strip().startswith("Exec=") and not line.strip().startswith('#'):
-                        greeter_exec = line.split('=')[1].strip()
-                        # Extract greeter name from exec path
-                        greeter_name = os.path.basename(greeter_exec)
-                        self.log("D30", {"greeter": greeter_name, "source": "default-greeter"})  # Greeter detection details
-                        return greeter_name
-
-        # Fallback to gtk-greeter (most common)
-        self.log("D30", {"greeter": "lightdm-gtk-greeter", "source": "fallback"})  # Greeter detection details
-        return "lightdm-gtk-greeter"
-
-    def _generate_lightdm_greeter_config(self):
+    def _generate_lightdm_greeter_config(self, greeter_name=None):
         """Generate configuration for the detected LightDM greeter"""
 
         # Only generate if we have background settings
         if not self.dm_config["Greeter.Background"]:
             return False
 
-        greeter_name = self._detect_lightdm_greeter()
-
-        # Map greeter names to configuration files and settings
-        greeter_configs = {
-            "lightdm-gtk-greeter": {
-                "config_path": "/etc/lightdm/lightdm-gtk-greeter.conf",
-                "section": "greeter",
-                "background_key": "background",
-                "theme_key": "theme-name"
-            },
-            "slick-greeter": {
-                "config_path": "/etc/lightdm/slick-greeter.conf",
-                "section": "Greeter",
-                "background_key": "background",
-                "theme_key": "theme-name"
-            },
-            "lightdm-kde-greeter": {
-                "config_path": "/etc/lightdm/lightdm-kde-greeter.conf",
-                "section": "lightdm_theme_userbar",
-                "background_key": "Background",
-                "theme_key": "theme"
-            }
-        }
-
-
-        config_info = greeter_configs.get(greeter_name)
+        if greeter_name is None:
+            greeter_name = self._detect_lightdm_greeter()
+        config_info = self.LIGHTDM_GREETER_CONFIGS.get(greeter_name)
         if not config_info:
             self.log("E22", {"greeter": greeter_name})  # Unknown greeter type
             return False
 
-        conf = self._prepare_conf(config_info["config_path"])
+        config_path, section, background_key = config_info
+        conf = self._prepare_conf(config_path, lightdm=True)
         if conf is None:
             return False
 
         # Get or create the greeter section
-        greeter_section = conf.setdefault(config_info["section"], {})
+        greeter_section = conf.setdefault(section, {})
 
         # Apply background setting only if it has meaningful content
         if self.dm_config["Greeter.Background"]:
-            greeter_section[config_info["background_key"]] = self.dm_config["Greeter.Background"]
+            greeter_section[background_key] = self.dm_config["Greeter.Background"]
 
-        # Clean up any empty values in the greeter section
-        self._clean_empty_values(greeter_section)
-
-        conf.initial_comment = [f"# {greeter_name} custom config"]
+        if not conf.initial_comment:
+            conf.initial_comment = [f"# {greeter_name} custom config"]
         try:
-            conf.write()
-            self.log("I5", {"path": config_info["config_path"], "greeter": greeter_name})
+            self._write_lightdm_conf(conf)
+            self.log("I5", {"path": config_path, "greeter": greeter_name})
             return True
         except Exception as exc:
-            self.log("E21", {"path": config_info["config_path"], "error": str(exc)})
+            self.log("E21", {"path": config_path, "error": str(exc)})
             return False
 
     def detect_dm(self):

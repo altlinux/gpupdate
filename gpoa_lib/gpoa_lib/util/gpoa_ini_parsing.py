@@ -102,6 +102,10 @@ class GpoaConfigObj(ConfigObj):
     def __init__(self, infile=None, **kwargs):
         self.allow_unquoted_commas = kwargs.pop('allow_unquoted_commas', False)
         self.allow_special_chars = kwargs.pop('allow_special_chars', False)
+        # Some native INI consumers (including GLib) merge repeated groups and
+        # accept the last key value. Keep the historical strict default.
+        self.allow_duplicate_sections = kwargs.pop('allow_duplicate_sections', False)
+        self.allow_duplicate_keys = kwargs.pop('allow_duplicate_keys', False)
         super().__init__(infile, **kwargs)
 
     def _handle_comment(self, comment):
@@ -181,6 +185,9 @@ class GpoaConfigObj(ConfigObj):
 
                 sect_name = self._unquote(sect_name)
                 if sect_name in parent:
+                    if self.allow_duplicate_sections and isinstance(parent[sect_name], Section):
+                        this_section = parent[sect_name]
+                        continue
                     self._handle_error('Duplicate section name',
                                        DuplicateError, infile, cur_index)
                     continue
@@ -254,7 +261,7 @@ class GpoaConfigObj(ConfigObj):
                             continue
                 #
                 key = self._unquote(key)
-                if key in this_section:
+                if key in this_section and not self.allow_duplicate_keys:
                     self._handle_error(
                         'Duplicate keyword name',
                         DuplicateError, infile, cur_index)

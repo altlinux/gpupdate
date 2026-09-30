@@ -138,3 +138,14 @@ exercise distribution services, credentials and package transactions.
   background and access to the image by the greeter. Keep a console recovery
   session available for that deployment test. Check LightDM and SDDM separately
   where deployed; a successful resource-copy test only validates the GDM path.
+- For LightDM, test GTK, Slick, KDE Wayland and the KDE X11 session alias. Compare
+  detection with `lightdm --show-config` and the greeter desktop alternatives in
+  both `lightdm/greeters` and `xgreeters`. A `greeter-session-fallback` entry must
+  not select the main greeter. Verify vendor/local drop-in ordering and the final
+  main configuration override; conflicting per-seat greeters must not be guessed.
+- Start with a copy of the old `50-custom.conf` containing `["Seat:*"]` and quoted
+  keys. Applying the policy must produce `[Seat:*]` and native INI keys/values,
+  preserving other settings, comments, ownership and mode. Check each greeter's
+  own background section, repeated application and failed publication. Preserve
+  KDE theme selection and Slick's existing `draw-user-backgrounds` setting. An
+  unknown greeter must fail without creating a guessed GTK configuration.
