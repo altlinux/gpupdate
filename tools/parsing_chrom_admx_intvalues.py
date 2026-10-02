@@ -3,59 +3,64 @@
 #Script for parsing the chrome.admx or the Yandex Browser.admx file
 #into the number of keys needed to be treated as an integer
 
-import sys
+import argparse
 from xml.etree import ElementTree
 
 
-def get_child(parent, desires:list, list_data_pol:list):
-    if parent.tag == 'decimal':
-        list_data_pol.append(parent.get('value'))
-        return
-    for child in parent:
-        if child.tag == desires[0]:
-            get_child(child, desires[1:], list_data_pol)
+def _children(parent, tag):
+    """Select direct children regardless of the ADMX namespace."""
+    return (child for child in parent if child.tag.rsplit('}', 1)[-1] == tag)
+
+
+def extract_integer_values(root):
+    """Return numeric DWORD value names and the total policy count.
+
+    Direct decimal elements cover sizes and intervals. Enum decimal values
+    cover numeric choices. Boolean enabled/disabled values are not exceptions.
+    This is a candidate list: ADMX availability does not imply Linux support.
+    """
+    names = []
+    seen = set()
+    policy_count = 0
+    for policies in _children(root, 'policies'):
+        for policy in _children(policies, 'policy'):
+            policy_count += 1
+            for elements in _children(policy, 'elements'):
+                for element in elements:
+                    tag = element.tag.rsplit('}', 1)[-1]
+                    numeric = tag == 'decimal'
+                    if tag == 'enum':
+                        numeric = any(
+                            next(_children(value, 'decimal'), None) is not None
+                            for item in _children(element, 'item')
+                            for value in _children(item, 'value')
+                        )
+                    if not numeric:
+                        continue
+                    name = element.get('valueName') or policy.get('valueName')
+                    if name and name not in seen:
+                        seen.add(name)
+                        names.append(name)
+    return names, policy_count
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description='List candidate numeric registry values from browser ADMX. '
+                    'Verify Linux support before updating an applier.')
+    parser.add_argument('admx', help='Path to chrome.admx or YandexBrowser.admx')
+    args = parser.parse_args(argv)
+    try:
+        names, policy_count = extract_integer_values(ElementTree.parse(args.admx).getroot())
+    except (OSError, ElementTree.ParseError) as exc:
+        parser.exit(1, f'{args.admx}: {exc}\n')
+    for index, name in enumerate(names):
+        suffix = ',' if index < len(names) - 1 else ''
+        print(repr(name) + suffix)
+    print('\nkey_int:', len(names))
+    print('total:', policy_count)
+    return 0
+
 
 if __name__ == '__main__':
-    try:
-        try:
-            xml_contents = ElementTree.iterparse(sys.argv[1])
-        except:
-            print('Enter the correct file path')
-            sys.exit()
-
-        #Ignore XML file namespace
-        for _, el in xml_contents:
-            prefix, has_namespace, postfix = el.tag.partition('}')
-            if has_namespace:
-                el.tag = postfix
-
-        xml_root = xml_contents.root
-        pol_count = 0
-        dict_policies = dict()
-        for parent in xml_root:
-            if parent.tag == 'policies':
-                for child in parent:
-                    pol_count += 1
-                    dict_policies[child.get('name')] = list()
-                    desires = ['elements', 'enum', 'item', 'value', 'decimal']
-                    get_child(child, desires, dict_policies[child.get('name')])
-
-        target_list = list()
-        count = 0
-        len_dict = len(set([key if val else None for key,val in dict_policies.items()])) - 1
-        for key, value in dict_policies.items():
-            if value:
-                target_list.append(key)
-                count+=1
-                key_int = "'{}'".format(key)
-                if len_dict > count:
-                    key_int += ','
-                else:
-                    print(key_int, '\n\nkey_int:', count)
-                    break
-                print(key_int)
-
-        print('total:',pol_count)
-
-    except Exception as exc:
-        print(exc)
+    raise SystemExit(main())
