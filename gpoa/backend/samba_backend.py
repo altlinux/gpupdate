@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 from pathlib import Path
 
 # Facility to determine GPTs for user
@@ -43,6 +44,7 @@ class samba_backend(applier_backend):
 
     def __init__(self, sambacreds, username, domain, is_machine):
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
+        self.__kinit_successful = False
         self.__kinit_successful = machine_kinit(self.cache_path)
         if not self.__kinit_successful:
             raise Exception('kinit is not successful')
@@ -72,7 +74,15 @@ class samba_backend(applier_backend):
         log('D7', logdata)
 
     def __del__(self):
-        if self.__kinit_successful:
+        if not sys.is_finalizing():
+            try:
+                self.close()
+            except Exception:
+                pass
+
+    def close(self):
+        if getattr(self, '_samba_backend__kinit_successful', False):
+            self.__kinit_successful = False
             machine_kdestroy(self.cache_path)
 
     def get_policy_mode(self):

@@ -187,6 +187,9 @@ class gpoa_controller:
                         phase_timings['save_dconf_without_previous'] = round(t.elapsed, 3)
 
                         log('I42', phase_timings)
+                        with TimedExecution('plugins') as t:
+                            self.start_plugins(self.is_machine, self.username)
+                        log('D333', {'elapsed': round(t.elapsed, 3)})
                     except Exception as exc:
                         logdata = dict({'message': str(exc)})
                         # In case we're handling "E3" - it means that
@@ -198,9 +201,11 @@ class gpoa_controller:
                         logdata.update(einfo)
                         log('E3', logdata)
                         raise
-                    with TimedExecution('plugins') as t:
-                        self.start_plugins(self.is_machine, self.username)
-                    log('D333', {'elapsed': round(t.elapsed, 3)})
+                    finally:
+                        try:
+                            back.close()
+                        except Exception as exc:
+                            log('E14', {'krb-exc': str(exc)})
 
     def start_frontend(self):
         '''

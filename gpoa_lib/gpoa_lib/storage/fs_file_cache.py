@@ -136,11 +136,11 @@ class fs_file_cache:
         try:
             uri_path = UNCPath(uri)
             opendir = self.samba_context.opendir(str(uri_path))
-            ls_obj = opendir.getdents()
             try:
-                opendir.close()
-            except Exception as exc:
-                log('D322', {'exc': str(exc)})
+                ls_obj = opendir.getdents()
+            finally:
+                # smbc.Dir has no close(); its destructor closes the native handle.
+                del opendir
             ls = [obj.name for obj in ls_obj if obj.smbc_type == type_file_smb]
             return ls
         except Exception as exc:

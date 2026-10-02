@@ -28,3 +28,6 @@ class applier_backend(ABC):
     def retrieve_and_store(self):
         pass
 
+    def close(self):
+        """Release backend resources; local backends have nothing to close."""
+        pass

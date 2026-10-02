@@ -21,6 +21,7 @@ import smbc
 import re
 import tempfile
 import shutil
+import sys
 
 from .applier_backend import applier_backend
 from pathlib import Path
@@ -41,6 +42,7 @@ class freeipa_backend(applier_backend):
     def __init__(self, ipacreds, username, domain, is_machine):
         self.ipacreds = ipacreds
         self.cache_path = '/var/cache/gpupdate/creds/krb5cc_{}'.format(os.getpid())
+        self.__kinit_successful = False
         self.__kinit_successful = machine_kinit(self.cache_path, "freeipa")
         if not self.__kinit_successful:
             raise Exception('kinit is not successful')
@@ -62,7 +64,15 @@ class freeipa_backend(applier_backend):
         log('D7', logdata)
 
     def __del__(self):
-        if self.__kinit_successful:
+        if not sys.is_finalizing():
+            try:
+                self.close()
+            except Exception:
+                pass
+
+    def close(self):
+        if getattr(self, '_freeipa_backend__kinit_successful', False):
+            self.__kinit_successful = False
             machine_kdestroy(self.cache_path)
 
     def retrieve_and_store(self):

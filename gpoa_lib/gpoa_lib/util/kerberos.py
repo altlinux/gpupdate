@@ -108,24 +108,26 @@ def machine_kdestroy(cache_name=None):
     '''
     Perform kdestroy for machine credentials
     '''
-    host = get_machine_name()
     kdestroy_cmd = ['kdestroy']
     if cache_name:
         kdestroy_cmd.extend(['-c', cache_name])
 
-    if cache_name or 'KRB5CCNAME' in os.environ:
-        with subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL) as proc:
-            _wait_process(proc, 10)
+    try:
+        if cache_name or 'KRB5CCNAME' in os.environ:
+            with subprocess.Popen(kdestroy_cmd, stderr=subprocess.DEVNULL) as proc:
+                _wait_process(proc, 10)
+    finally:
+        if cache_name:
+            try:
+                if os.path.exists(cache_name):
+                    os.unlink(cache_name)
+            finally:
+                forget_machine_cache(cache_name)
 
-    if cache_name:
-        if os.path.exists(cache_name):
-            os.unlink(cache_name)
-    elif 'KRB5CCNAME' in os.environ:
+    if not cache_name and 'KRB5CCNAME' in os.environ:
         path = os.environ['KRB5CCNAME'][5:]
         if os.path.exists(path):
             os.unlink(path)
-    if cache_name:
-        forget_machine_cache(cache_name)
 
 
 def check_krb_ticket():

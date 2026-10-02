@@ -33,3 +33,16 @@ class CacheOwnershipTests(unittest.TestCase):
                 patch.object(kerberos.os, 'unlink') as unlink:
             kerberos.machine_kdestroy('/already-destroyed-owned-cache')
             unlink.assert_not_called()
+
+    def test_explicit_cleanup_needs_no_machine_name_and_unlinks_on_failure(self):
+        owned = '/owned/cache'
+        with patch.dict('os.environ', {'KRB5CCNAME': 'FILE:/caller-cache'}), \
+                patch.object(kerberos, '_owned_caches', {(os.getpid(), owned)}) as caches, \
+                patch.object(kerberos, 'get_machine_name', side_effect=AssertionError('unexpected lookup')), \
+                patch.object(kerberos.subprocess, 'Popen', side_effect=OSError('kdestroy unavailable')), \
+                patch.object(kerberos.os.path, 'exists', return_value=True), \
+                patch.object(kerberos.os, 'unlink') as unlink:
+            with self.assertRaisesRegex(OSError, 'kdestroy unavailable'):
+                kerberos.machine_kdestroy(owned)
+            unlink.assert_called_once_with(owned)
+            self.assertEqual(set(), caches)
