@@ -119,6 +119,24 @@ exercise distribution services, credentials and package transactions.
   cached value needs a normal policy refresh from Registry.pol; do not attempt
   to repair it by replacing quotes in the cached text.
 
+## Yandex numeric policy values
+
+- Start with DWORD values in Registry.pol and compare them with the generated
+  JSON and `browser://policy`. Cover these numeric values:
+  `YandexLoginAllowedDomainsForceLogoutMaxDelay`, `BrowserSwitcherDelay`,
+  `PolicyRefreshRate`, `CloudReportingUploadFrequency`,
+  `YandexClipboardMaxImageSize`, `YandexClipboardMaxTextSize`,
+  `MaxConnectionsPerProxy`, `IntranetRedirectBehavior` and `ImportFrom`.
+- Test zero and one where valid, plus a larger documented value. Numeric zero
+  and one must remain JSON numbers, not false and true; larger values must not
+  become null. Keep boolean controls such as VideoCaptureAllowed boolean and
+  existing exceptions such as DiskCacheSize and DownloadRestrictions numeric.
+- Use valid values and supported browser versions for browser acceptance:
+  ImportFrom requires version 26.6.4 or later, and some policies require the
+  extended corporate edition. Check recommended output only where the browser
+  supports that policy as recommended. Serialization tests alone do not prove
+  support in an older browser or another edition.
+
 ## Packaged display-manager plugin
 
 - With no external plugins directory, enable `GPUpdate/Plugins` and configure

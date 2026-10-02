@@ -97,7 +97,7 @@ class yandex_browser_applier(applier_frontend):
 
     def get_valuename_typeint(self):
         '''
-        List of keys resulting from parsing chrome.admx with parsing_chrom_admx_intvalues.py
+        Numeric registry values from Yandex ADMX and Linux policy documentation.
         '''
         valuename_typeint = (['DefaultPageSaveSettings',
                             'DefaultUploadSetting',
@@ -139,7 +139,16 @@ class yandex_browser_applier(applier_frontend):
                             'DefaultPluginsSetting',
                             'SafeBrowsingProtectionLevel',
                             'SafeBrowsingProtectionLevel_recommended',
-                            'DiskCacheSize']) # key 'DiskCacheSize' is added manually; parsing_chrom_admx_intvalues does not extract it automatically
+                            'DiskCacheSize',
+                            'YandexLoginAllowedDomainsForceLogoutMaxDelay',
+                            'BrowserSwitcherDelay',
+                            'PolicyRefreshRate',
+                            'CloudReportingUploadFrequency',
+                            'YandexClipboardMaxImageSize',
+                            'YandexClipboardMaxTextSize',
+                            'MaxConnectionsPerProxy',
+                            'IntranetRedirectBehavior',
+                            'ImportFrom'])
         return valuename_typeint
 
 
