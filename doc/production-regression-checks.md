@@ -111,9 +111,13 @@ exercise distribution services, credentials and package transactions.
   alongside it. Policy application itself must not execute the script.
 - For #46281, check managed and recommended ExtensionSettings in both Chromium
   and Yandex. Include JSON objects with true, false, null, nested arrays, escaped
-  backslashes and Unicode. Verify the resulting policy in the browser, not only
-  the JSON file. Existing registry-subkey lists, boolean DWORDs and integer
-   exceptions must retain their types.
+  backslashes and Unicode. Start with an actual REG_SZ in Registry.pol: testing
+  only the browser applier bypasses ingestion and can miss damaged quoting.
+  Check the current and Previous values after dconf compilation/readback, then
+  the browser policy value and status. Existing registry-subkey lists, boolean
+  DWORDs and integer exceptions must retain their types. A previously damaged
+  cached value needs a normal policy refresh from Registry.pol; do not attempt
+  to repair it by replacing quotes in the cached text.
 
 ## Packaged display-manager plugin
 

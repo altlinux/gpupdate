@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
+from .browser_policy import is_browser_json_value
 from .logging import log
 
 
@@ -54,6 +57,10 @@ def write_ini_sections(file_obj, data):
                     continue
                 if isinstance(value, int):
                     file_obj.write(f'{encoded_key} = {value}\n')
+                elif is_browser_json_value(section, value):
+                    # Quote for GVariant, not by changing the JSON itself.
+                    literal = json.dumps(value, ensure_ascii=False)
+                    file_obj.write(f'{encoded_key} = {literal}\n')
                 else:
                     file_obj.write(f'{encoded_key} = "{value}"\n')
         file_obj.write('\n')

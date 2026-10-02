@@ -37,6 +37,7 @@ _DCONF_ESCAPED_SEGMENT_PREFIX = 'gpupdate-escseg-'
 
 from .dynamic_attributes import RegistryKeyMetadata
 from ..util.constants import TRUE_STRINGS
+from ..util.browser_policy import is_browser_json_value
 from ..util.ini_writer import write_ini_sections
 from ..util.logging import log
 from ..util.paths import get_dconf_config_path
@@ -846,7 +847,7 @@ def load_preg_dconf(pregfile, pathfile, policy_name, username, gpo_info):
         if i.valuename.lower().startswith('**del'):
             continue
         valuename = i.valuename
-        data = check_data(i.data, i.type)
+        data = check_data(i.data, i.type, i.keyname)
         if i.valuename != i.data and i.valuename:
             key_registry_source = f"{source_pre}/{i.keyname}".replace('\\', '/')
             key_registry = f"{i.keyname}".replace('\\', '/')
@@ -970,7 +971,9 @@ def get_keys_dconf_locks(data):
     return result
 
 
-def check_data(data, t_data):
+def check_data(data, t_data, keyname=''):
+    if t_data == REG_SZ and is_browser_json_value(keyname, data):
+        return data
     if isinstance(data, bytes):
         if t_data == REG_MULTI_SZ:
             return clean_data(data.decode('utf-16').replace('\x00',''))

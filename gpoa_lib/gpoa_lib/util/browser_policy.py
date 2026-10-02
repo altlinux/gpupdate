@@ -21,6 +21,23 @@ import json
 from .util import string_to_literal_eval
 
 
+def is_browser_json_value(section, value):
+    """Identify structured browser REG_SZ values without changing other data."""
+    path = section.replace('\\', '/').strip('/').casefold()
+    while path.startswith(('previous/', 'source/')):
+        path = path.split('/', 1)[1]
+    branches = ('software/policies/google/chrome',
+                'software/policies/yandexbrowser')
+    if not any(path in (branch, branch + '/recommended') for branch in branches):
+        return False
+    if not isinstance(value, str) or not value.lstrip().startswith(('{', '[')):
+        return False
+    try:
+        return isinstance(json.loads(value), (dict, list))
+    except ValueError:
+        return False
+
+
 def is_json_object(value):
     """Distinguish object-valued REG_SZ from numbered registry subkeys."""
     if not isinstance(value, str) or not value.lstrip().startswith('{'):

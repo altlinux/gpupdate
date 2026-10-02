@@ -258,11 +258,17 @@ def add_prefix_to_keys(dictionary: dict, prefix: str='Previous/') -> dict:
     prefix string to be added to each key. Defaults to 'Previous/'
     Returns: New dictionary with modified keys having the specified prefix
     """
+    from .browser_policy import is_browser_json_value
+
     result = {}
     for key, value in dictionary.items():
         new_key = f'{prefix}{key}'
         if isinstance(value, dict):
-            result[new_key] = {deep_key:clean_data(val) if isinstance(val, str) else val for deep_key, val in value.items()}
+            result[new_key] = {
+                deep_key: clean_data(val) if isinstance(val, str)
+                and not is_browser_json_value(key, val) else val
+                for deep_key, val in value.items()
+            }
         else:
             result[new_key] = value
     return result
