@@ -21,6 +21,7 @@ import shutil
 import shlex
 import stat
 import tempfile
+import io
 from pathlib import Path
 
 # Import only what's absolutely necessary
@@ -38,6 +39,7 @@ from gpoa_lib.plugin.plugin_base import FrontendPlugin
 from ..util.logging import log
 from ..applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
 from .gdm_resource import apply_background, restore_background
+from ..util.atomic_files import publish_files
 
 
 if GpoaConfigObj is not None:
@@ -53,6 +55,16 @@ if GpoaConfigObj is not None:
             if not isinstance(value, str) or any(c in value for c in '\r\n\x00'):
                 raise ValueError('Invalid LightDM INI value')
             return value
+
+        def _parse(self, infile):
+            normalized = []
+            for line in infile:
+                match = self._sectionmarker.match(line)
+                if (match and match.group(2).count('[') == 1
+                        and self._unquote(match.group(3)) == 'SeatDefaults'):
+                    line = line[:match.start(3)] + 'Seat:*' + line[match.end(3):]
+                normalized.append(line)
+            return super()._parse(normalized)
 
 
     class _LightDMReadConfig(_LightDMConfig):
@@ -164,8 +176,9 @@ class DMApplier(FrontendPlugin):
         """
         try:
             if lightdm:
-                conf = _LightDMConfig(path, encoding='utf-8', create_empty=True,
-                                      list_values=False, interpolation=False)
+                conf = _LightDMConfig(path, encoding='utf-8', create_empty=False,
+                                      list_values=False, interpolation=False,
+                                      allow_duplicate_sections=True, allow_duplicate_keys=True)
             else:
                 conf = GpoaConfigObj(path, encoding="utf-8", create_empty=True)
             return conf
@@ -234,6 +247,18 @@ class DMApplier(FrontendPlugin):
             self.log("D32", {"key": key, "section": str(section)})
 
     def generate_lightdm(self, path):
+        conf = self._prepare_lightdm_config(path)
+        if conf is None:
+            return None
+        try:
+            self._write_lightdm_conf(conf)
+            self.log('I2', {'path': path, 'dm': 'lightdm'})
+            return conf
+        except Exception as exc:
+            self.log('E21', {'path': path, 'error': str(exc)})
+            return None
+
+    def _prepare_lightdm_config(self, path):
         if not path or not os.path.isabs(path):
             self.log("E20", {"path": path})  # Configuration file path is invalid or inaccessible
             return None
@@ -250,13 +275,7 @@ class DMApplier(FrontendPlugin):
         # Comments example:
         if not conf.initial_comment:
             conf.initial_comment = ["# LightDM custom config"]
-        try:
-            self._write_lightdm_conf(conf)
-            self.log("I2", {"path": path, "dm": "lightdm"})
-            return conf
-        except Exception as exc:
-            self.log("E21", {"path": path, "error": str(exc)})
-            return None
+        return conf
 
 
     def generate_gdm(self, path):
@@ -332,12 +351,27 @@ class DMApplier(FrontendPlugin):
             self.log("W13", {"dm": dm_name})
             return False
 
-        greeter_name = None
+        filename = os.path.join(directory, '50-custom.conf')
         if dm_name == 'lightdm':
-            greeter_name = self._detect_lightdm_greeter()
+            daemon = self._prepare_lightdm_config(filename)
+            if daemon is None:
+                return False
+            greeter_name = self._detect_lightdm_greeter({filename: daemon})
             if greeter_name not in self.LIGHTDM_GREETER_CONFIGS:
                 self.log('E22', {'greeter': greeter_name})
                 return False
+            greeter = self._prepare_lightdm_greeter_config(greeter_name)
+            if greeter is None:
+                return False
+            prepared = {}
+            for conf in (daemon, greeter):
+                output = io.BytesIO()
+                conf.write(output)
+                prepared[conf.filename] = output.getvalue()
+            publish_files(prepared)
+            self.log('I2', {'path': filename, 'dm': 'lightdm'})
+            self.log('I5', {'path': greeter.filename, 'greeter': greeter_name})
+            return True
 
         filename = os.path.join(directory, "50-custom.conf")
         gen = {
@@ -354,13 +388,9 @@ class DMApplier(FrontendPlugin):
         if result is None or result is False:
             return False
 
-        # For LightDM, always generate greeter configuration if needed
-        if dm_name == "lightdm":
-            return self._generate_lightdm_greeter_config(greeter_name)
-
         return True
 
-    def _detect_lightdm_greeter(self):
+    def _detect_lightdm_greeter(self, candidates=None):
         """Read the configured main session in LightDM's configuration order."""
         paths = []
         for directory in self.LIGHTDM_CONFIG_DIRS:
@@ -368,16 +398,30 @@ class DMApplier(FrontendPlugin):
                 paths.extend(os.path.join(directory, name) for name in sorted(os.listdir(directory))
                              if name.endswith('.conf'))
         paths.append(self.LIGHTDM_CONFIG_FILE)
+        candidates = candidates or {}
+        for path in candidates:
+            if path not in paths and os.path.dirname(path) in self.LIGHTDM_CONFIG_DIRS:
+                paths.insert(len(paths) - 1, path)
+        directory_order = {path: index for index, path in enumerate(self.LIGHTDM_CONFIG_DIRS)}
+        paths.sort(key=lambda path: (directory_order.get(os.path.dirname(path), len(directory_order)),
+                                     os.path.basename(path)))
+        if self.LIGHTDM_CONFIG_FILE in paths:
+            paths.remove(self.LIGHTDM_CONFIG_FILE)
+            paths.append(self.LIGHTDM_CONFIG_FILE)
         conf = self._read_lightdm_conf()
         for path in paths:
-            if os.path.exists(path):
-                conf.merge(self._read_lightdm_conf(path))
+            current = candidates.get(path)
+            if current is None and os.path.exists(path):
+                current = self._read_lightdm_conf(path)
+            if current is not None:
+                for section in current.sections:
+                    normalized = 'Seat:*' if section == 'SeatDefaults' else section
+                    conf.setdefault(normalized, {}).update(current[section])
         # Only the exact key applies: greeter-session-fallback is a different
         # session and must not override the primary (possibly Wayland) greeter.
         session = 'lightdm-default-greeter'
-        for section in ('SeatDefaults', 'Seat:*'):
-            if 'greeter-session' in conf.get(section, {}):
-                session = conf[section]['greeter-session'].strip()
+        if 'greeter-session' in conf.get('Seat:*', {}):
+            session = conf['Seat:*']['greeter-session'].strip()
         overrides = {conf[section]['greeter-session'].strip()
                      for section in conf.sections
                      if section.startswith('Seat:') and section != 'Seat:*'
@@ -425,22 +469,36 @@ class DMApplier(FrontendPlugin):
 
     def _generate_lightdm_greeter_config(self, greeter_name=None):
         """Generate configuration for the detected LightDM greeter"""
+        if greeter_name is None:
+            greeter_name = self._detect_lightdm_greeter()
+        conf = self._prepare_lightdm_greeter_config(greeter_name)
+        if conf is None:
+            return False
+        try:
+            self._write_lightdm_conf(conf)
+            self.log('I5', {'path': conf.filename, 'greeter': greeter_name})
+            return True
+        except Exception as exc:
+            self.log('E21', {'path': conf.filename, 'error': str(exc)})
+            return False
+
+    def _prepare_lightdm_greeter_config(self, greeter_name):
 
         # Only generate if we have background settings
         if not self.dm_config["Greeter.Background"]:
-            return False
+            return None
 
         if greeter_name is None:
             greeter_name = self._detect_lightdm_greeter()
         config_info = self.LIGHTDM_GREETER_CONFIGS.get(greeter_name)
         if not config_info:
             self.log("E22", {"greeter": greeter_name})  # Unknown greeter type
-            return False
+            return None
 
         config_path, section, background_key = config_info
         conf = self._prepare_conf(config_path, lightdm=True)
         if conf is None:
-            return False
+            return None
 
         # Get or create the greeter section
         greeter_section = conf.setdefault(section, {})
@@ -451,13 +509,7 @@ class DMApplier(FrontendPlugin):
 
         if not conf.initial_comment:
             conf.initial_comment = [f"# {greeter_name} custom config"]
-        try:
-            self._write_lightdm_conf(conf)
-            self.log("I5", {"path": config_path, "greeter": greeter_name})
-            return True
-        except Exception as exc:
-            self.log("E21", {"path": config_path, "error": str(exc)})
-            return False
+        return conf
 
     def detect_dm(self):
         """Detect available and active display managers with fallback methods"""

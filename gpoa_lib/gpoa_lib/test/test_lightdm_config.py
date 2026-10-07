@@ -57,6 +57,33 @@ class LightDMConfigTests(unittest.TestCase):
         Path(self.plugin.LIGHTDM_CONFIG_FILE).write_text('[Seat:*]\ngreeter-session=lightdm-gtk-greeter\n')
         self.assertEqual(self.plugin._detect_lightdm_greeter(), 'lightdm-gtk-greeter')
 
+    def test_legacy_seat_alias_preserves_native_load_order(self):
+        (self.layers[0] / '10-vendor.conf').write_text('[Seat:*]\ngreeter-session=slick-greeter\n')
+        main = Path(self.plugin.LIGHTDM_CONFIG_FILE)
+        main.write_text('[SeatDefaults]\ngreeter-session=lightdm-gtk-greeter\n')
+        self.assertEqual(self.plugin._detect_lightdm_greeter(), 'lightdm-gtk-greeter')
+        main.write_text('[Seat:*]\ngreeter-session=slick-greeter\n'
+                        '[SeatDefaults]\ngreeter-session=lightdm-kde-greeter\n'
+                        '[Seat:*]\ngreeter-session=lightdm-gtk-greeter\n')
+        self.assertEqual(self.plugin._detect_lightdm_greeter(), 'lightdm-gtk-greeter')
+
+    def test_repaired_session_selects_matching_greeter_before_publication(self):
+        (self.layers[0] / '10-vendor.conf').write_text('[Seat:*]\ngreeter-session=slick-greeter\n')
+        daemon = self.layers[-1] / '50-custom.conf'
+        daemon.write_text('["Seat:*"]\n"greeter-session" = "lightdm-gtk-greeter"\n')
+        original = daemon.read_bytes()
+        gtk, slick = self.root / 'gtk.conf', self.root / 'slick.conf'
+        self.plugin.LIGHTDM_GREETER_CONFIGS = {
+            'lightdm-gtk-greeter': (str(gtk), 'greeter', 'background'),
+            'slick-greeter': (str(slick), 'Greeter', 'background')}
+        with patch.object(self.plugin, '_prepare_lightdm_greeter_config', return_value=None):
+            self.assertFalse(self.plugin.write_config('lightdm', str(self.layers[-1])))
+        self.assertEqual(daemon.read_bytes(), original)
+        self.assertTrue(self.plugin.write_config('lightdm', str(self.layers[-1])))
+        self.assertEqual(self.plugin._detect_lightdm_greeter(), 'lightdm-gtk-greeter')
+        self.assertEqual(self.read_ini(gtk)['greeter']['background'], self.plugin.dm_config['Greeter.Background'])
+        self.assertFalse(slick.exists())
+
     def test_desktop_alias_and_arguments_are_read_not_executed(self):
         self.desktop(self.desktops[1], 'lightdm-default-greeter',
                      '/usr/sbin/lightdm-gtk-greeter --example')
