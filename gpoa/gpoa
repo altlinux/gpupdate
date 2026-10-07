@@ -227,6 +227,10 @@ class gpoa_controller:
         if not self.__args.noplugins:
             pm = plugin_manager(is_machine, username)
             pm.run()
+            failed = [result.name for result in pm.results
+                      if result.status in ('failed', 'partial') or result.failed_count]
+            if failed:
+                raise RuntimeError('Plugin execution failed: {}'.format(', '.join(failed)))
 
 def main():
     set_trust_info_callback(Dconf_registry.set_info)

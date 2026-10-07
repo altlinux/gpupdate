@@ -56,6 +56,18 @@ class BackendCleanupTest(unittest.TestCase):
                     self.assertEqual(expected + ['close'], events)
                     backend.close.assert_called_once_with()
 
+    def test_plugin_failures_reach_controller_after_manager_finishes(self):
+        from gpoa_lib.applier_result import ApplierResult
+        module, controller = self._controller()
+        controller._gpoa_controller__args.noplugins = False
+        manager = Mock(results=[ApplierResult.failed('bad', 'failure'), ApplierResult.applied('healthy')])
+        with patch.object(module, 'plugin_manager', return_value=manager):
+            with self.assertRaisesRegex(RuntimeError, 'bad'):
+                controller.start_plugins(True, None)
+            manager.run.assert_called_once()
+            manager.results = [ApplierResult.applied('healthy')]
+            controller.start_plugins(True, None)
+
     def test_domain_cleanup_is_idempotent_and_safe_for_partial_objects(self):
         for name in ('freeipa_backend', 'samba_backend'):
             module = importlib.import_module('backend.' + name)
