@@ -139,12 +139,27 @@ class FreeIPARetrievalTests(unittest.TestCase):
             policy = SimpleNamespace(name='guid', display_name='policy', file_sys_path='\\\\dc\\sysvol\\guid')
             def download(remote, target):
                 Path(target).mkdir()
-                Path(target, 'Files.xml').write_text('<broken')
+                preferences = Path(target, 'Machine', 'Preferences', 'Files')
+                preferences.mkdir(parents=True)
+                (preferences / 'Files.xml').write_text('<broken')
             obj._download_gpo_directory = download
             with self.assertRaises(Exception):
                 obj._download_gpos([policy], 'dc')
             self.assertTrue(policy.file_sys_path.startswith('\\\\'))
             self.assertEqual(list(Path(root, 'EXAMPLE', 'POLICIES').iterdir()), [])
+
+    def test_snapshot_validation_ignores_payload_names_and_script_counters(self):
+        from gpt.scriptsini import Script
+        before = {key: value for key, value in vars(Script).items() if isinstance(value, int)}
+        with TemporaryDirectory() as root:
+            scripts = Path(root, 'Machine', 'Scripts')
+            payload = scripts / 'Startup' / 'setup'
+            payload.mkdir(parents=True)
+            for name in ('Files.xml', 'Registry.pol', 'scripts.ini'):
+                (payload / name).write_bytes(b'not a policy file')
+            (scripts / 'scripts.ini').write_text('[Startup]\n0CmdLine=Tool.sh\n', encoding='utf-16')
+            freeipa_backend._validate_snapshot(root)
+        self.assertEqual(before, {key: value for key, value in vars(Script).items() if isinstance(value, int)})
 
     def make_backend(self, machine=True):
         obj = freeipa_backend.__new__(freeipa_backend)

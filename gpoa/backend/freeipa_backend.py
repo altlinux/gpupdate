@@ -246,6 +246,23 @@ class freeipa_backend(applier_backend):
     def _validate_snapshot(path):
         for entry in Path(path).rglob('*'):
             if entry.is_file():
+                parts = [part.casefold() for part in entry.relative_to(path).parts]
+                if not parts or parts[0] not in ('machine', 'user'):
+                    continue
+                registry = len(parts) == 2 and parts[1] == 'registry.pol'
+                preference = (len(parts) == 4 and parts[1] == 'preferences'
+                              and parts[3] == parts[2] + '.xml')
+                scripts = len(parts) == 3 and parts[1:] == ['scripts', 'scripts.ini']
+                if scripts:
+                    # Validate syntax without constructing Script objects or
+                    # advancing their global execution-number counters.
+                    import configparser
+                    parser = configparser.ConfigParser()
+                    with entry.open(encoding='utf-16') as source:
+                        parser.read_file(source)
+                    continue
+                if not registry and not preference:
+                    continue
                 pref_type = get_preftype(entry)
                 if pref_type is not None:
                     # Parsing must complete before the new version is accepted.
