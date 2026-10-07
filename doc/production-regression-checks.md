@@ -151,7 +151,8 @@ exercise distribution services, credentials and package transactions.
   resource entry list, nested aliases and binary contents. Check light, dark and
   supported high-contrast CSS independently; file URLs must encode spaces and
   special characters correctly. Confirm resource ownership and mode survive.
-- Repeat application and verify that the first `.backup` remains unchanged.
+- Repeat application within the same theme generation and verify that its
+  `.backup` remains unchanged.
   Inject compilation and publication failures, then exercise `backup` restoration.
   Unsupported themes and invalid backups must report failure rather than claim
   success through an ineffective GDM configuration key.
@@ -171,3 +172,58 @@ exercise distribution services, credentials and package transactions.
   own background section, repeated application and failed publication. Preserve
   KDE theme selection and Slick's existing `draw-user-backgrounds` setting. An
   unknown greeter must fail without creating a guessed GTK configuration.
+
+## Review follow-up regressions
+
+- Apply a wildcard Files preference into a directory containing an unrelated
+  matching file and a pre-existing Create destination. Remove the preference:
+  only successfully managed, recorded destinations may be removed. Legacy
+  wildcard state without a manifest must defer cleanup. Delete must still work
+  when its unused UNC source is unavailable. Folder Delete/Replace must reject
+  an ordinary file at the directory target without deleting it.
+- Move an apply-once preference between GPOs while retaining its item UID. A
+  different policy GUID must not inherit the old application stamp. For merged
+  machine shortcuts, verify three user refreshes and two distinct users:
+  per-user stamps survive serialization/IPC and do not become machine stamps.
+- Fail LDAP and local password updates during a post-login LAPS rotation. The
+  eventual successful retry must retain the configured post-action; an
+  expiration-only retry must not acquire that action. Pending state contains
+  only the post-action flag, never the password.
+- Return a large user-plugin result, then repeat with a fork descendant holding
+  the IPC writer after the worker exits. Framed JSON must complete without EOF;
+  truncated frames must fail. The supported payload limit is 64 MiB. Verify
+  plugin continuation followed by a failed engine status and strict script
+  failure when its arguments cannot be loaded; default script exit semantics
+  remain unchanged.
+- Cancel a machine command whose children ignore SIGTERM. Its owned process
+  group must stop before credential cleanup, including background children
+  after normal command completion. Commands deliberately creating independent
+  sessions are outside this process-group contract.
+- Test LightDM alias groups in native file/group order, including a later
+  SeatDefaults override. A repaired quoted greeter-session must select the
+  planned greeter, not the old one. Preparation or second-file publication
+  failure must preserve both existing configurations.
+- Include ordinary payloads named Files.xml, Registry.pol and scripts.ini below
+  GPT script directories. FreeIPA validates only real policy locations; script
+  validation must not consume execution-order counters.
+- Inject browser conversion, staged-write and second-file publication failures.
+  Both managed and recommended policy files must retain their old contents.
+  Related-file publication uses per-file atomic replacements and rollback;
+  this is not a crash-atomic multi-file filesystem transaction.
+- Apply a GDM background to V1, simulate an RPM theme replacement with V2,
+  reapply and restore. Restore must select the V2 baseline, not an old V1 backup.
+  Refuse an unverified legacy/cross-generation restore until a current baseline
+  has been established. Keep historical backups separate from the active one.
+
+## Validation scope on the domain stand
+
+The follow-up candidate was tested separately from installed packages on a
+Samba-domain Workstation p11 with LightDM/KDE and an active domain user. The
+library suite and a broad applier matrix exercised non-empty settings and fault
+fixtures. Actual operations included privilege dropping/private D-Bus,
+headless KDE detection, native KDE configuration in temporary files, LightDM
+configuration copies, GLib resource compilation, dconf round trips and harmless
+process-tree termination. CUPS, service, firewall, package, LDAP/password and
+PAM-changing operations were mocked. GDM, SDDM, Yandex and XFCE were not installed
+there. These checks do not replace full GPO delivery, visual login-screen,
+FreeIPA-server, reboot/logoff or installed-RPM transaction acceptance tests.
