@@ -181,6 +181,7 @@ class shortcut(DynamicAttributes):
                 raise ValueError('Invalid machine shortcut filter attributes')
             sc.filters.append(Filter(filter_type=name, **attributes))
         sc.set_usercontext(1)
+        sc.merged_machine = True
         return sc
 
     def __iter__(self):

@@ -30,7 +30,7 @@ from pathlib import Path
 from .applier_frontend import applier_frontend, check_enabled
 from storage.gpp_state import GppStateManager, get_element_type_name, cleanup_shortcut
 from gpoa_lib.applier_result import ApplierResult, ItemStatus, RESULT_SUCCESS
-from gpoa_lib.storage.dconf_registry import _filter_objects
+from gpoa_lib.storage.dconf_registry import Dconf_registry, _filter_objects
 
 
 def storage_get_shortcuts(storage, username=None, shortcuts_machine=None):
@@ -196,6 +196,15 @@ class shortcut_applier_user(applier_frontend):
         self.username = username
         self.__module_enabled = check_enabled(self.storage, self.__module_name, self.__module_experimental)
         self.state_manager = GppStateManager(username)
+        if self.__module_enabled and self.check_enabled_shortcuts_merge():
+            merged = self.get_machine_shortcuts() or []
+            for sc in merged:
+                self.state_manager.current_gpos.add(getattr(sc, 'policy_guid', None))
+                identity = (getattr(sc, 'uid', None), getattr(sc, 'policy_guid', None))
+                if not any(getattr(old, 'merged_machine', False)
+                           and (getattr(old, 'uid', None), getattr(old, 'policy_guid', None)) == identity
+                           for old in Dconf_registry.shortcuts):
+                    Dconf_registry.shortcuts.append(sc)
 
     def get_machine_shortcuts(self):
         result = []
@@ -215,10 +224,7 @@ class shortcut_applier_user(applier_frontend):
         return self.storage.get_key_value(self.__REGISTRY_PATH_SHORTCATSMERGE)
 
     def run(self, in_usercontext):
-        shortcuts_machine = None
-        if self.check_enabled_shortcuts_merge():
-            shortcuts_machine = self.get_machine_shortcuts()
-        shortcuts = storage_get_shortcuts(self.storage, self.username, shortcuts_machine)
+        shortcuts = storage_get_shortcuts(self.storage, self.username)
 
         if shortcuts:
             # Apply current elements first
@@ -249,13 +255,13 @@ class shortcut_applier_user(applier_frontend):
                     logdata = {'uid': getattr(sc, 'uid', 'unknown'), 'exc': str(exc)}
                     log('W47', logdata)
 
-            # Cleanup removed elements after apply (admin context only)
-            if not in_usercontext:
-                current_elements = [dict(s) for s in shortcuts if not getattr(s, 'disabled', False)]
-                self.state_manager.cleanup_removed('Shortcuts', current_elements, cleanup_shortcut)
         else:
             logdata = {'username': self.username}
             log('D100', logdata)
+        # Also clean up when the last effective shortcut disappeared.
+        if not in_usercontext:
+            current_elements = [dict(s) for s in shortcuts if not getattr(s, 'disabled', False)]
+            self.state_manager.cleanup_removed('Shortcuts', current_elements, cleanup_shortcut)
 
     def user_context_apply(self):
         if self.__module_enabled:
