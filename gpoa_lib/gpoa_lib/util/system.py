@@ -63,24 +63,56 @@ def set_privileges(username, uid, gid, groups, home):
 
 
 def _read_child_result(pid, rfd):
-    chunks = []
+    import select
+    import signal
+    status = None
+
+    def read_exact(size):
+        nonlocal status
+        chunks = []
+        while size:
+            readable, _, _ = select.select([rfd], [], [], 0.2)
+            if readable:
+                chunk = os.read(rfd, min(size, 65536))
+                if not chunk:
+                    raise RuntimeError('Incomplete forked process result')
+                chunks.append(chunk)
+                size -= len(chunk)
+            else:
+                if status is None:
+                    exited, value = os.waitpid(pid, os.WNOHANG)
+                    if exited:
+                        status = value
+                if status is not None:
+                    raise RuntimeError('Forked process exited without a complete result')
+        return b''.join(chunks)
+
     try:
-        while True:
-            chunk = os.read(rfd, 65536)
-            if not chunk:
-                break
-            chunks.append(chunk)
+        size = int.from_bytes(read_exact(8), 'big')
+        if size > 64 * 1024 * 1024:
+            raise RuntimeError('Forked process result exceeds 64 MiB')
+        data = read_exact(size)
+    except BaseException:
+        if status is None:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        raise
     finally:
         os.close(rfd)
-        _, status = os.waitpid(pid, 0)
+        if status is None:
+            _, status = os.waitpid(pid, 0)
     if not os.WIFEXITED(status) or os.WEXITSTATUS(status) != 0:
         raise RuntimeError('Error in forked process ({})'.format(status))
-    data = b''.join(chunks)
     return json.loads(data.decode('utf-8')) if data else None
 
 
 def _write_child_result(wfd, result):
-    data = memoryview(json.dumps(result).encode('utf-8'))
+    payload = json.dumps(result).encode('utf-8')
+    if len(payload) > 64 * 1024 * 1024:
+        raise ValueError('Forked process result exceeds 64 MiB')
+    data = memoryview(len(payload).to_bytes(8, 'big') + payload)
     while data:
         written = os.write(wfd, data)
         if not written:

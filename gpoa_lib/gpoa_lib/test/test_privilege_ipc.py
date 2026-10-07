@@ -78,4 +78,29 @@ for value in (None, {}, {'items': ['значение' * 100] * 3000}):
             return len(chunks[-1])
         with patch('gpoa_lib.util.system.os.write', side_effect=write):
             _write_child_result(1, {'key': 'value'})
-        self.assertEqual(b''.join(chunks), b'{"key": "value"}')
+        payload = b'{"key": "value"}'
+        self.assertEqual(b''.join(chunks), len(payload).to_bytes(8, 'big') + payload)
+
+    def test_result_does_not_wait_for_fork_descendant_eof(self):
+        code = '''
+import os, signal, time, ctypes
+from gpoa_lib.util.system import _read_child_result, _write_child_result
+ctypes.CDLL(None).prctl(36, 1, 0, 0, 0)
+rfd, wfd = os.pipe()
+pid = os.fork()
+if not pid:
+    os.close(rfd)
+    descendant = os.fork()
+    if not descendant:
+        time.sleep(30)
+        os._exit(0)
+    _write_child_result(wfd, {'descendant': descendant})
+    os._exit(0)
+os.close(wfd)
+started = time.monotonic()
+result = _read_child_result(pid, rfd)
+assert time.monotonic() - started < 2
+os.kill(result['descendant'], signal.SIGKILL)
+os.waitpid(result['descendant'], 0)
+'''
+        subprocess.run([sys.executable, '-B', '-c', code], check=True, timeout=10)
