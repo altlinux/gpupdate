@@ -16,6 +16,8 @@
 """Checked, atomic updates of the installed GDM theme resource."""
 
 import fcntl
+import hashlib
+import json
 import os
 import re
 import shutil
@@ -24,6 +26,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from pathlib import Path
+from ..util.atomic_files import publish_files
 
 
 def read_resources(path):
@@ -103,15 +106,31 @@ def compile_resources(entries, directory, target):
         raise ValueError('Compiled resource does not match the prepared contents')
 
 
-def _publish(candidate, target, original):
+def _publish(candidate, target, original, companions=None):
     if target.read_bytes() != original:
         raise RuntimeError('GDM resource changed during preparation')
-    metadata = target.stat()
-    os.chown(candidate, metadata.st_uid, metadata.st_gid)
-    shutil.copystat(target, candidate)
-    with open(candidate, 'rb') as stream:
-        os.fsync(stream.fileno())
-    os.replace(candidate, target)
+    contents = dict(companions or {})
+    contents[target] = candidate.read_bytes()
+    publish_files(contents, expected={target: original})
+
+
+def _digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def _state_path(target):
+    return Path(str(target) + '.gpupdate-state.json')
+
+
+def _read_state(target):
+    path = _state_path(target)
+    if not path.exists():
+        return None
+    state = json.loads(path.read_text())
+    if (not isinstance(state, dict) or any(not isinstance(state.get(key), str)
+            or not re.fullmatch('[0-9a-f]{64}', state[key]) for key in ('baseline', 'published'))):
+        raise ValueError('Invalid GDM resource generation metadata')
+    return state
 
 
 def apply_background(resource_path, background):
@@ -120,26 +139,32 @@ def apply_background(resource_path, background):
         original = target.read_bytes()
         entries = read_resources(target)
         updated = update_background(entries, background)
-        if updated == entries:
+        backup = Path(str(target) + '.backup')
+        previous_backup = backup.read_bytes() if backup.exists() else None
+        state = _read_state(target)
+        same_generation = (state is not None and previous_backup is not None
+                           and _digest(previous_backup) == state['baseline']
+                           and _digest(original) in (state['baseline'], state['published']))
+        if updated == entries and same_generation:
             return
+        # An external replacement (for example an RPM upgrade) establishes a
+        # new baseline. Never use an unverified legacy backup to downgrade it.
+        baseline = previous_backup if same_generation else original
         # The candidate and backup staging files share the destination filesystem.
         with tempfile.TemporaryDirectory(prefix='.gpupdate-', dir=target.parent) as staging:
             candidate = Path(staging) / 'theme.gresource'
             compile_resources(updated, Path(temporary), candidate)
             if target.read_bytes() != original:
                 raise RuntimeError('GDM resource changed during preparation')
-            backup = Path(str(target) + '.backup')
-            if not backup.exists():
-                staged_backup = Path(staging) / 'original.gresource'
-                shutil.copy2(target, staged_backup)
-                with staged_backup.open('rb') as stream:
-                    os.fsync(stream.fileno())
-                # Exclusive publication keeps the first backup on repeated runs.
-                try:
-                    os.link(staged_backup, backup)
-                except FileExistsError:
-                    pass
-            _publish(candidate, target, original)
+            published = candidate.read_bytes()
+            state = {'baseline': _digest(baseline), 'published': _digest(published)}
+            companions = {backup: baseline,
+                          _state_path(target): json.dumps(state).encode('utf-8')}
+            if previous_backup is not None and previous_backup != baseline:
+                history = Path(str(backup) + '.' + _digest(previous_backup))
+                if not history.exists():
+                    companions[history] = previous_backup
+            _publish(candidate, target, original, companions)
 
 
 def restore_background(resource_path):
@@ -148,7 +173,16 @@ def restore_background(resource_path):
         backup = Path(str(target) + '.backup')
         original = target.read_bytes()
         read_resources(backup)  # Refuse to publish an invalid/incomplete backup.
+        baseline = backup.read_bytes()
+        if original == baseline:
+            return
+        state = _read_state(target)
+        if (state is None or state['baseline'] != _digest(baseline)
+                or state['published'] != _digest(original)):
+            raise ValueError('GDM backup does not belong to the installed resource generation')
         with tempfile.TemporaryDirectory(prefix='.gpupdate-', dir=target.parent) as staging:
             candidate = Path(staging) / 'theme.gresource'
             shutil.copyfile(backup, candidate)
-            _publish(candidate, target, original)
+            state['published'] = state['baseline']
+            _publish(candidate, target, original,
+                     {_state_path(target): json.dumps(state).encode('utf-8')})

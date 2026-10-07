@@ -77,6 +77,32 @@ class GDMResourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             resource.update_background(incomplete, self.background)
 
+    def test_upgrade_establishes_new_restore_generation(self):
+        resource.apply_background(self.target, self.background)
+        generation_two = dict(self.entries)
+        generation_two['/org/gnome/shell/theme/new-binary'] = b'\x00new package generation'
+        resource.compile_resources(generation_two, self.directory, self.target)
+        upgraded = self.target.read_bytes()
+        with self.assertRaises(ValueError):
+            resource.restore_background(self.target)
+        self.assertEqual(self.target.read_bytes(), upgraded)
+        resource.apply_background(self.target, self.background)
+        self.assertEqual(Path(str(self.target) + '.backup').read_bytes(), upgraded)
+        resource.restore_background(self.target)
+        self.assertEqual(self.target.read_bytes(), upgraded)
+        self.assertEqual(resource.read_resources(self.target), generation_two)
+
+    def test_legacy_unverified_backup_cannot_downgrade_current_resource(self):
+        old = Path(str(self.target) + '.backup')
+        old.write_bytes(self.original)
+        updated = dict(self.entries)
+        updated['/new/asset'] = b'new'
+        resource.compile_resources(updated, self.directory, self.target)
+        current = self.target.read_bytes()
+        with self.assertRaises(ValueError):
+            resource.restore_background(self.target)
+        self.assertEqual(self.target.read_bytes(), current)
+
     def test_concurrent_updates_keep_original_backup(self):
         other = self.directory / 'second.png'
         other.write_bytes(b'other image')
