@@ -48,9 +48,10 @@ class MachineRunTestCase(unittest.TestCase):
             old_cache = os.environ.get('KRB5CCNAME')
             os.environ['KRB5CCNAME'] = 'FILE:/old/cache'
             try:
-                result = gpupdate_machine_run.run(
-                    ['smbclient', '-k'], 'samba', runtime_dir,
-                )
+                with patch.object(gpupdate_machine_run, '_stop_process_group'):
+                    result = gpupdate_machine_run.run(
+                        ['smbclient', '-k'], 'samba', runtime_dir,
+                    )
             finally:
                 if old_cache is None:
                     os.environ.pop('KRB5CCNAME', None)
@@ -71,7 +72,7 @@ class MachineRunTestCase(unittest.TestCase):
         handlers = {}
         process = MagicMock()
 
-        def wait():
+        def wait(*args, **kwargs):
             handlers[signal.SIGTERM](signal.SIGTERM, None)
             return -signal.SIGTERM
 
@@ -85,7 +86,8 @@ class MachineRunTestCase(unittest.TestCase):
             return previous
 
         with tempfile.TemporaryDirectory() as runtime_dir:
-            with patch(
+            with patch.object(gpupdate_machine_run, '_stop_process_group'), \
+                 patch.object(gpupdate_machine_run.os, 'killpg') as killpg, patch(
                 'gpoa_lib.util.machine_run.signal.signal',
                 side_effect=set_signal,
             ):
@@ -94,4 +96,4 @@ class MachineRunTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(result, 128 + signal.SIGTERM)
-        process.send_signal.assert_called_once_with(signal.SIGTERM)
+        killpg.assert_called_once_with(process.pid, signal.SIGTERM)

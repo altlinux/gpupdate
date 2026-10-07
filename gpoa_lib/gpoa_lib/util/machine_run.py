@@ -15,6 +15,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 from .config import GPConfig
 from .kerberos import machine_kinit, forget_machine_cache
@@ -55,6 +56,48 @@ def _parse_arguments(argv):
     return args
 
 
+def _signal_group(child, signum):
+    try:
+        os.killpg(child.pid, signum)
+    except ProcessLookupError:
+        pass
+
+
+def _stop_process_group(child, grace=3):
+    # Descendants inherit this owned session. Stop them before destroying its
+    # credentials, even if the immediate shell has already exited.
+    _signal_group(child, signal.SIGTERM)
+    deadline = time.monotonic() + grace
+    while time.monotonic() < deadline:
+        child.poll()
+        try:
+            os.killpg(child.pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.05)
+    _signal_group(child, signal.SIGKILL)
+    child.wait(timeout=3)
+    deadline = time.monotonic() + 3
+    while _group_has_live_members(child.pid):
+        if time.monotonic() >= deadline:
+            raise RuntimeError('Command group did not stop after SIGKILL')
+        time.sleep(0.02)
+
+
+def _group_has_live_members(group):
+    for name in os.listdir('/proc'):
+        if not name.isdecimal():
+            continue
+        try:
+            with open('/proc/{}/stat'.format(name)) as stream:
+                fields = stream.read().rsplit(') ', 1)[1].split()
+            if int(fields[2]) == group and fields[0] not in ('Z', 'X'):
+                return True
+        except (OSError, ValueError, IndexError):
+            continue
+    return False
+
+
 def run(command, backend, config_dir='/run'):
     original_cache = os.environ.get('KRB5CCNAME')
     runtime_dir = tempfile.mkdtemp(prefix='gpupdate-machine-', dir=config_dir)
@@ -65,8 +108,8 @@ def run(command, backend, config_dir='/run'):
     def forward_signal(signum, _frame):
         nonlocal interrupted
         interrupted = signum
-        if child is not None and child.poll() is None:
-            child.send_signal(signum)
+        if child is not None:
+            _signal_group(child, signum)
 
     handled_signals = [signal.SIGINT, signal.SIGTERM]
     if hasattr(signal, 'SIGHUP'):
@@ -91,23 +134,35 @@ def run(command, backend, config_dir='/run'):
 
         child_env = os.environ.copy()
         child_env['KRB5CCNAME'] = 'FILE:{}'.format(cache_path)
-        child = subprocess.Popen(command, env=child_env)
-        return_code = child.wait()
+        child = subprocess.Popen(command, env=child_env, start_new_session=True)
+        while True:
+            if interrupted is not None:
+                return_code = 128 + interrupted
+                break
+            try:
+                return_code = child.wait(timeout=0.2)
+                break
+            except subprocess.TimeoutExpired:
+                continue
         if interrupted is not None:
             return_code = 128 + interrupted
+        elif return_code < 0:
+            return_code = 128 - return_code
         return return_code
     finally:
-        for signum, handler in signal_handlers.items():
-            signal.signal(signum, handler)
-        if child is not None and child.poll() is None:
-            child.terminate()
-            child.wait()
-        _destroy_cache(cache_path)
-        shutil.rmtree(runtime_dir, ignore_errors=True)
-        if original_cache is None:
-            os.environ.pop('KRB5CCNAME', None)
-        else:
-            os.environ['KRB5CCNAME'] = original_cache
+        try:
+            if child is not None:
+                _stop_process_group(child)
+        finally:
+            child = None
+            _destroy_cache(cache_path)
+            shutil.rmtree(runtime_dir, ignore_errors=True)
+            if original_cache is None:
+                os.environ.pop('KRB5CCNAME', None)
+            else:
+                os.environ['KRB5CCNAME'] = original_cache
+            for signum, handler in signal_handlers.items():
+                signal.signal(signum, handler)
 
 
 def main(argv=None):
