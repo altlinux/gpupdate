@@ -61,6 +61,7 @@ class file_applier(applier_frontend):
                 continue
             element_type = get_element_type_name(file)
             file_dict = dict(file)
+            self.state_manager.restore_file_targets(file_dict, file)
             apply_once = getattr(file, 'apply_once', False)
             bypass_errors = getattr(file, 'bypass_errors', False)
             uid = getattr(file, 'uid', 'unknown')
@@ -124,6 +125,7 @@ class file_applier_user(DualContextApplier):
                 continue
             element_type = get_element_type_name(file)
             file_dict = dict(file)
+            self.state_manager.restore_file_targets(file_dict, file)
             apply_once = getattr(file, 'apply_once', False)
             bypass_errors = getattr(file, 'bypass_errors', False)
             uid = getattr(file, 'uid', 'unknown')

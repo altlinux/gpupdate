@@ -50,6 +50,8 @@ def remove_dir_tree(path, delete_files=False, delete_folder=False, delete_sub_fo
 def _remove_at(parent, name, path, files, folder, subfolders, top=False):
     info = os.stat(name, dir_fd=parent, follow_symlinks=False)
     if not stat.S_ISDIR(info.st_mode):
+        if top and not stat.S_ISLNK(info.st_mode):
+            raise NotADirectoryError(str(path))
         if (folder if top else files):
             os.unlink(name, dir_fd=parent)
             return []

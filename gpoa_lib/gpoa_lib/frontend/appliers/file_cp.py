@@ -45,6 +45,9 @@ import tempfile
 class Files_cp:
     def __init__(self, file_obj, file_cache, exe_check, username=None, secure_permissions=True):
         self.file_cache = file_cache
+        self.file_obj = file_obj
+        self.managed_targets = list(getattr(file_obj, 'managed_targets', []))
+        file_obj.managed_targets = list(self.managed_targets)
         self.exe_check = exe_check
         self.secure_permissions = secure_permissions
         targetPath = expand_windows_var(file_obj.targetPath, username).replace('\\', '/')
@@ -66,7 +69,8 @@ class Files_cp:
         if self.fromPath:
             if targetPath[-1] == '/' or self.is_pattern(Path(self.fromPath).name):
                 self.isTargetPathDirectory = True
-            self.get_list_files()
+            if self.action != FileAction.DELETE:
+                self.get_list_files()
         if self.action != FileAction.DELETE and not self.fromPathFiles:
             raise FileNotFoundError('No source files found for {}'.format(self.fromPath))
         self.act()
@@ -190,6 +194,7 @@ class Files_cp:
                         group_name = grp.getgrgid(self.pw.pw_gid).gr_name
                         chown_home_path(targetFile, username=self.username, group=group_name)
                     self.set_mod_file(targetFile, fromFile)
+                    self._record_target(targetFile)
                     logdata['File'] = targetFile
                     log('D191', logdata)
             except Exception as exc:
@@ -234,6 +239,7 @@ class Files_cp:
                     group_name = grp.getgrgid(self.pw.pw_gid).gr_name
                     chown_home_path(targetFile, username=self.username, group=group_name)
                 self.set_mod_file(targetFile, fromFile)
+                self._record_target(targetFile)
                 logdata['File'] = targetFile
                 log('D192', logdata)
             except Exception as exc:
@@ -268,8 +274,15 @@ class Files_cp:
                     group = grp.getgrgid(self.pw.pw_gid).gr_name
                     chown_home_path(target, self.username, group)
                 self.set_mod_file(target, source)
+                self._record_target(target)
             finally:
                 staged.unlink(missing_ok=True)
+
+    def _record_target(self, target):
+        path = str(target.absolute())
+        if path not in self.managed_targets:
+            self.managed_targets.append(path)
+        self.file_obj.managed_targets = list(self.managed_targets)
 
     def is_pattern(self, name):
         if name.find('*') != -1 or name.find('?') != -1:

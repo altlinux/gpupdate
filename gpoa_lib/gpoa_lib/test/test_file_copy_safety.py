@@ -15,6 +15,8 @@ class FileCopySafetyTests(unittest.TestCase):
             item.fromPath = '/source/file'
             item.fromPathFiles = [item.fromPath]
             item.username = 'alice'
+            item.file_obj = SimpleNamespace()
+            item.managed_targets = []
             item.pw = SimpleNamespace(pw_gid=1000)
             item.get_target_file = Mock(return_value=item.targetPath / 'file')
             item.copy_target_file = Mock()

@@ -129,6 +129,15 @@ def find_gpo_removed_elements(
     return removed
 
 
+def _same_preference(previous, current):
+    # Never borrow known state from another GPO. Legacy identity-less records
+    # remain compatible only with another identity-less record.
+    return (bool(current.get('uid')) and previous.get('uid') == current.get('uid')
+            and str(previous.get('policy_guid') or '').casefold()
+            == str(current.get('policy_guid') or '').casefold()
+            and bool(previous.get('merged_machine')) == bool(current.get('merged_machine')))
+
+
 def is_element_applied(element: Dict, element_type: str, username: str = None) -> bool:
     '''
     Check if an element with applyOnce has already been applied.
@@ -152,7 +161,7 @@ def is_element_applied(element: Dict, element_type: str, username: str = None) -
     log('D251', logdata)
 
     for prev_elem in previous:
-        if prev_elem.get('uid') == elem_uid:
+        if _same_preference(prev_elem, element):
             applied = prev_elem.get('applied')
             logdata = {'uid': elem_uid, 'applied': applied}
             log('D252', logdata)
@@ -273,6 +282,14 @@ class GppStateManager:
             self._record_marker(element, element_type)
         return skipped
 
+    def restore_file_targets(self, element, element_obj):
+        for previous in self.get_previous('Files'):
+            if _same_preference(previous, element):
+                paths = previous.get('managed_targets', [])
+                if isinstance(paths, list) and all(isinstance(p, str) for p in paths):
+                    element_obj.managed_targets = list(paths)
+                return
+
     def mark_applied(self, element: Dict, element_type: str, element_obj=None) -> None:
         '''
         Mark element as applied.
@@ -289,6 +306,7 @@ class GppStateManager:
         self.applied_markers.append({
             'type': element_type, 'uid': element.get('uid'),
             'policy_guid': element.get('policy_guid'), 'applied': element['applied'],
+            'merged_machine': bool(element.get('merged_machine')),
         })
 
     def cleanup_removed(self, element_type: str, current: List[Dict],
@@ -344,6 +362,7 @@ def merge_applied_markers(markers):
         for obj in getattr(Dconf_registry, attribute):
             if (getattr(obj, 'uid', None) == marker['uid']
                     and getattr(obj, 'policy_guid', None) == marker.get('policy_guid')
+                    and bool(getattr(obj, 'merged_machine', False)) == bool(marker.get('merged_machine'))
                     and getattr(obj, 'apply_once', False)):
                 obj.applied = marker['applied']
 
@@ -369,10 +388,30 @@ def cleanup_file(element: Dict, username: str = None) -> None:
 
     target_path = Path(target_dir)
 
+    managed = element.get('managed_targets')
+    if managed is not None:
+        if not isinstance(managed, list):
+            raise ValueError('Invalid managed file manifest')
+        from ..frontend.appliers.folder import str2bool
+        source = element.get('fromPath', '').replace('\\', '/')
+        directory = target_dir.endswith('/') or any(c in os.path.basename(source) for c in '*?') or target_path.is_dir()
+        effective = hidden_target(target_path, str2bool(element.get('hidden')))
+        for value in managed:
+            path = Path(value)
+            # Restrict persisted paths to this preference's effective target.
+            if not path.is_absolute() or (path.parent != target_path if directory else path != effective):
+                raise ValueError('Managed file is outside the preference target')
+            if path.is_file() or path.is_symlink():
+                path.unlink()
+        return
+
     from ..frontend.appliers.folder import str2bool
     import fnmatch
     source = element.get('fromPath', '').replace('\\', '/')
     basename = os.path.basename(source)
+    if any(c in basename for c in '*?'):
+        # Old snapshots cannot prove which wildcard members were managed.
+        return
     is_directory = target_dir.endswith('/') or any(c in basename for c in '*?') or target_path.is_dir()
     if is_directory:
         if not basename or not target_path.is_dir():
