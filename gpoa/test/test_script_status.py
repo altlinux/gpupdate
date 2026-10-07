@@ -29,3 +29,15 @@ class ScriptStatusTest(unittest.TestCase):
                 self.module, 'Scripts_runner', return_value=Mock(failed=1)):
             self.assertEqual(0, self.module.main([]))
             self.assertEqual(1, self.module.main(['--fail-on-error']))
+
+    def test_argument_failure_counts_and_later_command_remains(self):
+        runner = self.module.Scripts_runner.__new__(self.module.Scripts_runner)
+        runner.failed = 0
+        runner.list_with_all_commands = []
+        runner.read_args = Mock(side_effect=OSError('arguments unreadable'))
+        runner.fill_list_cmd(['00000_first', '00000_first.arg', '00001_second'])
+        self.assertEqual(runner.failed, 1)
+        self.assertEqual(runner.list_with_all_commands, [['00001_second']])
+        with patch.object(self.module, 'wait_for_process'), patch.object(self.module, 'Scripts_runner', return_value=runner):
+            self.assertEqual(self.module.main(['--fail-on-error']), 1)
+            self.assertEqual(self.module.main([]), 0)

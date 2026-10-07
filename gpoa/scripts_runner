@@ -97,7 +97,9 @@ class Scripts_runner:
                     for it_arg in arg.split():
                         self.list_with_all_commands[-1].append(it_arg)
                 except Exception as exc:
-                    print('Argument read for {}: {}'.format(self.list_with_all_commands.pop(), exc))
+                    self.failed += 1
+                    command = self.list_with_all_commands.pop() if self.list_with_all_commands else file_in_task_dir
+                    print('Argument read for {}: {}'.format(command, exc))
             else:
                 cmd = []
                 cmd.append(file_in_task_dir)
