@@ -46,3 +46,24 @@ class RotationTests(unittest.TestCase):
             self.assertTrue(item.update_laps_password())
             self.assertFalse(item._pending_rotation_path().exists())
             item._perform_post_action.assert_not_called()
+
+    def test_post_login_intent_survives_ldap_and_local_failures(self):
+        for stage in ('ldap', 'local'):
+            with TemporaryDirectory() as directory:
+                item = self.make_applier()
+                item._pending_rotation_path = Mock(return_value=Path(directory) / 'pending')
+                item._is_password_expired = Mock(return_value=False)
+                item._check_post_login_action = Mock(return_value=(True, True))
+                item._generate_password = Mock(return_value='secret')
+                item._create_password_blob = Mock(return_value=b'encrypted')
+                item._update_ldap_password = Mock(return_value=stage != 'ldap')
+                item._change_user_password = Mock(return_value=stage != 'local')
+                item._perform_post_action = Mock()
+                self.assertFalse(item.update_laps_password())
+                item._check_post_login_action.return_value = (False, False)
+                self.assertEqual(item._should_update_password(), (True, True))
+                item._update_ldap_password.return_value = True
+                item._change_user_password.return_value = True
+                self.assertTrue(item.update_laps_password())
+                item._perform_post_action.assert_called_once()
+                self.assertFalse(item._pending_rotation_path().exists())

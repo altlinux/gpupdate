@@ -644,7 +644,13 @@ class laps_applier(applier_frontend):
         """
         # A previous LDAP-first rotation may not have reached the local account.
         if self._pending_rotation_path().exists():
-            return True, False
+            try:
+                state = json.loads(self._pending_rotation_path().read_text())
+                return True, state['perform_post_action'] is True
+            except (ValueError, KeyError, TypeError):
+                # Old markers contain no intent. Re-evaluate the current
+                # post-login requirement rather than suppressing it forever.
+                return True, self._check_post_login_action()[1]
         # Check if password has expired
         if not self._is_password_expired():
             # Password not expired, check if post-login action needed
@@ -754,10 +760,9 @@ class laps_applier(applier_frontend):
         pending = self._pending_rotation_path()
         try:
             pending.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-            with pending.open('a') as marker:
-                os.fchmod(marker.fileno(), 0o600)
-                marker.flush()
-                os.fsync(marker.fileno())
+            from ..util.atomic_files import publish_files
+            state = json.dumps({'perform_post_action': bool(perform_post_action)}).encode('utf-8')
+            publish_files({pending: state}, mode=0o600)
         except OSError as exc:
             log('W27', {'exc': exc})
             return False
