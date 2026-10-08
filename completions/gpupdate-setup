@@ -1,16 +1,65 @@
+_gpupdate_setup_local_policies()
+{
+    local policy
+    while IFS= read -r policy; do
+        [[ -n $policy && $policy == "$cur"* ]] && COMPREPLY+=("$policy")
+    done < <(gpupdate-setup list 2>/dev/null)
+}
+
 _gpupdate-setup()
 {
     local cur prev words cword split
     _init_completion -s || return
 
-    case $prev in
-        set-backend)
-            COMPREPLY=($(compgen -W 'local samba' -- "$cur"))
-            return
+    if ((cword == 1)); then
+        COMPREPLY=($(compgen -W 'list list-backends status enable disable update write set-backend default-policy active-policy active-backend --help -h' -- "$cur"))
+        return
+    fi
+    [[ $prev == -h || $prev == --help ]] && return
+
+    case ${words[1]} in
+        enable|update)
+            case $prev in
+                --backend)
+                    COMPREPLY=($(compgen -W 'local samba freeipa' -- "$cur"))
+                    return
+                    ;;
+                --local-policy)
+                    _gpupdate_setup_local_policies
+                    return
+                    ;;
+            esac
+            [[ $split == true ]] && return
+            COMPREPLY=($(compgen -W '--local-policy --backend --help -h' -- "$cur"))
             ;;
-        *)
-            COMPREPLY=($(compgen -W 'list list-backends status enable disable update write set-backend default-policy active-policy active-backend' -- "$cur"))
-            return
+        set-backend)
+            if [[ $cur == -* ]]; then
+                COMPREPLY=($(compgen -W '--help -h' -- "$cur"))
+            elif ((cword == 2)); then
+                COMPREPLY=($(compgen -W 'local samba freeipa' -- "$cur"))
+            fi
+            ;;
+        write)
+            if [[ $cur == -* ]]; then
+                COMPREPLY=($(compgen -W '--help -h' -- "$cur"))
+                return
+            fi
+            case $cword in
+                2)
+                    COMPREPLY=($(compgen -W 'enable disable' -- "$cur"))
+                    ;;
+                3)
+                    [[ ${words[2]} == enable || ${words[2]} == disable ]] &&
+                        _gpupdate_setup_local_policies
+                    ;;
+                4)
+                    [[ ${words[2]} == enable || ${words[2]} == disable ]] &&
+                        COMPREPLY=($(compgen -W 'local samba freeipa' -- "$cur"))
+                    ;;
+            esac
+            ;;
+        list|list-backends|status|disable|default-policy|active-policy|active-backend)
+            COMPREPLY=($(compgen -W '--help -h' -- "$cur"))
             ;;
     esac
 }
