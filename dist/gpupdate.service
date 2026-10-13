@@ -1,8 +1,8 @@
 [Unit]
 Description=Group policy update for machine
-After=syslog.target network-online.target sssd.service oddjobd.service
-Wants=oddjobd.service
-Before=systemd-logind.service
+After=syslog.target network-online.target sssd.service oddjobd.service systemd-logind.service
+Wants=oddjobd.service systemd-logind.service
+Before=display-manager.service
 
 [Service]
 Environment=PATH=/bin:/sbin:/usr/bin:/usr/sbin
