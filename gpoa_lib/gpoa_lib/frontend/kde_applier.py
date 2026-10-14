@@ -108,10 +108,13 @@ class kde_applier_user(DualContextApplier):
         try:
             for setting in self.kde_settings:
                 file_name = setting.keyname.split("/")[-2]
+                section = setting.keyname.split("/")[-1]
                 if file_name == 'wallpaper':
-                    data = setting.data
-                    break
-            self.file_cache.store(data)
+                    self.file_cache.store(setting.data)
+                if (file_name, section, setting.valuename) == ('kscreenlockerrc',
+                                                               'Greeter)(Wallpaper)(org.kde.image)(General',
+                                                               'Image'):
+                    self.file_cache.store(setting.data)
         except Exception as exc:
             logdata = {'exc': exc}
 
@@ -188,6 +191,12 @@ def create_dict(kde_settings, all_kde_settings, locks_settings, locks_dict, file
                 if file_name == 'wallpaper':
                     apply_for_wallpaper(data, file_cache, username, plasmaupdate)
                 else:
+                    if (file_name, section, value) == ('kscreenlockerrc',
+                                                       'Greeter)(Wallpaper)(org.kde.image)(General',
+                                                       'Image') and file_cache is not None:
+                        resolved = file_cache.get(data)
+                        if resolved:
+                            data = resolved
                     all_kde_settings.setdefault(file_name, {}).setdefault(section, {})[value] = data
             except Exception as exc:
                 logdata = {'file_name': file_name,
