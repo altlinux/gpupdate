@@ -214,7 +214,7 @@ class DMApplier(FrontendPlugin):
         if not isinstance(source, str) or not source.strip():
             raise ValueError('Invalid display manager background path')
         normalized = source.replace('\\', '/')
-        if normalized.startswith('//'):
+        if normalized.startswith(('//', 'smb://')):
             if self.file_cache is None:
                 raise ValueError('No file cache available for the background')
             self.file_cache.store(normalized, checked=True)
